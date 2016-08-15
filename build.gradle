@@ -5,13 +5,9 @@ buildscript {
             name = "Modmuss50"
             url = "http://maven.modmuss50.me/"
         }
-        ivy {
-            name "ChorusGradle-Temporary"
-            artifactPattern "http://modmuss50.me:8080/job/ChorusGradle/lastSuccessfulBuild/artifact/build/libs/[module]-[revision].[ext]"
-        }
     }
     dependencies {
-        classpath name: "ChorusGradle", version: "0.0.1.3"
+        classpath group: "chorusmc", name: "ChorusGradle", version: "0.0.1.+"
     }
 }
 apply plugin: 'chorus.gradle'
