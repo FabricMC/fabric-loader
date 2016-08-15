@@ -26,7 +26,11 @@ targetCompatibility = 1.8
 group = 'chorusmc'
 archivesBaseName = project.name.toLowerCase()
 description = 'The base component to the Chorus Mod Loader'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1'
+def ENV = System.getenv()
+if (ENV.BUILD_NUMBER) {
+    version = version + "." + "${System.getenv().BUILD_NUMBER}"
+}
 ext.url = 'https://github.com/ChorusMC/chorus-base'
 
 repositories {
