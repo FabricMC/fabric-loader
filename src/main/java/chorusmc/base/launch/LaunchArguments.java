@@ -1,13 +1,10 @@
-package chorusmc.base;
+package chorusmc.base.launch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Mark on 12/08/2016.
- */
 public class LaunchArguments {
     private Map<String, String> arguments = new HashMap<>();
 

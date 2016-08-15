@@ -1,4 +1,4 @@
-package chorusmc.base;
+package chorusmc.base.launch;
 
 import com.google.gson.GsonBuilder;
 import com.mojang.authlib.Agent;
@@ -11,9 +11,6 @@ import net.minecraft.launchwrapper.Launch;
 import java.io.File;
 import java.net.Proxy;
 
-/**
- * Created by Mark on 12/08/2016.
- */
 public class ClientStart {
     public static void main(String[] args) {
         File file = new File(".gradle/minecraft/natives/");
@@ -48,7 +45,7 @@ public class ClientStart {
 
         arguments.addArgument("version", "16w32b");
         arguments.addArgument("assetIndex", "16w32b");
-        arguments.addArgument("tweakClass", MixinTweaker.class.getName());
+        arguments.addArgument("tweakClass", ChorusTweaker.class.getName());
 
         if (!arguments.containsArgument("accessToken")) {
             arguments.addArgument("accessToken", "ChorusMC");

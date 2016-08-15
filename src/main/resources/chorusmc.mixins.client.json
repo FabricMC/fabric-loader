@@ -1,9 +1,10 @@
 {
   "required": true,
-  "package": "chorusmc.base.mixin",
+  "package": "chorusmc.base.mixin.client",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinGuiMainMenu"
+    "gui.impl.MixinGuiMain",
+    "MixinClientBrandRetriever"
   ],
   "injectors": {
     "defaultRequire": 1

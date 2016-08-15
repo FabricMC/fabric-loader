@@ -1,4 +1,4 @@
-package chorusmc.base;
+package chorusmc.base.launch;
 
 import net.minecraft.client.main.Main;
 import net.minecraft.launchwrapper.ITweaker;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MixinTweaker implements ITweaker {
+public class ChorusTweaker implements ITweaker {
 
     private Map<String, String> args;
 
@@ -45,13 +45,13 @@ public class MixinTweaker implements ITweaker {
             }
         }
         MixinBootstrap.init();
-        Mixins.addConfiguration("chorusmc.mixins.json");
+        Mixins.addConfiguration("chorusmc.mixins.client.json");
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
     @Override
     public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-        System.out.println("hello");
+
     }
 
     @Override
