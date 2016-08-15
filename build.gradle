@@ -2,52 +2,60 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            name = "Modmuss50"
-            url = "http://maven.modmuss50.me/"
+            name = 'Modmuss50'
+            url = 'http://maven.modmuss50.me/'
         }
     }
     dependencies {
 		classpath 'chorusmc:ChorusGradle:0.0.1.+'
     }
 }
+
+plugins {
+    id 'java'
+    id 'maven'
+
+    id 'idea'
+    id 'eclipse'
+}
 apply plugin: 'chorus.gradle'
 
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
-group 'chorus-base'
-version '0.0.1'
-sourceCompatibility = targetCompatibility = '1.8'
-
-minecraft {
-    version = "16w32b"
-}
+group = 'chorusmc'
+archivesBaseName = project.name.toLowerCase()
+description = 'The base component to the Chorus Mod Loader'
+version = '0.0.1-SNAPSHOT'
+ext.url = 'https://github.com/ChorusMC/chorus-base'
 
 repositories {
     mavenCentral()
     jcenter()
     maven {
-        name = "mojang"
-        url = "https://libraries.minecraft.net/"
+        name = 'mojang'
+        url = 'https://libraries.minecraft.net/'
     }
     maven {
-        name = "SpongePowered"
-        url = "http://repo.spongepowered.org/maven"
+        name = 'SpongePowered'
+        url = 'http://repo.spongepowered.org/maven'
     }
+}
+
+minecraft {
+    version = '16w32b'
 }
 
 dependencies {
     compile 'com.google.code.findbugs:jsr305:3.0.1'
-    compile ("net.minecraft:launchwrapper:1.11"){
+    compile ('net.minecraft:launchwrapper:1.11') {
         transitive = false
     }
-    compile  'org.ow2.asm:asm-debug-all:5.0.3'
-    compile  'com.typesafe:config:1.3.0'
-    compile("org.spongepowered:mixin:0.5.11-SNAPSHOT") {
-        exclude module: "launchwrapper"
-        exclude module: "guava"
+    compile 'org.ow2.asm:asm-debug-all:5.0.3'
+    compile 'com.typesafe:config:1.3.0'
+    compile('org.spongepowered:mixin:0.5.11-SNAPSHOT') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
     }
 	compile 'com.mojang:authlib:1.5.22'
 	compile files('.gradle/minecraft/16w32b-client-mapped.jar')
@@ -56,44 +64,47 @@ dependencies {
 uploadArchives {
     repositories {
         mavenDeployer {
-		if (project.hasProperty('mavenPass')){
-            repository(url: "http://mavenupload.modmuss50.me/") {
-                authentication(userName: "buildslave", password: project.getProperty('mavenPass'))
+            if (project.hasProperty('mavenPass')) {
+                repository(url: 'http://mavenupload.modmuss50.me/') {
+                    authentication(userName: 'buildslave', password: project.getProperty('mavenPass'))
+                }
+            } else {
+               repository(url: 'file:///var/www/maven/')
             }
-        }
-        else{ 
-           repository(url: "file:///var/www/maven/")
-        }
+
             pom {
-                groupId = "chorusmc"
-                version = project.version
                 artifactId = project.archivesBaseName
+
                 project {
-                    name project.name
-                    packaging 'jar'
-                    description 'chorus-base'
-                    url 'https://github.com/ChorusMC/chorus-base'
+                    name = project.name
+                    description = project.description
+                    packaging = 'jar'
+                    url = project.url
+
                     scm {
-                        url 'https://github.com/ChorusMC/chorus-base'
-                        connection 'scm:git:git@github.com:ChorusMC/chorus-base.git'
-                        developerConnection 'scm:git:git@github.com:ChorusMC/chorus-base.git'
+                        url = 'https://github.com/ChorusMC/chorus-base'
+                        connection = 'scm:git:git@github.com:ChorusMC/chorus-base.git'
+                        developerConnection = 'scm:git:git@github.com:ChorusMC/chorus-base.git'
                     }
+
                     issueManagement {
-                        system 'github'
-                        url 'https://github.com/ChorusMC/chorus-base/issues'
+                        system = 'GitHub'
+                        url = 'https://github.com/ChorusMC/chorus-base/issues'
                     }
+
                     licenses {
                         license {
-                            name 'License'
-                            url 'https://github.com/ChorusMC/chorus-base/blob/master/readme.txt'
-                            distribution 'repo'
+                            name = 'Apache License 2.0'
+                            url = 'https://github.com/ChorusMC/chorus-base/blob/master/LICENSE'
+                            distribution = 'repo'
                         }
                     }
+
                     developers {
                         developer {
-                            id 'modmuss50'
-                            name 'modmuss50'
-                            roles { role 'developer' }
+                            id = 'modmuss50'
+                            name = 'modmuss50'
+                            roles = { role 'developer' }
                         }
                     }
                 }
