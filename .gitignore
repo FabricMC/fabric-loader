@@ -13,3 +13,4 @@
 !/.gitattributes
 !/LICENSE
 !/gradlew.bat
+!/gradle.properties

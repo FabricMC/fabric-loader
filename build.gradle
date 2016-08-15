@@ -26,7 +26,7 @@ targetCompatibility = 1.8
 group = 'chorusmc'
 archivesBaseName = project.name.toLowerCase()
 description = 'The base component to the Chorus Mod Loader'
-version = '16w31b-0.0.1'
+version = minecraft_version + '-0.0.1'
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
     version = version + "." + "${System.getenv().BUILD_NUMBER}"
@@ -47,7 +47,7 @@ repositories {
 }
 
 minecraft {
-    version = '16w32b'
+    version = minecraft_version
 }
 
 dependencies {
@@ -62,7 +62,12 @@ dependencies {
         exclude module: 'guava'
     }
 	compile 'com.mojang:authlib:1.5.22'
-	compile files('.gradle/minecraft/16w32b-client-mapped.jar')
+	compile files('.gradle/minecraft/' + minecraft_version + '-client-mapped.jar')
+}
+
+jar {
+    from ".gradle/minecraft/mappings/"
+    from "gradle.properties"
 }
 
 uploadArchives {
