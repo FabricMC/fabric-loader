@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChorusTweaker implements ITweaker {
+public class ChorusClientTweaker implements ITweaker {
 
     private Map<String, String> args;
 

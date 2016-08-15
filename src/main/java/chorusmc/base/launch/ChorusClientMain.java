@@ -11,7 +11,8 @@ import net.minecraft.launchwrapper.Launch;
 import java.io.File;
 import java.net.Proxy;
 
-public class ClientStart {
+public class ChorusClientMain {
+
     public static void main(String[] args) {
         File file = new File(".gradle/minecraft/natives/");
         if (!file.exists()) {
@@ -45,13 +46,13 @@ public class ClientStart {
 
         arguments.addArgument("version", "16w32b");
         arguments.addArgument("assetIndex", "16w32b");
-        arguments.addArgument("tweakClass", ChorusTweaker.class.getName());
+        arguments.addArgument("tweakClass", ChorusClientTweaker.class.getName());
 
         if (!arguments.containsArgument("accessToken")) {
             arguments.addArgument("accessToken", "ChorusMC");
         }
 
         Launch.main(arguments.getArguments());
-
     }
+
 }
