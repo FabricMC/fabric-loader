@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "chorusmc.base.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinGuiMainMenu"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

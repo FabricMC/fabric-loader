@@ -1,0 +1,54 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name = "Modmuss50"
+            url = "http://maven.modmuss50.me/"
+        }
+        ivy {
+            name "ChorusGradle-Temporary"
+            artifactPattern "http://modmuss50.me:8080/job/ChorusGradle/lastSuccessfulBuild/artifact/build/libs/[module]-[revision].[ext]"
+        }
+    }
+    dependencies {
+        classpath name: "ChorusGradle", version: "0.0.1.3"
+    }
+}
+apply plugin: 'chorus.gradle'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+group 'chorus-base'
+version '0.0.1'
+sourceCompatibility = targetCompatibility = '1.8'
+
+minecraft {
+    version = "16w32b"
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        name = "mojang"
+        url = "https://libraries.minecraft.net/"
+    }
+    maven {
+        name = "SpongePowered"
+        url = "http://repo.spongepowered.org/maven"
+    }
+}
+
+dependencies {
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile ("net.minecraft:launchwrapper:1.11"){
+        transitive = false
+    }
+    compile  'org.ow2.asm:asm-debug-all:5.0.3'
+    compile  'com.typesafe:config:1.3.0'
+    compile("org.spongepowered:mixin:0.5.11-SNAPSHOT") {
+        exclude module: "launchwrapper"
+        exclude module: "guava"
+    }
+}
