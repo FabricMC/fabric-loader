@@ -1,16 +1,18 @@
+# Ignore everything
 /*
 
-# folders
+# Folders
 !/gradle
 !/src
 
-# files
-!/.gitignore
-!/README.md
-!/build.gradle
-!/gradlew
-!/settings.gradle
+# Files
 !/.gitattributes
-!/LICENSE
-!/gradlew.bat
+!/.gitignore
+!/build.gradle
 !/gradle.properties
+!/gradlew
+!/gradlew.bat
+!/HEADER
+!/LICENSE
+!/README.md
+!/settings.gradle
