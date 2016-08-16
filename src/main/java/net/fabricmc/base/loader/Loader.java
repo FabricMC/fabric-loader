@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -48,7 +49,18 @@ public class Loader {
 			if (f.isDirectory()) continue;
 			if (!f.getPath().endsWith(".jar")) continue;
 
-			ModInfo[] fileMods = loadMod(f);
+			ModInfo[] fileMods = getMods(f);
+
+			if (fileMods.length != 0) {
+				try {
+					Launch.classLoader.addURL(f.toURI().toURL());
+				} catch (MalformedURLException e) {
+					LOGGER.error("Unable to load mod from %s", f.getName());
+					e.printStackTrace();
+					continue;
+				}
+			}
+
 			for (ModInfo mod : fileMods) {
 				MODS.add(mod);
 				MOD_MAP.put(mod.getId(), mod);
@@ -128,10 +140,8 @@ public class Loader {
 		return modsDir.isDirectory();
 	}
 
-	private static ModInfo[] loadMod(File f) {
+	private static ModInfo[] getMods(File f) {
 		try {
-			Launch.classLoader.addURL(f.toURI().toURL());
-
 			JarFile jar = new JarFile(f);
 			ZipEntry entry = jar.getEntry("mod.json");
 			if (entry != null) {
