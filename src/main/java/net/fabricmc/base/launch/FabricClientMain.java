@@ -27,7 +27,7 @@ import net.minecraft.launchwrapper.Launch;
 import java.io.File;
 import java.net.Proxy;
 
-public class ChorusClientMain {
+public class FabricClientMain {
 
     public static void main(String[] args) {
         File file = new File(".gradle/minecraft/natives/");
@@ -62,7 +62,7 @@ public class ChorusClientMain {
 
         arguments.addArgument("version", "16w32b");
         arguments.addArgument("assetIndex", "16w32b");
-        arguments.addArgument("tweakClass", ChorusClientTweaker.class.getName());
+        arguments.addArgument("tweakClass", FabricClientTweaker.class.getName());
 
         if (!arguments.containsArgument("accessToken")) {
             arguments.addArgument("accessToken", "FabricMC");
