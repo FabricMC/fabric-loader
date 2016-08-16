@@ -2,12 +2,12 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            name = 'Fabic'
+            name = 'fabric'
             url = 'http://maven.fabricmc.net/'
         }
     }
     dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.0.1.+'
+		classpath 'net.fabricmc:fabric-loom:0.0.1-SNAPSHOT'
     }
 }
 
@@ -20,7 +20,7 @@ plugins {
 
     id 'net.minecrell.licenser' version '0.2.1'
 }
-apply plugin: 'fabric-loom'
+apply plugin: 'net.fabricmc.loom'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
