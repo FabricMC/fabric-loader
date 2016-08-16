@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.base.loader.Loader;
 import net.minecraft.client.main.Main;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
@@ -60,10 +61,14 @@ public class ChorusClientTweaker implements ITweaker {
                 this.args.put(arg, args.get(i + 1));
             }
         }
+
+        Loader.load(new File(gameDir, "mods"));
+
         MixinBootstrap.init();
         Mixins.addConfigurations(
                 "fabricmc.mixins.client.json",
                 "fabricmc.mixins.common.json");
+        Loader.getRequiredMixingConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
