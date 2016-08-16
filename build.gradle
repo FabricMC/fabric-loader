@@ -53,6 +53,7 @@ minecraft {
 }
 
 dependencies {
+    compile "com.github.zafarkhaja:java-semver:${jsemver_version}"
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile ('net.minecraft:launchwrapper:1.11') {
         transitive = false

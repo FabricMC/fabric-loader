@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.base.loader.Loader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -53,6 +54,17 @@ public class FabricClientTweaker implements ITweaker {
         if (!this.args.containsKey("--assetsDir") && assetsDir != null) {
             this.args.put("--assetsDir", assetsDir.getAbsolutePath());
         }
+        if (!this.args.containsKey("--accessToken")) {
+            this.args.put("--accessToken", "FabricMC");
+        }
+        for (int i = 0; i < args.size(); i++) {
+            String arg = args.get(i);
+            if (arg.startsWith("--")) {
+                this.args.put(arg, args.get(i + 1));
+            }
+        }
+
+        Loader.load(new File(gameDir, "mods"));
 
         // Add Mixin tweaker
         ((List<String>) Launch.blackboard.get("TweakClasses")).add("org.spongepowered.asm.launch.MixinTweaker");
@@ -62,6 +74,7 @@ public class FabricClientTweaker implements ITweaker {
         Mixins.addConfigurations(
                 "fabricmc.mixins.client.json",
                 "fabricmc.mixins.common.json");
+        Loader.getRequiredMixingConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
