@@ -31,7 +31,7 @@ import java.util.zip.ZipEntry;
 
 public class Loader {
 
-	private static final Logger LOGGER = LogManager.getFormatterLogger("Chorus|Loader");
+	private static final Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 	private static final Gson GSON = new GsonBuilder().registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer()).registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer()).create();
 	private static final JsonParser JSON_PARSER = new JsonParser();
 
