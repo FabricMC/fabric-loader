@@ -79,14 +79,14 @@ public class Loader {
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
 							MODS.add(mod);
-							MOD_MAP.put(mod.getId(), mod);
+							MOD_MAP.put(mod.getGroup() + "." + mod.getId(), mod);
 						}
 					}
 				}
 				continue mods;
 			}
 			MODS.add(mod);
-			MOD_MAP.put(mod.getId(), mod);
+			MOD_MAP.put(mod.getGroup() + "." + mod.getId(), mod);
 		}
 
 		checkDependencies();
@@ -98,6 +98,14 @@ public class Loader {
 				.map(ModInfo::getMixinConfig)
 				.filter(s -> s != null && !s.isEmpty())
 				.collect(Collectors.toSet());
+	}
+
+	public static boolean isModLoaded(String group, String id) {
+		return MOD_MAP.containsKey(group + "." + id);
+	}
+
+	public static List<ModInfo> getMods() {
+		return MODS;
 	}
 
 	private static void checkDependencies() {
@@ -119,7 +127,7 @@ public class Loader {
 						}
 					}
 //					TODO: for official modules, query/download from maven
-					throw new DependencyException(String.format("Mod %s:%s requires dependency %s @ %s", mod.getGroup(), mod.getId(), depId, String.join(", ", dep.getVersionMatchers())));
+					throw new DependencyException(String.format("Mod %s.%s requires dependency %s @ %s", mod.getGroup(), mod.getId(), depId, String.join(", ", dep.getVersionMatchers())));
 				}
 			}
 		}
