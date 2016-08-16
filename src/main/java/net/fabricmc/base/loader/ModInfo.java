@@ -22,6 +22,7 @@ import net.shadowfacts.shadowlib.version.VersionMatcher;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,7 +40,7 @@ public class ModInfo {
 	private String title = "";
 	private String description = "";
 	private Links links = Links.EMPTY;
-	private Dependency[] dependencies = new Dependency[0];
+	private DependencyMap dependencies = new DependencyMap();
 	private Person[] authors = new Person[0];
 	private Person[] contributors = new Person[0];
 	private String license = "";
@@ -76,7 +77,7 @@ public class ModInfo {
 		return links;
 	}
 
-	public Dependency[] getDependencies() {
+	public DependencyMap getDependencies() {
 		return dependencies;
 	}
 
@@ -113,46 +114,43 @@ public class ModInfo {
 		}
 	}
 
+	public static class DependencyMap extends HashMap<String, Dependency> {
+
+	}
+
 	public static class Dependency {
 
-		private boolean required;
-		private String group;
-		private String id;
 		private String[] versionMatchers;
+		private boolean required;
+		private boolean clientOnly;
 
-		public Dependency(boolean required, String group, String id, String[] versionMatchers) {
-			this.required = required;
-			this.group = group;
-			this.id = id;
+		public Dependency(String[] versionMatchers, boolean required, boolean clientOnly) {
 			this.versionMatchers = versionMatchers;
-		}
-
-		public boolean isRequired() {
-			return required;
-		}
-
-		public String getGroup() {
-			return group;
-		}
-
-		public String getId() {
-			return id;
+			this.required = required;
+			this.clientOnly = clientOnly;
 		}
 
 		public String[] getVersionMatchers() {
 			return versionMatchers;
 		}
 
+		public boolean isRequired() {
+			return required;
+		}
+
+		public boolean isClientOnly() {
+			return clientOnly;
+		}
+
 		public boolean satisfiedBy(ModInfo info) {
-			if (required && group.equals(info.group) && id.equals(info.id)) {
+			if (required) {
 				for (String s : versionMatchers) {
 					if (!VersionMatcher.matches(s, info.version)) {
 						return false;
 					}
 				}
-				return true;
 			}
-			return false;
+			return true;
 		}
 
 		public static class Deserializer implements JsonDeserializer<Dependency> {
@@ -162,9 +160,8 @@ public class ModInfo {
 				if (element.isJsonObject()) {
 					JsonObject object = element.getAsJsonObject();
 
-					boolean required = true;
-					String group, id;
 					String[] versionMatchers;
+					boolean required = true, clientOnly = false;
 
 					if (object.has("required")) {
 						JsonElement requiredEl = object.get("required");
@@ -175,44 +172,33 @@ public class ModInfo {
 						}
 					}
 
-					JsonElement identifierEl = object.get("id");
-					if (identifierEl.isJsonArray()) {
-						JsonArray array = identifierEl.getAsJsonArray();
-						if (array.size() == 3) {
-							JsonElement part0 = array.get(0);
-							JsonElement part1 = array.get(1);
-							JsonElement part2 = array.get(2);
-
-							if (part0.isJsonPrimitive()) {
-								group = part0.getAsString();
-							} else {
-								throw new RuntimeException("Expected dependency group to be a string");
-							}
-							if (part1.isJsonPrimitive()) {
-								id = part1.getAsString();
-							} else {
-								throw new RuntimeException("Expected dependency id to be a string");
-							}
-							if (part2.isJsonPrimitive()) {
-								versionMatchers = new String[]{part2.getAsString()};
-							} else if (part2.isJsonArray()) {
-								JsonArray versionsArray = part2.getAsJsonArray();
-								versionMatchers = new String[versionsArray.size()];
-								for (int i = 0; i < versionsArray.size(); i++) {
-									versionMatchers[i] = versionsArray.get(i).getAsString();
-								}
-							} else {
-								throw new RuntimeException("Expected dependency version to be a string");
-							}
-
+					if (object.has("clientOnly")) {
+						JsonElement clientOnlyEl = object.get("clientOnly");
+						if (clientOnlyEl.isJsonPrimitive() && clientOnlyEl.getAsJsonPrimitive().isBoolean()) {
+							clientOnly = clientOnlyEl.getAsBoolean();
 						} else {
-							throw new JsonParseException("Expected id array to be of length 3");
+							throw new JsonParseException("Expected clientOnly to be a boolean");
 						}
-					} else {
-						throw new JsonParseException("Expected id to be an array");
 					}
 
-					return new Dependency(required, group, id, versionMatchers);
+					if (object.has("version")) {
+						JsonElement versionEl = object.get("version");
+						if (versionEl.isJsonPrimitive()) {
+							versionMatchers = new String[]{versionEl.getAsString()};
+						} else if (versionEl.isJsonArray()) {
+							JsonArray array = versionEl.getAsJsonArray();
+							versionMatchers = new String[array.size()];
+							for (int i = 0; i < array.size(); i++) {
+								versionMatchers[i] = array.get(i).getAsString();
+							}
+						} else {
+							throw new JsonParseException("Expected version to be a string or array");
+						}
+					} else {
+						throw new JsonParseException("Missing version element");
+					}
+
+					return new Dependency(versionMatchers, required, clientOnly);
 				}
 				throw new JsonParseException("Expected dependency to be an object");
 			}
