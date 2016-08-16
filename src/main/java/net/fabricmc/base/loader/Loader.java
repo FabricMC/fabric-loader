@@ -13,9 +13,6 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
-/**
- * @author shadowfacts
- */
 public class Loader {
 
 	private static final Logger LOGGER = LogManager.getFormatterLogger("Chorus|Loader");

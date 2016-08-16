@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author shadowfacts
- */
 public class ModInfo {
 
 //	Required

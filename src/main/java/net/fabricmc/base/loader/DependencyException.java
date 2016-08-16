@@ -1,8 +1,5 @@
 package net.fabricmc.base.loader;
 
-/**
- * @author shadowfacts
- */
 public class DependencyException extends RuntimeException {
 
 	public DependencyException() {
