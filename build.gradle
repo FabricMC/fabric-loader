@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.0.1.+'
+		classpath 'net.fabricmc:fabric-loom:0.0.1-SNAPSHOT'
     }
 }
 
@@ -20,7 +20,7 @@ plugins {
 
     id 'net.minecrell.licenser' version '0.2.1'
 }
-apply plugin: 'fabric-loom'
+apply plugin: 'net.fabricmc.loom'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -65,7 +65,6 @@ dependencies {
         exclude module: 'guava'
     }
 	compile 'com.mojang:authlib:1.5.22'
-	compile files(".gradle/minecraft/${minecraft_version}-client-mapped.jar")
 }
 
 license {
