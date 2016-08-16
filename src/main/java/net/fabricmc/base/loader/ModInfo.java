@@ -37,6 +37,7 @@ public class ModInfo {
 //	Optional
 	private String modClass = "";
 	private String mixinConfig = "";
+	private Side side = Side.UNIVERSAL;
 	private String title = "";
 	private String description = "";
 	private Links links = Links.EMPTY;
@@ -63,6 +64,10 @@ public class ModInfo {
 
 	public String getMixinConfig() {
 		return mixinConfig;
+	}
+
+	public Side getSide() {
+		return side;
 	}
 
 	public String getTitle() {
@@ -156,7 +161,7 @@ public class ModInfo {
 		public static class Deserializer implements JsonDeserializer<Dependency> {
 
 			@Override
-			public Dependency deserialize(JsonElement element, Type resultType, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+			public Dependency deserialize(JsonElement element, Type resultType, JsonDeserializationContext context) throws JsonParseException {
 				if (element.isJsonObject()) {
 					JsonObject object = element.getAsJsonObject();
 
@@ -174,8 +179,8 @@ public class ModInfo {
 					}
 
 					if (object.has("side")) {
-						JsonElement clientOnlyEl = object.get("side");
-						side = Side.valueOf(clientOnlyEl.getAsString().toUpperCase());
+						JsonElement sideEl = object.get("side");
+						side = context.deserialize(sideEl, Side.class);
 					}
 
 					if (object.has("version")) {

@@ -16,8 +16,26 @@
 
 package net.fabricmc.base;
 
+import com.google.gson.*;
+
+import java.lang.reflect.Type;
+
 public enum Side {
 	CLIENT,
 	SERVER,
 	UNIVERSAL;
+
+	public static class Serializer implements JsonSerializer<Side>, JsonDeserializer<Side> {
+
+		@Override
+		public JsonElement serialize(Side side, Type type, JsonSerializationContext jsonSerializationContext) {
+			return new JsonPrimitive(side.name().toLowerCase());
+		}
+
+		@Override
+		public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+			return Side.valueOf(element.getAsString().toUpperCase());
+		}
+	}
+
 }
