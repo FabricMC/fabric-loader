@@ -17,6 +17,7 @@
 package net.fabricmc.base.loader;
 
 import com.google.gson.*;
+import net.fabricmc.base.Side;
 import net.shadowfacts.shadowlib.version.Version;
 import net.shadowfacts.shadowlib.version.VersionMatcher;
 
@@ -122,12 +123,12 @@ public class ModInfo {
 
 		private String[] versionMatchers;
 		private boolean required;
-		private boolean clientOnly;
+		private Side side;
 
-		public Dependency(String[] versionMatchers, boolean required, boolean clientOnly) {
+		public Dependency(String[] versionMatchers, boolean required, Side side) {
 			this.versionMatchers = versionMatchers;
 			this.required = required;
-			this.clientOnly = clientOnly;
+			this.side = side;
 		}
 
 		public String[] getVersionMatchers() {
@@ -138,8 +139,8 @@ public class ModInfo {
 			return required;
 		}
 
-		public boolean isClientOnly() {
-			return clientOnly;
+		public Side getSide() {
+			return side;
 		}
 
 		public boolean satisfiedBy(ModInfo info) {
@@ -161,7 +162,8 @@ public class ModInfo {
 					JsonObject object = element.getAsJsonObject();
 
 					String[] versionMatchers;
-					boolean required = true, clientOnly = false;
+					boolean required = true;
+					Side side = Side.UNIVERSAL;
 
 					if (object.has("required")) {
 						JsonElement requiredEl = object.get("required");
@@ -172,13 +174,9 @@ public class ModInfo {
 						}
 					}
 
-					if (object.has("clientOnly")) {
-						JsonElement clientOnlyEl = object.get("clientOnly");
-						if (clientOnlyEl.isJsonPrimitive() && clientOnlyEl.getAsJsonPrimitive().isBoolean()) {
-							clientOnly = clientOnlyEl.getAsBoolean();
-						} else {
-							throw new JsonParseException("Expected clientOnly to be a boolean");
-						}
+					if (object.has("side")) {
+						JsonElement clientOnlyEl = object.get("side");
+						side = Side.valueOf(clientOnlyEl.getAsString().toUpperCase());
 					}
 
 					if (object.has("version")) {
@@ -198,7 +196,7 @@ public class ModInfo {
 						throw new JsonParseException("Missing version element");
 					}
 
-					return new Dependency(versionMatchers, required, clientOnly);
+					return new Dependency(versionMatchers, required, side);
 				}
 				throw new JsonParseException("Expected dependency to be an object");
 			}
