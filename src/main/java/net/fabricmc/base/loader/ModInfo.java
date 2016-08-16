@@ -162,15 +162,17 @@ public class ModInfo {
 				if (element.isJsonObject()) {
 					JsonObject object = element.getAsJsonObject();
 
-					boolean required;
+					boolean required = true;
 					String group, id;
 					String[] versionMatchers;
 
-					JsonElement requiredEl = object.get("required");
-					if (requiredEl.isJsonPrimitive() && requiredEl.getAsJsonPrimitive().isBoolean()) {
-						required = requiredEl.getAsBoolean();
-					} else {
-						throw new JsonParseException("Expected required to be a boolean");
+					if (object.has("required")) {
+						JsonElement requiredEl = object.get("required");
+						if (requiredEl.isJsonPrimitive() && requiredEl.getAsJsonPrimitive().isBoolean()) {
+							required = requiredEl.getAsBoolean();
+						} else {
+							throw new JsonParseException("Expected required to be a boolean");
+						}
 					}
 
 					JsonElement identifierEl = object.get("id");
