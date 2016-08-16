@@ -17,7 +17,6 @@
 package net.fabricmc.base.launch;
 
 import net.fabricmc.base.loader.Loader;
-import net.minecraft.client.main.Main;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -31,24 +30,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ChorusClientTweaker implements ITweaker {
+public class FabricClientTweaker implements ITweaker {
 
     private Map<String, String> args;
 
     @Override
     public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {
         this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
-        ((List<String>) Launch.blackboard.get("TweakClasses")).add("org.spongepowered.asm.launch.MixinTweaker");
+
         if (this.args == null) {
             this.args = new HashMap<>();
             Launch.blackboard.put("launchArgs", this.args);
         }
+
         if (!this.args.containsKey("--version")) {
-            this.args.put("--version", profile != null ? profile : "OML");
+            this.args.put("--version", profile != null ? profile : "Fabric");
         }
+
         if (!this.args.containsKey("--gameDir") && gameDir != null) {
             this.args.put("--gameDir", gameDir.getAbsolutePath());
         }
+
         if (!this.args.containsKey("--assetsDir") && assetsDir != null) {
             this.args.put("--assetsDir", assetsDir.getAbsolutePath());
         }
@@ -64,6 +66,10 @@ public class ChorusClientTweaker implements ITweaker {
 
         Loader.load(new File(gameDir, "mods"));
 
+        // Add Mixin tweaker
+        ((List<String>) Launch.blackboard.get("TweakClasses")).add("org.spongepowered.asm.launch.MixinTweaker");
+
+        // Setup Mixin environment
         MixinBootstrap.init();
         Mixins.addConfigurations(
                 "fabricmc.mixins.client.json",
@@ -79,7 +85,7 @@ public class ChorusClientTweaker implements ITweaker {
 
     @Override
     public String getLaunchTarget() {
-        return Main.class.getCanonicalName();
+        return "net.minecraft.client.main.Main";
     }
 
     @Override
