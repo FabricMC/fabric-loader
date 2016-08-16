@@ -1,7 +1,7 @@
-chorus-base [![Build Status](http://modmuss50.me:8080/job/Chorus/job/Chorus-Base/badge/icon)](http://modmuss50.me:8080/job/Chorus/job/Chorus-Base/)
+fabric-base [![Build Status](http://modmuss50.me:8080/job/Fabric/job/Fabric-Base/badge/icon)](http://modmuss50.me:8080/job/Fabric/job/Fabric-Base/)
 ===========
 
-The base API module for the Chorus Mod Loader. Licensed under the Apache License 2.0.
+The base API module for the Fabric Mod Loader. Licensed under the Apache License 2.0.
 
 ## Prerequisites
 
@@ -9,7 +9,7 @@ The base API module for the Chorus Mod Loader. Licensed under the Apache License
 
 ## Setup
 
-Before you can build Chorus or set it up for an IDE, you must setup the chorus environment.
+Before you can build Fabric or set it up for an IDE, you must setup the Fabric environment.
 
 - Run `gradle setupChorus`
 
