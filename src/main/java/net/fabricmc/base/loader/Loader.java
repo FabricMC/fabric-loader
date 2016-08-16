@@ -69,7 +69,9 @@ public class Loader {
 		for (ModInfo mod : MODS) {
 
 			dependencies:
-			for (ModInfo.Dependency dep : mod.getDependencies()) {
+			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getDependencies().entrySet()) {
+				String depId = entry.getKey();
+				ModInfo.Dependency dep = entry.getValue();
 				if (dep.isRequired()) {
 
 					innerMods:
@@ -77,12 +79,12 @@ public class Loader {
 						if (mod == mod2) {
 							continue innerMods;
 						}
-						if (dep.satisfiedBy(mod2)) {
+						if (depId.equalsIgnoreCase(mod2.getGroup() + "." + mod2.getId()) && dep.satisfiedBy(mod2)) {
 							continue dependencies;
 						}
 					}
 //					TODO: for official modules, query/download from maven
-					throw new DependencyException(String.format("Mod %s:%s requires dependency %s:%s @ %s", mod.getGroup(), mod.getId(), dep.getGroup(), dep.getId(), String.join(", ", dep.getVersionMatchers())));
+					throw new DependencyException(String.format("Mod %s:%s requires dependency %s @ %s", mod.getGroup(), mod.getId(), depId, String.join(", ", dep.getVersionMatchers())));
 				}
 			}
 		}
@@ -91,14 +93,17 @@ public class Loader {
 	private static void sort() {
 		LinkedList<ModInfo> sorted = new LinkedList<>();
 		for (ModInfo mod : MODS) {
-			if (sorted.isEmpty() || mod.getDependencies().length == 0) {
+			if (sorted.isEmpty() || mod.getDependencies().size() == 0) {
 				sorted.addFirst(mod);
 			} else {
 				boolean b = false;
 				l1:
 				for (int i = 0; i < sorted.size(); i++) {
-					for (ModInfo.Dependency dep : sorted.get(i).getDependencies()) {
-						if (dep.satisfiedBy(mod)) {
+					for (Map.Entry<String, ModInfo.Dependency> entry : sorted.get(i).getDependencies().entrySet()) {
+						String depId = entry.getKey();
+						ModInfo.Dependency dep = entry.getValue();
+
+						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
 							sorted.add(i, mod);
 							b = true;
 							break l1;
