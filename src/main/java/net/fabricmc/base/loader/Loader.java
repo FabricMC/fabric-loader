@@ -45,6 +45,8 @@ public class Loader {
 			return;
 		}
 
+		List<ModInfo> existingMods = new ArrayList<>();
+
 		for (File f : modsDir.listFiles()) {
 			if (f.isDirectory()) continue;
 			if (!f.getPath().endsWith(".jar")) continue;
@@ -62,9 +64,29 @@ public class Loader {
 			}
 
 			for (ModInfo mod : fileMods) {
-				MODS.add(mod);
-				MOD_MAP.put(mod.getId(), mod);
+				existingMods.add(mod);
 			}
+		}
+
+		mods:
+		for (ModInfo mod : existingMods) {
+			if (mod.isLazilyLoaded()) {
+				innerMods:
+				for (ModInfo mod2 : existingMods) {
+					if (mod == mod2) continue innerMods;
+					for (Map.Entry<String, ModInfo.Dependency> entry : mod2.getDependencies().entrySet()) {
+						String depId = entry.getKey();
+						ModInfo.Dependency dep = entry.getValue();
+						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
+							MODS.add(mod);
+							MOD_MAP.put(mod.getId(), mod);
+						}
+					}
+				}
+				continue mods;
+			}
+			MODS.add(mod);
+			MOD_MAP.put(mod.getId(), mod);
 		}
 
 		checkDependencies();

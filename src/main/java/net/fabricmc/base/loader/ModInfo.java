@@ -38,6 +38,7 @@ public class ModInfo {
 	private String modClass = "";
 	private String mixinConfig = "";
 	private Side side = Side.UNIVERSAL;
+	private boolean lazilyLoaded = false;
 	private String title = "";
 	private String description = "";
 	private Links links = Links.EMPTY;
@@ -68,6 +69,10 @@ public class ModInfo {
 
 	public Side getSide() {
 		return side;
+	}
+
+	public boolean isLazilyLoaded() {
+		return lazilyLoaded;
 	}
 
 	public String getTitle() {
