@@ -25,13 +25,13 @@ targetCompatibility = 1.8
 
 group = 'chorusmc'
 archivesBaseName = project.name.toLowerCase()
-description = 'The base component to the Chorus Mod Loader'
 version = minecraft_version + '-0.0.1'
+
+// Fetch build number from Jenkins
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
     version = version + "." + "${System.getenv().BUILD_NUMBER}"
 }
-ext.url = 'https://github.com/ChorusMC/chorus-base'
 
 repositories {
     mavenCentral()
@@ -62,12 +62,17 @@ dependencies {
         exclude module: 'guava'
     }
 	compile 'com.mojang:authlib:1.5.22'
-	compile files('.gradle/minecraft/' + minecraft_version + '-client-mapped.jar')
+	compile files(".gradle/minecraft/${minecraft_version}-client-mapped.jar")
 }
 
 jar {
-    from ".gradle/minecraft/mappings/"
-    from "gradle.properties"
+    from '.gradle/minecraft/mappings/'
+
+    manifest {
+        attributes(
+                'MinecraftVersion': minecraft_version
+        )
+    }
 }
 
 uploadArchives {
@@ -120,4 +125,8 @@ uploadArchives {
             }
         }
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14.1'
 }
