@@ -2,12 +2,12 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            name = 'Modmuss50'
-            url = 'http://maven.modmuss50.me/'
+            name = 'Fabic'
+            url = 'http://maven.fabricmc.net/'
         }
     }
     dependencies {
-		classpath 'chorusmc:ChorusGradle:0.0.1.+'
+		classpath 'net.fabricmc:fabric-loom:0.0.1.+'
     }
 }
 
@@ -20,7 +20,7 @@ plugins {
 
     id 'net.minecrell.licenser' version '0.2.1'
 }
-apply plugin: 'chorus.gradle'
+apply plugin: 'fabric-loom'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

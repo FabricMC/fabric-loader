@@ -11,7 +11,7 @@ The base API module for the Fabric Mod Loader. Licensed under the Apache License
 
 Before you can build Fabric or set it up for an IDE, you must setup the Fabric environment.
 
-- Run `gradle setupChorus`
+- Run `gradle setupFabric`
 
 ### IDE Setup
 
