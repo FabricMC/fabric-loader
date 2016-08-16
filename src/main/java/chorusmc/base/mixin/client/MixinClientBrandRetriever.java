@@ -5,10 +5,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
 @Mixin(value = ClientBrandRetriever.class, remap = false)
-public class MixinClientBrandRetriever {
+public abstract class MixinClientBrandRetriever {
 
     @Overwrite
     public static String getClientModName() {
         return "Chorus";
     }
+
 }

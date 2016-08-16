@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = GuiMainMenu.class, remap = false)
-public class MixinGuiMain extends GuiScreen {
+public abstract class MixinGuiMain extends GuiScreen {
 
     @Inject(method = "drawScreen(IIF)V", at = @At("RETURN"))
     public void draw(int a1, int a2, float a3, CallbackInfo info) {

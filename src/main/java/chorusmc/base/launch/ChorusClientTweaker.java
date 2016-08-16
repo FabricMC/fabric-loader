@@ -45,7 +45,9 @@ public class ChorusClientTweaker implements ITweaker {
             }
         }
         MixinBootstrap.init();
-        Mixins.addConfiguration("chorusmc.mixins.client.json");
+        Mixins.addConfigurations(
+                "chorusmc.mixins.client.json",
+                "chorusmc.mixins.common.json");
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
