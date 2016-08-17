@@ -77,7 +77,8 @@ jar {
 
     manifest {
         attributes(
-                'MinecraftVersion': minecraft_version
+                'MinecraftVersion': minecraft_version,
+				'FabricVersion': project.version
         )
     }
 }
