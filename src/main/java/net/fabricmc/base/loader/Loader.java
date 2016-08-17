@@ -22,10 +22,9 @@ import net.minecraft.launchwrapper.Launch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -47,6 +46,14 @@ public class Loader {
 
         List<ModInfo> existingMods = new ArrayList<>();
 
+        int classpathModsCount = 0;
+        if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
+            List<ModInfo> classpathMods = getClasspathMods();
+            existingMods.addAll(classpathMods);
+            classpathModsCount = classpathMods.size();
+            LOGGER.debug("Found %d classpath mods", classpathModsCount);
+        }
+
         for (File f : modsDir.listFiles()) {
             if (f.isDirectory()) {
                 continue;
@@ -55,7 +62,7 @@ public class Loader {
                 continue;
             }
 
-            ModInfo[] fileMods = getMods(f);
+            ModInfo[] fileMods = getJarMods(f);
 
             if (fileMods.length != 0) {
                 try {
@@ -67,10 +74,10 @@ public class Loader {
                 }
             }
 
-            for (ModInfo mod : fileMods) {
-                existingMods.add(mod);
-            }
+            Collections.addAll(existingMods, fileMods);
         }
+
+        LOGGER.debug("Found %d jar mods", existingMods.size() - classpathModsCount);
 
         mods:
         for (ModInfo mod : existingMods) {
@@ -95,6 +102,8 @@ public class Loader {
             MOD_MAP.put(mod.getGroup() + "." + mod.getId(), mod);
         }
 
+        LOGGER.debug("Loading %d mods", MODS.size());
+
         checkDependencies();
         sort();
     }
@@ -114,7 +123,41 @@ public class Loader {
         return MODS;
     }
 
+    private static List<ModInfo> getClasspathMods() {
+        List<ModInfo> mods = new ArrayList<>();
+
+        String javaHome = System.getProperty("java.home");
+
+        URL[] urls = Launch.classLoader.getURLs();
+        for (URL url : urls) {
+            if (url.getPath().startsWith(javaHome)) {
+                continue;
+            }
+
+            LOGGER.debug("Attempting to find classpath mods from " + url.getPath());
+            File f = new File(url.getFile());
+            if (f.exists()) {
+                if (f.isDirectory()) {
+                    File modJson = new File(f, "mod.json");
+                    if (modJson.exists()) {
+                        try {
+                            Collections.addAll(mods, getMods(new FileInputStream(modJson)));
+                        } catch (FileNotFoundException e) {
+                            LOGGER.error("Unable to load mod from directory " + f.getPath());
+                            e.printStackTrace();
+                        }
+                    }
+                } else if (f.getName().endsWith(".jar")) {
+                    Collections.addAll(mods, getJarMods(f));
+                }
+            }
+        }
+        return mods;
+    }
+
     private static void checkDependencies() {
+        LOGGER.debug("Validating mod dependencies");
+
         for (ModInfo mod : MODS) {
 
             dependencies:
@@ -140,6 +183,8 @@ public class Loader {
     }
 
     private static void sort() {
+        LOGGER.debug("Sorting mods");
+
         LinkedList<ModInfo> sorted = new LinkedList<>();
         for (ModInfo mod : MODS) {
             if (sorted.isEmpty() || mod.getDependencies().size() == 0) {
@@ -176,29 +221,35 @@ public class Loader {
         return modsDir.isDirectory();
     }
 
-    private static ModInfo[] getMods(File f) {
+    private static ModInfo[] getJarMods(File f) {
         try {
             JarFile jar = new JarFile(f);
             ZipEntry entry = jar.getEntry("mod.json");
             if (entry != null) {
                 try (InputStream in = jar.getInputStream(entry)) {
-                    JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
-                    if (el.isJsonObject()) {
-                        return new ModInfo[]{GSON.fromJson(el, ModInfo.class)};
-                    } else if (el.isJsonArray()) {
-                        JsonArray array = el.getAsJsonArray();
-                        ModInfo[] mods = new ModInfo[array.size()];
-                        for (int i = 0; i < array.size(); i++) {
-                            mods[i] = GSON.fromJson(array.get(i), ModInfo.class);
-                        }
-                        return mods;
-                    }
+                    return getMods(in);
                 }
             }
 
         } catch (Exception e) {
             LOGGER.error("Unable to load mod from %s", f.getName());
             e.printStackTrace();
+        }
+
+        return new ModInfo[0];
+    }
+
+    private static ModInfo[] getMods(InputStream in) {
+        JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
+        if (el.isJsonObject()) {
+            return new ModInfo[]{GSON.fromJson(el, ModInfo.class)};
+        } else if (el.isJsonArray()) {
+            JsonArray array = el.getAsJsonArray();
+            ModInfo[] mods = new ModInfo[array.size()];
+            for (int i = 0; i < array.size(); i++) {
+                mods[i] = GSON.fromJson(array.get(i), ModInfo.class);
+            }
+            return mods;
         }
 
         return new ModInfo[0];
