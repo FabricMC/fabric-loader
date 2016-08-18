@@ -74,7 +74,8 @@ public class FabricClientTweaker implements ITweaker {
         Mixins.addConfigurations(
                 "fabricmc.mixins.client.json",
                 "fabricmc.mixins.common.json");
-        Loader.getRequiredMixingConfigs().forEach(Mixins::addConfiguration);
+        Loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
+        Loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 

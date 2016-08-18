@@ -46,6 +46,24 @@ public class Loader {
     private static final Map<String, ModContainer> MOD_MAP = new HashMap<>();
     private static List<ModContainer> MODS = new ArrayList<>();
 
+    public static Set<String> getClientMixinConfigs() {
+        return MODS.stream()
+                .map(ModContainer::getInfo)
+                .map(ModInfo::getMixins)
+                .map(ModInfo.Mixins::getClient)
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
+    public static Set<String> getCommonMixinConfigs() {
+        return MODS.stream()
+                .map(ModContainer::getInfo)
+                .map(ModInfo::getMixins)
+                .map(ModInfo.Mixins::getCommon)
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
     public static void load(File modsDir) {
         if (!checkModsDirectory(modsDir)) {
             return;
@@ -116,14 +134,6 @@ public class Loader {
         checkDependencies();
         sort();
         initializeMods();
-    }
-
-    public static Set<String> getRequiredMixingConfigs() {
-        return MOD_MAP.values().stream()
-                .map(ModContainer::getInfo)
-                .map(ModInfo::getMixinConfig)
-                .filter(s -> s != null && !s.isEmpty())
-                .collect(Collectors.toSet());
     }
 
     public static boolean isModLoaded(String group, String id) {

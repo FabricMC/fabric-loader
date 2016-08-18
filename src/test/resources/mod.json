@@ -2,5 +2,8 @@
     "id": "test",
     "group": "net.fabricmc",
     "version": "1.0.0",
-    "modClass": "net.fabricmc.test.TestMod"
+    "modClass": "net.fabricmc.test.TestMod",
+    "mixins": {
+        "client": "fabricmc.test.mixins.client.json"
+    }
 }
