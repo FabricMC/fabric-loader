@@ -33,10 +33,10 @@ public class ModContainer {
     }
 
     public void initialize() {
-        adapter.callInitializationMethod(instance);
+        adapter.callInitializationMethods(instance);
     }
 
-    public boolean hasModObject() {
+    public boolean hasInstance() {
         return instance != null;
     }
 

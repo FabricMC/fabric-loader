@@ -236,7 +236,7 @@ public class Loader {
 
     private static void initializeMods() {
         for (ModContainer mod : MODS) {
-            if (mod.hasModObject()) {
+            if (mod.hasInstance()) {
                 mod.initialize();
             }
         }

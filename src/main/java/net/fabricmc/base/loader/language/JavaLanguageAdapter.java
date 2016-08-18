@@ -35,7 +35,7 @@ public class JavaLanguageAdapter implements ILanguageAdapter {
     }
 
     @Override
-    public void callInitializationMethod(Object mod) {
+    public void callInitializationMethods(Object mod) {
         for (Method m : mod.getClass().getDeclaredMethods()) {
             if (m.isAnnotationPresent(Init.class) && m.getParameterCount() == 0) {
                 try {

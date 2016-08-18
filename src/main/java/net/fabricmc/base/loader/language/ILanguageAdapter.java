@@ -20,6 +20,6 @@ public interface ILanguageAdapter {
 
     Object createModInstance(Class<?> modClass);
 
-    void callInitializationMethod(Object mod);
+    void callInitializationMethods(Object mod);
 
 }

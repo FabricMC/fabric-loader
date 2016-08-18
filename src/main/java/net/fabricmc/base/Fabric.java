@@ -20,19 +20,26 @@ import java.io.File;
 
 public class Fabric {
 
+    private static boolean initialized = false;
+
     private static File gameDir;
     private static File configDir;
 
-    public static File getGameDir() {
+    // INTERNAL: DO NOT USE
+    public static void initialize(File gameDir) {
+        if (initialized) {
+            throw new RuntimeException("Fabric has already been initialized");
+        }
+
+        Fabric.gameDir = gameDir;
+        initialized = true;
+    }
+
+    public static File getGameDirectory() {
         return gameDir;
     }
 
-    // INTERNAL: DO NOT USE
-    public static void setGameDir(File gameDir) {
-        Fabric.gameDir = gameDir;
-    }
-
-    public static File getConfigDir() {
+    public static File getConfigDirectory() {
         if (configDir == null) {
             configDir = new File(gameDir, "config");
             if (!configDir.exists()) {
