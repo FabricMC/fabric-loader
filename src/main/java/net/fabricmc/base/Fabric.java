@@ -18,7 +18,7 @@ package net.fabricmc.base;
 
 import java.io.File;
 
-public class Fabric {
+public final class Fabric {
 
     private static boolean initialized = false;
 
@@ -48,4 +48,7 @@ public class Fabric {
         }
         return configDir;
     }
+
+    private Fabric() {}
+
 }
