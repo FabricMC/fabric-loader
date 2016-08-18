@@ -36,7 +36,8 @@ public class ModInfo {
 
     //	Optional
     private String modClass = "";
-    private String mixinConfig = "";
+    private String languageAdapter = "net.fabricmc.base.loader.language.JavaLanguageAdapter";
+    private Mixins mixins = Mixins.EMPTY;
     private Side side = Side.UNIVERSAL;
     private boolean lazilyLoaded = false;
     private String title = "";
@@ -63,8 +64,12 @@ public class ModInfo {
         return modClass;
     }
 
-    public String getMixinConfig() {
-        return mixinConfig;
+    public String getLanguageAdapter() {
+        return languageAdapter;
+    }
+
+    public Mixins getMixins() {
+        return mixins;
     }
 
     public Side getSide() {
@@ -101,6 +106,21 @@ public class ModInfo {
 
     public String getLicense() {
         return license;
+    }
+
+    public static class Mixins {
+        public static final Mixins EMPTY = new Mixins();
+
+        private String client;
+        private String common;
+
+        public String getClient() {
+            return client;
+        }
+
+        public String getCommon() {
+            return common;
+        }
     }
 
     public static class Links {

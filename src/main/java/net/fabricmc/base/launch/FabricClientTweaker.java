@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
@@ -64,6 +65,7 @@ public class FabricClientTweaker implements ITweaker {
             }
         }
 
+        Fabric.initialize(gameDir);
         Loader.load(new File(gameDir, "mods"));
 
         // Add Mixin tweaker
@@ -74,7 +76,8 @@ public class FabricClientTweaker implements ITweaker {
         Mixins.addConfigurations(
                 "fabricmc.mixins.client.json",
                 "fabricmc.mixins.common.json");
-        Loader.getRequiredMixingConfigs().forEach(Mixins::addConfiguration);
+        Loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
+        Loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
