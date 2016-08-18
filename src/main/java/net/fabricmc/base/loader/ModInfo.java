@@ -36,6 +36,7 @@ public class ModInfo {
 
     //	Optional
     private String modClass = "";
+    private String languageAdapter = "net.fabricmc.base.loader.language.JavaLanguageAdapter";
     private String mixinConfig = "";
     private Side side = Side.UNIVERSAL;
     private boolean lazilyLoaded = false;
@@ -61,6 +62,10 @@ public class ModInfo {
 
     public String getModClass() {
         return modClass;
+    }
+
+    public String getLanguageAdapter() {
+        return languageAdapter;
     }
 
     public String getMixinConfig() {

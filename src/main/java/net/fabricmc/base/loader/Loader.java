@@ -16,8 +16,10 @@
 
 package net.fabricmc.base.loader;
 
+import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
 import net.fabricmc.base.Side;
+import net.fabricmc.base.util.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,11 +35,16 @@ import java.util.zip.ZipEntry;
 public class Loader {
 
     private static final Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
-    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(Side.class, new Side.Serializer()).registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer()).registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer()).create();
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(Side.class, new Side.Serializer())
+            .registerTypeAdapter(Version.class, new VersionDeserializer())
+            .registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
+            .registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
+            .create();
     private static final JsonParser JSON_PARSER = new JsonParser();
 
-    private static final Map<String, ModInfo> MOD_MAP = new HashMap<>();
-    private static List<ModInfo> MODS = new ArrayList<>();
+    private static final Map<String, ModContainer> MOD_MAP = new HashMap<>();
+    private static List<ModContainer> MODS = new ArrayList<>();
 
     public static void load(File modsDir) {
         if (!checkModsDirectory(modsDir)) {
@@ -91,25 +98,29 @@ public class Loader {
                         String depId = entry.getKey();
                         ModInfo.Dependency dep = entry.getValue();
                         if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-                            MODS.add(mod);
-                            MOD_MAP.put(mod.getGroup() + "." + mod.getId(), mod);
+                            ModContainer container = new ModContainer(mod);
+                            MODS.add(container);
+                            MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
                         }
                     }
                 }
                 continue mods;
             }
-            MODS.add(mod);
-            MOD_MAP.put(mod.getGroup() + "." + mod.getId(), mod);
+            ModContainer container = new ModContainer(mod);
+            MODS.add(container);
+            MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
         }
 
         LOGGER.debug("Loading %d mods", MODS.size());
 
         checkDependencies();
         sort();
+        initializeMods();
     }
 
     public static Set<String> getRequiredMixingConfigs() {
         return MOD_MAP.values().stream()
+                .map(ModContainer::getInfo)
                 .map(ModInfo::getMixinConfig)
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.toSet());
@@ -119,7 +130,7 @@ public class Loader {
         return MOD_MAP.containsKey(group + "." + id);
     }
 
-    public static List<ModInfo> getMods() {
+    public static List<ModContainer> getMods() {
         return MODS;
     }
 
@@ -158,25 +169,25 @@ public class Loader {
     private static void checkDependencies() {
         LOGGER.debug("Validating mod dependencies");
 
-        for (ModInfo mod : MODS) {
+        for (ModContainer mod : MODS) {
 
             dependencies:
-            for (Map.Entry<String, ModInfo.Dependency> entry : mod.getDependencies().entrySet()) {
+            for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getDependencies().entrySet()) {
                 String depId = entry.getKey();
                 ModInfo.Dependency dep = entry.getValue();
                 if (dep.isRequired()) {
 
                     innerMods:
-                    for (ModInfo mod2 : MODS) {
+                    for (ModContainer mod2 : MODS) {
                         if (mod == mod2) {
                             continue innerMods;
                         }
-                        if (depId.equalsIgnoreCase(mod2.getGroup() + "." + mod2.getId()) && dep.satisfiedBy(mod2)) {
+                        if (depId.equalsIgnoreCase(mod2.getInfo().getGroup() + "." + mod2.getInfo().getId()) && dep.satisfiedBy(mod2.getInfo())) {
                             continue dependencies;
                         }
                     }
 //					TODO: for official modules, query/download from maven
-                    throw new DependencyException(String.format("Mod %s.%s requires dependency %s @ %s", mod.getGroup(), mod.getId(), depId, String.join(", ", dep.getVersionMatchers())));
+                    throw new DependencyException(String.format("Mod %s.%s requires dependency %s @ %s", mod.getInfo().getGroup(), mod.getInfo().getId(), depId, String.join(", ", dep.getVersionMatchers())));
                 }
             }
         }
@@ -185,19 +196,19 @@ public class Loader {
     private static void sort() {
         LOGGER.debug("Sorting mods");
 
-        LinkedList<ModInfo> sorted = new LinkedList<>();
-        for (ModInfo mod : MODS) {
-            if (sorted.isEmpty() || mod.getDependencies().size() == 0) {
+        LinkedList<ModContainer> sorted = new LinkedList<>();
+        for (ModContainer mod : MODS) {
+            if (sorted.isEmpty() || mod.getInfo().getDependencies().size() == 0) {
                 sorted.addFirst(mod);
             } else {
                 boolean b = false;
                 l1:
                 for (int i = 0; i < sorted.size(); i++) {
-                    for (Map.Entry<String, ModInfo.Dependency> entry : sorted.get(i).getDependencies().entrySet()) {
+                    for (Map.Entry<String, ModInfo.Dependency> entry : sorted.get(i).getInfo().getDependencies().entrySet()) {
                         String depId = entry.getKey();
                         ModInfo.Dependency dep = entry.getValue();
 
-                        if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
+                        if (depId.equalsIgnoreCase(mod.getInfo().getGroup() + "." + mod.getInfo().getId()) && dep.satisfiedBy(mod.getInfo())) {
                             sorted.add(i, mod);
                             b = true;
                             break l1;
@@ -211,6 +222,14 @@ public class Loader {
             }
         }
         MODS = sorted;
+    }
+
+    private static void initializeMods() {
+        for (ModContainer mod : MODS) {
+            if (mod.hasModObject()) {
+                mod.initialize();
+            }
+        }
     }
 
     private static boolean checkModsDirectory(File modsDir) {
