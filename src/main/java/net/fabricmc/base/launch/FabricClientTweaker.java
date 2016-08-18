@@ -64,7 +64,11 @@ public class FabricClientTweaker implements ITweaker {
                 this.args.put(arg, args.get(i + 1));
             }
         }
+    }
 
+    @Override
+    public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
+        File gameDir = new File(args.get("--gameDir"));
         Fabric.initialize(gameDir);
         Loader.load(new File(gameDir, "mods"));
 
@@ -79,11 +83,6 @@ public class FabricClientTweaker implements ITweaker {
         Loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
         Loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
-    }
-
-    @Override
-    public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-
     }
 
     @Override
