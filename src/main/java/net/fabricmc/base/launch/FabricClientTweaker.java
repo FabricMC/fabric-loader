@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
@@ -64,6 +65,7 @@ public class FabricClientTweaker implements ITweaker {
             }
         }
 
+        Fabric.setGameDir(gameDir);
         Loader.load(new File(gameDir, "mods"));
 
         // Add Mixin tweaker

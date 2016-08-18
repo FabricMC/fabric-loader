@@ -27,6 +27,11 @@ public class Fabric {
         return gameDir;
     }
 
+    // INTERNAL: DO NOT USE
+    public static void setGameDir(File gameDir) {
+        Fabric.gameDir = gameDir;
+    }
+
     public static File getConfigDir() {
         if (configDir == null) {
             configDir = new File(gameDir, "config");
@@ -36,5 +41,4 @@ public class Fabric {
         }
         return configDir;
     }
-
 }
