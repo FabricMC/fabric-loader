@@ -18,7 +18,7 @@ package net.fabricmc.base.loader;
 
 import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
-import net.fabricmc.base.Side;
+import net.fabricmc.api.Side;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;

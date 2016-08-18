@@ -18,7 +18,8 @@ package net.fabricmc.base.loader;
 
 import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
-import net.fabricmc.base.Side;
+import net.fabricmc.api.Side;
+import net.fabricmc.base.util.SideDeserializer;
 import net.fabricmc.base.util.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +37,7 @@ public class Loader {
 
     private static final Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
     private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(Side.class, new Side.Serializer())
+            .registerTypeAdapter(Side.class, new SideDeserializer())
             .registerTypeAdapter(Version.class, new VersionDeserializer())
             .registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
             .registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
