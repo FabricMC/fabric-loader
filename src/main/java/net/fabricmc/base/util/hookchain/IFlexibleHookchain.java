@@ -8,9 +8,8 @@ public interface IFlexibleHookchain<T> extends IHookchain<T> {
      * such hooks as executed via callChain(name, arg).
      *
      * @param name     Name of the hook to create or update
-     * @param callback Callback for the given hook
      */
-    void addHook(String name, MethodHandle callback);
+    void addHook(String name);
 
     /**
      * Calls a specific hook in the chain and all hooks with satisfied

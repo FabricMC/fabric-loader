@@ -121,6 +121,11 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
     }
 
     @Override
+    public synchronized void addHook(String name) {
+        addHook(name, null);
+    }
+    
+    @Override
     public synchronized void addHook(String name, @Nullable MethodHandle callback) {
         HookData hookData = getHook(name);
 
