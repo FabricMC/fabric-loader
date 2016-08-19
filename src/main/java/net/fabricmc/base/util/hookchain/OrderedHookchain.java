@@ -1,11 +1,8 @@
-package net.fabricmc.base;
+package net.fabricmc.base.util.hookchain;
 
-import net.fabricmc.api.Hook;
+import net.fabricmc.base.util.hookchain.IHookchain;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandleProxies;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -13,7 +10,7 @@ import java.util.*;
  *
  * @author greaser
  */
-public class OrderedHookchain<T> {
+public class OrderedHookchain<T> implements IHookchain<T> {
     /**
      * Central data structure for the ordered hookchain.
      */
@@ -33,12 +30,12 @@ public class OrderedHookchain<T> {
 
         public void addHookBefore(String oname) {
             assert (oname != null);
-            this.hooksBefore.add(oname);
+            this.hooksAfter.add(oname);
         }
 
         public void addHookAfter(String oname) {
             assert (oname != null);
-            this.hooksAfter.add(oname);
+            this.hooksBefore.add(oname);
         }
 
         public boolean areDependenciesSatisfied(Set<String> dependenciesProvided) {
@@ -121,12 +118,7 @@ public class OrderedHookchain<T> {
         return handles.get(name);
     }
 
-    /**
-     * Adds/updates a hook with a callback.
-     *
-     * @param name     Name of the hook to create or update
-     * @param callback Callback for the given hook
-     */
+    @Override
     public synchronized void addHook(String name, MethodHandle callback) {
         if (getHook(name) != null && getHook(name).callback != null) {
             throw new RuntimeException("duplicate hook: " + name);
@@ -137,12 +129,7 @@ public class OrderedHookchain<T> {
         hookData.callback = callback;
     }
 
-    /**
-     * Adds a P-comes-before-Q constraint.
-     *
-     * @param nameBefore Name of the dependee ("P")
-     * @param nameAfter  Name of the dependent ("Q")
-     */
+    @Override
     public synchronized void addConstraint(String nameBefore, String nameAfter) {
         HookData<T> hookBefore = getOrCreateHook(nameBefore);
         HookData<T> hookAfter = getOrCreateHook(nameAfter);
@@ -152,42 +139,10 @@ public class OrderedHookchain<T> {
         this.dirty = true;
     }
 
-    public synchronized void addHook(Hook hook, MethodHandle callback) {
-        addHook(hook.name(), callback);
-        for (String s : hook.before()) {
-            addConstraint(hook.name(), s);
-        }
-        for (String s : hook.after()) {
-            addConstraint(s, hook.name());
-        }
-    }
-
-    public synchronized void addAllHooks(Object o) {
-        Class c = o.getClass();
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-
-        for (Method m : c.getMethods()) {
-            if (m.isAnnotationPresent(Hook.class)
-                    && m.getParameterCount() == 1) {
-                try {
-                    Hook hook = m.getAnnotation(Hook.class);
-                    MethodHandle handle = lookup.unreflect(m).bindTo(o);
-
-                    addHook(hook, handle);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-    }
-
     /**
-     * Calls all hooks in this chain.
-     * <p>
      * This will reconstruct the order table if any hooks or hook constraints have changed.
-     *
-     * @param arg Data to be fed to all hooks for processing
      */
+    @Override
     public synchronized void callChain(T arg) {
         // orderTable must not be dirty when we actually do this
         if (this.dirty) {

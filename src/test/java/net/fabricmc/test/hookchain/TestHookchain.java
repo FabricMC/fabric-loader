@@ -1,10 +1,13 @@
 package net.fabricmc.test.hookchain;
 
 import net.fabricmc.api.Hook;
-import net.fabricmc.base.OrderedHookchain;
+import net.fabricmc.base.util.hookchain.HookchainUtils;
+import net.fabricmc.base.util.hookchain.IFlexibleHookchain;
+import net.fabricmc.base.util.hookchain.IHookchain;
+import net.fabricmc.base.util.hookchain.OrderedHookchain;
+import net.fabricmc.base.util.hookchain.TreeHookchain;
 
 import java.io.PrintStream;
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
@@ -13,11 +16,11 @@ import java.lang.invoke.MethodType;
  *
  * @author greaser
  */
-public class TestOrderedHookchain {
+public class TestHookchain {
     private class TestCallback {
         private String name;
 
-        public TestCallback(OrderedHookchain<PrintStream> hc, String name) {
+        public TestCallback(IHookchain<PrintStream> hc, String name) {
             this.name = name;
             try {
                 hc.addHook(name, MethodHandles.lookup().bind(this, "handle", MethodType.methodType(void.class, PrintStream.class)));
@@ -31,19 +34,17 @@ public class TestOrderedHookchain {
         }
     }
 
-    private OrderedHookchain<PrintStream> hc = new OrderedHookchain<>();
-
-    public TestOrderedHookchain() {
+    public TestHookchain() {
     }
 
-    @Hook(name = "get_on_the_floor", after = {"obtain_floor"}, before = {"everybody_walk_the_dinosaur", "everybody_kill_the_dinosaur"})
+    @Hook(name = "get_on_the_floor", before = {"obtain_floor"}, after = {"everybody_walk_the_dinosaur", "everybody_kill_the_dinosaur"})
     public void getOnTheFloor(PrintStream stream) {
         stream.printf("called annotated: \"get_on_the_floor\"\n");
     }
 
-    public void run() {
+    public void run(IHookchain<PrintStream> hc, boolean cyclic) {
         // add annotated hooks first
-        hc.addAllHooks(this);
+        HookchainUtils.addAnnotatedHooks(hc, this);
 
         // main events
         new TestCallback(hc, "open_the_door");
@@ -81,12 +82,46 @@ public class TestOrderedHookchain {
         hc.addConstraint("a_few_verses_later", "obtain_knife");
 
         // cyclic dependency test
-        //hc.addConstraint("everybody_walk_the_dinosaur", "open_the_door");
+        if (cyclic) {
+            hc.addConstraint("everybody_walk_the_dinosaur", "open_the_door");
+        }
 
         hc.callChain(System.out);
+        if (hc instanceof IFlexibleHookchain) {
+            System.out.println("\na few verses later");
+            ((IFlexibleHookchain) hc).callChain("a_few_verses_later", System.out);
+        }
     }
 
     public static void main(String[] args) {
-        new TestOrderedHookchain().run();
+        System.out.println("\n--- Testing with ordered hookchain ---\n");
+        try {
+            new TestHookchain().run(new OrderedHookchain<>(), false);
+        } catch (Throwable t) {
+            System.err.println("Error: " + t.toString());
+            t.printStackTrace();
+        }
+
+        System.out.println("\n--- Testing with tree hookchain ---\n");
+        try {
+            new TestHookchain().run(new TreeHookchain<>(), false);
+        } catch (Throwable t) {
+            System.err.println("Error: " + t.toString());
+            t.printStackTrace();
+        }
+
+        System.out.println("\n--- Testing cyclic with ordered hookchain ---\n");
+        try {
+            new TestHookchain().run(new OrderedHookchain<>(), true);
+        } catch (Throwable t) {
+            System.err.println("Success: " + t.toString());
+        }
+
+        System.out.println("\n--- Testing cyclic with tree hookchain ---\n");
+        try {
+            new TestHookchain().run(new OrderedHookchain<>(), true);
+        } catch (Throwable t) {
+            System.err.println("Success: " + t.toString());
+        }
     }
 }
