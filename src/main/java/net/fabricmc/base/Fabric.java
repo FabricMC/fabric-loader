@@ -30,17 +30,32 @@ public final class Fabric {
 
     private static boolean initialized = false;
 
+    private static ISidedHandler sidedHandler;
+
     private static File gameDir;
     private static File configDir;
 
     // INTERNAL: DO NOT USE
-    public static void initialize(File gameDir) {
+    public static void initialize(File gameDir, ISidedHandler sidedHandler) {
         if (initialized) {
             throw new RuntimeException("Fabric has already been initialized");
         }
 
         Fabric.gameDir = gameDir;
+        Fabric.sidedHandler = sidedHandler;
         initialized = true;
+    }
+
+    public static EventBus getEventBus() {
+        return EVENT_BUS;
+    }
+
+    public static LoadingBus getLoadingBus() {
+        return LOADING_BUS;
+    }
+
+    public static ISidedHandler getSidedHandler() {
+        return sidedHandler;
     }
 
     public static File getGameDirectory() {
@@ -55,14 +70,6 @@ public final class Fabric {
             }
         }
         return configDir;
-    }
-
-    public static EventBus getEventBus() {
-        return EVENT_BUS;
-    }
-
-    public static LoadingBus getLoadingBus() {
-        return LOADING_BUS;
     }
 
     private Fabric() {}

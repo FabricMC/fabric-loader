@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.base.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
 import net.minecraft.launchwrapper.ITweaker;
@@ -70,7 +71,7 @@ public class FabricClientTweaker implements ITweaker {
     @Override
     public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
         File gameDir = new File(args.get("--gameDir"));
-        Fabric.initialize(gameDir);
+        Fabric.initialize(gameDir, new ClientSidedHandler());
         Loader.load(new File(gameDir, "mods"));
 
         // Add Mixin tweaker
