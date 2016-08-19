@@ -18,7 +18,7 @@ package net.fabricmc.base;
 
 import net.fabricmc.api.Side;
 import net.minecraft.client.Minecraft;
-import net.minecraft.sortme.EntityPlayerAbstract;
+import net.minecraft.entity.player.EntityPlayerAbstract;
 
 public class ClientSidedHandler implements ISidedHandler {
 
