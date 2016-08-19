@@ -54,8 +54,12 @@ public class EventBus {
         }
     }
 
-    public void register(Object o) {
-        Class c = o.getClass();
+    /**
+     * Subscribe an object's event hooks to the bus.
+     * @param obj The source object.
+     */
+    public void subscribe(Object obj) {
+        Class c = obj.getClass();
         MethodHandles.Lookup lookup = MethodHandles.lookup();
 
         for (Method m : c.getMethods()) {
@@ -66,7 +70,7 @@ public class EventBus {
                     if (parameterClass != Event.class && Event.class.isAssignableFrom(parameterClass)) {
                         IHookchain chain = getOrCreateChain(parameterClass);
                         Hook hook = m.getAnnotation(Hook.class);
-                        MethodHandle handle = lookup.unreflect(m).bindTo(o);
+                        MethodHandle handle = lookup.unreflect(m).bindTo(obj);
                         HookchainUtils.addHook(chain, hook, handle);
                     }
                 } catch (IllegalAccessException e) {
@@ -76,10 +80,14 @@ public class EventBus {
         }
     }
 
-    public void call(Object o) {
-        IHookchain chain = getChain(o.getClass());
+    /**
+     * Publish an event to the bus.
+     * @param event The event.
+     */
+    public void publish(Event event) {
+        IHookchain chain = getChain(event.getClass());
         if (chain != null) {
-            chain.call(o);
+            chain.call(event);
         }
     }
 }

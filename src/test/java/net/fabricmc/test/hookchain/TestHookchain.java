@@ -55,7 +55,7 @@ public class TestHookchain {
     public TestHookchain() {
     }
 
-    @Hook(name = "get_on_the_floor", before = {"obtain_floor"}, after = {"everybody_walk_the_dinosaur", "everybody_kill_the_dinosaur"})
+    @Hook(name = "get_on_the_floor", after = {"obtain_floor"}, before = {"everybody_walk_the_dinosaur", "everybody_kill_the_dinosaur"})
     public void getOnTheFloor(PrintStream stream) {
         stream.printf("called annotated: \"get_on_the_floor\"\n");
     }
