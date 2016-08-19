@@ -1,7 +1,11 @@
 fabric-base [![Build Status](http://modmuss50.me:8080/job/Fabric/job/Fabric-Base/badge/icon)](http://modmuss50.me:8080/job/Fabric/job/Fabric-Base/)
 ===========
 
-The base API module for the Fabric Mod Loader. Licensed under the Apache License 2.0.
+The base module for Fabric. It provides mod loading facilities and useful abstractions for other mods to use.
+
+## License
+
+Licensed under the Apache License 2.0.
 
 ## Prerequisites
 
