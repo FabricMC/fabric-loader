@@ -32,18 +32,33 @@ public class LoadingBus {
         hookchain = new TreeHookchain(MethodType.methodType(void.class));
     }
 
-    public void register(Object o) {
-        HookchainUtils.addAnnotatedHooks(hookchain, o);
+    /**
+     * Subscribe an object's hooks to the bus.
+     * @param obj The source object.
+     */
+    public void subscribe(Object obj) {
+        HookchainUtils.addAnnotatedHooks(hookchain, obj);
     }
 
-    public void registerHookName(String mark) {
+    /**
+     * Add a dummy hook name - call it with call(mark).
+     * @param mark The hook name.
+     */
+    public void addDummyHookName(String mark) {
         hookchain.add(mark);
     }
 
+    /**
+     * Start the loading bus chain.
+     */
     public void start() {
         hookchain.call();
     }
 
+    /**
+     * Call a dummy hook name.
+     * @param mark The hook name.
+     */
     public void call(String mark) {
         hookchain.call(mark);
     }

@@ -27,26 +27,37 @@ public final class HookchainUtils {
 
     }
 
+    /**
+     * Adds a hook to a hookchain based on annotation data.
+     * @param chain The target hookchain.
+     * @param hook The @Hook annotation.
+     * @param callback The callback method handle.
+     */
     public static void addHook(IHookchain chain, Hook hook, MethodHandle callback) {
         synchronized (chain) {
             chain.add(hook.name(), callback);
             for (String s : hook.before()) {
-                chain.addConstraint(s, hook.name());
+                chain.addConstraint(hook.name(), s);
             }
             for (String s : hook.after()) {
-                chain.addConstraint(hook.name(), s);
+                chain.addConstraint(s, hook.name());
             }
         }
     }
 
-    public static void addAnnotatedHooks(IHookchain chain, Object o) {
-        Class c = o.getClass();
+    /**
+     * Adds all matching hooks to a hookchain based on annotation data.
+     * @param chain The target hookchain.
+     * @param obj The source object.
+     */
+    public static void addAnnotatedHooks(IHookchain chain, Object obj) {
+        Class c = obj.getClass();
         MethodHandles.Lookup lookup = MethodHandles.lookup();
 
         for (Method m : c.getMethods()) {
             if (m.isAnnotationPresent(Hook.class)) {
                 try {
-                    MethodHandle handle = lookup.unreflect(m).bindTo(o);
+                    MethodHandle handle = lookup.unreflect(m).bindTo(obj);
                     if (handle.type().equals(chain.getMethodType())) {
                         Hook hook = m.getAnnotation(Hook.class);
                         addHook(chain, hook, handle);

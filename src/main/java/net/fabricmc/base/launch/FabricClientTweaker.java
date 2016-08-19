@@ -84,6 +84,9 @@ public class FabricClientTweaker implements ITweaker {
         Loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
         Loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
+
+        // Run the first pass of the loading bus before Minecraft loading begins
+        Fabric.getLoadingBus().start();
     }
 
     @Override

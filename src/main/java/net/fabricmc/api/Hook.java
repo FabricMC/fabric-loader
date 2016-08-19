@@ -22,10 +22,28 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation for "hook" methods, that is methods which go on a bus.
+ *
+ * It is good to not put methods belonging to multiple parameter-less buses
+ * onto a single class. This might be refactored to have separate annotations
+ * for different buses in the future.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Hook {
+    /**
+     * @return The name of the hook.
+     */
     @Nonnull String name();
+
+    /**
+     * @return A list of hooks which should run before this hook.
+     */
     String[] before();
+
+    /**
+     * @return A list of hooks which are supposed to run after this one.
+     */
     String[] after();
 }
