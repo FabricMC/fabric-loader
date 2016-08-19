@@ -48,7 +48,8 @@ public class FabricClientTweaker implements ITweaker {
             this.args.put("--version", profile != null ? profile : "Fabric");
         }
 
-        if (!this.args.containsKey("--gameDir") && gameDir != null) {
+        if (!this.args.containsKey("--gameDir")) {
+            if (gameDir == null) gameDir = new File(".");
             this.args.put("--gameDir", gameDir.getAbsolutePath());
         }
 
