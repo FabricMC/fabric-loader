@@ -35,7 +35,9 @@ import java.util.zip.ZipEntry;
 
 public class Loader {
 
-    private static final Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
+    public static final Loader INSTANCE = new Loader();
+
+    protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
     private static final Gson GSON = new GsonBuilder()
             .registerTypeAdapter(Side.class, new SideDeserializer())
             .registerTypeAdapter(Version.class, new VersionDeserializer())
@@ -44,10 +46,10 @@ public class Loader {
             .create();
     private static final JsonParser JSON_PARSER = new JsonParser();
 
-    private static final Map<String, ModContainer> MOD_MAP = new HashMap<>();
-    private static List<ModContainer> MODS = new ArrayList<>();
+    protected final Map<String, ModContainer> MOD_MAP = new HashMap<>();
+    protected List<ModContainer> MODS = new ArrayList<>();
 
-    public static Set<String> getClientMixinConfigs() {
+    public Set<String> getClientMixinConfigs() {
         return MODS.stream()
                 .map(ModContainer::getInfo)
                 .map(ModInfo::getMixins)
@@ -56,7 +58,7 @@ public class Loader {
                 .collect(Collectors.toSet());
     }
 
-    public static Set<String> getCommonMixinConfigs() {
+    public Set<String> getCommonMixinConfigs() {
         return MODS.stream()
                 .map(ModContainer::getInfo)
                 .map(ModInfo::getMixins)
@@ -65,7 +67,7 @@ public class Loader {
                 .collect(Collectors.toSet());
     }
 
-    public static void load(File modsDir) {
+    public void load(File modsDir) {
         if (!checkModsDirectory(modsDir)) {
             return;
         }
@@ -137,15 +139,15 @@ public class Loader {
         initializeMods();
     }
 
-    public static boolean isModLoaded(String group, String id) {
+    public boolean isModLoaded(String group, String id) {
         return MOD_MAP.containsKey(group + "." + id);
     }
 
-    public static List<ModContainer> getMods() {
+    public List<ModContainer> getMods() {
         return MODS;
     }
 
-    private static List<ModInfo> getClasspathMods() {
+    protected static List<ModInfo> getClasspathMods() {
         List<ModInfo> mods = new ArrayList<>();
 
         String javaHome = System.getProperty("java.home");
@@ -177,7 +179,7 @@ public class Loader {
         return mods;
     }
 
-    private static void checkDependencies() {
+    protected void checkDependencies() {
         LOGGER.debug("Validating mod dependencies");
 
         for (ModContainer mod : MODS) {
@@ -204,7 +206,7 @@ public class Loader {
         }
     }
 
-    private static void sort() {
+    private void sort() {
         LOGGER.debug("Sorting mods");
 
         LinkedList<ModContainer> sorted = new LinkedList<>();
@@ -235,7 +237,7 @@ public class Loader {
         MODS = sorted;
     }
 
-    private static void initializeMods() {
+    private void initializeMods() {
         for (ModContainer mod : MODS) {
             if (mod.hasInstance()) {
                 mod.initialize();
@@ -243,7 +245,7 @@ public class Loader {
         }
     }
 
-    private static boolean checkModsDirectory(File modsDir) {
+    protected static boolean checkModsDirectory(File modsDir) {
         if (!modsDir.exists()) {
             modsDir.mkdirs();
             return false;
@@ -251,7 +253,7 @@ public class Loader {
         return modsDir.isDirectory();
     }
 
-    private static ModInfo[] getJarMods(File f) {
+    protected static ModInfo[] getJarMods(File f) {
         try {
             JarFile jar = new JarFile(f);
             ZipEntry entry = jar.getEntry("mod.json");
@@ -269,7 +271,7 @@ public class Loader {
         return new ModInfo[0];
     }
 
-    private static ModInfo[] getMods(InputStream in) {
+    protected static ModInfo[] getMods(InputStream in) {
         JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
         if (el.isJsonObject()) {
             return new ModInfo[]{GSON.fromJson(el, ModInfo.class)};

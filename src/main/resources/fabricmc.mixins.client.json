@@ -3,8 +3,9 @@
   "package": "net.fabricmc.base.mixin.client",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "gui.impl.MixinGuiMain",
-    "MixinClientBrandRetriever"
+    "MixinMinecraft",
+    "MixinClientBrandRetriever",
+    "gui.impl.MixinGuiMain"
   ],
   "injectors": {
     "defaultRequire": 1
