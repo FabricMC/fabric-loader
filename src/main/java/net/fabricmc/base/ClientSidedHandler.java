@@ -19,6 +19,7 @@ package net.fabricmc.base;
 import net.fabricmc.api.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerAbstract;
+import net.minecraft.server.MinecraftServer;
 
 public class ClientSidedHandler implements ISidedHandler {
 
@@ -39,6 +40,11 @@ public class ClientSidedHandler implements ISidedHandler {
 		} else {
 			Minecraft.getInstance().scheduleOnMainThread(runnable);
 		}
+	}
+
+	@Override
+	public MinecraftServer getServerInstance() {
+		return Minecraft.getInstance().server;
 	}
 
 }

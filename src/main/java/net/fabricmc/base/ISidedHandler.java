@@ -18,6 +18,7 @@ package net.fabricmc.base;
 
 import net.fabricmc.api.Side;
 import net.minecraft.entity.player.EntityPlayerAbstract;
+import net.minecraft.server.MinecraftServer;
 
 public interface ISidedHandler {
 
@@ -26,5 +27,7 @@ public interface ISidedHandler {
 	EntityPlayerAbstract getClientPlayer();
 
 	void runOnMainThread(Runnable runnable);
+
+	MinecraftServer getServerInstance();
 
 }
