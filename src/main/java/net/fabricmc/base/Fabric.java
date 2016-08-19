@@ -16,9 +16,17 @@
 
 package net.fabricmc.base;
 
+import net.fabricmc.base.util.EventBus;
+import net.fabricmc.base.util.LoadingBus;
+import net.fabricmc.base.util.hookchain.IFlexibleHookchain;
+import net.fabricmc.base.util.hookchain.TreeHookchain;
+
 import java.io.File;
+import java.lang.invoke.MethodType;
 
 public final class Fabric {
+    private static final EventBus EVENT_BUS;
+    private static final LoadingBus LOADING_BUS;
 
     private static boolean initialized = false;
 
@@ -49,6 +57,18 @@ public final class Fabric {
         return configDir;
     }
 
+    public static EventBus getEventBus() {
+        return EVENT_BUS;
+    }
+
+    public static LoadingBus getLoadingBus() {
+        return LOADING_BUS;
+    }
+
     private Fabric() {}
 
+    static {
+        EVENT_BUS = new EventBus();
+        LOADING_BUS = new LoadingBus();
+    }
 }
