@@ -1,0 +1,28 @@
+{
+    "libraries": [
+        {
+            "name": "net.minecraft:launchwrapper:1.11"
+        },
+        {
+            "name": "org.ow2.asm:asm-all:5.0.3"
+        },
+        {
+            "name": "com.github.zafarkhaja:java-semver:0.9.0",
+            "downloads": {
+                "artifact": {
+                    "url": "https://repo1.maven.org/maven2/com/github/zafarkhaja/java-semver/0.9.0/java-semver-0.9.0.jar",
+                    "sha1": "59A83CA73C72A5E25B3F0B1BB305230A11000329"
+                }
+            }
+        },
+        {
+            "name": "org.spongepowered:mixin:0.5.11-SNAPSHOT",
+            "downloads": {
+                "artifact": {
+                    "url": "https://repo.spongepowered.org/maven/org/spongepowered/mixin/0.5.11-SNAPSHOT/mixin-0.5.11-20160705.154945-3.jar",
+                    "sha1": "451a47ea3e41b5aa68189761b9343189a969d64f"
+                }
+            }
+        }
+    ]
+}
