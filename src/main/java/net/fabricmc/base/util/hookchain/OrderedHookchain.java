@@ -3,6 +3,7 @@ package net.fabricmc.base.util.hookchain;
 import net.fabricmc.base.util.hookchain.IHookchain;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 import java.util.*;
 
 /**
@@ -10,11 +11,11 @@ import java.util.*;
  *
  * @author greaser
  */
-public class OrderedHookchain<T> implements IHookchain<T> {
+public class OrderedHookchain extends Hookchain<OrderedHookchain.HookData> {
     /**
      * Central data structure for the ordered hookchain.
      */
-    private class HookData<T> {
+    protected class HookData {
         public final String name;
         public MethodHandle callback;
         private final Set<String> hooksBefore = new HashSet<String>();
@@ -42,20 +43,31 @@ public class OrderedHookchain<T> implements IHookchain<T> {
             assert (dependenciesProvided != null);
             return dependenciesProvided.containsAll(this.hooksAfter);
         }
+
+        public String toString() {
+            return "{name=" + name + (callback != null ? ",callbacked," : ",") + "hooksBefore=" + hooksBefore.toString() + ",hooksAfter=" + hooksAfter.toString() + "}";
+        }
     }
 
-    private Map<String, HookData<T>> handles = new HashMap<>();
     private List<MethodHandle> orderTable = new ArrayList<>();
-    private boolean dirty = true;
+
+    public OrderedHookchain(MethodType type) {
+        super(type);
+    }
+
+    @Override
+    public HookData createEmptyHook(String name) {
+        return new HookData(name, null);
+    }
 
     /**
      * Performs necessary updates to the state prior to chain execution.
      * <p>
-     * This should be called by callChain.
+     * This should be called by call.
      */
     private synchronized void fullClean() {
-        Set<HookData<T>> remaining = new HashSet<>();
-        Set<HookData<T>> toRemoveHook = new HashSet<>();
+        Set<HookData> remaining = new HashSet<>();
+        Set<HookData> toRemoveHook = new HashSet<>();
         Set<String> toAddName = new HashSet<>();
         Set<String> satisfied = new HashSet<>();
 
@@ -63,7 +75,7 @@ public class OrderedHookchain<T> implements IHookchain<T> {
         orderTable.clear();
 
         // Fill "remaining" set
-        remaining.addAll(handles.values());
+        remaining.addAll(handleMap.values());
 
         // Add hooks in waves
         while (!remaining.isEmpty()) {
@@ -72,7 +84,7 @@ public class OrderedHookchain<T> implements IHookchain<T> {
             toRemoveHook.clear();
 
             // Add all necessary hooks
-            for (HookData<T> hook : remaining) {
+            for (HookData hook : remaining) {
                 if (hook.areDependenciesSatisfied(satisfied)) {
                     toAddName.add(hook.name);
                     toRemoveHook.add(hook);
@@ -97,42 +109,21 @@ public class OrderedHookchain<T> implements IHookchain<T> {
         this.dirty = false;
     }
 
-    /**
-     * Gets a HookData for a hook, creating it if necessary.
-     *
-     * @param name Name of hook to get
-     * @returns Expected HookData object
-     */
-    private synchronized HookData<T> getOrCreateHook(String name) {
-        if (!handles.containsKey(name)) {
-            this.dirty = true;
-            HookData<T> ret = new HookData<T>(name, null);
-            handles.put(name, ret);
-            return ret;
-        } else {
-            return handles.get(name);
-        }
-    }
-
-    private synchronized HookData<T> getHook(String name) {
-        return handles.get(name);
-    }
-
     @Override
-    public synchronized void addHook(String name, MethodHandle callback) {
+    public synchronized void add(String name, MethodHandle callback) {
         if (getHook(name) != null && getHook(name).callback != null) {
             throw new RuntimeException("duplicate hook: " + name);
         }
 
         this.dirty = true;
-        HookData<T> hookData = getOrCreateHook(name);
+        HookData hookData = getOrCreateHook(name);
         hookData.callback = callback;
     }
 
     @Override
     public synchronized void addConstraint(String nameBefore, String nameAfter) {
-        HookData<T> hookBefore = getOrCreateHook(nameBefore);
-        HookData<T> hookAfter = getOrCreateHook(nameAfter);
+        HookData hookBefore = getOrCreateHook(nameBefore);
+        HookData hookAfter = getOrCreateHook(nameAfter);
 
         hookBefore.addHookAfter(nameAfter);
         hookAfter.addHookBefore(nameBefore);
@@ -143,7 +134,7 @@ public class OrderedHookchain<T> implements IHookchain<T> {
      * This will reconstruct the order table if any hooks or hook constraints have changed.
      */
     @Override
-    public synchronized void callChain(T arg) {
+    public synchronized void call(Object... args) {
         // orderTable must not be dirty when we actually do this
         if (this.dirty) {
             this.fullClean();
@@ -156,7 +147,7 @@ public class OrderedHookchain<T> implements IHookchain<T> {
         for (MethodHandle cb : this.orderTable) {
             assert (cb != null);
             try {
-                cb.invoke(arg);
+                cb.invokeWithArguments(args);
             } catch (Throwable t) {
                 throw new RuntimeException("hookchain calling error", t);
             }

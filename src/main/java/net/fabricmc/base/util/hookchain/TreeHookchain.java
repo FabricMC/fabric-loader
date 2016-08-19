@@ -5,9 +5,8 @@ import com.google.common.collect.Multimap;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
-import java.util.HashMap;
+import java.lang.invoke.MethodType;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -15,8 +14,8 @@ import java.util.Set;
  *
  * @author greaser, asie
  */
-public class TreeHookchain<T> implements IFlexibleHookchain<T> {
-    private class HookData<T> {
+public class TreeHookchain extends Hookchain<TreeHookchain.HookData> implements IFlexibleHookchain {
+    protected class HookData {
         public final String name;
         public MethodHandle callback;
         private boolean hasRun = false;
@@ -31,10 +30,10 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
             this.callback = callback;
         }
 
-        private void call(T arg) {
+        private void call(Object... args) {
             if (callback != null) {
                 try {
-                    callback.invoke(arg);
+                    callback.invokeWithArguments(args);
                 } catch (Throwable t) {
                     throw new RuntimeException("hookchain calling error", t);
                 }
@@ -53,6 +52,11 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
             this.hooksBefore.add(oname);
         }
 
+        public boolean areDependenciesSatisfied(Set<String> dependenciesProvided) {
+            assert (dependenciesProvided != null);
+            return dependenciesProvided.containsAll(this.hooksAfter);
+        }
+
         public boolean canRun() {
             return hasRun || handlesRunSet.containsAll(this.hooksAfter);
         }
@@ -63,19 +67,63 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
     }
 
     private Set<String> handlesRunSet = new HashSet<>();
-    private Map<String, HookData<T>> handleMap = new HashMap<>();
-    private Multimap<String, HookData<T>> handlesByDeps = HashMultimap.create();
-    private boolean dirty = true;
+    private Multimap<String, HookData> handlesByDeps = HashMultimap.create();
+
+    public TreeHookchain(MethodType type) {
+        super(type);
+    }
+
+    @Override
+    public HookData createEmptyHook(String name) {
+        return new HookData(name, null);
+    }
+
+    // TODO: Verify (honestly, I just copied the OrderedHookchain algorithm)
+    private synchronized boolean hasCyclicDependencies() {
+        Set<HookData> remaining = new HashSet<>();
+        Set<HookData> toRemoveHook = new HashSet<>();
+        Set<String> toAddName = new HashSet<>();
+        Set<String> satisfied = new HashSet<>();
+
+        // Fill "remaining" set
+        remaining.addAll(handleMap.values());
+
+        // Add hooks in waves
+        while (!remaining.isEmpty()) {
+            // Clear "to add" lists
+            toAddName.clear();
+            toRemoveHook.clear();
+
+            // Add all necessary hooks
+            for (HookData hook : remaining) {
+                if (hook.areDependenciesSatisfied(satisfied)) {
+                    toAddName.add(hook.name);
+                    toRemoveHook.add(hook);
+                }
+            }
+
+            // Ensure we have something to add
+            if (toAddName.isEmpty()) {
+                return true;
+            }
+
+            // Add/remove things
+            satisfied.addAll(toAddName);
+            remaining.removeAll(toRemoveHook);
+        }
+
+        return false;
+    }
 
     /**
      * Performs necessary updates to the state prior to chain execution.
      * <p>
-     * This should be called by callChain.
+     * This should be called by call.
      */
     private synchronized void fullClean() {
         handlesByDeps.clear();
 
-        for (HookData<T> hook : handleMap.values()) {
+        for (HookData hook : handleMap.values()) {
             if (hook.hooksAfter.isEmpty()) {
                 handlesByDeps.put("", hook);
             } else {
@@ -85,48 +133,21 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
             }
         }
 
-        // Check for cyclic dependencies
-        for (String hookName1 : handlesByDeps.keySet()) {
-            HookData hook1 = handleMap.get(hookName1);
-            for (HookData hook2 : handlesByDeps.get(hookName1)) {
-                if (handlesByDeps.get(hook2.name).contains(hook1)) {
-                    throw new RuntimeException("cyclic dependency in hookchain");
-                }
-            }
+        if (hasCyclicDependencies()) {
+            throw new RuntimeException("cyclic dependency in hookchain");
         }
 
         // Mark clean
         this.dirty = false;
     }
 
-    /**
-     * Gets a HookData for a hook, creating it if necessary.
-     *
-     * @param name Name of hook to get
-     * @returns Expected HookData object
-     */
-    private synchronized HookData<T> getOrCreateHook(String name) {
-        if (!handleMap.containsKey(name)) {
-            this.dirty = true;
-            HookData<T> ret = new HookData<T>(name, null);
-            handleMap.put(name, ret);
-            return ret;
-        } else {
-            return handleMap.get(name);
-        }
-    }
-
-    private synchronized HookData<T> getHook(String name) {
-        return handleMap.get(name);
+    @Override
+    public synchronized void add(String name) {
+        add(name, null);
     }
 
     @Override
-    public synchronized void addHook(String name) {
-        addHook(name, null);
-    }
-    
-    @Override
-    public synchronized void addHook(String name, @Nullable MethodHandle callback) {
+    public synchronized void add(String name, @Nullable MethodHandle callback) {
         HookData hookData = getHook(name);
 
         if (hookData != null && hookData.callback != null && !hookData.callback.equals(callback)) {
@@ -142,8 +163,8 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
 
     @Override
     public synchronized void addConstraint(String nameBefore, String nameAfter) {
-        HookData<T> hookBefore = getOrCreateHook(nameBefore);
-        HookData<T> hookAfter = getOrCreateHook(nameAfter);
+        HookData hookBefore = getOrCreateHook(nameBefore);
+        HookData hookAfter = getOrCreateHook(nameAfter);
 
         hookBefore.addHookAfter(nameAfter);
         hookAfter.addHookBefore(nameBefore);
@@ -151,11 +172,12 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
     }
 
     @Override
-    public synchronized void callChain(T arg) {
-        callChain("", arg);
+    public synchronized void call(Object... args) {
+        call("", args);
     }
 
-    public synchronized void callChain(String key, T arg) {
+    @Override
+    public synchronized void call(String key, Object... args) {
         if (this.dirty) {
             this.fullClean();
         }
@@ -163,11 +185,11 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
         assert (!this.dirty);
 
         if (key.length() > 0) {
-            HookData<T> hook = getHook(key);
+            HookData hook = getHook(key);
             if (hook == null) {
                 return;
             }
-            hook.call(arg);
+            hook.call(args);
         }
 
         int hooksCalledIter;
@@ -188,7 +210,7 @@ public class TreeHookchain<T> implements IFlexibleHookchain<T> {
             for (String k : hookDeps) {
                 for (HookData data : handlesByDeps.get(k)) {
                     if (data.callback != null && !hooksCalled.contains(data) && data.canRun()) {
-                        data.call(arg);
+                        data.call(args);
                         hooksCalled.add(data);
                         hookDepsNew.add(data.name);
                     }

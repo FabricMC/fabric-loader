@@ -17,13 +17,15 @@ import java.lang.invoke.MethodType;
  * @author greaser
  */
 public class TestHookchain {
+    private static final MethodType METHOD_TYPE = MethodType.methodType(void.class, PrintStream.class);
+
     private class TestCallback {
         private String name;
 
-        public TestCallback(IHookchain<PrintStream> hc, String name) {
+        public TestCallback(IHookchain hc, String name) {
             this.name = name;
             try {
-                hc.addHook(name, MethodHandles.lookup().bind(this, "handle", MethodType.methodType(void.class, PrintStream.class)));
+                hc.add(name, MethodHandles.lookup().bind(this, "handle", METHOD_TYPE));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -42,7 +44,7 @@ public class TestHookchain {
         stream.printf("called annotated: \"get_on_the_floor\"\n");
     }
 
-    public void run(IHookchain<PrintStream> hc, boolean cyclic) {
+    public void run(IHookchain hc, boolean cyclic) {
         // add annotated hooks first
         HookchainUtils.addAnnotatedHooks(hc, this);
 
@@ -86,17 +88,18 @@ public class TestHookchain {
             hc.addConstraint("everybody_walk_the_dinosaur", "open_the_door");
         }
 
-        hc.callChain(System.out);
+        hc.call(System.out);
+
         if (hc instanceof IFlexibleHookchain) {
             System.out.println("\na few verses later");
-            ((IFlexibleHookchain) hc).callChain("a_few_verses_later", System.out);
+            ((IFlexibleHookchain) hc).call("a_few_verses_later", System.out);
         }
     }
 
     public static void main(String[] args) {
         System.out.println("\n--- Testing with ordered hookchain ---\n");
         try {
-            new TestHookchain().run(new OrderedHookchain<>(), false);
+            new TestHookchain().run(new OrderedHookchain(METHOD_TYPE), false);
         } catch (Throwable t) {
             System.err.println("Error: " + t.toString());
             t.printStackTrace();
@@ -104,7 +107,7 @@ public class TestHookchain {
 
         System.out.println("\n--- Testing with tree hookchain ---\n");
         try {
-            new TestHookchain().run(new TreeHookchain<>(), false);
+            new TestHookchain().run(new TreeHookchain(METHOD_TYPE), false);
         } catch (Throwable t) {
             System.err.println("Error: " + t.toString());
             t.printStackTrace();
@@ -112,16 +115,16 @@ public class TestHookchain {
 
         System.out.println("\n--- Testing cyclic with ordered hookchain ---\n");
         try {
-            new TestHookchain().run(new OrderedHookchain<>(), true);
+            new TestHookchain().run(new OrderedHookchain(METHOD_TYPE), true);
         } catch (Throwable t) {
-            System.err.println("Success: " + t.toString());
+            System.out.println("Success: " + t.toString());
         }
 
         System.out.println("\n--- Testing cyclic with tree hookchain ---\n");
         try {
-            new TestHookchain().run(new OrderedHookchain<>(), true);
+            new TestHookchain().run(new TreeHookchain(METHOD_TYPE), true);
         } catch (Throwable t) {
-            System.err.println("Success: " + t.toString());
+            System.out.println("Success: " + t.toString());
         }
     }
 }

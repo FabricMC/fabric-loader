@@ -13,7 +13,7 @@ public final class HookchainUtils {
 
     public static void addHook(IHookchain chain, Hook hook, MethodHandle callback) {
         synchronized (chain) {
-            chain.addHook(hook.name(), callback);
+            chain.add(hook.name(), callback);
             for (String s : hook.before()) {
                 chain.addConstraint(s, hook.name());
             }
@@ -28,13 +28,13 @@ public final class HookchainUtils {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
 
         for (Method m : c.getMethods()) {
-            if (m.isAnnotationPresent(Hook.class)
-                    && m.getParameterCount() == 1) {
+            if (m.isAnnotationPresent(Hook.class)) {
                 try {
-                    Hook hook = m.getAnnotation(Hook.class);
                     MethodHandle handle = lookup.unreflect(m).bindTo(o);
-
-                    addHook(chain, hook, handle);
+                    if (handle.type().equals(chain.getMethodType())) {
+                        Hook hook = m.getAnnotation(Hook.class);
+                        addHook(chain, hook, handle);
+                    }
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
