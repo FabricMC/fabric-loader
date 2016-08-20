@@ -58,9 +58,11 @@ public class FabricClientTweaker implements ITweaker {
         if (!this.args.containsKey("--assetsDir") && assetsDir != null) {
             this.args.put("--assetsDir", assetsDir.getAbsolutePath());
         }
+
         if (!this.args.containsKey("--accessToken")) {
             this.args.put("--accessToken", "FabricMC");
         }
+
         for (int i = 0; i < args.size(); i++) {
             String arg = args.get(i);
             if (arg.startsWith("--")) {
