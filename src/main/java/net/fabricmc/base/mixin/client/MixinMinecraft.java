@@ -30,8 +30,9 @@ public class MixinMinecraft {
 
 	@Inject(method = "an", at = @At("HEAD"))
 	public void an(CallbackInfo info) {
-		Loader.loadFromBlackBoard();
 		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
+		Loader.loadFromBlackBoard();
+		Loader.initializeMods();
 	}
 
 }
