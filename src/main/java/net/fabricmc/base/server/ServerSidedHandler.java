@@ -14,37 +14,43 @@
  * limitations under the License.
  */
 
-package net.fabricmc.base;
+package net.fabricmc.base.server;
 
 import net.fabricmc.api.Side;
-import net.minecraft.client.Minecraft;
+import net.fabricmc.base.ISidedHandler;
 import net.minecraft.entity.player.EntityPlayerAbstract;
 import net.minecraft.server.MinecraftServer;
 
-public class ClientSidedHandler implements ISidedHandler {
+public class ServerSidedHandler implements ISidedHandler {
+
+	private MinecraftServer server;
+
+	public ServerSidedHandler(MinecraftServer server) {
+		this.server = server;
+	}
 
 	@Override
 	public Side getSide() {
-		return Side.CLIENT;
+		return Side.SERVER;
 	}
 
 	@Override
 	public EntityPlayerAbstract getClientPlayer() {
-		return Minecraft.getInstance().player;
+		return null;
 	}
 
 	@Override
 	public void runOnMainThread(Runnable runnable) {
-		if (Minecraft.getInstance().isMainThread()) {
+		if (server.isMainThread()) {
 			runnable.run();
 		} else {
-			Minecraft.getInstance().scheduleOnMainThread(runnable);
+			server.scheduleOnMainThread(runnable);
 		}
 	}
 
 	@Override
 	public MinecraftServer getServerInstance() {
-		return Minecraft.getInstance().server;
+		return server;
 	}
 
 }

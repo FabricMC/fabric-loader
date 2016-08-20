@@ -16,9 +16,7 @@
 
 package net.fabricmc.base.launch;
 
-import net.fabricmc.base.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
-import net.fabricmc.base.loader.Loader;
 import net.fabricmc.base.loader.MixinLoader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
