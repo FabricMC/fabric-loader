@@ -25,12 +25,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.File;
+
 @Mixin(value = Minecraft.class, remap = false)
 public class MixinMinecraft {
 
 	@Inject(method = "an", at = @At("HEAD"))
 	public void an(CallbackInfo info) {
-		Loader.loadFromBlackBoard();
+		Loader.INSTANCE.load(new File(Minecraft.getInstance().runDirectory, "mods"));
 		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
 	}
 

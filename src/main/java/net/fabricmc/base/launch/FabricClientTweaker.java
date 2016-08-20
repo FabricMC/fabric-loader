@@ -16,8 +16,10 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.base.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
+import net.fabricmc.base.loader.MixinLoader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -70,8 +72,8 @@ public class FabricClientTweaker implements ITweaker {
     @Override
     public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
         File gameDir = new File(args.get("--gameDir"));
-        Loader.load(new File(gameDir, "mods"));
-        Loader.storeToBlackBoard();
+        MixinLoader loader = new MixinLoader();
+        loader.load(new File(gameDir, "mods"));
 
         // Add Mixin tweaker
         ((List<String>) Launch.blackboard.get("TweakClasses")).add("org.spongepowered.asm.launch.MixinTweaker");
@@ -81,8 +83,8 @@ public class FabricClientTweaker implements ITweaker {
         Mixins.addConfigurations(
                 "fabricmc.mixins.client.json",
                 "fabricmc.mixins.common.json");
-        Loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
-        Loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
+        loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
+        loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
 
         // Run the first pass of the loading bus before Minecraft loading begins
