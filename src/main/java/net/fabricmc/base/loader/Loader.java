@@ -119,7 +119,7 @@ public class Loader {
                         String depId = entry.getKey();
                         ModInfo.Dependency dep = entry.getValue();
                         if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-                            ModContainer container = new ModContainer(mod);
+                            ModContainer container = new ModContainer(mod, true);
                             MODS.add(container);
                             MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
                         }
@@ -127,7 +127,7 @@ public class Loader {
                 }
                 continue mods;
             }
-            ModContainer container = new ModContainer(mod);
+            ModContainer container = new ModContainer(mod, true);
             MODS.add(container);
             MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
         }

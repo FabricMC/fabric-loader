@@ -70,14 +70,14 @@ public class MixinLoader extends Loader {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-							ModContainer container = new ModContainer(mod);
+							ModContainer container = new ModContainer(mod, false);
 							MODS.add(container);
 						}
 					}
 				}
 				continue mods;
 			}
-			ModContainer container = new ModContainer(mod);
+			ModContainer container = new ModContainer(mod, false);
 			MODS.add(container);
 		}
 

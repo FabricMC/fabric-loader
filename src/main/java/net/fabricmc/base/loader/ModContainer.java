@@ -24,9 +24,9 @@ public class ModContainer {
     private ILanguageAdapter adapter;
     private Object instance;
 
-    public ModContainer(ModInfo info) {
+    public ModContainer(ModInfo info, boolean initialize) {
         this.info = info;
-        if (!info.getModClass().isEmpty()) {
+        if (initialize && !info.getModClass().isEmpty()) {
             this.adapter = createAdapter();
             this.instance = createInstance();
         }
