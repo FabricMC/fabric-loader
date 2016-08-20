@@ -73,9 +73,6 @@ public class FabricClientTweaker implements ITweaker {
         MixinLoader loader = new MixinLoader();
         loader.load(new File(gameDir, "mods"));
 
-        // Add Mixin tweaker
-        ((List<String>) Launch.blackboard.get("TweakClasses")).add("org.spongepowered.asm.launch.MixinTweaker");
-
         // Setup Mixin environment
         MixinBootstrap.init();
         Mixins.addConfigurations(
