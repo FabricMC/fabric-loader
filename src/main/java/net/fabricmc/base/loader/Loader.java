@@ -19,6 +19,7 @@ package net.fabricmc.base.loader;
 import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
 import net.fabricmc.api.Side;
+import net.fabricmc.base.Fabric;
 import net.fabricmc.base.util.SideDeserializer;
 import net.fabricmc.base.util.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
@@ -132,7 +133,10 @@ public class Loader {
             MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
         }
 
-        LOGGER.debug("Loading %d mods", MODS.size());
+        LOGGER.info("Loading %d mods: %s", MODS.size(), String.join(", ", MODS.stream()
+                .map(ModContainer::getInfo)
+                .map(mod -> mod.getGroup() + "." + mod.getId())
+                .collect(Collectors.toList())));
 
         checkDependencies();
         sort();
@@ -151,10 +155,11 @@ public class Loader {
         List<ModInfo> mods = new ArrayList<>();
 
         String javaHome = System.getProperty("java.home");
+        String modsDir = new File(Fabric.getGameDirectory(), "mods").getAbsolutePath();
 
         URL[] urls = Launch.classLoader.getURLs();
         for (URL url : urls) {
-            if (url.getPath().startsWith(javaHome)) {
+            if (url.getPath().startsWith(javaHome) || url.getPath().startsWith(modsDir)) {
                 continue;
             }
 

@@ -16,9 +16,11 @@
 
 package net.fabricmc.base.loader;
 
+import net.minecraft.launchwrapper.Launch;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.*;
 
 public class MixinLoader extends Loader {
@@ -52,6 +54,16 @@ public class MixinLoader extends Loader {
 			}
 
 			ModInfo[] fileMods = getJarMods(f);
+
+			if (fileMods.length != 0) {
+				try {
+					Launch.classLoader.addURL(f.toURI().toURL());
+				} catch (MalformedURLException e) {
+					LOGGER.error("Unable to load mod from %s", f.getName());
+					e.printStackTrace();
+					continue;
+				}
+			}
 
 			Collections.addAll(existingMods, fileMods);
 		}
