@@ -3,6 +3,7 @@
     "group": "net.fabricmc",
     "version": "1.0.0",
     "modClass": "net.fabricmc.test.TestMod",
+    "side": "client",
     "mixins": {
         "client": "fabricmc.test.mixins.client.json"
     }

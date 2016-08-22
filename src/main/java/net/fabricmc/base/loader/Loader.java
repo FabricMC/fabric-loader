@@ -120,17 +120,13 @@ public class Loader {
                         String depId = entry.getKey();
                         ModInfo.Dependency dep = entry.getValue();
                         if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-                            ModContainer container = new ModContainer(mod, true);
-                            MODS.add(container);
-                            MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
+                            addMod(mod, true);
                         }
                     }
                 }
                 continue mods;
             }
-            ModContainer container = new ModContainer(mod, true);
-            MODS.add(container);
-            MOD_MAP.put(mod.getGroup() + "." + mod.getId(), container);
+            addMod(mod, true);
         }
 
         LOGGER.info("Loading %d mods: %s", MODS.size(), String.join(", ", MODS.stream()
@@ -182,6 +178,16 @@ public class Loader {
             }
         }
         return mods;
+    }
+
+    protected void addMod(ModInfo info, boolean initialize) {
+        Side currentSide = Fabric.getSidedHandler().getSide();
+        if ((currentSide == Side.CLIENT && !info.getSide().hasClient()) || (currentSide == Side.SERVER && !info.getSide().hasServer())) {
+            return;
+        }
+        ModContainer container = new ModContainer(info, initialize);
+        MODS.add(container);
+        MOD_MAP.put(info.getGroup() + "." + info.getId(), container);
     }
 
     protected void checkDependencies() {

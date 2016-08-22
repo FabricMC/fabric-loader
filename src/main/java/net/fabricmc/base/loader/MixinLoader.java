@@ -82,18 +82,21 @@ public class MixinLoader extends Loader {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-							ModContainer container = new ModContainer(mod, false);
-							MODS.add(container);
+							addMod(mod, false);
 						}
 					}
 				}
 				continue mods;
 			}
-			ModContainer container = new ModContainer(mod, false);
-			MODS.add(container);
+			addMod(mod, false);
 		}
 
 		checkDependencies();
 	}
 
+	@Override
+	protected void addMod(ModInfo info, boolean initialize) {
+		ModContainer container = new ModContainer(info, initialize);
+		MODS.add(container);
+	}
 }
