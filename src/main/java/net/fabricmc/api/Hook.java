@@ -38,12 +38,12 @@ public @interface Hook {
     @Nonnull String name();
 
     /**
-     * @return A list of hooks which should run before this hook.
+     * @return A list of hooks that this hook needs to run before (i.e. dependants).
      */
     String[] before();
 
     /**
-     * @return A list of hooks which are supposed to run after this one.
+     * @return A list of hooks that this hook needs to run after (i.e. dependencies).
      */
     String[] after();
 }

@@ -249,11 +249,13 @@ public class Loader {
     }
 
     private void initializeMods() {
+        Fabric.getLoadingBus().addDummyHookName("fabric:modsInitialized");
         for (ModContainer mod : MODS) {
             if (mod.hasInstance()) {
                 mod.initialize();
             }
         }
+        Fabric.getLoadingBus().call("fabric:modsInitialized");
     }
 
     protected static boolean checkModsDirectory(File modsDir) {
