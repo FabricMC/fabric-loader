@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.loader;
 
+import net.fabricmc.base.util.Pair;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.logging.log4j.LogManager;
 
@@ -35,11 +36,11 @@ public class MixinLoader extends Loader {
 			return;
 		}
 
-		List<ModInfo> existingMods = new ArrayList<>();
+		List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
 
 		int classpathModsCount = 0;
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			List<ModInfo> classpathMods = getClasspathMods();
+			List<Pair<ModInfo, File>> classpathMods = getClasspathMods();
 			existingMods.addAll(classpathMods);
 			classpathModsCount = classpathMods.size();
 			LOGGER.debug("Found %d classpath mods", classpathModsCount);
@@ -65,16 +66,20 @@ public class MixinLoader extends Loader {
 				}
 			}
 
-			Collections.addAll(existingMods, fileMods);
+			for (ModInfo info : fileMods) {
+				existingMods.add(Pair.of(info, f));
+			}
 		}
 
 		LOGGER.debug("Found %d jar mods", existingMods.size() - classpathModsCount);
 
 		mods:
-		for (ModInfo mod : existingMods) {
+		for (Pair<ModInfo, File> pair : existingMods) {
+			ModInfo mod = pair.getLeft();
 			if (mod.isLazilyLoaded()) {
 				innerMods:
-				for (ModInfo mod2 : existingMods) {
+				for (Pair<ModInfo, File> pair2 : existingMods) {
+					ModInfo mod2 = pair2.getLeft();
 					if (mod == mod2) {
 						continue innerMods;
 					}
@@ -82,21 +87,21 @@ public class MixinLoader extends Loader {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-							addMod(mod, false);
+							addMod(mod, pair.getRight(), false);
 						}
 					}
 				}
 				continue mods;
 			}
-			addMod(mod, false);
+			addMod(mod, pair.getRight(), false);
 		}
 
 		checkDependencies();
 	}
 
 	@Override
-	protected void addMod(ModInfo info, boolean initialize) {
-		ModContainer container = new ModContainer(info, initialize);
+	protected void addMod(ModInfo info, File originFile, boolean initialize) {
+		ModContainer container = new ModContainer(info, originFile, initialize);
 		MODS.add(container);
 	}
 }

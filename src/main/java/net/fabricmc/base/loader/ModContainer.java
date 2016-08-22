@@ -18,14 +18,18 @@ package net.fabricmc.base.loader;
 
 import net.fabricmc.base.loader.language.ILanguageAdapter;
 
+import java.io.File;
+
 public class ModContainer {
 
     private ModInfo info;
+    private File originFile;
     private ILanguageAdapter adapter;
     private Object instance;
 
-    public ModContainer(ModInfo info, boolean initialize) {
+    public ModContainer(ModInfo info, File originFile, boolean initialize) {
         this.info = info;
+        this.originFile = originFile;
         if (initialize && !info.getModClass().isEmpty()) {
             this.adapter = createAdapter();
             this.instance = createInstance();
@@ -42,6 +46,10 @@ public class ModContainer {
 
     public ModInfo getInfo() {
         return info;
+    }
+
+    public File getOriginFile() {
+        return originFile;
     }
 
     public ILanguageAdapter getAdapter() {

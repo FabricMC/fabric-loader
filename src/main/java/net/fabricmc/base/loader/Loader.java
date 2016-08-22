@@ -20,6 +20,7 @@ import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
 import net.fabricmc.api.Side;
 import net.fabricmc.base.Fabric;
+import net.fabricmc.base.util.Pair;
 import net.fabricmc.base.util.SideDeserializer;
 import net.fabricmc.base.util.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
@@ -73,11 +74,11 @@ public class Loader {
             return;
         }
 
-        List<ModInfo> existingMods = new ArrayList<>();
+        List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
 
         int classpathModsCount = 0;
         if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-            List<ModInfo> classpathMods = getClasspathMods();
+            List<Pair<ModInfo, File>> classpathMods = getClasspathMods();
             existingMods.addAll(classpathMods);
             classpathModsCount = classpathMods.size();
             LOGGER.debug("Found %d classpath mods", classpathModsCount);
@@ -103,16 +104,20 @@ public class Loader {
                 }
             }
 
-            Collections.addAll(existingMods, fileMods);
+            for (ModInfo info : fileMods) {
+                existingMods.add(Pair.of(info, f));
+            }
         }
 
         LOGGER.debug("Found %d jar mods", existingMods.size() - classpathModsCount);
 
         mods:
-        for (ModInfo mod : existingMods) {
+        for (Pair<ModInfo, File> pair : existingMods) {
+            ModInfo mod = pair.getLeft();
             if (mod.isLazilyLoaded()) {
                 innerMods:
-                for (ModInfo mod2 : existingMods) {
+                for (Pair<ModInfo, File> pair2 : existingMods) {
+                    ModInfo mod2 = pair2.getLeft();
                     if (mod == mod2) {
                         continue innerMods;
                     }
@@ -120,13 +125,13 @@ public class Loader {
                         String depId = entry.getKey();
                         ModInfo.Dependency dep = entry.getValue();
                         if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
-                            addMod(mod, true);
+                            addMod(mod, pair.getRight(), true);
                         }
                     }
                 }
                 continue mods;
             }
-            addMod(mod, true);
+            addMod(mod, pair.getRight(), true);
         }
 
         LOGGER.info("Loading %d mods: %s", MODS.size(), String.join(", ", MODS.stream()
@@ -147,8 +152,8 @@ public class Loader {
         return MODS;
     }
 
-    protected static List<ModInfo> getClasspathMods() {
-        List<ModInfo> mods = new ArrayList<>();
+    protected static List<Pair<ModInfo, File>> getClasspathMods() {
+        List<Pair<ModInfo, File>> mods = new ArrayList<>();
 
         String javaHome = System.getProperty("java.home");
         String modsDir = new File(Fabric.getGameDirectory(), "mods").getAbsolutePath();
@@ -166,26 +171,30 @@ public class Loader {
                     File modJson = new File(f, "mod.json");
                     if (modJson.exists()) {
                         try {
-                            Collections.addAll(mods, getMods(new FileInputStream(modJson)));
+                            for (ModInfo info : getMods(new FileInputStream(modJson))) {
+                                mods.add(Pair.of(info, f));
+                            }
                         } catch (FileNotFoundException e) {
                             LOGGER.error("Unable to load mod from directory " + f.getPath());
                             e.printStackTrace();
                         }
                     }
                 } else if (f.getName().endsWith(".jar")) {
-                    Collections.addAll(mods, getJarMods(f));
+                    for (ModInfo info : getJarMods(f)) {
+                        mods.add(Pair.of(info, f));
+                    }
                 }
             }
         }
         return mods;
     }
 
-    protected void addMod(ModInfo info, boolean initialize) {
+    protected void addMod(ModInfo info, File originFile, boolean initialize) {
         Side currentSide = Fabric.getSidedHandler().getSide();
         if ((currentSide == Side.CLIENT && !info.getSide().hasClient()) || (currentSide == Side.SERVER && !info.getSide().hasServer())) {
             return;
         }
-        ModContainer container = new ModContainer(info, initialize);
+        ModContainer container = new ModContainer(info, originFile, initialize);
         MODS.add(container);
         MOD_MAP.put(info.getGroup() + "." + info.getId(), container);
     }
