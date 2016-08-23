@@ -19,7 +19,7 @@ package net.fabricmc.base.client;
 import net.fabricmc.api.Side;
 import net.fabricmc.base.ISidedHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayerAbstract;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 
 public class ClientSidedHandler implements ISidedHandler {
@@ -30,7 +30,7 @@ public class ClientSidedHandler implements ISidedHandler {
 	}
 
 	@Override
-	public EntityPlayerAbstract getClientPlayer() {
+	public EntityPlayer getClientPlayer() {
 		return Minecraft.getInstance().player;
 	}
 
