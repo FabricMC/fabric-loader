@@ -16,36 +16,25 @@
 
 package net.fabricmc.base.mixin.server;
 
-import com.mojang.authlib.GameProfileRepository;
-import com.mojang.authlib.minecraft.MinecraftSessionService;
-import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.fabricmc.base.Fabric;
-import net.fabricmc.base.loader.Loader;
+import net.fabricmc.base.ISidedHandler;
 import net.fabricmc.base.server.ServerSidedHandler;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.UserCache;
 import net.minecraft.server.dedicated.DedicatedServer;
-import none.pf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.Proxy;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = DedicatedServer.class, remap = false)
-public abstract class MixinDedicatedServer extends MinecraftServer {
+public class MixinDedicatedServer {
 
-	public MixinDedicatedServer(File a1, Proxy a2, pf a3, YggdrasilAuthenticationService a4, MinecraftSessionService a5, GameProfileRepository a6, UserCache a7) {
-		super(a1, a2, a3, a4, a5, a6, a7);
-	}
-
-	@Inject(method = "j", at = @At("HEAD"))
-	public void j(CallbackInfoReturnable<Boolean> info) throws IOException {
-		Fabric.initialize(this.n, new ServerSidedHandler(this));
-		Loader.INSTANCE.load(new File(this.n, "mods"));
+	@Inject(method = "<init>*", at = @At("RETURN"))
+	public void onInit(CallbackInfo ci) {
+		ISidedHandler handler = Fabric.getSidedHandler();
+		if (handler instanceof ServerSidedHandler) {
+			((ServerSidedHandler)handler).setServerInstance((MinecraftServer)(Object)this);
+		}
 	}
 
 }

@@ -20,6 +20,7 @@ import net.fabricmc.base.util.EventBus;
 import net.fabricmc.base.util.LoadingBus;
 import net.fabricmc.base.util.hookchain.IFlexibleHookchain;
 import net.fabricmc.base.util.hookchain.TreeHookchain;
+import net.minecraft.launchwrapper.Launch;
 
 import java.io.File;
 import java.lang.invoke.MethodType;
@@ -28,22 +29,18 @@ public final class Fabric {
     private static final EventBus EVENT_BUS;
     private static final LoadingBus LOADING_BUS;
 
-    private static boolean initialized = false;
-
     private static ISidedHandler sidedHandler;
 
     private static File gameDir;
     private static File configDir;
 
-    // INTERNAL: DO NOT USE
-    public static void initialize(File gameDir, ISidedHandler sidedHandler) {
-        if (initialized) {
-            throw new RuntimeException("Fabric has already been initialized");
+    static {
+        gameDir = new File((String)Launch.blackboard.get("fabric-gamedir"));
+        try {
+            sidedHandler = (ISidedHandler)Class.forName((String)Launch.blackboard.get("fabric-sidedhandler")).newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
         }
-
-        Fabric.gameDir = gameDir;
-        Fabric.sidedHandler = sidedHandler;
-        initialized = true;
     }
 
     public static EventBus getEventBus() {

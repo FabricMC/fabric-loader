@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-package net.fabricmc.base.mixin.client;
+package net.fabricmc.base.mixin.common;
 
-import net.fabricmc.base.client.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
-import net.minecraft.client.Minecraft;
+import net.minecraft.reference.Bootstrap;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 
-@Mixin(value = Minecraft.class, remap = false)
-public class MixinMinecraft {
+@Mixin(value = Bootstrap.class, remap = false)
+public class MixinBootstrap {
 
-	@Inject(method = "an", at = @At("HEAD"))
-	public void an(CallbackInfo info) {
-		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
-		Loader.INSTANCE.load(new File(Minecraft.getInstance().runDirectory, "mods"));
+	@Shadow private static boolean initialized;
+
+	@Inject(method = "init()V", at = @At("HEAD"))
+	private static void onInit(CallbackInfo ci) {
+		if (!initialized) {
+			Loader.INSTANCE.load(new File(Fabric.getGameDirectory(), "mods"));
+		}
 	}
 
 }

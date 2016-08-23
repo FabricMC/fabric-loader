@@ -21,13 +21,11 @@ import net.fabricmc.base.ISidedHandler;
 import net.minecraft.entity.player.EntityPlayerAbstract;
 import net.minecraft.server.MinecraftServer;
 
+import javax.annotation.Nullable;
+
 public class ServerSidedHandler implements ISidedHandler {
 
 	private MinecraftServer server;
-
-	public ServerSidedHandler(MinecraftServer server) {
-		this.server = server;
-	}
 
 	@Override
 	public Side getSide() {
@@ -48,9 +46,18 @@ public class ServerSidedHandler implements ISidedHandler {
 		}
 	}
 
+
+	/**
+	 * @return The {@link MinecraftServer} instance, may be null before Minecraft initialization has completed
+	 */
+	@Nullable
 	@Override
 	public MinecraftServer getServerInstance() {
 		return server;
+	}
+
+	public void setServerInstance(MinecraftServer server) {
+		this.server = server;
 	}
 
 }

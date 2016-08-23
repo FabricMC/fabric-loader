@@ -70,6 +70,10 @@ public class FabricClientTweaker implements ITweaker {
     @Override
     public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
         File gameDir = new File(args.get("--gameDir"));
+
+        Launch.blackboard.put("fabric-gamedir", gameDir.getAbsolutePath());
+        Launch.blackboard.put("fabric-sidedhandler", "net.fabricmc.base.client.ClientSidedHandler");
+
         MixinLoader loader = new MixinLoader();
         loader.load(new File(gameDir, "mods"));
 
