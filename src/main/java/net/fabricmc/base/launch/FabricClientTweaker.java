@@ -110,11 +110,20 @@ public class FabricClientTweaker implements ITweaker {
         } else if (args.containsKey("--height")) {
             height = Math.max(1, Integer.parseInt(args.get("--height")));
         }
+        String ver = args.get("--version");
+        if (ver == null) {
+            ver = "Unknown";
+        } else {
+            int index = ver.indexOf('-');
+            if (index != -1) {
+                ver = ver.substring(0, index);
+            }
+        }
         try {
             Display.setDisplayMode(new DisplayMode(width, height));
             Display.setFullscreen(fullscreen);
             Display.setResizable(true);
-            Display.setTitle("Minecraft 16w33a");
+            Display.setTitle("Minecraft "+ver);
             try {
                 Display.create(new PixelFormat().withDepthBits(24));
             } catch (LWJGLException e) {
