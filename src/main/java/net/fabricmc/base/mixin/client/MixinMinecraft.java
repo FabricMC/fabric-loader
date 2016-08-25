@@ -20,7 +20,10 @@ import net.fabricmc.base.client.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
 import net.minecraft.client.Minecraft;
+
+import org.lwjgl.LWJGLException;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -34,6 +37,11 @@ public class MixinMinecraft {
 	public void an(CallbackInfo info) {
 		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(Minecraft.getInstance().runDirectory, "mods"));
+	}
+	
+	@Overwrite
+	private void ap() throws LWJGLException {
+		// FabricClientTweaker already created the display, so dummy out this method
 	}
 
 }
