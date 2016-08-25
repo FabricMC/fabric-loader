@@ -30,7 +30,7 @@ import java.io.File;
 @Mixin(value = Minecraft.class, remap = false)
 public class MixinMinecraft {
 
-	@Inject(method = "an", at = @At("HEAD"))
+	@Inject(method = "init", at = @At("HEAD"))
 	public void an(CallbackInfo info) {
 		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(Minecraft.getInstance().runDirectory, "mods"));
