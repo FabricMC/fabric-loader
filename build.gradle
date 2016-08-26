@@ -78,7 +78,9 @@ jar {
     manifest {
         attributes(
                 'MinecraftVersion': minecraft_version,
-				'FabricVersion': project.version
+				'FabricVersion': project.version,
+				'Main-Class': 'net.fabricmc.base.launch.FabricServerLauncher',
+				'Class-Path': 'minecraft_server.' + minecraft_version + '.jar'
         )
     }
 }
