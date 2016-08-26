@@ -34,13 +34,13 @@ import java.io.File;
 public class MixinMinecraft {
 
 	@Inject(method = "init", at = @At("HEAD"))
-	public void an(CallbackInfo info) {
+	public void init(CallbackInfo info) {
 		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(Minecraft.getInstance().runDirectory, "mods"));
 	}
 	
 	@Overwrite
-	private void ap() throws LWJGLException {
+	private void createDisplay() throws LWJGLException {
 		// FabricClientTweaker already created the display, so dummy out this method
 	}
 
