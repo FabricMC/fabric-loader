@@ -44,4 +44,8 @@ public class MixinMinecraft {
 		// FabricClientTweaker already created the display, so dummy out this method
 	}
 
+	@Overwrite
+	private void setDisplayMode() throws LWJGLException {
+		//nope
+	}
 }
