@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.0.1-SNAPSHOT'
+		classpath 'net.fabricmc:fabric-loom:0.0.2-SNAPSHOT'
     }
 }
 
@@ -27,7 +27,7 @@ targetCompatibility = 1.8
 
 group = 'net.fabricmc'
 archivesBaseName = project.name.toLowerCase()
-version = minecraft_version + '-0.0.2'
+version = minecraft_version + '-0.0.3'
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
@@ -50,6 +50,7 @@ repositories {
 
 minecraft {
     version = minecraft_version
+    pomfVersion = pomf_version
 }
 
 dependencies {

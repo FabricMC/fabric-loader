@@ -22,10 +22,10 @@ import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
 import net.fabricmc.base.server.ServerSidedHandler;
+import net.minecraft.migration.MigrationHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.UserCache;
 import net.minecraft.server.dedicated.DedicatedServer;
-import none.pf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,7 +38,7 @@ import java.net.Proxy;
 @Mixin(value = DedicatedServer.class, remap = false)
 public abstract class MixinDedicatedServer extends MinecraftServer {
 
-	public MixinDedicatedServer(File a1, Proxy a2, pf a3, YggdrasilAuthenticationService a4, MinecraftSessionService a5, GameProfileRepository a6, UserCache a7) {
+	public MixinDedicatedServer(File a1, Proxy a2, MigrationHandler a3, YggdrasilAuthenticationService a4, MinecraftSessionService a5, GameProfileRepository a6, UserCache a7) {
 		super(a1, a2, a3, a4, a5, a6, a7);
 	}
 
