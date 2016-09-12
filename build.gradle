@@ -74,12 +74,11 @@ license {
 }
 
 jar {
-    from '.gradle/minecraft/mappings/'
-
     manifest {
         attributes(
                 'MinecraftVersion': minecraft_version,
 				'FabricVersion': project.version,
+				'PomfVersion': pomf_version,
 				'Main-Class': 'net.fabricmc.base.launch.FabricServerLauncher',
 				'Class-Path': 'minecraft_server.' + minecraft_version + '.jar'
         )
