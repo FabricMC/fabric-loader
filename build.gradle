@@ -2,7 +2,7 @@ buildscript {
     repositories {
         mavenCentral()
         maven {
-            name = 'Fabic'
+            name = 'Fabric'
             url = 'http://maven.fabricmc.net/'
         }
     }
