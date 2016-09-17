@@ -102,6 +102,6 @@ public class MixinLoader extends Loader {
 	@Override
 	protected void addMod(ModInfo info, File originFile, boolean initialize) {
 		ModContainer container = new ModContainer(info, originFile, initialize);
-		MODS.add(container);
+		mods.add(container);
 	}
 }

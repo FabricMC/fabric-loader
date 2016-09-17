@@ -16,18 +16,9 @@
 
 package net.fabricmc.base;
 
-import net.fabricmc.base.util.EventBus;
-import net.fabricmc.base.util.LoadingBus;
-import net.fabricmc.base.util.hookchain.IFlexibleHookchain;
-import net.fabricmc.base.util.hookchain.TreeHookchain;
-
 import java.io.File;
-import java.lang.invoke.MethodType;
 
 public final class Fabric {
-    private static final EventBus EVENT_BUS;
-    private static final LoadingBus LOADING_BUS;
-
     private static boolean initialized = false;
 
     private static ISidedHandler sidedHandler;
@@ -38,20 +29,12 @@ public final class Fabric {
     // INTERNAL: DO NOT USE
     public static void initialize(File gameDir, ISidedHandler sidedHandler) {
         if (initialized) {
-            throw new RuntimeException("Fabric has already been initialized");
+            throw new RuntimeException("Fabric has already been initialized!");
         }
 
         Fabric.gameDir = gameDir;
         Fabric.sidedHandler = sidedHandler;
         initialized = true;
-    }
-
-    public static EventBus getEventBus() {
-        return EVENT_BUS;
-    }
-
-    public static LoadingBus getLoadingBus() {
-        return LOADING_BUS;
     }
 
     public static ISidedHandler getSidedHandler() {
@@ -73,9 +56,4 @@ public final class Fabric {
     }
 
     private Fabric() {}
-
-    static {
-        EVENT_BUS = new EventBus();
-        LOADING_BUS = new LoadingBus();
-    }
 }

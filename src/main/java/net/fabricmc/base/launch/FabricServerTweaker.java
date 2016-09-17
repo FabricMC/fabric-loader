@@ -80,9 +80,6 @@ public class FabricServerTweaker implements ITweaker {
 				"fabricmc.mixins.common.json");
 		loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
 		MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.SERVER);
-
-		// Run the first pass of the loading bus before Minecraft loading begins
-		Fabric.getLoadingBus().start();
 	}
 
 	@Override

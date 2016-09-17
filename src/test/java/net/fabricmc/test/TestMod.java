@@ -16,9 +16,8 @@
 
 package net.fabricmc.test;
 
-import net.fabricmc.api.Hook;
-import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Init;
+import net.fabricmc.base.loader.Loader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,10 +30,10 @@ public class TestMod {
         LOGGER.info("**************************");
         LOGGER.info("Hello from Fabric");
         LOGGER.info("**************************");
-        Fabric.getLoadingBus().subscribe(this);
+
+        Loader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
     }
 
-    @Hook(name = "test:modsInitialized", before = {}, after = "fabric:modsInitialized")
     public void onModsInitialized() {
         System.out.println("Mods initialized");
     }

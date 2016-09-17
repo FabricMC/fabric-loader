@@ -3,7 +3,7 @@
   "package": "net.fabricmc.base.mixin.client",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinMinecraft",
+    "MixinMinecraftGame",
     "MixinClientBrandRetriever",
     "gui.impl.MixinGuiMain"
   ],

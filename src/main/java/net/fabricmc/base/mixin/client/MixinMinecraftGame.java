@@ -21,6 +21,7 @@ import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
 import net.minecraft.client.Minecraft;
 
+import net.minecraft.client.MinecraftGame;
 import org.lwjgl.LWJGLException;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -30,13 +31,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 
-@Mixin(value = Minecraft.class, remap = false)
-public class MixinMinecraft {
+@Mixin(value = MinecraftGame.class, remap = false)
+public class MixinMinecraftGame {
 
 	@Inject(method = "init", at = @At("HEAD"))
 	public void init(CallbackInfo info) {
-		Fabric.initialize(Minecraft.getInstance().runDirectory, new ClientSidedHandler());
-		Loader.INSTANCE.load(new File(Minecraft.getInstance().runDirectory, "mods"));
+		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
+		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}
 	
 	@Overwrite
