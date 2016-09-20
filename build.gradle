@@ -27,7 +27,7 @@ targetCompatibility = 1.8
 
 group = 'net.fabricmc'
 archivesBaseName = project.name.toLowerCase()
-version = minecraft_version + '-0.0.4'
+version = minecraft_version + '-' + version
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
