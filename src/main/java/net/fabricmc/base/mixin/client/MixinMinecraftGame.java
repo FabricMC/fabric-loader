@@ -19,7 +19,6 @@ package net.fabricmc.base.mixin.client;
 import net.fabricmc.base.client.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.loader.Loader;
-import net.minecraft.client.Minecraft;
 
 import net.minecraft.client.MinecraftGame;
 import org.lwjgl.LWJGLException;

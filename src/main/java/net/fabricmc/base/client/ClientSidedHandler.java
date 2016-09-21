@@ -18,7 +18,7 @@ package net.fabricmc.base.client;
 
 import net.fabricmc.api.Side;
 import net.fabricmc.base.ISidedHandler;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftGame;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 
@@ -31,21 +31,21 @@ public class ClientSidedHandler implements ISidedHandler {
 
 	@Override
 	public EntityPlayer getClientPlayer() {
-		return Minecraft.getInstance().player;
+		return MinecraftGame.getInstance().player;
 	}
 
 	@Override
 	public void runOnMainThread(Runnable runnable) {
-		if (Minecraft.getInstance().isMainThread()) {
+		if (MinecraftGame.getInstance().isMainThread()) {
 			runnable.run();
 		} else {
-			Minecraft.getInstance().scheduleOnMainThread(runnable);
+			MinecraftGame.getInstance().scheduleOnMainThread(runnable);
 		}
 	}
 
 	@Override
 	public MinecraftServer getServerInstance() {
-		return Minecraft.getInstance().server;
+		return MinecraftGame.getInstance().server;
 	}
 
 }
