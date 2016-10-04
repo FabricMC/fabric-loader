@@ -16,10 +16,6 @@
 
 package net.fabricmc.base.launch;
 
-import net.fabricmc.base.Fabric;
-import net.fabricmc.base.loader.MixinLoader;
-import net.minecraft.launchwrapper.ITweaker;
-import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 
 import org.lwjgl.LWJGLException;
@@ -27,7 +23,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.PixelFormat;
-import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
@@ -38,47 +33,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
-public class FabricClientTweaker implements ITweaker {
-
-    private Map<String, String> args;
-
+public class FabricClientTweaker extends FabricTweaker {
     @Override
     public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {
-        this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
-
-        if (this.args == null) {
-            this.args = new HashMap<>();
-            Launch.blackboard.put("launchArgs", this.args);
-        }
-
-        if (!this.args.containsKey("--version")) {
-            this.args.put("--version", profile != null ? profile : "Fabric");
-        }
-
-        if (!this.args.containsKey("--gameDir")) {
-            if (gameDir == null) gameDir = new File(".");
-            this.args.put("--gameDir", gameDir.getAbsolutePath());
-        }
-
-        if (!this.args.containsKey("--assetsDir") && assetsDir != null) {
-            this.args.put("--assetsDir", assetsDir.getAbsolutePath());
-        }
-        if (!this.args.containsKey("--accessToken")) {
-            this.args.put("--accessToken", "FabricMC");
-        }
-        for (int i = 0; i < args.size(); i++) {
-            String arg = args.get(i);
-            if (arg.startsWith("--")) {
-                this.args.put(arg, args.get(i + 1));
-            }
-        }
-        
+        super.acceptOptions(args, gameDir, assetsDir, profile);
         createEarlyDisplay();
     }
 
@@ -141,32 +102,14 @@ public class FabricClientTweaker implements ITweaker {
 
     @Override
     public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-        File gameDir = new File(args.get("--gameDir"));
-        MixinLoader loader = new MixinLoader();
-        loader.load(new File(gameDir, "mods"));
-
-        // Setup Mixin environment
-        MixinBootstrap.init();
-        Mixins.addConfigurations(
-                "fabricmc.mixins.client.json",
-                "fabricmc.mixins.common.json");
-        loader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
-        loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
+        super.injectIntoClassLoader(launchClassLoader);
+        Mixins.addConfigurations("fabricmc.mixins.client.json");
+        mixinLoader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
     @Override
     public String getLaunchTarget() {
         return "net.minecraft.client.main.Main";
-    }
-
-    @Override
-    public String[] getLaunchArguments() {
-        List<String> launchArgs = new ArrayList<>();
-        for (Map.Entry<String, String> arg : this.args.entrySet()) {
-            launchArgs.add(arg.getKey());
-            launchArgs.add(arg.getValue());
-        }
-        return launchArgs.toArray(new String[launchArgs.size()]);
     }
 }
