@@ -79,6 +79,7 @@ public class FabricServerTweaker implements ITweaker {
 				"fabricmc.mixins.server.json",
 				"fabricmc.mixins.common.json");
 		loader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
+		loader.getServerMixinConfigs().forEach(Mixins::addConfiguration);
 		MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.SERVER);
 	}
 

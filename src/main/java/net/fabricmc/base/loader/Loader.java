@@ -72,6 +72,15 @@ public class Loader {
                 .collect(Collectors.toSet());
     }
 
+	public Set<String> getServerMixinConfigs() {
+		return mods.stream()
+			.map(ModContainer::getInfo)
+			.map(ModInfo::getMixins)
+			.map(ModInfo.Mixins::getServer)
+			.filter(s -> s != null && !s.isEmpty())
+			.collect(Collectors.toSet());
+	}
+
     public void load(File modsDir) {
         if (!checkModsDirectory(modsDir)) {
             return;

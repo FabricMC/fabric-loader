@@ -113,6 +113,7 @@ public class ModInfo {
 
         private String client;
         private String common;
+	    private String server;
 
         public String getClient() {
             return client;
@@ -121,6 +122,10 @@ public class ModInfo {
         public String getCommon() {
             return common;
         }
+
+	    public String getServer() {
+		    return server;
+	    }
     }
 
     public static class Links {
