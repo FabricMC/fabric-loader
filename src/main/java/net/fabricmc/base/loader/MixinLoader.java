@@ -18,6 +18,7 @@ package net.fabricmc.base.loader;
 
 import net.fabricmc.base.util.Pair;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
@@ -31,11 +32,7 @@ public class MixinLoader extends Loader {
 	}
 
 	@Override
-	public void load(File modsDir) {
-		if (!checkModsDirectory(modsDir)) {
-			return;
-		}
-
+	public void load(Collection<File> modFiles) {
 		List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
 
 		int classpathModsCount = 0;
@@ -46,7 +43,7 @@ public class MixinLoader extends Loader {
 			LOGGER.debug("Found %d classpath mods", classpathModsCount);
 		}
 
-		for (File f : modsDir.listFiles()) {
+		for (File f : modFiles) {
 			if (f.isDirectory()) {
 				continue;
 			}
@@ -56,7 +53,7 @@ public class MixinLoader extends Loader {
 
 			ModInfo[] fileMods = getJarMods(f);
 
-			if (fileMods.length != 0) {
+			if (Launch.classLoader != null && fileMods.length != 0) {
 				try {
 					Launch.classLoader.addURL(f.toURI().toURL());
 				} catch (MalformedURLException e) {

@@ -77,6 +77,10 @@ public class Loader {
             return;
         }
 
+        load(Arrays.asList(modsDir.listFiles()));
+    }
+
+    public void load(Collection<File> modFiles) {
         List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
 
         int classpathModsCount = 0;
@@ -87,7 +91,7 @@ public class Loader {
             LOGGER.debug("Found %d classpath mods", classpathModsCount);
         }
 
-        for (File f : modsDir.listFiles()) {
+        for (File f : modFiles) {
             if (f.isDirectory()) {
                 continue;
             }
@@ -97,7 +101,7 @@ public class Loader {
 
             ModInfo[] fileMods = getJarMods(f);
 
-            if (fileMods.length != 0) {
+            if (Launch.classLoader != null && fileMods.length != 0) {
                 try {
                     Launch.classLoader.addURL(f.toURI().toURL());
                 } catch (MalformedURLException e) {
