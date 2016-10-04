@@ -1,4 +1,4 @@
-fabric-base [![Build Status](http://modmuss50.me:8080/job/Fabric/job/Fabric-Base/badge/icon)](http://modmuss50.me:8080/job/Fabric/job/Fabric-Base/)
+fabric-base
 ===========
 
 The base module for Fabric. It provides mod loading facilities and useful abstractions for other mods to use.
