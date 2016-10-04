@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.0.2-SNAPSHOT'
+		classpath 'net.fabricmc:fabric-loom:0.0.3-SNAPSHOT'
     }
 }
 
@@ -17,23 +17,20 @@ plugins {
 
     id 'idea'
     id 'eclipse'
-
-    id 'net.minecrell.licenser' version '0.2.1'
 }
 apply plugin: 'net.fabricmc.loom'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-group = 'net.fabricmc'
-archivesBaseName = project.name.toLowerCase()
+archivesBaseName = modid
 version = minecraft_version + '-' + version
 
 // Fetch build number from Jenkins
-def ENV = System.getenv()
-if (ENV.BUILD_NUMBER) {
-    version = version + "." + "${System.getenv().BUILD_NUMBER}"
-}
+// def ENV = System.getenv()
+// if (ENV.BUILD_NUMBER) {
+//    version = version + "." + "${System.getenv().BUILD_NUMBER}"
+// }
 
 repositories {
     mavenCentral()
@@ -61,17 +58,12 @@ dependencies {
     }
     compile 'org.ow2.asm:asm-debug-all:5.0.3'
     compile 'com.typesafe:config:1.3.0'
-    compile('org.spongepowered:mixin:0.5.11-SNAPSHOT') {
+    compile('org.spongepowered:mixin:0.5.15-SNAPSHOT') {
         exclude module: 'launchwrapper'
         exclude module: 'guava'
     }
 	compile 'com.mojang:authlib:1.5.22'
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.2'
-}
-
-license {
-    header file('HEADER')
-    include '**/*.java'
 }
 
 jar {
@@ -86,58 +78,9 @@ jar {
     }
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            if (project.hasProperty('mavenPass')) {
-                repository(url: 'http://mavenupload.modmuss50.me/') {
-                    authentication(userName: 'buildslave', password: project.getProperty('mavenPass'))
-                }
-            } else {
-               repository(url: 'file:///var/www/maven/')
-            }
-
-            pom {
-                artifactId = project.archivesBaseName
-
-                project {
-                    name = project.name
-                    description = project.description
-                    packaging = 'jar'
-                    url = project.url
-
-                    scm {
-                        url = 'https://github.com/FabricMC/fabric-base'
-                        connection = 'scm:git:git@github.com:FabricMC/fabric-base.git'
-                        developerConnection = 'scm:git:git@github.com:FabricMC/fabric-base.git'
-                    }
-
-                    issueManagement {
-                        system = 'GitHub'
-                        url = 'https://github.com/FabricMC/fabric-base/issues'
-                    }
-
-                    licenses {
-                        license {
-                            name = 'Apache License 2.0'
-                            url = 'https://github.com/FabricMC/fabric-base/blob/master/LICENSE'
-                            distribution = 'repo'
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id = 'modmuss50'
-                            name = 'modmuss50'
-                            roles { role 'developer' }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 task wrapper(type: Wrapper) {
     gradleVersion = '2.14.1'
 }
+
+apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
+apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
