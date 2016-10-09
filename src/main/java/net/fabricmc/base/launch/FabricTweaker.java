@@ -17,6 +17,7 @@
 package net.fabricmc.base.launch;
 
 import net.fabricmc.base.loader.MixinLoader;
+import net.fabricmc.base.util.MixinPrebaker;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -68,8 +69,10 @@ public abstract class FabricTweaker implements ITweaker {
 
         // Setup Mixin environment
         MixinBootstrap.init();
-        Mixins.addConfigurations("fabricmc.mixins.common.json");
-        mixinLoader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
+        MixinPrebaker.onFabricLoad();
+
+        addMixinConfiguration("fabricmc.mixins.common.json");
+        mixinLoader.getCommonMixinConfigs().forEach(this::addMixinConfiguration);
     }
 
     @Override
@@ -80,5 +83,9 @@ public abstract class FabricTweaker implements ITweaker {
             launchArgs.add(arg.getValue());
         }
         return launchArgs.toArray(new String[launchArgs.size()]);
+    }
+
+    protected void addMixinConfiguration(String config) {
+        MixinPrebaker.addConfiguration(config);
     }
 }

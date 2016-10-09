@@ -18,26 +18,22 @@ package net.fabricmc.base.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
+import joptsimple.internal.Strings;
 import net.fabricmc.base.loader.MixinLoader;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
+import org.objectweb.asm.*;
 import org.spongepowered.asm.launch.Blackboard;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.transformer.MixinTransformer;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLClassLoader;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
@@ -48,7 +44,95 @@ import java.util.jar.JarOutputStream;
  * more intuitive in development environment.
  */
 public class MixinPrebaker {
-    public static final String SESSION_ID_FILENAME = ".fabric-baked-mixin-session";
+    private static class DesprinklingFieldVisitor extends FieldVisitor {
+        public DesprinklingFieldVisitor(int api, FieldVisitor fv) {
+            super(api, fv);
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            if (isSprinkledAnnotation(desc)) {
+                return null;
+            }
+            return super.visitAnnotation(desc, visible);
+        }
+    }
+
+    private static class DesprinklingMethodVisitor extends MethodVisitor {
+        public DesprinklingMethodVisitor(int api, MethodVisitor mv) {
+            super(api, mv);
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            if (isSprinkledAnnotation(desc)) {
+                return null;
+            }
+            return super.visitAnnotation(desc, visible);
+        }
+    }
+
+    private static class DesprinklingClassVisitor extends ClassVisitor {
+        public DesprinklingClassVisitor(int api, ClassVisitor cv) {
+            super(api, cv);
+        }
+
+        @Override
+        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+            return new DesprinklingFieldVisitor(Opcodes.ASM5, super.visitField(access, name, desc, signature, value));
+        }
+
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            return new DesprinklingMethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions));
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            if (isSprinkledAnnotation(desc)) {
+                return null;
+            }
+            return super.visitAnnotation(desc, visible);
+        }
+    }
+
+    public static final String APPLIED_MIXIN_CONFIGS_FILENAME = ".fabric-applied-mixin-configs";
+    private static List<String> appliedMixinConfigs;
+
+    public static void addConfiguration(String configuration) {
+        if (appliedMixinConfigs == null || !appliedMixinConfigs.contains(configuration)) {
+            Mixins.addConfiguration(configuration);
+        }
+    }
+
+    private static boolean isSprinkledAnnotation(String desc) {
+        //System.out.println(desc);
+        return desc.startsWith("Lorg/spongepowered/asm/mixin/transformer/meta");
+    }
+
+    // Term proposed by Mumfrey, don't blame me
+    public static byte[] desprinkle(byte[] cls) {
+        ClassReader reader = new ClassReader(cls);
+        ClassWriter writer = new ClassWriter(0);
+
+        reader.accept(new DesprinklingClassVisitor(Opcodes.ASM5, writer), 0);
+
+        return writer.toByteArray();
+    }
+
+    public static void onFabricLoad() {
+        InputStream appliedMixinsStream = MixinPrebaker.class.getClassLoader().getResourceAsStream(APPLIED_MIXIN_CONFIGS_FILENAME);
+        if (appliedMixinsStream != null) {
+            try {
+                byte[] data = ByteStreams.toByteArray(appliedMixinsStream);
+                appliedMixinConfigs = Arrays.asList(new String(data, Charsets.UTF_8).split("\n"));
+                appliedMixinsStream.close();
+            } catch (IOException e) {
+                System.err.println("Fabric development environment setup error - the game will probably crash soon!");
+                e.printStackTrace();
+            }
+        }
+    }
 
     public static void main(String[] args) {
         if (args.length < 3) {
@@ -68,14 +152,15 @@ public class MixinPrebaker {
 
         MixinLoader mixinLoader = new MixinLoader();
         mixinLoader.load(modFiles);
-
         MixinBootstrap.init();
-        Mixins.addConfigurations("fabricmc.mixins.common.json",
-                "fabricmc.mixins.client.json",
-                "fabricmc.mixins.server.json");
-        mixinLoader.getCommonMixinConfigs().forEach(Mixins::addConfiguration);
-        mixinLoader.getClientMixinConfigs().forEach(Mixins::addConfiguration);
-        mixinLoader.getServerMixinConfigs().forEach(Mixins::addConfiguration);
+        appliedMixinConfigs = new ArrayList<>();
+        appliedMixinConfigs.add("fabricmc.mixins.common.json");
+        appliedMixinConfigs.add("fabricmc.mixins.client.json");
+        appliedMixinConfigs.add("fabricmc.mixins.server.json");
+        appliedMixinConfigs.addAll(mixinLoader.getCommonMixinConfigs());
+        appliedMixinConfigs.addAll(mixinLoader.getClientMixinConfigs());
+        appliedMixinConfigs.addAll(mixinLoader.getServerMixinConfigs());
+        appliedMixinConfigs.forEach(Mixins::addConfiguration);
 
         MixinEnvironment.EnvironmentStateTweaker tweaker = new MixinEnvironment.EnvironmentStateTweaker();
         tweaker.getLaunchArguments();
@@ -88,7 +173,7 @@ public class MixinPrebaker {
             JarOutputStream output = new JarOutputStream(new FileOutputStream(new File(args[1])));
             JarEntry entry;
             while ((entry = input.getNextJarEntry()) != null) {
-                if (entry.getName().equals(SESSION_ID_FILENAME)) {
+                if (entry.getName().equals(APPLIED_MIXIN_CONFIGS_FILENAME)) {
                     continue;
                 }
 
@@ -98,6 +183,7 @@ public class MixinPrebaker {
                     byte[] classOut = mixinTransformer.transform(className, className, classIn);
                     if (classIn != classOut) {
                         System.out.println("Transformed " + className);
+                        classOut = desprinkle(classOut);
                     }
                     JarEntry newEntry = new JarEntry(entry.getName());
                     newEntry.setComment(entry.getComment());
@@ -111,8 +197,8 @@ public class MixinPrebaker {
                 }
             }
 
-            output.putNextEntry(new JarEntry(SESSION_ID_FILENAME));
-            output.write("todo".getBytes(Charsets.UTF_8));
+            output.putNextEntry(new JarEntry(APPLIED_MIXIN_CONFIGS_FILENAME));
+            output.write(Strings.join(appliedMixinConfigs, "\n").getBytes(Charsets.UTF_8));
 
             input.close();
             output.close();

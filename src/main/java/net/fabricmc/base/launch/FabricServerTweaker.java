@@ -24,8 +24,8 @@ public class FabricServerTweaker extends FabricTweaker {
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
 		super.injectIntoClassLoader(launchClassLoader);
-		Mixins.addConfigurations("fabricmc.mixins.server.json");
-		mixinLoader.getServerMixinConfigs().forEach(Mixins::addConfiguration);
+		addMixinConfiguration("fabricmc.mixins.server.json");
+		mixinLoader.getServerMixinConfigs().forEach(this::addMixinConfiguration);
 		MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.SERVER);
 	}
 
