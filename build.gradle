@@ -43,6 +43,10 @@ repositories {
         name = 'SpongePowered'
         url = 'http://repo.spongepowered.org/maven'
     }
+	maven {
+        name = 'Fabric'
+        url = 'http://maven.fabricmc.net/'
+    }
 }
 
 minecraft {
@@ -64,6 +68,7 @@ dependencies {
     }
 	compile 'com.mojang:authlib:1.5.22'
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.2'
+	compile 'net.fabricmc:tiny-remapper:+'
 }
 
 jar {
