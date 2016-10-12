@@ -45,7 +45,7 @@ public class ClientSidedHandler implements ISidedHandler {
 
 	@Override
 	public MinecraftServer getServerInstance() {
-		return MinecraftGame.getInstance().server;
+		return MinecraftGame.getInstance().getServer();
 	}
 
 }

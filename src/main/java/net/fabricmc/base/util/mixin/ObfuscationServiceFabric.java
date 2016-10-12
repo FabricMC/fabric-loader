@@ -16,46 +16,52 @@
 
 package net.fabricmc.base.util.mixin;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.spongepowered.tools.obfuscation.ObfuscationEnvironment;
-import org.spongepowered.tools.obfuscation.mcp.ObfuscationServiceMCP;
+import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.tools.obfuscation.service.IObfuscationService;
 import org.spongepowered.tools.obfuscation.service.ObfuscationTypeDescriptor;
 
 import java.util.Collection;
 import java.util.Set;
 
-/**
- * Created by asie on 10/12/16.
- */
 public class ObfuscationServiceFabric implements IObfuscationService {
     public static final String IN_MAP_FILE          = "inMapFile";
     public static final String IN_MAP_EXTRA_FILES          = "inMapExtraFiles";
     public static final String OUT_MAP_FILE        = "outMapFile";
-    public static final String OUT_REFMAP_FILE         = "outRefMapFile";
 
-    private Collection<ObfuscationTypeDescriptor> createObfuscationTypes(String... keys) {
-        ImmutableSet.Builder builder = ImmutableSet.builder();
-        for (String key : keys) {
-            builder.add(new ObfuscationTypeDescriptor(
-                    key,
-                    ObfuscationServiceFabric.IN_MAP_FILE,
-                    ObfuscationServiceFabric.IN_MAP_EXTRA_FILES,
-                    ObfuscationServiceFabric.OUT_MAP_FILE,
-                    ObfuscationEnvironmentFabric.class
-            ));
-        }
-        return builder.build();
+    private String asSuffixed(String arg, String from, String to) {
+        return arg + StringUtils.capitalize(from) + StringUtils.capitalize(to);
+    }
+
+    private ObfuscationTypeDescriptor createObfuscationType(String from, String to) {
+        return new ObfuscationTypeDescriptor(
+                from + ":" + to,
+                asSuffixed(ObfuscationServiceFabric.IN_MAP_FILE, from, to),
+                asSuffixed(ObfuscationServiceFabric.IN_MAP_EXTRA_FILES, from, to),
+                asSuffixed(ObfuscationServiceFabric.OUT_MAP_FILE, from, to),
+                ObfuscationEnvironmentFabric.class
+        );
+    }
+
+    private void addSupportedOptions(ImmutableSet.Builder builder, String from, String to) {
+        builder.add(asSuffixed(ObfuscationServiceFabric.IN_MAP_FILE, from, to));
+        builder.add(asSuffixed(ObfuscationServiceFabric.IN_MAP_EXTRA_FILES, from, to));
+        builder.add(asSuffixed(ObfuscationServiceFabric.OUT_MAP_FILE, from, to));
     }
 
     @Override
     public Set<String> getSupportedOptions() {
-        return ImmutableSet.of(IN_MAP_FILE, OUT_MAP_FILE, OUT_REFMAP_FILE);
+        ImmutableSet.Builder builder = new ImmutableSet.Builder();
+        addSupportedOptions(builder, "mojang", "pomf");
+        addSupportedOptions(builder, "pomf", "mojang");
+        return builder.build();
     }
 
     @Override
     public Collection<ObfuscationTypeDescriptor> getObfuscationTypes() {
-        return createObfuscationTypes("mojang:pomf", "pomf:mojang");
+        return ImmutableSet.of(
+                createObfuscationType("mojang", "pomf"),
+                createObfuscationType("pomf", "mojang")
+        );
     }
 }
