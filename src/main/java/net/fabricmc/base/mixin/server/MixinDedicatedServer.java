@@ -28,6 +28,7 @@ import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.UserCache;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -36,18 +37,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Proxy;
 
-@Mixin(value = DedicatedServer.class, remap = false)
+@Mixin(value = DedicatedServer.class)
 public abstract class MixinDedicatedServer extends MinecraftServer {
-	@Shadow
-	public File gameDir;
-
 	public MixinDedicatedServer(File a1, Proxy a2, MigrationHandler a3, YggdrasilAuthenticationService a4, MinecraftSessionService a5, GameProfileRepository a6, UserCache a7) {
 		super(a1, a2, a3, a4, a5, a6, a7);
 	}
 
-	@Inject(method = "j", at = @At("HEAD"))
+	@Inject(method = "j", at = @At("HEAD"), remap = false)
 	public void j(CallbackInfoReturnable<Boolean> info) throws IOException {
-		Fabric.initialize(this.gameDir, new ServerSidedHandler(this));
+		Fabric.initialize(this.getFile(""), new ServerSidedHandler(this));
 		Loader.INSTANCE.load(this.getFile("mods"));
 	}
 

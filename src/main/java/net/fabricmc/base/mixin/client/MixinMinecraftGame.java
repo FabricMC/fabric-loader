@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 
-@Mixin(value = MinecraftGame.class, remap = false)
+@Mixin(value = MinecraftGame.class)
 public class MixinMinecraftGame {
 
 	@Inject(method = "init", at = @At("HEAD"))

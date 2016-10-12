@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = GuiMainMenu.class, remap = false)
+@Mixin(value = GuiMainMenu.class)
 public abstract class MixinGuiMain extends Gui {
 
     @Inject(method = "draw(IIF)V", at = @At("RETURN"))
