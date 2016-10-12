@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.base.util;
+package net.fabricmc.base.util.mixin;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
@@ -116,7 +116,6 @@ public class MixinPrebaker {
         ClassWriter writer = new ClassWriter(0);
 
         reader.accept(new DesprinklingClassVisitor(Opcodes.ASM5, writer), 0);
-
         return writer.toByteArray();
     }
 

@@ -17,12 +17,11 @@
 package net.fabricmc.base.launch;
 
 import net.fabricmc.base.loader.MixinLoader;
-import net.fabricmc.base.util.MixinPrebaker;
+import net.fabricmc.base.util.mixin.MixinPrebaker;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.spongepowered.asm.launch.MixinBootstrap;
-import org.spongepowered.asm.mixin.Mixins;
 
 import java.io.File;
 import java.util.ArrayList;
