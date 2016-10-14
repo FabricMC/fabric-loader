@@ -33,6 +33,7 @@ import org.spongepowered.asm.mixin.transformer.MixinTransformer;
 
 import java.io.*;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.*;
@@ -113,6 +114,8 @@ public class MixinPrebaker {
     }
 
     public static void main(String[] args) {
+        boolean hasMappingsFile = false;
+
         if (args.length < 3) {
             System.out.println("usage: MixinPrebaker [-m mapping-file] <input-jar> <output-jar> <mod-jars...>");
             return;
@@ -121,6 +124,7 @@ public class MixinPrebaker {
         int argOffset;
         for (argOffset = 0; argOffset < args.length; argOffset++) {
             if ("-m".equals(args[argOffset])) {
+                hasMappingsFile = true;
                 FabricMixinBootstrap.setMappingFile(new File(args[++argOffset]));
             } else {
                 break;
@@ -157,6 +161,10 @@ public class MixinPrebaker {
                     continue;
                 }
 
+                if (hasMappingsFile && entry.getName().equals(FabricMixinBootstrap.MAPPINGS_FILENAME)) {
+                    continue;
+                }
+
                 if (entry.getName().endsWith(".class")) {
                     byte[] classIn = ByteStreams.toByteArray(input);
                     String className = entry.getName().substring(0, entry.getName().length() - 6).replace('/', '.');
@@ -179,6 +187,11 @@ public class MixinPrebaker {
 
             output.putNextEntry(new JarEntry(FabricMixinBootstrap.APPLIED_MIXIN_CONFIGS_FILENAME));
             output.write(Strings.join(FabricMixinBootstrap.getAppliedMixinConfigs(), "\n").getBytes(Charsets.UTF_8));
+
+            if (hasMappingsFile) {
+                output.putNextEntry(new JarEntry(FabricMixinBootstrap.MAPPINGS_FILENAME));
+                Files.copy(FabricMixinBootstrap.getMappingFile().toPath(), output);
+            }
 
             input.close();
             output.close();

@@ -23,6 +23,10 @@ public class FabricMixinBootstrap {
     private static boolean initialized = false;
     private static File mappingFile;
 
+    public static File getMappingFile() {
+        return mappingFile;
+    }
+
     public static void setMappingFile(File value) {
         mappingFile = value;
     }
