@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.Mixins;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class FabricMixinBootstrap {
@@ -72,24 +73,21 @@ public class FabricMixinBootstrap {
 
         MixinBootstrap.init();
 
-        appliedMixinConfigs = new ArrayList<>();
-        appliedMixinConfigs.add("fabricmc.mixins.common.json");
+        addConfiguration("fabricmc.mixins.common.json");
         if (side.hasClient()) {
-            appliedMixinConfigs.add("fabricmc.mixins.client.json");
+            addConfiguration("fabricmc.mixins.client.json");
         }
         if (side.hasServer()) {
-            appliedMixinConfigs.add("fabricmc.mixins.server.json");
+            addConfiguration("fabricmc.mixins.server.json");
         }
 
-        appliedMixinConfigs.addAll(mixinLoader.getCommonMixinConfigs());
+        mixinLoader.getCommonMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
         if (side.hasClient()) {
-            appliedMixinConfigs.addAll(mixinLoader.getClientMixinConfigs());
+            mixinLoader.getClientMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
         }
         if (side.hasServer()) {
-            appliedMixinConfigs.addAll(mixinLoader.getServerMixinConfigs());
+            mixinLoader.getClientMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
         }
-
-        appliedMixinConfigs.forEach(Mixins::addConfiguration);
 
         initialized = true;
     }
