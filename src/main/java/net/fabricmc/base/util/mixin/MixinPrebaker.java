@@ -19,6 +19,8 @@ package net.fabricmc.base.util.mixin;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import joptsimple.internal.Strings;
+import net.fabricmc.api.Side;
+import net.fabricmc.base.launch.FabricMixinBootstrap;
 import net.fabricmc.base.loader.MixinLoader;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -96,15 +98,6 @@ public class MixinPrebaker {
         }
     }
 
-    public static final String APPLIED_MIXIN_CONFIGS_FILENAME = ".fabric-applied-mixin-configs";
-    private static List<String> appliedMixinConfigs;
-
-    public static void addConfiguration(String configuration) {
-        if (appliedMixinConfigs == null || !appliedMixinConfigs.contains(configuration)) {
-            Mixins.addConfiguration(configuration);
-        }
-    }
-
     private static boolean isSprinkledAnnotation(String desc) {
         //System.out.println(desc);
         return desc.startsWith("Lorg/spongepowered/asm/mixin/transformer/meta");
@@ -119,28 +112,23 @@ public class MixinPrebaker {
         return writer.toByteArray();
     }
 
-    public static void onFabricLoad() {
-        InputStream appliedMixinsStream = MixinPrebaker.class.getClassLoader().getResourceAsStream(APPLIED_MIXIN_CONFIGS_FILENAME);
-        if (appliedMixinsStream != null) {
-            try {
-                byte[] data = ByteStreams.toByteArray(appliedMixinsStream);
-                appliedMixinConfigs = Arrays.asList(new String(data, Charsets.UTF_8).split("\n"));
-                appliedMixinsStream.close();
-            } catch (IOException e) {
-                System.err.println("Fabric development environment setup error - the game will probably crash soon!");
-                e.printStackTrace();
-            }
-        }
-    }
-
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println("usage: MixinPrebaker <input-jar> <output-jar> <mod-jars...>");
+            System.out.println("usage: MixinPrebaker [-m mapping-file] <input-jar> <output-jar> <mod-jars...>");
             return;
         }
 
+        int argOffset;
+        for (argOffset = 0; argOffset < args.length; argOffset++) {
+            if ("-m".equals(args[argOffset])) {
+                FabricMixinBootstrap.setMappingFile(new File(args[++argOffset]));
+            } else {
+                break;
+            }
+        }
+
         Set<File> modFiles = new HashSet<>();
-        for (int i = 2; i < args.length; i++) {
+        for (int i = argOffset + 2; i < args.length; i++) {
             modFiles.add(new File(args[i]));
         }
 
@@ -151,15 +139,8 @@ public class MixinPrebaker {
 
         MixinLoader mixinLoader = new MixinLoader();
         mixinLoader.load(modFiles);
-        MixinBootstrap.init();
-        appliedMixinConfigs = new ArrayList<>();
-        appliedMixinConfigs.add("fabricmc.mixins.common.json");
-        appliedMixinConfigs.add("fabricmc.mixins.client.json");
-        appliedMixinConfigs.add("fabricmc.mixins.server.json");
-        appliedMixinConfigs.addAll(mixinLoader.getCommonMixinConfigs());
-        appliedMixinConfigs.addAll(mixinLoader.getClientMixinConfigs());
-        appliedMixinConfigs.addAll(mixinLoader.getServerMixinConfigs());
-        appliedMixinConfigs.forEach(Mixins::addConfiguration);
+
+        FabricMixinBootstrap.init(Side.UNIVERSAL, mixinLoader);
 
         MixinEnvironment.EnvironmentStateTweaker tweaker = new MixinEnvironment.EnvironmentStateTweaker();
         tweaker.getLaunchArguments();
@@ -168,11 +149,11 @@ public class MixinPrebaker {
         MixinTransformer mixinTransformer = Blackboard.get(Blackboard.Keys.TRANSFORMER);
 
         try {
-            JarInputStream input = new JarInputStream(new FileInputStream(new File(args[0])));
-            JarOutputStream output = new JarOutputStream(new FileOutputStream(new File(args[1])));
+            JarInputStream input = new JarInputStream(new FileInputStream(new File(args[argOffset + 0])));
+            JarOutputStream output = new JarOutputStream(new FileOutputStream(new File(args[argOffset + 1])));
             JarEntry entry;
             while ((entry = input.getNextJarEntry()) != null) {
-                if (entry.getName().equals(APPLIED_MIXIN_CONFIGS_FILENAME)) {
+                if (entry.getName().equals(FabricMixinBootstrap.APPLIED_MIXIN_CONFIGS_FILENAME)) {
                     continue;
                 }
 
@@ -196,8 +177,8 @@ public class MixinPrebaker {
                 }
             }
 
-            output.putNextEntry(new JarEntry(APPLIED_MIXIN_CONFIGS_FILENAME));
-            output.write(Strings.join(appliedMixinConfigs, "\n").getBytes(Charsets.UTF_8));
+            output.putNextEntry(new JarEntry(FabricMixinBootstrap.APPLIED_MIXIN_CONFIGS_FILENAME));
+            output.write(Strings.join(FabricMixinBootstrap.getAppliedMixinConfigs(), "\n").getBytes(Charsets.UTF_8));
 
             input.close();
             output.close();

@@ -16,21 +16,19 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.api.Side;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
 public class FabricServerTweaker extends FabricTweaker {
 	@Override
-	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-		super.injectIntoClassLoader(launchClassLoader);
-		addMixinConfiguration("fabricmc.mixins.server.json");
-		mixinLoader.getServerMixinConfigs().forEach(this::addMixinConfiguration);
-		MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.SERVER);
+	public String getLaunchTarget() {
+		return "net.minecraft.server.MinecraftServer";
 	}
 
 	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
+	public Side getSide() {
+		return Side.SERVER;
 	}
 }

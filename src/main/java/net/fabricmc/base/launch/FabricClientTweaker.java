@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.launch;
 
+import net.fabricmc.api.Side;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 
 import org.lwjgl.LWJGLException;
@@ -50,6 +51,11 @@ public class FabricClientTweaker extends FabricTweaker {
         }
 
         createEarlyDisplay();
+    }
+
+    @Override
+    public Side getSide() {
+        return Side.CLIENT;
     }
 
     private void createEarlyDisplay() {
@@ -107,14 +113,6 @@ public class FabricClientTweaker extends FabricTweaker {
             e1.printStackTrace();
             Throwables.propagate(e1);
         }
-    }
-
-    @Override
-    public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-        super.injectIntoClassLoader(launchClassLoader);
-        addMixinConfiguration("fabricmc.mixins.client.json");
-        mixinLoader.getClientMixinConfigs().forEach(this::addMixinConfiguration);
-        MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);
     }
 
     @Override
