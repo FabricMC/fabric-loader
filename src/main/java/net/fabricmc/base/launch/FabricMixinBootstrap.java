@@ -90,7 +90,7 @@ public class FabricMixinBootstrap {
             mixinLoader.getClientMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
         }
         if (side.hasServer()) {
-            mixinLoader.getClientMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
+            mixinLoader.getServerMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
         }
 
         initialized = true;
