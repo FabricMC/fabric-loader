@@ -33,19 +33,19 @@ import java.io.File;
 @Mixin(value = MinecraftGame.class)
 public class MixinMinecraftGame {
 
-	@Inject(method = "init", at = @At("HEAD"))
+	@Inject(method = "init()V", at = @At("HEAD"))
 	public void init(CallbackInfo info) {
 		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}
 
-	@Inject(method = "createDisplay", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "createDisplay()V", at = @At("HEAD"), cancellable = true)
 	private void createDisplay(CallbackInfo info) throws LWJGLException {
 		// FabricClientTweaker already created the display, so dummy out this method
 		info.cancel();
 	}
 
-	@Inject(method = "setDisplayMode", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "setDisplayMode()V", at = @At("HEAD"), cancellable = true)
 	private void setDisplayMode(CallbackInfo info) throws LWJGLException {
 		//nope
 		info.cancel();
