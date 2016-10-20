@@ -5,6 +5,14 @@ buildscript {
             name = 'Fabric'
             url = 'http://maven.fabricmc.net/'
         }
+        maven {
+            name = 'SpongePowered'
+            url = 'http://repo.spongepowered.org/maven'
+        }
+        maven {
+            name = 'mojang'
+            url = 'https://libraries.minecraft.net/'
+        }
     }
     dependencies {
 	classpath 'net.fabricmc:fabric-loom:0.0.4-SNAPSHOT'
@@ -27,10 +35,10 @@ archivesBaseName = modid
 version = minecraft_version + '-' + version
 
 // Fetch build number from Jenkins
-// def ENV = System.getenv()
-// if (ENV.BUILD_NUMBER) {
-//    version = version + "." + "${System.getenv().BUILD_NUMBER}"
-// }
+ def ENV = System.getenv()
+ if (ENV.BUILD_NUMBER) {
+    version = version + "." + "${System.getenv().BUILD_NUMBER}"
+ }
 
 repositories {
     mavenCentral()
@@ -52,6 +60,7 @@ repositories {
 minecraft {
     version = minecraft_version
     pomfVersion = pomf_version
+	refmapName = "fabric-base-refmap.json"
 }
 
 dependencies {
@@ -89,3 +98,4 @@ task wrapper(type: Wrapper) {
 
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
+apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'

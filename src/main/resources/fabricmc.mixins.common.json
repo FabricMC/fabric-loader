@@ -7,5 +7,6 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "refmap" : "fabric-base-refmap.json"
 }

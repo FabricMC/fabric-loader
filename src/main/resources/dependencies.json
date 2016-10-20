@@ -16,11 +16,11 @@
             }
         },
         {
-            "name": "org.spongepowered:mixin:0.5.11-SNAPSHOT",
+            "name": "org.spongepowered:mixin:0.6-SNAPSHOT",
             "downloads": {
                 "artifact": {
-                    "url": "https://repo.spongepowered.org/maven/org/spongepowered/mixin/0.5.11-SNAPSHOT/mixin-0.5.11-20160705.154945-3.jar",
-                    "sha1": "451a47ea3e41b5aa68189761b9343189a969d64f"
+                    "url": "https://repo.spongepowered.org/maven/org/spongepowered/mixin/0.6-SNAPSHOT/mixin-0.6-20161007.173147-2.jar",
+                    "sha1": "dbc964ed0879743918011d4a164ed5885fe60ea2"
                 }
             }
         }
