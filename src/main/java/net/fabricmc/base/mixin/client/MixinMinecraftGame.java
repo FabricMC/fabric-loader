@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 
@@ -38,13 +39,15 @@ public class MixinMinecraftGame {
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}
 
-	@Overwrite
-	private void createDisplay() throws LWJGLException {
+	@Inject(method = "createDisplay", at = @At("HEAD"), cancellable = true)
+	private void createDisplay(CallbackInfo info) throws LWJGLException {
 		// FabricClientTweaker already created the display, so dummy out this method
+		info.cancel();
 	}
 
-	@Overwrite
-	private void setDisplayMode() throws LWJGLException {
+	@Inject(method = "setDisplayMode", at = @At("HEAD"), cancellable = true)
+	private void setDisplayMode(CallbackInfo info) throws LWJGLException {
 		//nope
+		info.cancel();
 	}
 }
