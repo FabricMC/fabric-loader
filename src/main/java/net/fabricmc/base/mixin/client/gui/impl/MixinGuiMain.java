@@ -26,9 +26,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = GuiMainMenu.class)
 public abstract class MixinGuiMain extends Gui {
 
-    @Inject(method = "draw(IIF)V", at = @At("RETURN"))
-    public void draw(int mouseX, int mouseY, float delta, CallbackInfo info) {
-        this.fontRenderer.drawString("Fabric Base", 2, this.height - 20, -1);
-    }
+	@Inject(method = "draw(IIF)V", at = @At("RETURN"))
+	public void draw(int mouseX, int mouseY, float delta, CallbackInfo info) {
+		this.fontRenderer.drawString("Fabric Base", 2, this.height - 20, -1);
+	}
 
 }

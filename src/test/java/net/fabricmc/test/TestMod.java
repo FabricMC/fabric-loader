@@ -23,19 +23,19 @@ import org.apache.logging.log4j.Logger;
 
 public class TestMod {
 
-    private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
+	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
 
-    @Init
-    public void init() {
-        LOGGER.info("**************************");
-        LOGGER.info("Hello from Fabric");
-        LOGGER.info("**************************");
+	@Init
+	public void init() {
+		LOGGER.info("**************************");
+		LOGGER.info("Hello from Fabric");
+		LOGGER.info("**************************");
 
-        Loader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
-    }
+		Loader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
+	}
 
-    public void onModsInitialized() {
-        System.out.println("Mods initialized");
-    }
+	public void onModsInitialized() {
+		System.out.println("Mods initialized");
+	}
 
 }

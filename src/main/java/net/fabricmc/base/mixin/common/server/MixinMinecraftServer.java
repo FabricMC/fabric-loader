@@ -23,9 +23,9 @@ import org.spongepowered.asm.mixin.Overwrite;
 @Mixin(value = MinecraftServer.class, remap = false)
 public abstract class MixinMinecraftServer {
 
-    @Overwrite
-    public String getServerModName() {
-        return "Fabric";
-    }
+	@Overwrite
+	public String getServerModName() {
+		return "Fabric";
+	}
 
 }

@@ -26,9 +26,9 @@ import java.lang.reflect.Type;
 
 public class VersionDeserializer implements JsonDeserializer<Version> {
 
-    @Override
-    public Version deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        return Version.valueOf(element.getAsString());
-    }
+	@Override
+	public Version deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+		return Version.valueOf(element.getAsString());
+	}
 
 }

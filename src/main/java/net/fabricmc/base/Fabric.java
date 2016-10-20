@@ -19,41 +19,41 @@ package net.fabricmc.base;
 import java.io.File;
 
 public final class Fabric {
-    private static boolean initialized = false;
+	private static boolean initialized = false;
 
-    private static ISidedHandler sidedHandler;
+	private static ISidedHandler sidedHandler;
 
-    private static File gameDir;
-    private static File configDir;
+	private static File gameDir;
+	private static File configDir;
 
-    // INTERNAL: DO NOT USE
-    public static void initialize(File gameDir, ISidedHandler sidedHandler) {
-        if (initialized) {
-            throw new RuntimeException("Fabric has already been initialized!");
-        }
+	// INTERNAL: DO NOT USE
+	public static void initialize(File gameDir, ISidedHandler sidedHandler) {
+		if (initialized) {
+			throw new RuntimeException("Fabric has already been initialized!");
+		}
 
-        Fabric.gameDir = gameDir;
-        Fabric.sidedHandler = sidedHandler;
-        initialized = true;
-    }
+		Fabric.gameDir = gameDir;
+		Fabric.sidedHandler = sidedHandler;
+		initialized = true;
+	}
 
-    public static ISidedHandler getSidedHandler() {
-        return sidedHandler;
-    }
+	public static ISidedHandler getSidedHandler() {
+		return sidedHandler;
+	}
 
-    public static File getGameDirectory() {
-        return gameDir;
-    }
+	public static File getGameDirectory() {
+		return gameDir;
+	}
 
-    public static File getConfigDirectory() {
-        if (configDir == null) {
-            configDir = new File(gameDir, "config");
-            if (!configDir.exists()) {
-                configDir.mkdirs();
-            }
-        }
-        return configDir;
-    }
+	public static File getConfigDirectory() {
+		if (configDir == null) {
+			configDir = new File(gameDir, "config");
+			if (!configDir.exists()) {
+				configDir.mkdirs();
+			}
+		}
+		return configDir;
+	}
 
-    private Fabric() {}
+	private Fabric() {}
 }

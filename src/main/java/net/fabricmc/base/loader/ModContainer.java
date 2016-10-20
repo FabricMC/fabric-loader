@@ -22,57 +22,57 @@ import java.io.File;
 
 public class ModContainer {
 
-    private ModInfo info;
-    private File originFile;
-    private ILanguageAdapter adapter;
-    private Object instance;
+	private ModInfo info;
+	private File originFile;
+	private ILanguageAdapter adapter;
+	private Object instance;
 
-    public ModContainer(ModInfo info, File originFile, boolean initialize) {
-        this.info = info;
-        this.originFile = originFile;
-        if (initialize && !info.getModClass().isEmpty()) {
-            this.adapter = createAdapter();
-            this.instance = createInstance();
-        }
-    }
+	public ModContainer(ModInfo info, File originFile, boolean initialize) {
+		this.info = info;
+		this.originFile = originFile;
+		if (initialize && !info.getModClass().isEmpty()) {
+			this.adapter = createAdapter();
+			this.instance = createInstance();
+		}
+	}
 
-    public void initialize() {
-        adapter.callInitializationMethods(instance);
-    }
+	public void initialize() {
+		adapter.callInitializationMethods(instance);
+	}
 
-    public boolean hasInstance() {
-        return instance != null;
-    }
+	public boolean hasInstance() {
+		return instance != null;
+	}
 
-    public ModInfo getInfo() {
-        return info;
-    }
+	public ModInfo getInfo() {
+		return info;
+	}
 
-    public File getOriginFile() {
-        return originFile;
-    }
+	public File getOriginFile() {
+		return originFile;
+	}
 
-    public ILanguageAdapter getAdapter() {
-        return adapter;
-    }
+	public ILanguageAdapter getAdapter() {
+		return adapter;
+	}
 
-    public Object getInstance() {
-        return instance;
-    }
+	public Object getInstance() {
+		return instance;
+	}
 
-    private ILanguageAdapter createAdapter() {
-        try {
-            return (ILanguageAdapter)Class.forName(info.getLanguageAdapter()).newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s.%s", info.getLanguageAdapter(), info.getGroup(), info.getId()), e);
-        }
-    }
+	private ILanguageAdapter createAdapter() {
+		try {
+			return (ILanguageAdapter) Class.forName(info.getLanguageAdapter()).newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s.%s", info.getLanguageAdapter(), info.getGroup(), info.getId()), e);
+		}
+	}
 
-    private Object createInstance() {
-        try {
-            return adapter.createModInstance(Class.forName(info.getModClass()));
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Unable to create mod instance for mod %s.%s", info.getGroup(), info.getId()), e);
-        }
-    }
+	private Object createInstance() {
+		try {
+			return adapter.createModInstance(Class.forName(info.getModClass()));
+		} catch (Exception e) {
+			throw new RuntimeException(String.format("Unable to create mod instance for mod %s.%s", info.getGroup(), info.getId()), e);
+		}
+	}
 }

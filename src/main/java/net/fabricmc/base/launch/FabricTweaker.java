@@ -18,7 +18,6 @@ package net.fabricmc.base.launch;
 
 import net.fabricmc.api.Side;
 import net.fabricmc.base.loader.MixinLoader;
-import net.fabricmc.base.util.mixin.MixinPrebaker;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -31,56 +30,57 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class FabricTweaker implements ITweaker {
-    protected Map<String, String> args;
-    protected MixinLoader mixinLoader;
+	protected Map<String, String> args;
+	protected MixinLoader mixinLoader;
 
-    @Override
-    public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
-        this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
+	@Override
+	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
+		this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
 
-        if (this.args == null) {
-            this.args = new HashMap<>();
-            Launch.blackboard.put("launchArgs", this.args);
-        }
+		if (this.args == null) {
+			this.args = new HashMap<>();
+			Launch.blackboard.put("launchArgs", this.args);
+		}
 
-        for (int i = 0; i < localArgs.size(); i++) {
-            String arg = localArgs.get(i);
-            if (arg.startsWith("--")) {
-                this.args.put(arg, localArgs.get(i + 1));
-                i++;
-            }
-        }
+		for (int i = 0; i < localArgs.size(); i++) {
+			String arg = localArgs.get(i);
+			if (arg.startsWith("--")) {
+				this.args.put(arg, localArgs.get(i + 1));
+				i++;
+			}
+		}
 
-        if (!this.args.containsKey("--version")) {
-            this.args.put("--version", profile != null ? profile : "Fabric");
-        }
+		if (!this.args.containsKey("--version")) {
+			this.args.put("--version", profile != null ? profile : "Fabric");
+		}
 
-        if (!this.args.containsKey("--gameDir")) {
-            if (gameDir == null) gameDir = new File(".");
-            this.args.put("--gameDir", gameDir.getAbsolutePath());
-        }
-    }
+		if (!this.args.containsKey("--gameDir")) {
+			if (gameDir == null)
+				gameDir = new File(".");
+			this.args.put("--gameDir", gameDir.getAbsolutePath());
+		}
+	}
 
-    @Override
-    public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-        File gameDir = new File(args.get("--gameDir"));
-        mixinLoader = new MixinLoader();
-        mixinLoader.load(new File(gameDir, "mods"));
+	@Override
+	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
+		File gameDir = new File(args.get("--gameDir"));
+		mixinLoader = new MixinLoader();
+		mixinLoader.load(new File(gameDir, "mods"));
 
-        // Setup Mixin environment
-        MixinBootstrap.init();
-        FabricMixinBootstrap.init(getSide(), mixinLoader);
-    }
+		// Setup Mixin environment
+		MixinBootstrap.init();
+		FabricMixinBootstrap.init(getSide(), mixinLoader);
+	}
 
-    @Override
-    public String[] getLaunchArguments() {
-        List<String> launchArgs = new ArrayList<>();
-        for (Map.Entry<String, String> arg : this.args.entrySet()) {
-            launchArgs.add(arg.getKey());
-            launchArgs.add(arg.getValue());
-        }
-        return launchArgs.toArray(new String[launchArgs.size()]);
-    }
+	@Override
+	public String[] getLaunchArguments() {
+		List<String> launchArgs = new ArrayList<>();
+		for (Map.Entry<String, String> arg : this.args.entrySet()) {
+			launchArgs.add(arg.getKey());
+			launchArgs.add(arg.getValue());
+		}
+		return launchArgs.toArray(new String[launchArgs.size()]);
+	}
 
-    public abstract Side getSide();
+	public abstract Side getSide();
 }

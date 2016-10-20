@@ -18,8 +18,8 @@ package net.fabricmc.base.loader.language;
 
 public interface ILanguageAdapter {
 
-    Object createModInstance(Class<?> modClass);
+	Object createModInstance(Class<?> modClass);
 
-    void callInitializationMethods(Object mod);
+	void callInitializationMethods(Object mod);
 
 }

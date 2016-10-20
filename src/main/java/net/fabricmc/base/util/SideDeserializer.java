@@ -26,9 +26,9 @@ import java.lang.reflect.Type;
 
 public class SideDeserializer implements JsonDeserializer<Side> {
 
-    @Override
-    public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-        return Side.valueOf(element.getAsString().toUpperCase());
-    }
+	@Override
+	public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+		return Side.valueOf(element.getAsString().toUpperCase());
+	}
 
 }

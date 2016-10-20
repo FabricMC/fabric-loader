@@ -17,9 +17,6 @@
 package net.fabricmc.base.launch;
 
 import net.fabricmc.api.Side;
-import net.minecraft.launchwrapper.LaunchClassLoader;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.Mixins;
 
 public class FabricServerTweaker extends FabricTweaker {
 	@Override

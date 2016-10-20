@@ -16,10 +16,9 @@
 
 package net.fabricmc.base.mixin.client;
 
-import net.fabricmc.base.client.ClientSidedHandler;
 import net.fabricmc.base.Fabric;
+import net.fabricmc.base.client.ClientSidedHandler;
 import net.fabricmc.base.loader.Loader;
-
 import net.minecraft.client.MinecraftGame;
 import org.lwjgl.LWJGLException;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,7 +37,7 @@ public class MixinMinecraftGame {
 		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}
-	
+
 	@Overwrite
 	private void createDisplay() throws LWJGLException {
 		// FabricClientTweaker already created the display, so dummy out this method
