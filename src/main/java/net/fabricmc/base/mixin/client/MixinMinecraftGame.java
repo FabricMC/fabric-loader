@@ -34,7 +34,7 @@ import java.io.File;
 public class MixinMinecraftGame {
 
 	@Inject(method = "init()V", at = @At("HEAD"))
-	public void init(CallbackInfo info) {
+	public void init(CallbackInfo info) throws LWJGLException {
 		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}
