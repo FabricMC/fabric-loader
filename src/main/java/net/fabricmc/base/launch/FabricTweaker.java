@@ -70,6 +70,10 @@ public abstract class FabricTweaker implements ITweaker {
 		// Setup Mixin environment
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getSide(), mixinLoader);
+
+		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
+			launchClassLoader.registerTransformer("net.fabricmc.base.transformer.AccessTransformer");
+		}
 	}
 
 	@Override
