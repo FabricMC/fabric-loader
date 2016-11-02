@@ -22,6 +22,7 @@ import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.spongepowered.asm.launch.MixinBootstrap;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ public abstract class FabricTweaker implements ITweaker {
 		// Setup Mixin environment
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getSide(), mixinLoader);
+		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
 			launchClassLoader.registerTransformer("net.fabricmc.base.transformer.AccessTransformer");
