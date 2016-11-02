@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.mixin.client.gui.impl;
 
+import net.fabricmc.base.loader.Loader;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiMainMenu;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,7 +29,7 @@ public abstract class MixinGuiMain extends Gui {
 
 	@Inject(method = "draw(IIF)V", at = @At("RETURN"))
 	public void draw(int mouseX, int mouseY, float delta, CallbackInfo info) {
-		this.fontRenderer.drawString("Fabric Base", 2, this.height - 20, -1);
+		this.fontRenderer.drawString(String.format("(%d Fabric mods)", Loader.INSTANCE.getMods().size()), 95, this.height - 10, -1);
 	}
 
 }
