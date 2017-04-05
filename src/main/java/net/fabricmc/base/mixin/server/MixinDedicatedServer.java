@@ -43,8 +43,8 @@ public abstract class MixinDedicatedServer extends MinecraftServer {
 
 	@Inject(method = "setupServer", at = @At("HEAD"))
 	public void j(CallbackInfoReturnable<Boolean> info) throws IOException {
-		Fabric.initialize(this.getFile(""), new ServerSidedHandler(this));
-		Loader.INSTANCE.load(this.getFile("mods"));
+		Fabric.initialize(this.d(""), new ServerSidedHandler(this));
+		Loader.INSTANCE.load(this.d("mods"));
 	}
 
 }

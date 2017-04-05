@@ -29,7 +29,7 @@ public class AccessTransformer implements IClassTransformer {
 	//Very basic make everything public access transformer, when we have a file format this will read from that and not do this.
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] bytes) {
-		if (!name.startsWith("net.minecraft")) {
+		if (!name.startsWith("net.minecraft") && name.contains(".")) {
 			return bytes;
 		}
 		ClassNode classNode = new ClassNode();
@@ -42,8 +42,13 @@ public class AccessTransformer implements IClassTransformer {
 		}
 		for (MethodNode method : classNode.methods) {
 			boolean isProtected = method.access == Opcodes.ACC_PROTECTED;
-			boolean isPrivate = method.access == Opcodes.ACC_PRIVATE;
-			if (isProtected || isPrivate) {
+			boolean isPrivate = method.access  == Opcodes.ACC_PRIVATE;
+			boolean isDefault = method.access  == 0;
+			//TODO remove this, or fix it
+			if(name.equals("net.minecraft.world.gen.structure.StructureRegistry") && method.name.equals("registerPiece")){
+				method.access = Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC;
+			}
+			if (isProtected || isPrivate || isDefault) {
 				method.access = Opcodes.ACC_PUBLIC;
 			}
 		}
