@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package net.fabricmc.base.util.mixin;
+package net.fabricmc.base.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import joptsimple.internal.Strings;
 import net.fabricmc.api.Side;
-import net.fabricmc.base.launch.FabricMixinBootstrap;
-import net.fabricmc.base.loader.MixinLoader;
+import net.fabricmc.base.loader.Loader;
+import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.objectweb.asm.*;
-import org.spongepowered.asm.launch.Blackboard;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.transformer.MixinTransformer;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,7 +47,7 @@ import java.util.jar.JarOutputStream;
  * mods into a JAR file at compile time to make accessing APIs provided by them
  * more intuitive in development environment.
  */
-public class MixinPrebaker {
+public class Prebaker {
 	private static class DesprinklingFieldVisitor extends FieldVisitor {
 		public DesprinklingFieldVisitor(int api, FieldVisitor fv) {
 			super(api, fv);
@@ -118,18 +115,16 @@ public class MixinPrebaker {
 	}
 
 	public static void main(String[] args) {
-		boolean hasMappingsFile = false;
 
 		if (args.length < 3) {
-			System.out.println("usage: MixinPrebaker [-m mapping-file] <input-jar> <output-jar> <mod-jars...>");
+			System.out.println("usage: Prebaker [-m mapping-file] <input-jar> <output-jar> <mod-jars...>");
 			return;
 		}
 
 		int argOffset;
 		for (argOffset = 0; argOffset < args.length; argOffset++) {
 			if ("-m".equals(args[argOffset])) {
-				hasMappingsFile = true;
-				FabricMixinBootstrap.setMappingFile(new File(args[++argOffset]));
+
 			} else {
 				break;
 			}
@@ -140,39 +135,28 @@ public class MixinPrebaker {
 			modFiles.add(new File(args[i]));
 		}
 
-		URLClassLoader ucl = (URLClassLoader) MixinPrebaker.class.getClassLoader();
+		URLClassLoader ucl = (URLClassLoader) Prebaker.class.getClassLoader();
 		Launch.classLoader = new LaunchClassLoader(ucl.getURLs());
 		Launch.blackboard = new HashMap<>();
-		Launch.blackboard.put(Blackboard.Keys.TWEAKS, Collections.emptyList());
 
-		MixinLoader mixinLoader = new MixinLoader();
-		mixinLoader.load(modFiles);
 
-		FabricMixinBootstrap.init(Side.UNIVERSAL, mixinLoader);
+		Loader modLoader = new Loader();
+		modLoader.load(modFiles);
 
-		MixinEnvironment.EnvironmentStateTweaker tweaker = new MixinEnvironment.EnvironmentStateTweaker();
-		tweaker.getLaunchArguments();
-		tweaker.injectIntoClassLoader(Launch.classLoader);
-
-		MixinTransformer mixinTransformer = Blackboard.get(Blackboard.Keys.TRANSFORMER);
 
 		try {
 			JarInputStream input = new JarInputStream(new FileInputStream(new File(args[argOffset + 0])));
 			JarOutputStream output = new JarOutputStream(new FileOutputStream(new File(args[argOffset + 1])));
 			JarEntry entry;
 			while ((entry = input.getNextJarEntry()) != null) {
-				if (entry.getName().equals(FabricMixinBootstrap.APPLIED_MIXIN_CONFIGS_FILENAME)) {
-					continue;
-				}
-
-				if (hasMappingsFile && entry.getName().equals(FabricMixinBootstrap.MAPPINGS_FILENAME)) {
-					continue;
-				}
-
 				if (entry.getName().endsWith(".class")) {
 					byte[] classIn = ByteStreams.toByteArray(input);
 					String className = entry.getName().substring(0, entry.getName().length() - 6).replace('/', '.');
-					byte[] classOut = mixinTransformer.transform(className, className, classIn);
+					byte[] classOut = classIn;
+					for(IClassTransformer transformer : Launch.classLoader.getTransformers()){
+						classOut = transformer.transform(className, className, classOut);
+					}
+
 					if (classIn != classOut) {
 						System.out.println("Transformed " + className);
 						classOut = desprinkle(classOut);
@@ -188,15 +172,6 @@ public class MixinPrebaker {
 					ByteStreams.copy(input, output);
 				}
 			}
-
-			output.putNextEntry(new JarEntry(FabricMixinBootstrap.APPLIED_MIXIN_CONFIGS_FILENAME));
-			output.write(Strings.join(FabricMixinBootstrap.getAppliedMixinConfigs(), "\n").getBytes(Charsets.UTF_8));
-
-			if (hasMappingsFile) {
-				output.putNextEntry(new JarEntry(FabricMixinBootstrap.MAPPINGS_FILENAME));
-				Files.copy(FabricMixinBootstrap.getMappingFile().toPath(), output);
-			}
-
 			input.close();
 			output.close();
 		} catch (IOException e) {
