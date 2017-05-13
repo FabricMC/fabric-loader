@@ -37,7 +37,7 @@ public class BrandTransformer implements IClassTransformer {
 				}
 			}
 			return ASMUtils.writeClassToBytes(classNode);
-		} else if (transformedName.equals("net.minecraft.client.MixinMinecraftServer")) {
+		} else if (transformedName.equals("net.minecraft.server.MinecraftServer")) {
 			ClassNode classNode = ASMUtils.readClassFromBytes(basicClass);
 			for (MethodNode methodNode : classNode.methods) {
 				if (methodNode.name.equals("getServerModName")) {
