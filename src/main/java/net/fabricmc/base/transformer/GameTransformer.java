@@ -96,15 +96,20 @@ public class GameTransformer implements IClassTransformer {
 							}
 						}
 					}
+				} else {
+					for (AbstractInsnNode insnNode : methodNode.instructions.toArray()) {
+						if(insnNode instanceof MethodInsnNode){
+							if(((MethodInsnNode) insnNode).owner.equals("org/lwjgl/opengl/Display") && ((MethodInsnNode) insnNode).name.equals("create")){
+								methodNode.instructions.insertBefore(methodNode.instructions.get(0), new InsnNode(Opcodes.RETURN));
+								break;
+							}
+						}
+					}
 				}
 			}
 			for (MethodNode methodNode : classNode.methods) {
 				if (methodNode.name.equals(initMethodName) && methodNode.desc.equals(initMethodDesc)) {
 					methodNode.instructions.insertBefore(methodNode.instructions.get(0), new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/base/transformer/GameTransformer", "init", "()V", false));
-				} else if (methodNode.name.equals("createDisplay")) { //TODO move out of the loader and into base
-					methodNode.instructions.insertBefore(methodNode.instructions.get(0), new InsnNode(Opcodes.RETURN));
-				} else if (methodNode.name.equals("setDisplayMode")) {
-					methodNode.instructions.insertBefore(methodNode.instructions.get(0), new InsnNode(Opcodes.RETURN));
 				}
 			}
 			return ASMUtils.writeClassToBytes(classNode);
