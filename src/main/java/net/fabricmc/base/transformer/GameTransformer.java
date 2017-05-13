@@ -19,8 +19,10 @@ package net.fabricmc.base.transformer;
 import net.fabricmc.base.Fabric;
 import net.fabricmc.base.client.ClientSidedHandler;
 import net.fabricmc.base.loader.Loader;
+import net.fabricmc.base.server.ServerSidedHandler;
 import net.minecraft.client.MinecraftGame;
 import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraft.server.MinecraftServer;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
@@ -33,7 +35,9 @@ public class GameTransformer implements IClassTransformer {
 	private static boolean FOUND_MINECRAFT_GAME_START = false;
 	private static String MINECRAFT_GAME_START_NAME = "";
 	private static String MINECRAFT_GAME_START_DESC = "";
-
+	private static boolean FOUND_DEDICATED_SERVER = false;
+	private static String MINECRAFT_DEDICATED_SERVER_CLASS = "";
+	
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		if (transformedName.equals("net.minecraft.client.main.Main")) {
@@ -56,6 +60,20 @@ public class GameTransformer implements IClassTransformer {
 								MINECRAFT_GAME_START_NAME = ((MethodInsnNode) insnNode).name;
 								MINECRAFT_GAME_START_DESC = ((MethodInsnNode) insnNode).desc;
 								FOUND_MINECRAFT_GAME_START = true;
+							}
+						}
+					}
+				}
+			}
+		}else if (transformedName.equals("net.minecraft.server.MinecraftServer")) {
+			ClassNode classNode = ASMUtils.readClassFromBytes(basicClass);
+			for (MethodNode methodNode : classNode.methods) {
+				if (methodNode.name.equals("main")) {
+					for (AbstractInsnNode insnNode : methodNode.instructions.toArray()) {
+						if(insnNode instanceof MethodInsnNode && insnNode.getOpcode() == Opcodes.INVOKESPECIAL){
+							if(((MethodInsnNode) insnNode).desc.startsWith("(Ljava/io/File;")){
+								FOUND_DEDICATED_SERVER = true;
+								MINECRAFT_DEDICATED_SERVER_CLASS = ((MethodInsnNode) insnNode).owner.replace("/", ".");
 							}
 						}
 					}
@@ -90,6 +108,34 @@ public class GameTransformer implements IClassTransformer {
 				}
 			}
 			return ASMUtils.writeClassToBytes(classNode);
+		} else if(transformedName.equals(MINECRAFT_DEDICATED_SERVER_CLASS)){
+			ClassNode classNode = ASMUtils.readClassFromBytes(basicClass);
+			boolean foundSetupMethod = false;
+			String setupMethodName = "";
+			String setupMethodDesc = "";
+			for (MethodNode methodNode : classNode.methods) {
+				if(methodNode.desc.equals("()Z")){
+					for (AbstractInsnNode insnNode : methodNode.instructions.toArray()) {
+						if(insnNode instanceof LdcInsnNode){
+							if(((LdcInsnNode) insnNode).cst.equals("Server console handler")){
+								foundSetupMethod = true;
+								setupMethodName = methodNode.name;
+								setupMethodDesc = methodNode.desc;
+								break;
+							}
+						}
+					}
+				}
+				if(foundSetupMethod)
+					break;
+			}
+			for (MethodNode methodNode : classNode.methods) {
+				if(methodNode.name.equals(setupMethodName) && methodNode.desc.equals(setupMethodDesc)){
+					System.out.println("Found setup!" + methodNode.name);
+					//TODO call initServer with instance
+				}
+			}
+			return ASMUtils.writeClassToBytes(classNode);
 		}
 		return basicClass;
 	}
@@ -97,6 +143,16 @@ public class GameTransformer implements IClassTransformer {
 	public static void init() {
 		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
+	}
+
+	public static void initServer(MinecraftServer server){
+		System.out.println("loading fabric server");
+		Fabric.initialize(getFile(""), new ServerSidedHandler(server));
+		Loader.INSTANCE.load(getFile("mods"));
+	}
+
+	private static File getFile(String name){
+		return new File(new File("."), name);
 	}
 
 }
