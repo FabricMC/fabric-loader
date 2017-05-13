@@ -22,7 +22,7 @@ Before you can build Fabric or set it up for an IDE, you must setup the Fabric e
 #### IntelliJ Idea
 
 - Import project into IntelliJ
-- Run `gradle genIdeaRuns`
+- Run `gradle idea`
 - Reload project
 
 #### Eclipse
