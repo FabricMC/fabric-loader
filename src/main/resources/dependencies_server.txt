@@ -1,0 +1,4 @@
+https://libraries.minecraft.net/net/minecraft/launchwrapper/1.11/launchwrapper-1.11.jar
+http://central.maven.org/maven2/org/ow2/asm/asm-all/5.0.3/asm-all-5.0.3.jar
+http://central.maven.org/maven2/com/github/zafarkhaja/java-semver/0.9.0/java-semver-0.9.0.jar
+http://central.maven.org/maven2/net/sf/jopt-simple/jopt-simple/5.0.2/jopt-simple-5.0.2.jar

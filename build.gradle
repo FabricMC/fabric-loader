@@ -78,13 +78,23 @@ jar {
 				'FabricVersion': project.version,
 				'PomfVersion': pomf_version,
 				'Main-Class': 'net.fabricmc.base.launch.FabricServerLauncher',
-				'Class-Path': 'minecraft_server.' + minecraft_version + '.jar'
+				'Class-Path': 'minecraft_server.' + minecraft_version + '.jar' + getClasspathEntrys()
         )
     }
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.14.1'
+}
+
+String getClasspathEntrys(){
+        String classPath = "";
+		File serverDeps = file("src/main/resources/dependencies_server.txt")
+        serverDeps.eachLine{ String dep ->
+            String[] depSplit = dep.split("/");
+			classPath = classPath + " libs/" + depSplit[depSplit.length -1];
+        }
+		return classPath;
 }
 
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
