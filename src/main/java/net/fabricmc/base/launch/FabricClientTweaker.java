@@ -19,11 +19,6 @@ package net.fabricmc.base.launch;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
 import net.fabricmc.api.Side;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.PixelFormat;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,7 +40,7 @@ public class FabricClientTweaker extends FabricTweaker {
 			this.args.put("--accessToken", "FabricMC");
 		}
 
-		createEarlyDisplay();
+//		createEarlyDisplay();
 	}
 
 	@Override
@@ -53,7 +48,7 @@ public class FabricClientTweaker extends FabricTweaker {
 		return Side.CLIENT;
 	}
 
-	private void createEarlyDisplay() {
+	/* private void createEarlyDisplay() {
 		File gameDir = new File(args.get("--gameDir"));
 		Properties def = new Properties();
 		def.setProperty("fullscreen", "false");
@@ -108,7 +103,7 @@ public class FabricClientTweaker extends FabricTweaker {
 			e1.printStackTrace();
 			Throwables.propagate(e1);
 		}
-	}
+	} */
 
 	@Override
 	public String getLaunchTarget() {

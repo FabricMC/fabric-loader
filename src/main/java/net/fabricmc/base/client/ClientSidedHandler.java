@@ -39,7 +39,7 @@ public class ClientSidedHandler implements ISidedHandler {
 		if (MinecraftGame.getInstance().isMainThread()) {
 			runnable.run();
 		} else {
-			MinecraftGame.getInstance().scheduleOnMainThread(runnable);
+			MinecraftGame.getInstance().execute(runnable);
 		}
 	}
 

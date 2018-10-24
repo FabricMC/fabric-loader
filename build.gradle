@@ -1,9 +1,11 @@
+import net.fabricmc.loom.LoomGradlePlugin
+
 buildscript {
     repositories {
         mavenCentral()
         maven {
             name = 'Fabric'
-            url = 'http://maven.fabricmc.net/'
+            url = 'http://maven.modmuss50.me/'
         }
         maven {
             name = 'SpongePowered'
@@ -15,7 +17,7 @@ buildscript {
         }
     }
     dependencies {
-	classpath 'net.fabricmc:fabric-loom:0.0.7-SNAPSHOT'
+	classpath 'net.fabricmc:fabric-loom:0.0.12-SNAPSHOT'
     }
 }
 
@@ -26,7 +28,7 @@ plugins {
     id 'idea'
     id 'eclipse'
 }
-apply plugin: 'net.fabricmc.loom'
+apply plugin: LoomGradlePlugin
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -49,7 +51,7 @@ repositories {
     }
 	maven {
         name = 'Fabric'
-        url = 'http://maven.fabricmc.net/'
+        url = 'http://maven.modmuss50.me/'
     }
 }
 

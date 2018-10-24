@@ -97,14 +97,14 @@ public class GameTransformer implements IClassTransformer {
 						}
 					}
 				} else {
-					for (AbstractInsnNode insnNode : methodNode.instructions.toArray()) {
+					/* for (AbstractInsnNode insnNode : methodNode.instructions.toArray()) {
 						if(insnNode instanceof MethodInsnNode){
 							if(((MethodInsnNode) insnNode).owner.equals("org/lwjgl/opengl/Display") && ((MethodInsnNode) insnNode).name.equals("create")){
 								methodNode.instructions.insertBefore(methodNode.instructions.get(0), new InsnNode(Opcodes.RETURN));
 								break;
 							}
 						}
-					}
+					} */
 				}
 			}
 			for (MethodNode methodNode : classNode.methods) {
@@ -146,6 +146,7 @@ public class GameTransformer implements IClassTransformer {
 	}
 
 	public static void init() {
+		System.out.println("loading fabric");
 		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}

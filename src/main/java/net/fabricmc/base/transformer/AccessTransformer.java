@@ -16,6 +16,7 @@
 
 package net.fabricmc.base.transformer;
 
+import net.minecraft.client.resource.language.LanguageManager;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -35,29 +36,13 @@ public class AccessTransformer implements IClassTransformer {
 		ClassNode classNode = new ClassNode();
 		ClassReader classReader = new ClassReader(bytes);
 		classReader.accept(classNode, 0);
-		boolean isClassProtected = classNode.access == Opcodes.ACC_PROTECTED;
-		boolean isClassPrivate = classNode.access == Opcodes.ACC_PRIVATE;
-		if (isClassProtected || isClassPrivate) {
-			classNode.access = Opcodes.ACC_PUBLIC;
-		}
+		classNode.access = (classNode.access & (~0x7)) | Opcodes.ACC_PUBLIC;
 		for (MethodNode method : classNode.methods) {
-			boolean isProtected = method.access == Opcodes.ACC_PROTECTED;
-			boolean isPrivate = method.access  == Opcodes.ACC_PRIVATE;
-			boolean isDefault = method.access  == 0;
-			//TODO remove this, or fix it
-			if(name.equals("net.minecraft.world.gen.structure.StructureRegistry") && method.name.equals("registerPiece")){
-				method.access = Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC;
-			}
-			if (isProtected || isPrivate || isDefault) {
-				method.access = Opcodes.ACC_PUBLIC;
-			}
+			method.access = (method.access & (~0x7)) | Opcodes.ACC_PUBLIC;
 		}
+
 		for (FieldNode field : classNode.fields) {
-			boolean isProtected = field.access == Opcodes.ACC_PROTECTED;
-			boolean isPrivate = field.access == Opcodes.ACC_PRIVATE;
-			if (isProtected || isPrivate) {
-				field.access = Opcodes.ACC_PUBLIC;
-			}
+			field.access = (field.access & (~0x7)) | Opcodes.ACC_PUBLIC;
 		}
 		ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		classNode.accept(writer);

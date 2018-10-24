@@ -44,7 +44,7 @@ public class ServerSidedHandler implements ISidedHandler {
 		if (server.isMainThread()) {
 			runnable.run();
 		} else {
-			server.scheduleOnMainThread(runnable);
+			server.execute(runnable);
 		}
 	}
 
