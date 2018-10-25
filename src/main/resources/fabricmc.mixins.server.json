@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "net.fabricmc.base.mixin.server",
+	"compatibilityLevel": "JAVA_8",
+	"mixins": [
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+  "refmap" : "fabric-base-refmap.json",
+  "context" : "pomf:mojang"
+}

@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "net.fabricmc.base.mixin.client",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinMinecraftGame",
+    "MixinClientBrandRetriever",
+    "gui.impl.MixinGuiMain"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap" : "fabric-base-refmap.json",
+  "context" : "pomf:mojang"
+}

@@ -54,6 +54,33 @@ public class Loader {
 	private final Stage.StageTrigger modInitStageTrigger = new Stage.StageTrigger();
 	public final Stage modsInitialized = Stage.newBuilder("modsInitialized").after(modInitStageTrigger).build();
 
+	public Set<String> getClientMixinConfigs() {
+		return mods.stream()
+			.map(ModContainer::getInfo)
+			.map(ModInfo::getMixins)
+			.map(ModInfo.Mixins::getClient)
+			.filter(s -> s != null && !s.isEmpty())
+			.collect(Collectors.toSet());
+	}
+
+	public Set<String> getCommonMixinConfigs() {
+		return mods.stream()
+			.map(ModContainer::getInfo)
+			.map(ModInfo::getMixins)
+			.map(ModInfo.Mixins::getCommon)
+			.filter(s -> s != null && !s.isEmpty())
+			.collect(Collectors.toSet());
+	}
+
+	public Set<String> getServerMixinConfigs() {
+		return mods.stream()
+			.map(ModContainer::getInfo)
+			.map(ModInfo::getMixins)
+			.map(ModInfo.Mixins::getServer)
+			.filter(s -> s != null && !s.isEmpty())
+			.collect(Collectors.toSet());
+	}
+
 	public void load(File modsDir) {
 		if (!checkModsDirectory(modsDir)) {
 			return;

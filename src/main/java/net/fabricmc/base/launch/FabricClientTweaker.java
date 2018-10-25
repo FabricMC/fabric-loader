@@ -39,71 +39,12 @@ public class FabricClientTweaker extends FabricTweaker {
 		if (!this.args.containsKey("--accessToken")) {
 			this.args.put("--accessToken", "FabricMC");
 		}
-
-//		createEarlyDisplay();
 	}
 
 	@Override
 	public Side getSide() {
 		return Side.CLIENT;
 	}
-
-	/* private void createEarlyDisplay() {
-		File gameDir = new File(args.get("--gameDir"));
-		Properties def = new Properties();
-		def.setProperty("fullscreen", "false");
-		def.setProperty("overrideWidth", "0");
-		def.setProperty("overrideHeight", "0");
-		Properties props = new Properties(def);
-		try {
-			props.load(Files.newReader(new File(gameDir, "options.txt"), StandardCharsets.UTF_8));
-		} catch (FileNotFoundException e) {
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		boolean fullscreen = args.containsKey("--fullscreen") || Boolean.parseBoolean(props.getProperty("fullscreen"));
-		int overrideWidth = Integer.parseInt(props.getProperty("overrideWidth"));
-		int overrideHeight = Integer.parseInt(props.getProperty("overrideHeight"));
-		int width = 854;
-		int height = 480;
-		if (overrideWidth > 0) {
-			width = overrideWidth;
-		} else if (args.containsKey("--width")) {
-			width = Math.max(1, Integer.parseInt(args.get("--width")));
-		}
-		if (overrideHeight > 0) {
-			height = overrideHeight;
-		} else if (args.containsKey("--height")) {
-			height = Math.max(1, Integer.parseInt(args.get("--height")));
-		}
-		String ver = args.get("--version");
-		if (ver == null) {
-			ver = "Unknown";
-		} else {
-			int index = ver.indexOf('-');
-			if (index != -1) {
-				ver = ver.substring(0, index);
-			}
-		}
-		try {
-			Display.setDisplayMode(new DisplayMode(width, height));
-			Display.setFullscreen(fullscreen);
-			Display.setResizable(true);
-			Display.setTitle("Minecraft " + ver);
-			try {
-				Display.create(new PixelFormat().withDepthBits(24));
-			} catch (LWJGLException e) {
-				e.printStackTrace();
-				Display.create();
-			}
-			GL11.glClearColor(1, 1, 1, 1);
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-			Display.update();
-		} catch (LWJGLException e1) {
-			e1.printStackTrace();
-			Throwables.propagate(e1);
-		}
-	} */
 
 	@Override
 	public String getLaunchTarget() {

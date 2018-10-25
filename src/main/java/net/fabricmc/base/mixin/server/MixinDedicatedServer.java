@@ -16,13 +16,34 @@
 
 package net.fabricmc.base.mixin.server;
 
-//net.minecraft.server.dedicated.DedicatedServer
-public class MixinDedicatedServer  {
+import com.mojang.authlib.GameProfileRepository;
+import com.mojang.authlib.minecraft.MinecraftSessionService;
+import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import net.fabricmc.base.Fabric;
+import net.fabricmc.base.loader.Loader;
+import net.fabricmc.base.server.ServerSidedHandler;
+import net.minecraft.server.MinecraftServer;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.Proxy;
+
+// FIXME
+
+//@Mixin($root.th.class)
+public abstract class MixinDedicatedServer /* extends MinecraftServer */ {
+	/* public MixinDedicatedServer(File a1, Proxy a2, MigrationHandler a3, YggdrasilAuthenticationService a4, MinecraftSessionService a5, GameProfileRepository a6, UserCache a7) {
+		super(a1, a2, a3, a4, a5, a6, a7);
+	} */
 
 //	@Inject(method = "setupServer", at = @At("HEAD"))
-//	public void j(CallbackInfoReturnable<Boolean> info) throws IOException {
-//		Fabric.initialize(this.d(""), new ServerSidedHandler(this));
-//		Loader.INSTANCE.load(this.d("mods"));
-//	}
+	public void j(CallbackInfoReturnable<Boolean> info) throws IOException {
+		/* Fabric.initialize(this.getFile(""), new ServerSidedHandler(this));
+		Loader.INSTANCE.load(this.getFile("mods")); */
+	}
 
 }

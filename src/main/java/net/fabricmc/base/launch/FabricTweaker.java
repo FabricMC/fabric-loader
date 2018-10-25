@@ -17,9 +17,12 @@
 package net.fabricmc.base.launch;
 
 import net.fabricmc.api.Side;
+import net.fabricmc.base.loader.MixinLoader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
+import org.spongepowered.asm.launch.MixinBootstrap;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +32,7 @@ import java.util.Map;
 
 public abstract class FabricTweaker implements ITweaker {
 	protected Map<String, String> args;
+	protected MixinLoader mixinLoader;
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
@@ -61,12 +65,17 @@ public abstract class FabricTweaker implements ITweaker {
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
 		File gameDir = new File(args.get("--gameDir"));
+		mixinLoader = new MixinLoader();
+		mixinLoader.load(new File(gameDir, "mods"));
+
+		// Setup Mixin environment
+		MixinBootstrap.init();
+		FabricMixinBootstrap.init(getSide(), mixinLoader);
+		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
 			launchClassLoader.registerTransformer("net.fabricmc.base.transformer.AccessTransformer");
 		}
-		launchClassLoader.registerTransformer("net.fabricmc.base.transformer.BrandTransformer");
-		launchClassLoader.registerTransformer("net.fabricmc.base.transformer.GameTransformer");
 	}
 
 	@Override
