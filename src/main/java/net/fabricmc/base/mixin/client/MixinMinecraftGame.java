@@ -32,7 +32,6 @@ public class MixinMinecraftGame {
 
 	@Inject(method = "init()V", at = @At("HEAD"))
 	public void init(CallbackInfo info) {
-		System.out.println("an alpaca!");
 		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
 		Loader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
 	}
