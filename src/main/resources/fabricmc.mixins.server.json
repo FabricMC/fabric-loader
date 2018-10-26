@@ -3,6 +3,7 @@
 	"package": "net.fabricmc.base.mixin.server",
 	"compatibilityLevel": "JAVA_8",
 	"mixins": [
+      "MixinDedicatedServer"
 	],
 	"injectors": {
 		"defaultRequire": 1
