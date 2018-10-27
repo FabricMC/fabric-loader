@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "net.fabricmc.base.mixin.server",
+	"package": "net.fabricmc.loader.mixin.server",
 	"compatibilityLevel": "JAVA_8",
 	"mixins": [
       "MixinDedicatedServer"

@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.mixin.common.server;
 
-import net.fabricmc.loader.FabricLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.server.MinecraftServer;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 
-public class TestMod {
+@Mixin(value = MinecraftServer.class, remap = false)
+public abstract class MixinMinecraftServer {
 
-	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
-
-	public void init() {
-		LOGGER.info("**************************");
-		LOGGER.info("Hello from Fabric");
-		LOGGER.info("**************************");
-
-		FabricLoader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
-	}
-
-	public void onModsInitialized() {
-		System.out.println("Mods initialized");
+	@Overwrite
+	public String getServerModName() {
+		return "Fabric";
 	}
 
 }

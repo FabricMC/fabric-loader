@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "net.fabricmc.base.mixin.common",
+  "package": "net.fabricmc.loader.mixin.common",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "server.MixinMinecraftServer"

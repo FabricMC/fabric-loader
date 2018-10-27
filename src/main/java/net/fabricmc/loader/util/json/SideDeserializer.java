@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.util.json;
 
-import net.fabricmc.loader.FabricLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import net.fabricmc.api.Side;
 
-public class TestMod {
+import java.lang.reflect.Type;
 
-	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
+public class SideDeserializer implements JsonDeserializer<Side> {
 
-	public void init() {
-		LOGGER.info("**************************");
-		LOGGER.info("Hello from Fabric");
-		LOGGER.info("**************************");
-
-		FabricLoader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
-	}
-
-	public void onModsInitialized() {
-		System.out.println("Mods initialized");
+	@Override
+	public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+		return Side.valueOf(element.getAsString().toUpperCase());
 	}
 
 }

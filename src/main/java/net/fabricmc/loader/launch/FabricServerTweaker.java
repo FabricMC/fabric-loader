@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.launch;
 
-import net.fabricmc.loader.FabricLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.fabricmc.api.Side;
 
-public class TestMod {
-
-	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
-
-	public void init() {
-		LOGGER.info("**************************");
-		LOGGER.info("Hello from Fabric");
-		LOGGER.info("**************************");
-
-		FabricLoader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
+public class FabricServerTweaker extends FabricTweaker {
+	@Override
+	public String getLaunchTarget() {
+		return "net.minecraft.server.MinecraftServer";
 	}
 
-	public void onModsInitialized() {
-		System.out.println("Mods initialized");
+	@Override
+	public Side getSide() {
+		return Side.SERVER;
 	}
-
 }

@@ -56,12 +56,12 @@
   "launchwrapper": {
     "tweakers": {
       "client": [
-        "net.fabricmc.base.launch.FabricClientTweaker"
+        "net.fabricmc.loader.launch.FabricClientTweaker"
       ],
       "common": [
       ],
       "server": [
-        "net.fabricmc.base.launch.FabricServerTweaker"
+        "net.fabricmc.loader.launch.FabricServerTweaker"
       ]
     }
   }

@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.language;
 
-import net.fabricmc.loader.FabricLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
-public class TestMod {
+public class JavaLanguageAdapter implements ILanguageAdapter {
 
-	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
-
-	public void init() {
-		LOGGER.info("**************************");
-		LOGGER.info("Hello from Fabric");
-		LOGGER.info("**************************");
-
-		FabricLoader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
-	}
-
-	public void onModsInitialized() {
-		System.out.println("Mods initialized");
+	public Object createInstance(Class<?> modClass) {
+		try {
+			Constructor<?> constructor = modClass.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			return constructor.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.launch;
 
-import net.fabricmc.loader.FabricLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.launchwrapper.Launch;
 
-public class TestMod {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
+public class FabricServerLauncher {
 
-	public void init() {
-		LOGGER.info("**************************");
-		LOGGER.info("Hello from Fabric");
-		LOGGER.info("**************************");
+	public static void main(String[] args) {
 
-		FabricLoader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
-	}
+		List<String> argList = new ArrayList<>();
+		for (String arg : args) {
+			argList.add(arg);
+		}
+		argList.add("--tweakClass");
+		argList.add("net.fabricmc.loader.launch.FabricServerTweaker");
 
-	public void onModsInitialized() {
-		System.out.println("Mods initialized");
+		Object[] objectList = argList.toArray();
+		String[] stringArray = Arrays.copyOf(objectList, objectList.length, String[].class);
+		Launch.main(stringArray);
 	}
 
 }
