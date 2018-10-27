@@ -1,3 +1,6 @@
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import net.fabricmc.loom.LoomGradlePlugin
 
 buildscript {
@@ -102,16 +105,23 @@ jar {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.14.1'
+    gradleVersion = '4.10.2'
 }
 
 String getClasspathEntries(){
-    String classPath = "";
-    File serverDeps = file("src/main/resources/dependencies_server.txt")
-    serverDeps.eachLine{ String dep ->
-        String[] depSplit = dep.split("/");
-        classPath = classPath + " libs/" + depSplit[depSplit.length -1];
-    }
+    String classPath = ""
+    File installerFile = file("src/main/resources/fabric-installer.json")
+	JsonObject object = Gson.newInstance().fromJson(new InputStreamReader(new FileInputStream(installerFile)), JsonObject.class)
+
+	["common", "server"].forEach { l ->
+		for (JsonElement element : object.getAsJsonObject("libraries").getAsJsonArray(l)) {
+			String dep = element.getAsJsonObject().get("name").getAsString()
+			String[] depSplit = dep.split(":")
+			if (depSplit.length != 3) throw new RuntimeException("Invalid dependency " + dep);
+			classPath = classPath + " libs/" + depSplit[1] + "-" + depSplit[2] + ".jar"
+		}
+	}
+
     return classPath;
 }
 
