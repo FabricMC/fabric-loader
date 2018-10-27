@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "libraries": {
+    "client": [
+
+    ],
+    "common": [
+      {
+        "name": "net.minecraft:launchwrapper:1.12"
+      },
+      {
+        "name": "org.spongepowered:mixin:0.7.11-SNAPSHOT",
+        "url": "https://asie.pl/javadeps/"
+      },
+      {
+        "name": "org.ow2.asm:asm:6.2.1",
+        "url": "http://repo.maven.apache.org/maven2/"
+      },
+      {
+        "name": "org.ow2.asm:asm-analysis:6.2.1",
+        "url": "http://repo.maven.apache.org/maven2/"
+      },
+      {
+        "name": "org.ow2.asm:asm-commons:6.2.1",
+        "url": "http://repo.maven.apache.org/maven2/"
+      },
+      {
+        "name": "org.ow2.asm:asm-tree:6.2.1",
+        "url": "http://repo.maven.apache.org/maven2/"
+      },
+      {
+        "name": "org.ow2.asm:asm-util:6.2.1",
+        "url": "http://repo.maven.apache.org/maven2/"
+      },
+      {
+        "name": "com.github.zafarkhaja:java-semver:0.9.0",
+        "url": "http://repo.maven.apache.org/maven2/"
+      }
+    ],
+    "server": [
+
+    ]
+  },
+  "mainClass": "net.minecraft.launchwrapper.Launch",
+  "arguments": {
+    "client": [
+
+    ],
+    "common": [
+
+    ],
+    "server": [
+
+    ]
+  },
+  "launchwrapper": {
+    "tweakers": {
+      "client": [
+        "net.fabricmc.base.launch.FabricClientTweaker"
+      ],
+      "common": [
+      ],
+      "server": [
+        "net.fabricmc.base.launch.FabricServerTweaker"
+      ]
+    }
+  }
+}
