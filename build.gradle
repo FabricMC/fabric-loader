@@ -62,6 +62,7 @@ repositories {
 minecraft {
     version = minecraft_version
     pomfVersion = pomf_version
+    jarMapper = "enigma"
     refmapName = "fabric-base-refmap.json"
 }
 
