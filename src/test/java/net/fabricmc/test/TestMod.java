@@ -16,24 +16,20 @@
 
 package net.fabricmc.test;
 
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class TestMod {
+public class TestMod implements ModInitializer {
 
 	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
 
-	public void init() {
+	@Override
+	public void onInitialize() {
 		LOGGER.info("**************************");
 		LOGGER.info("Hello from Fabric");
 		LOGGER.info("**************************");
-
-		FabricLoader.INSTANCE.modsInitialized.subscribe(this::onModsInitialized);
-	}
-
-	public void onModsInitialized() {
-		System.out.println("Mods initialized");
 	}
 
 }

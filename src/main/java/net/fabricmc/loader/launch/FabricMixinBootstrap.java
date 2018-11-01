@@ -19,8 +19,7 @@ package net.fabricmc.loader.launch;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import net.fabricmc.api.Side;
-import net.fabricmc.loader.MixinLoader;
-import net.fabricmc.loader.util.mixin.MixinDevRemapper;
+import net.fabricmc.loader.util.mixin.MixinTinyRemapper;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
@@ -29,18 +28,22 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
-public class FabricMixinBootstrap {
-	public static final String APPLIED_MIXIN_CONFIGS_FILENAME = ".fabric-applied-mixin-configs";
-	public static final String MAPPINGS_FILENAME = ".fabric-dev-mappings.tiny";
+public final class FabricMixinBootstrap {
+	private FabricMixinBootstrap() {
+
+	}
+
+	static final String APPLIED_MIXIN_CONFIGS_FILENAME = ".fabric-applied-mixin-configs";
+	static final String MAPPINGS_FILENAME = ".fabric-dev-mappings.tiny";
 	private static List<String> appliedMixinConfigs;
 	private static boolean initialized = false;
 	private static File mappingFile;
 
-	public static File getMappingFile() {
+	static File getMappingFile() {
 		return mappingFile;
 	}
 
-	public static void setMappingFile(File value) {
+	static void setMappingFile(File value) {
 		mappingFile = value;
 	}
 
@@ -50,7 +53,7 @@ public class FabricMixinBootstrap {
 		}
 	}
 
-	public static void init(Side side, MixinLoader mixinLoader) {
+	static void init(Side side, MixinLoader mixinLoader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -74,8 +77,8 @@ public class FabricMixinBootstrap {
 
 			if (mappingStream != null) {
 				try {
-					MixinDevRemapper remapper = new MixinDevRemapper();
-					remapper.readMapping(new BufferedReader(new InputStreamReader(mappingStream)), "mojang", "pomf");
+					MixinTinyRemapper remapper = new MixinTinyRemapper();
+					remapper.readMapping(new BufferedReader(new InputStreamReader(mappingStream)), "intermediary", "pomf");
 					mappingStream.close();
 
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
@@ -109,7 +112,7 @@ public class FabricMixinBootstrap {
 		initialized = true;
 	}
 
-	public static List<String> getAppliedMixinConfigs() {
+	static List<String> getAppliedMixinConfigs() {
 		return appliedMixinConfigs;
 	}
 }

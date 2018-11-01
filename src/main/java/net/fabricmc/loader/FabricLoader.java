@@ -18,6 +18,7 @@ package net.fabricmc.loader;
 
 import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.api.Side;
 import net.fabricmc.api.Stage;
 import net.fabricmc.loader.util.json.SideDeserializer;
@@ -38,10 +39,11 @@ import java.util.zip.ZipEntry;
 public class FabricLoader {
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|FabricLoader");
+	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 	private static final Gson GSON = new GsonBuilder()
 		.registerTypeAdapter(Side.class, new SideDeserializer())
 		.registerTypeAdapter(Version.class, new VersionDeserializer())
+		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
 		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
 		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
 		.create();
@@ -53,31 +55,47 @@ public class FabricLoader {
 	private final Stage.StageTrigger modInitStageTrigger = new Stage.StageTrigger();
 	public final Stage modsInitialized = Stage.newBuilder("modsInitialized").after(modInitStageTrigger).build();
 
-	public Set<String> getClientMixinConfigs() {
-		return mods.stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.map(ModInfo.Mixins::getClient)
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
+	private final InstanceStorage instanceStorage = new InstanceStorage();
+
+	private boolean gameInitialized = false;
+	private boolean modsLoaded = false;
+
+	private ISidedHandler sidedHandler;
+
+	private File gameDir;
+	private File configDir;
+
+	public <T> Collection<T> getInitializers(Class<T> type) {
+		return instanceStorage.getInitializers(type);
 	}
 
-	public Set<String> getCommonMixinConfigs() {
-		return mods.stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.map(ModInfo.Mixins::getCommon)
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
+	// INTERNAL: DO NOT USE
+	public void initialize(File gameDir, ISidedHandler sidedHandler) {
+		if (gameInitialized) {
+			throw new RuntimeException("FabricLoader has already been game-initialized!");
+		}
+
+		this.gameDir = gameDir;
+		this.sidedHandler = sidedHandler;
+		gameInitialized = true;
 	}
 
-	public Set<String> getServerMixinConfigs() {
-		return mods.stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.map(ModInfo.Mixins::getServer)
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
+	public ISidedHandler getSidedHandler() {
+		return sidedHandler;
+	}
+
+	public File getGameDirectory() {
+		return gameDir;
+	}
+
+	public File getConfigDirectory() {
+		if (configDir == null) {
+			configDir = new File(gameDir, "config");
+			if (!configDir.exists()) {
+				configDir.mkdirs();
+			}
+		}
+		return configDir;
 	}
 
 	public void load(File modsDir) {
@@ -85,10 +103,17 @@ public class FabricLoader {
 			return;
 		}
 
-		load(Arrays.asList(modsDir.listFiles()));
+		File[] dirFiles = modsDir.listFiles();
+		if (dirFiles != null) {
+			load(Arrays.asList(dirFiles));
+		}
 	}
 
 	public void load(Collection<File> modFiles) {
+		if (modsLoaded) {
+			throw new RuntimeException("FabricLoader has already had mods loaded!");
+		}
+
 		List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
 
 		int classpathModsCount = 0;
@@ -124,54 +149,72 @@ public class FabricLoader {
 			}
 		}
 
-		LOGGER.debug("Found %d jar mods", existingMods.size() - classpathModsCount);
+		LOGGER.debug("Found %d JAR mods", existingMods.size() - classpathModsCount);
 
 		mods:
 		for (Pair<ModInfo, File> pair : existingMods) {
 			ModInfo mod = pair.getLeft();
-			if (mod.isLazilyLoaded()) {
+			/* if (mod.isLazilyLoaded()) {
 				innerMods:
 				for (Pair<ModInfo, File> pair2 : existingMods) {
 					ModInfo mod2 = pair2.getLeft();
 					if (mod == mod2) {
 						continue innerMods;
 					}
-					for (Map.Entry<String, ModInfo.Dependency> entry : mod2.getDependencies().entrySet()) {
+					for (Map.Entry<String, ModInfo.Dependency> entry : mod2.getRequires().entrySet()) {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
-						if (depId.equalsIgnoreCase(mod.getGroup() + "." + mod.getId()) && dep.satisfiedBy(mod)) {
+						if (depId.equalsIgnoreCase(mod.getId()) && dep.satisfiedBy(mod)) {
 							addMod(mod, pair.getRight(), true);
 						}
 					}
 				}
 				continue mods;
-			}
+			} */
 			addMod(mod, pair.getRight(), true);
 		}
 
-		LOGGER.info("Loading %d mods: %s", mods.size(), String.join(", ", mods.stream()
+		String modText;
+		switch (mods.size()) {
+			case 0:
+				modText = "Loading %d mods";
+				break;
+			case 1:
+				modText = "Loading %d mod: %s";
+				break;
+			default:
+				modText = "Loading %d mods: %s";
+				break;
+		}
+
+		LOGGER.info(modText, mods.size(), String.join(", ", mods.stream()
 			.map(ModContainer::getInfo)
-			.map(mod -> mod.getGroup() + "." + mod.getId())
+			.map(ModInfo::getId)
 			.collect(Collectors.toList())));
 
+		modsLoaded = true;
+		onModsPopulated();
+	}
+
+	protected void onModsPopulated() {
 		checkDependencies();
-		sort();
+		sortMods();
 		initializeMods();
 	}
 
-	public boolean isModLoaded(String group, String id) {
-		return modMap.containsKey(group + "." + id);
+	public boolean isModLoaded(String id) {
+		return modMap.containsKey(id);
 	}
 
 	public List<ModContainer> getMods() {
-		return mods;
+		return Collections.unmodifiableList(mods);
 	}
 
-	protected static List<Pair<ModInfo, File>> getClasspathMods() {
+	protected List<Pair<ModInfo, File>> getClasspathMods() {
 		List<Pair<ModInfo, File>> mods = new ArrayList<>();
 
 		String javaHome = System.getProperty("java.home");
-		String modsDir = new File(Fabric.getGameDirectory(), "mods").getAbsolutePath();
+		String modsDir = new File(getGameDirectory(), "mods").getAbsolutePath();
 
 		URL[] urls = Launch.classLoader.getURLs();
 		for (URL url : urls) {
@@ -205,58 +248,69 @@ public class FabricLoader {
 	}
 
 	protected void addMod(ModInfo info, File originFile, boolean initialize) {
-		Side currentSide = Fabric.getSidedHandler().getSide();
+		Side currentSide = getSidedHandler().getSide();
 		if ((currentSide == Side.CLIENT && !info.getSide().hasClient()) || (currentSide == Side.SERVER && !info.getSide().hasServer())) {
 			return;
 		}
 		ModContainer container = new ModContainer(info, originFile, initialize);
 		mods.add(container);
-		modMap.put(info.getGroup() + "." + info.getId(), container);
+		modMap.put(info.getId(), container);
 	}
 
 	protected void checkDependencies() {
 		LOGGER.debug("Validating mod dependencies");
 
 		for (ModContainer mod : mods) {
-
 			dependencies:
-			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getDependencies().entrySet()) {
+			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getRequires().entrySet()) {
 				String depId = entry.getKey();
 				ModInfo.Dependency dep = entry.getValue();
-				if (dep.isRequired()) {
-
-					innerMods:
-					for (ModContainer mod2 : mods) {
-						if (mod == mod2) {
-							continue innerMods;
-						}
-						if (depId.equalsIgnoreCase(mod2.getInfo().getGroup() + "." + mod2.getInfo().getId()) && dep.satisfiedBy(mod2.getInfo())) {
-							continue dependencies;
-						}
+				for (ModContainer mod2 : mods) {
+					if (mod == mod2) {
+						continue;
 					}
-					//					TODO: for official modules, query/download from maven
-					throw new DependencyException(String.format("Mod %s.%s requires dependency %s @ %s", mod.getInfo().getGroup(), mod.getInfo().getId(), depId, String.join(", ", dep.getVersionMatchers())));
+					if (depId.equalsIgnoreCase(mod2.getInfo().getId()) && dep.satisfiedBy(mod2.getInfo())) {
+						continue dependencies;
+					}
 				}
+
+				throw new DependencyException(String.format("Mod %s requires %s @ %s", mod.getInfo().getId(), depId, String.join(", ", dep.getVersionMatchers())));
+			}
+
+			conflicts:
+			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getRequires().entrySet()) {
+				String depId = entry.getKey();
+				ModInfo.Dependency dep = entry.getValue();
+				for (ModContainer mod2 : mods) {
+					if (mod == mod2) {
+						continue;
+					}
+					if (!depId.equalsIgnoreCase(mod2.getInfo().getId()) || !dep.satisfiedBy(mod2.getInfo())) {
+						continue conflicts;
+					}
+				}
+
+				throw new DependencyException(String.format("Mod %s conflicts with %s @ %s", mod.getInfo().getId(), depId, String.join(", ", dep.getVersionMatchers())));
 			}
 		}
 	}
 
-	private void sort() {
-		LOGGER.debug("Sorting mods");
+	private void sortMods() {
+		/* LOGGER.debug("Sorting mods");
 
 		LinkedList<ModContainer> sorted = new LinkedList<>();
 		for (ModContainer mod : mods) {
-			if (sorted.isEmpty() || mod.getInfo().getDependencies().size() == 0) {
+			if (sorted.isEmpty() || mod.getInfo().getRequires().size() == 0) {
 				sorted.addFirst(mod);
 			} else {
 				boolean b = false;
 				l1:
 				for (int i = 0; i < sorted.size(); i++) {
-					for (Map.Entry<String, ModInfo.Dependency> entry : sorted.get(i).getInfo().getDependencies().entrySet()) {
+					for (Map.Entry<String, ModInfo.Dependency> entry : sorted.get(i).getInfo().getRequires().entrySet()) {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 
-						if (depId.equalsIgnoreCase(mod.getInfo().getGroup() + "." + mod.getInfo().getId()) && dep.satisfiedBy(mod.getInfo())) {
+						if (depId.equalsIgnoreCase(mod.getInfo().getId()) && dep.satisfiedBy(mod.getInfo())) {
 							sorted.add(i, mod);
 							b = true;
 							break l1;
@@ -270,15 +324,17 @@ public class FabricLoader {
 			}
 		}
 
-		mods = sorted;
+		mods = sorted; */
 	}
 
 	private void initializeMods() {
 		for (ModContainer mod : mods) {
-			if (mod.hasInstance()) {
-				mod.initialize();
+			for (String in : mod.getInfo().getInitializers()) {
+				instanceStorage.instantiate(in, mod.getAdapter(), true);
 			}
 		}
+
+		getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
 
 		modsInitialized.trigger(modInitStageTrigger);
 	}

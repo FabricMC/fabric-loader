@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.language;
+package net.fabricmc.api;
 
-public interface ILanguageAdapter {
-	default Object createInstance(String classString) throws ClassNotFoundException, LanguageAdapterException {
-		return createInstance(Class.forName(classString));
-	}
-
-	Object createInstance(Class<?> baseClass) throws LanguageAdapterException;
+public interface ModInitializer {
+	void onInitialize();
 }

@@ -17,7 +17,6 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.Side;
-import net.fabricmc.loader.MixinLoader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -25,6 +24,9 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,7 @@ public abstract class FabricTweaker implements ITweaker {
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
+		//noinspection unchecked
 		this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
 
 		if (this.args == null) {
@@ -56,8 +59,9 @@ public abstract class FabricTweaker implements ITweaker {
 		}
 
 		if (!this.args.containsKey("--gameDir")) {
-			if (gameDir == null)
+			if (gameDir == null) {
 				gameDir = new File(".");
+			}
 			this.args.put("--gameDir", gameDir.getAbsolutePath());
 		}
 	}
@@ -74,7 +78,28 @@ public abstract class FabricTweaker implements ITweaker {
 		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			launchClassLoader.registerTransformer("net.fabricmc.loader.transformer.AccessTransformer");
+			// Development environment
+			Launch.blackboard.put("fabric.development", true);
+
+			// TODO: remove this
+			launchClassLoader.registerTransformer("net.fabricmc.loader.transformer.PublicAccessTransformer");
+		} else {
+			// Obfuscated environment
+			Launch.blackboard.put("fabric.development", false);
+		}
+
+		// Locate version-related files
+		try {
+			String target = getLaunchTarget();
+			URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
+			JarURLConnection locConn = (JarURLConnection) loc.openConnection();
+			String jarFileName = locConn.getJarFileURL().getFile();
+			File jarFile = new File(jarFileName);
+			File mappingFile = new File(jarFileName.substring(0, jarFileName.lastIndexOf('.')) + ".tiny.gz");
+			File deobfJarFile = new File(jarFileName.substring(0, jarFileName.lastIndexOf('.')) + "_remapped.jar");
+			System.out.println(deobfJarFile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -84,7 +109,7 @@ public abstract class FabricTweaker implements ITweaker {
 		for (Map.Entry<String, String> arg : this.args.entrySet()) {
 			launchArgs.add(arg.getKey());
 			launchArgs.add(arg.getValue());
-		}
+ 		}
 		return launchArgs.toArray(new String[launchArgs.size()]);
 	}
 

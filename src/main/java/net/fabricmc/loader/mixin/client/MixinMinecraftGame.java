@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.mixin.client;
 
-import net.fabricmc.loader.Fabric;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.client.ClientSidedHandler;
 import net.minecraft.client.MinecraftGame;
@@ -32,8 +31,9 @@ public class MixinMinecraftGame {
 
 	@Inject(method = "init()V", at = @At("HEAD"))
 	public void init(CallbackInfo info) {
-		Fabric.initialize(MinecraftGame.getInstance().runDirectory, new ClientSidedHandler());
-		FabricLoader.INSTANCE.load(new File(MinecraftGame.getInstance().runDirectory, "mods"));
+		MinecraftGame game = ((MinecraftGame) (Object) this);
+		FabricLoader.INSTANCE.initialize(game.runDirectory, new ClientSidedHandler());
+		FabricLoader.INSTANCE.load(new File(game.runDirectory, "mods"));
 	}
 
 }

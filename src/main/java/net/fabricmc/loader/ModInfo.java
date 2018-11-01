@@ -22,6 +22,7 @@ import net.fabricmc.api.Side;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -29,39 +30,56 @@ import java.util.regex.Pattern;
 
 public class ModInfo {
 
-	//	Required
+	// Required
 	private String id;
-	private String group;
+	private String name;
 	private Version version;
 
-	//	Optional
-	private String modClass = "";
+	// Optional (environment)
+	private DependencyMap requires = new DependencyMap();
+	private DependencyMap conflicts = new DependencyMap();
 	private String languageAdapter = "net.fabricmc.loader.language.JavaLanguageAdapter";
 	private Mixins mixins = Mixins.EMPTY;
 	private Side side = Side.UNIVERSAL;
 	private boolean lazilyLoaded = false;
+	private String initializer;
+	private String[] initializers;
+
+	// Optional (metadata)
 	private String title = "";
 	private String description = "";
 	private Links links = Links.EMPTY;
-	private DependencyMap dependencies = new DependencyMap();
+	private DependencyMap recommends = new DependencyMap();
+	@SuppressWarnings("MismatchedReadAndWriteOfArray")
 	private Person[] authors = new Person[0];
+	@SuppressWarnings("MismatchedReadAndWriteOfArray")
 	private Person[] contributors = new Person[0];
 	private String license = "";
+
+	public List<String> getInitializers() {
+		if (initializer != null) {
+			if (initializers != null) {
+				throw new RuntimeException("initializer and initializers should not be set at the same time! (mod " + id + ")");
+			}
+
+			return Collections.singletonList(initializer);
+		} else if (initializers != null) {
+			return Arrays.asList(initializers);
+		} else {
+			return Collections.emptyList();
+		}
+	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getGroup() {
-		return group;
+	public String getName() {
+		return name;
 	}
 
 	public Version getVersion() {
 		return version;
-	}
-
-	public String getModClass() {
-		return modClass;
 	}
 
 	public String getLanguageAdapter() {
@@ -92,16 +110,24 @@ public class ModInfo {
 		return links;
 	}
 
-	public DependencyMap getDependencies() {
-		return dependencies;
+	public DependencyMap getRequires() {
+		return requires;
 	}
 
-	public Person[] getAuthors() {
-		return authors;
+	public DependencyMap getRecommends() {
+		return recommends;
 	}
 
-	public Person[] getContributors() {
-		return contributors;
+	public DependencyMap getConflicts() {
+		return conflicts;
+	}
+
+	public List<Person> getAuthors() {
+		return Arrays.asList(authors);
+	}
+
+	public List<Person> getContributors() {
+		return Arrays.asList(contributors);
 	}
 
 	public String getLicense() {
@@ -129,12 +155,11 @@ public class ModInfo {
 	}
 
 	public static class Links {
-
 		public static final Links EMPTY = new Links();
 
-		private String homepage = "";
-		private String issues = "";
-		private String sources = "";
+		private String homepage;
+		private String issues;
+		private String sources;
 
 		public String getHomepage() {
 			return homepage;
@@ -147,6 +172,26 @@ public class ModInfo {
 		public String getSources() {
 			return sources;
 		}
+
+		public static class Deserializer implements JsonDeserializer<Links> {
+			@Override
+			public Links deserialize(JsonElement element, Type resultType, JsonDeserializationContext context) throws JsonParseException {
+				Links links = new Links();
+
+				if (element.isJsonObject()) {
+					JsonObject object = element.getAsJsonObject();
+					links.homepage = object.has("homepage") ? object.get("homepage").getAsString() : "";
+					links.issues = object.has("issues") ? object.get("issues").getAsString() : "";
+					links.sources = object.has("sources") ? object.get("sources").getAsString() : "";
+				} else if (element.isJsonPrimitive()) {
+					links.homepage = element.getAsString();
+				} else {
+					throw new JsonParseException("Expected links to be an object or string");
+				}
+
+				return links;
+			}
+		}
 	}
 
 	public static class DependencyMap extends HashMap<String, Dependency> {
@@ -154,14 +199,11 @@ public class ModInfo {
 	}
 
 	public static class Dependency {
-
 		private String[] versionMatchers;
-		private boolean required;
 		private Side side;
 
-		public Dependency(String[] versionMatchers, boolean required, Side side) {
+		public Dependency(String[] versionMatchers, Side side) {
 			this.versionMatchers = versionMatchers;
-			this.required = required;
 			this.side = side;
 		}
 
@@ -169,26 +211,37 @@ public class ModInfo {
 			return versionMatchers;
 		}
 
-		public boolean isRequired() {
-			return required;
-		}
-
 		public Side getSide() {
 			return side;
 		}
 
 		public boolean satisfiedBy(ModInfo info) {
-			if (required) {
-				for (String s : versionMatchers) {
-					if (!info.version.satisfies(s)) {
-						return false;
-					}
+			for (String s : versionMatchers) {
+				if (!info.version.satisfies(s)) {
+					return false;
 				}
 			}
 			return true;
 		}
 
 		public static class Deserializer implements JsonDeserializer<Dependency> {
+			private String[] deserializeVersionMatchers(JsonElement versionEl) {
+				String[] versionMatchers;
+
+				if (versionEl.isJsonPrimitive()) {
+					versionMatchers = new String[] { versionEl.getAsString() };
+				} else if (versionEl.isJsonArray()) {
+					JsonArray array = versionEl.getAsJsonArray();
+					versionMatchers = new String[array.size()];
+					for (int i = 0; i < array.size(); i++) {
+						versionMatchers[i] = array.get(i).getAsString();
+					}
+				} else {
+					throw new JsonParseException("Expected version to be a string or array");
+				}
+
+				return versionMatchers;
+			}
 
 			@Override
 			public Dependency deserialize(JsonElement element, Type resultType, JsonDeserializationContext context) throws JsonParseException {
@@ -199,15 +252,6 @@ public class ModInfo {
 					boolean required = true;
 					Side side = Side.UNIVERSAL;
 
-					if (object.has("required")) {
-						JsonElement requiredEl = object.get("required");
-						if (requiredEl.isJsonPrimitive() && requiredEl.getAsJsonPrimitive().isBoolean()) {
-							required = requiredEl.getAsBoolean();
-						} else {
-							throw new JsonParseException("Expected required to be a boolean");
-						}
-					}
-
 					if (object.has("side")) {
 						JsonElement sideEl = object.get("side");
 						side = context.deserialize(sideEl, Side.class);
@@ -215,26 +259,19 @@ public class ModInfo {
 
 					if (object.has("version")) {
 						JsonElement versionEl = object.get("version");
-						if (versionEl.isJsonPrimitive()) {
-							versionMatchers = new String[] { versionEl.getAsString() };
-						} else if (versionEl.isJsonArray()) {
-							JsonArray array = versionEl.getAsJsonArray();
-							versionMatchers = new String[array.size()];
-							for (int i = 0; i < array.size(); i++) {
-								versionMatchers[i] = array.get(i).getAsString();
-							}
-						} else {
-							throw new JsonParseException("Expected version to be a string or array");
-						}
+						versionMatchers = deserializeVersionMatchers(versionEl);
 					} else {
 						throw new JsonParseException("Missing version element");
 					}
 
-					return new Dependency(versionMatchers, required, side);
+					return new Dependency(versionMatchers, side);
+				} else if (element.isJsonPrimitive() || element.isJsonArray()) {
+					String[] versionMatchers = deserializeVersionMatchers(element);
+					return new Dependency(versionMatchers, Side.UNIVERSAL);
 				}
+
 				throw new JsonParseException("Expected dependency to be an object");
 			}
-
 		}
 	}
 

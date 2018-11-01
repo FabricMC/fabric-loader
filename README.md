@@ -15,7 +15,7 @@ Licensed under the Apache License 2.0.
 
 Before you can build Fabric or set it up for an IDE, you must setup the Fabric environment.
 
-- Run `gradle setupFabric`
+- Run `gradle setup`
 
 ### IDE Setup
 

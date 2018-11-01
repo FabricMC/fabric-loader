@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MixinDevRemapper implements IRemapper {
+public class MixinTinyRemapper implements IRemapper {
 	private final BiMap<String, String> classMap = HashBiMap.create();
 	private final Map<TinyUtils.Mapping, TinyUtils.Mapping> fieldMap = new HashMap<>();
 	private final Map<TinyUtils.Mapping, TinyUtils.Mapping> methodMap = new HashMap<>();

@@ -1,10 +1,12 @@
 {
-    "id": "test",
-    "group": "net.fabricmc",
-    "version": "1.0.0",
-    "modClass": "net.fabricmc.test.TestMod",
-    "side": "client",
-    "mixins": {
-        "client": "fabricmc.test.mixins.client.json"
-    }
+  "id": "test",
+  "name": "Test Mod",
+  "version": "1.0.0",
+  "side": "client",
+  "mixins": {
+    "client": "fabricmc.test.mixins.client.json"
+  },
+  "initializers": [
+    "net.fabricmc.test.TestMod"
+  ]
 }

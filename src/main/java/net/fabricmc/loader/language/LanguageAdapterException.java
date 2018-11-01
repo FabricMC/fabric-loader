@@ -16,10 +16,12 @@
 
 package net.fabricmc.loader.language;
 
-public interface ILanguageAdapter {
-	default Object createInstance(String classString) throws ClassNotFoundException, LanguageAdapterException {
-		return createInstance(Class.forName(classString));
+public class LanguageAdapterException extends Exception {
+	public LanguageAdapterException(String s) {
+		super(s);
 	}
 
-	Object createInstance(Class<?> baseClass) throws LanguageAdapterException;
+	public LanguageAdapterException(String s, Throwable t) {
+		super(s, t);
+	}
 }

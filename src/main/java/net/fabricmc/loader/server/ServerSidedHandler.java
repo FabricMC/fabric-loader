@@ -22,8 +22,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 
 public class ServerSidedHandler implements ISidedHandler {
-
-	private MinecraftServer server;
+	private final MinecraftServer server;
 
 	public ServerSidedHandler(MinecraftServer server) {
 		this.server = server;
@@ -52,5 +51,4 @@ public class ServerSidedHandler implements ISidedHandler {
 	public MinecraftServer getServerInstance() {
 		return server;
 	}
-
 }

@@ -17,18 +17,22 @@
 package net.fabricmc.loader.language;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class JavaLanguageAdapter implements ILanguageAdapter {
-
-	public Object createInstance(Class<?> modClass) {
+	@Override
+	public Object createInstance(Class<?> modClass) throws LanguageAdapterException {
 		try {
 			Constructor<?> constructor = modClass.getDeclaredConstructor();
 			constructor.setAccessible(true);
 			return constructor.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		} catch (NoSuchMethodException e) {
+			throw new LanguageAdapterException("Could not find constructor for class " + modClass.getName() + "!", e);
+		} catch (IllegalAccessException e) {
+			throw new LanguageAdapterException("!?", e);
+		} catch (InvocationTargetException | IllegalArgumentException | InstantiationException e) {
+			throw new LanguageAdapterException("Could not instantiate class " + modClass.getName() + "!", e);
 		}
 	}
-
 }

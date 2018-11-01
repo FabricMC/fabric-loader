@@ -28,7 +28,7 @@ public abstract class MixinGuiMain extends Gui {
 
 	@Inject(method = "draw(IIF)V", at = @At("RETURN"))
 	public void draw(int mouseX, int mouseY, float delta, CallbackInfo info) {
-		this.fontRenderer.drawString("Fabric Test Mod", 2, this.height - 30, -1);
+		this.fontRenderer.draw("Fabric Test Mod", 2, this.height - 30, -1);
 	}
 
 }
