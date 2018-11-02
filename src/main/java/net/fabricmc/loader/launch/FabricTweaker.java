@@ -116,9 +116,7 @@ public abstract class FabricTweaker implements ITweaker {
 
 					if (!deobfJarFile.exists()) {
 						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
-						LOGGER.info(deobfJarFile);
-						LOGGER.info(deobfJarPath);
-
+						
 						TinyRemapper remapper = TinyRemapper.newRemapper()
 							.withMappings(TinyUtils.createTinyMappingProvider(mappingFile.toPath(), "mojang", "intermediary"))
 							.build();
