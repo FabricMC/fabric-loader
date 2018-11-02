@@ -62,7 +62,7 @@ public final class FabricMixinBootstrap {
 						}
 
 						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper();
-						remapper.readMapping(new BufferedReader(new InputStreamReader(targetStream)), "intermediary", "pomf");
+						remapper.readMapping(new BufferedReader(new InputStreamReader(targetStream)), "intermediary", "named");
 						mappingStream.close();
 
 						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);

@@ -102,6 +102,15 @@ jar {
 	}
 }
 
+task copyJson(type: Copy, dependsOn: ["jar"]) {
+	from('src/main/resources/fabric-installer.json') {
+		rename { "${archivesBaseName}-${version}.json" }
+	}
+	into 'build/libs'
+}
+
+tasks.build.dependsOn "copyJson"
+
 task wrapper(type: Wrapper) {
 	gradleVersion = '4.10.2'
 }
