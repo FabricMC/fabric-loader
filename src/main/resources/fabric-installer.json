@@ -17,23 +17,19 @@
         "url": "https://maven.modmuss50.me/"
       },
       {
-        "name": "org.ow2.asm:asm:6.2.1",
+        "name": "org.ow2.asm:asm:7.0",
         "url": "http://repo.maven.apache.org/maven2/"
       },
       {
-        "name": "org.ow2.asm:asm-analysis:6.2.1",
+        "name": "org.ow2.asm:asm-commons:7.0",
         "url": "http://repo.maven.apache.org/maven2/"
       },
       {
-        "name": "org.ow2.asm:asm-commons:6.2.1",
+        "name": "org.ow2.asm:asm-tree:7.0",
         "url": "http://repo.maven.apache.org/maven2/"
       },
       {
-        "name": "org.ow2.asm:asm-tree:6.2.1",
-        "url": "http://repo.maven.apache.org/maven2/"
-      },
-      {
-        "name": "org.ow2.asm:asm-util:6.2.1",
+        "name": "org.ow2.asm:asm-util:7.0",
         "url": "http://repo.maven.apache.org/maven2/"
       },
       {
