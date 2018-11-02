@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MixinTinyRemapper implements IRemapper {
+public class MixinIntermediaryDevRemapper implements IRemapper {
 	private final BiMap<String, String> classMap = HashBiMap.create();
-	private final Map<TinyUtils.Mapping, TinyUtils.Mapping> fieldMap = new HashMap<>();
-	private final Map<TinyUtils.Mapping, TinyUtils.Mapping> methodMap = new HashMap<>();
+
+	// We can take advantage of the fact each identifier in intermediary mappings is unique.
+	private final Map<String, String> fieldMap = new HashMap<>();
+	private final Map<String, String> methodMap = new HashMap<>();
 
 	private final SimpleClassMapper classMapper = new SimpleClassMapper(classMap);
 	private final SimpleClassMapper classUnmapper = new SimpleClassMapper(classMap.inverse());
@@ -48,19 +50,29 @@ public class MixinTinyRemapper implements IRemapper {
 	}
 
 	public void readMapping(BufferedReader reader, String fromM, String toM) throws IOException {
-		TinyUtils.read(reader, fromM, toM, classMap::put, fieldMap::put, methodMap::put);
+		TinyUtils.read(reader, fromM, toM, classMap::put, (a, b) -> {
+			if (fieldMap.containsKey(a.name) && !fieldMap.get(a.name).equals(b.name)) {
+				throw new RuntimeException("Duplicate entry: " + a.name + " -> [" + fieldMap.get(a.name) + ", " + b.name + "]!");
+			}
+
+			fieldMap.put(a.name, b.name);
+		}, (a, b) -> {
+			if (methodMap.containsKey(a.name) && !methodMap.get(a.name).equals(b.name)) {
+				throw new RuntimeException("Duplicate entry: " + a.name + " -> [" + methodMap.get(a.name) + ", " + b.name + "]!");
+			}
+
+			methodMap.put(a.name, b.name);
+		});
 	}
 
 	@Override
 	public String mapMethodName(String owner, String name, String desc) {
-		TinyUtils.Mapping mapping = methodMap.get(new TinyUtils.Mapping(owner, name, desc));
-		return mapping != null ? mapping.name : name;
+		return methodMap.getOrDefault(name, name);
 	}
 
 	@Override
 	public String mapFieldName(String owner, String name, String desc) {
-		TinyUtils.Mapping mapping = fieldMap.get(new TinyUtils.Mapping(owner, name, desc));
-		return mapping != null ? mapping.name : name;
+		return fieldMap.getOrDefault(name, name);
 	}
 
 	@Override

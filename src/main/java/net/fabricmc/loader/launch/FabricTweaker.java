@@ -74,7 +74,7 @@ public abstract class FabricTweaker implements ITweaker {
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getSide(), mixinLoader);
+		FabricMixinBootstrap.init(getSide(), args, mixinLoader);
 		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
@@ -107,8 +107,10 @@ public abstract class FabricTweaker implements ITweaker {
 	public String[] getLaunchArguments() {
 		List<String> launchArgs = new ArrayList<>();
 		for (Map.Entry<String, String> arg : this.args.entrySet()) {
-			launchArgs.add(arg.getKey());
-			launchArgs.add(arg.getValue());
+			if (!arg.getKey().startsWith("--fabric")) {
+				launchArgs.add(arg.getKey());
+				launchArgs.add(arg.getValue());
+			}
  		}
 		return launchArgs.toArray(new String[launchArgs.size()]);
 	}

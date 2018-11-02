@@ -17,6 +17,7 @@
 package net.fabricmc.loader.mixin.server;
 
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.mixin.hooks.IServerGetFile;
 import net.fabricmc.loader.server.ServerSidedHandler;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
@@ -31,12 +32,9 @@ import java.io.IOException;
 
 @Mixin(MinecraftDedicatedServer.class)
 public abstract class MixinDedicatedServer {
-	@Shadow
-	public abstract File getFile(String s);
-
 	@Inject(method = "setupServer", at = @At("HEAD"))
 	public void setupServer(CallbackInfoReturnable<Boolean> info) throws IOException {
-		FabricLoader.INSTANCE.initialize(this.getFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
-		FabricLoader.INSTANCE.load(this.getFile("mods"));
+		FabricLoader.INSTANCE.initialize(((IServerGetFile) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
+		FabricLoader.INSTANCE.load(((IServerGetFile) (Object) this).fabricHookGetFile("mods"));
 	}
 }

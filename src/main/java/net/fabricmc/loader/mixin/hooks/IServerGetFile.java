@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.mixin.common.server;
+package net.fabricmc.loader.mixin.hooks;
 
-import net.minecraft.server.MinecraftServer;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
+import java.io.File;
 
-@Mixin(value = MinecraftServer.class, remap = false)
-public abstract class MixinMinecraftServer {
-
-	@Overwrite
-	public String getServerModName() {
-		return "Fabric";
-	}
-
+public interface IServerGetFile {
+	File fabricHookGetFile(String s);
 }

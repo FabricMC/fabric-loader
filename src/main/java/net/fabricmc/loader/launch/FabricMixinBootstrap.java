@@ -19,7 +19,9 @@ package net.fabricmc.loader.launch;
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import net.fabricmc.api.Side;
-import net.fabricmc.loader.util.mixin.MixinTinyRemapper;
+import net.fabricmc.loader.util.mixin.MixinIntermediaryDevRemapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
@@ -27,68 +29,52 @@ import org.spongepowered.asm.mixin.Mixins;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() {
 
 	}
 
-	static final String APPLIED_MIXIN_CONFIGS_FILENAME = ".fabric-applied-mixin-configs";
-	static final String MAPPINGS_FILENAME = ".fabric-dev-mappings.tiny";
-	private static List<String> appliedMixinConfigs;
+	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|MixinBootstrap");
 	private static boolean initialized = false;
-	private static File mappingFile;
 
-	static File getMappingFile() {
-		return mappingFile;
+	static void addConfiguration(String configuration) {
+		Mixins.addConfiguration(configuration);
 	}
 
-	static void setMappingFile(File value) {
-		mappingFile = value;
-	}
-
-	public static void addConfiguration(String configuration) {
-		if (appliedMixinConfigs == null || !appliedMixinConfigs.contains(configuration)) {
-			Mixins.addConfiguration(configuration);
-		}
-	}
-
-	static void init(Side side, MixinLoader mixinLoader) {
+	static void init(Side side, Map<String, String> args, MixinLoader mixinLoader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
 
-		InputStream appliedMixinsStream = FabricMixinBootstrap.class.getClassLoader().getResourceAsStream(APPLIED_MIXIN_CONFIGS_FILENAME);
-		if (appliedMixinsStream != null) {
+		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
 			try {
-				byte[] data = ByteStreams.toByteArray(appliedMixinsStream);
-				appliedMixinConfigs = Arrays.asList(new String(data, Charsets.UTF_8).split("\n"));
-				appliedMixinsStream.close();
-			} catch (IOException e) {
-				System.err.println("Fabric development environment setup error - the game will probably crash soon!");
-				e.printStackTrace();
-			}
-		}
+				String mappingFileName = args.get("--fabricMappingFile");
+				if (mappingFileName != null) {
+					File mappingFile = new File(mappingFileName);
+					if (mappingFile.exists()) {
+						InputStream mappingStream = new FileInputStream(mappingFile);
 
-		try {
-			InputStream mappingStream = mappingFile != null
-			                            ? new FileInputStream(mappingFile)
-			                            : FabricMixinBootstrap.class.getClassLoader().getResourceAsStream(MAPPINGS_FILENAME);
+						try {
+							MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper();
+							remapper.readMapping(new BufferedReader(new InputStreamReader(mappingStream)), "intermediary", "pomf");
+							mappingStream.close();
 
-			if (mappingStream != null) {
-				try {
-					MixinTinyRemapper remapper = new MixinTinyRemapper();
-					remapper.readMapping(new BufferedReader(new InputStreamReader(mappingStream)), "intermediary", "pomf");
-					mappingStream.close();
+							MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 
-					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-				} catch (IOException e) {
-					System.err.println("Fabric development environment setup error - the game will probably crash soon!");
-					e.printStackTrace();
+							LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
+						} catch (IOException e) {
+							LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
+							e.printStackTrace();
+						}
+					} else {
+						LOGGER.error("Fabric development mappings not found despite being specified - the game will probably crash soon!");
+					}
 				}
+			} catch (FileNotFoundException e) {
+				// Ignore
 			}
-		} catch (FileNotFoundException e) {
-			// Ignore
 		}
 
 		MixinBootstrap.init();
@@ -110,9 +96,5 @@ public final class FabricMixinBootstrap {
 		}
 
 		initialized = true;
-	}
-
-	static List<String> getAppliedMixinConfigs() {
-		return appliedMixinConfigs;
 	}
 }

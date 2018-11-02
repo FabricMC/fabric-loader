@@ -13,6 +13,10 @@
         "url": "https://asie.pl/javadeps/"
       },
       {
+        "name": "net.fabricmc:tiny-remapper:0.1.0.14",
+        "url": "https://maven.modmuss50.me/"
+      },
+      {
         "name": "org.ow2.asm:asm:6.2.1",
         "url": "http://repo.maven.apache.org/maven2/"
       },

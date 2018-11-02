@@ -3,11 +3,10 @@
   "package": "net.fabricmc.loader.mixin.common",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "server.MixinMinecraftServer"
+    "server.MixinMinecraftServerBrand"
   ],
   "injectors": {
     "defaultRequire": 1
   },
-  "refmap" : "fabric-base-refmap.json",
-  "context" : "pomf:mojang"
+  "refmap" : "fabric-base-refmap.json"
 }
