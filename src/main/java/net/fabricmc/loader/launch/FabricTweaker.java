@@ -31,9 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.URI;
@@ -44,6 +42,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
@@ -99,7 +98,30 @@ public abstract class FabricTweaker implements ITweaker {
 			Launch.blackboard.put("fabric.development", false);
 
 			String mappingFileName = args.get("--fabricMappingFile");
+			FileInputStream mappingFileStream = null;
+			InputStream mappingStream = null;
+			BufferedReader mappingReader = null;
+
 			if (mappingFileName != null) {
+				try {
+					mappingFileStream = new FileInputStream(mappingFileName);
+					if (mappingFileName.toLowerCase().endsWith(".gz")) {
+						mappingStream = new GZIPInputStream(mappingFileStream);
+					} else {
+						mappingStream = mappingFileStream;
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+					mappingStream = null;
+				}
+			} else {
+				mappingStream = launchClassLoader.getResourceAsStream("mappings/mappings.tiny");
+			}
+
+
+
+			if (mappingStream != null) {
+				mappingReader = new BufferedReader(new InputStreamReader(mappingStream));
 				LOGGER.debug("Fabric mapping file detected, applying...");
 
 				try {
@@ -108,17 +130,21 @@ public abstract class FabricTweaker implements ITweaker {
 					JarURLConnection locConn = (JarURLConnection) loc.openConnection();
 					String jarFileName = locConn.getJarFileURL().getFile();
 					File jarFile = new File(jarFileName);
-					File mappingFile = new File(mappingFileName);
-					File deobfJarFile = new File(jarFileName.substring(0, jarFileName.lastIndexOf('.')) + "_remapped.jar");
+					File deobfJarDir = new File(".fabric" + File.separator + "remappedJars");
+					if (!deobfJarDir.exists()) {
+						deobfJarDir.mkdirs();
+					}
+
+					File deobfJarFile = new File(deobfJarDir, jarFile.getName());
 
 					Path jarPath = jarFile.toPath();
 					Path deobfJarPath = deobfJarFile.toPath();
 
 					if (!deobfJarFile.exists()) {
 						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
-						
+
 						TinyRemapper remapper = TinyRemapper.newRemapper()
-							.withMappings(TinyUtils.createTinyMappingProvider(mappingFile.toPath(), "mojang", "intermediary"))
+							.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
 							.build();
 						List<Path> depPaths = new ArrayList<>();
 
@@ -192,6 +218,16 @@ public abstract class FabricTweaker implements ITweaker {
 					}
 				} catch (IOException e) {
 					throw new RuntimeException(e);
+				} finally {
+					try {
+						mappingReader.close();
+						mappingStream.close();
+						if (mappingFileStream != mappingStream && mappingFileStream != null) {
+							mappingFileStream.close();
+						}
+					} catch (IOException ee) {
+						ee.printStackTrace();
+					}
 				}
 			}
 		}
