@@ -16,23 +16,39 @@
 
 package net.fabricmc.loader.launch;
 
+import com.google.common.io.ByteStreams;
+import com.sun.nio.zipfs.ZipFileSystem;
+import com.sun.nio.zipfs.ZipFileSystemProvider;
 import net.fabricmc.api.Side;
+import net.fabricmc.tinyremapper.OutputConsumerPath;
+import net.fabricmc.tinyremapper.TinyRemapper;
+import net.fabricmc.tinyremapper.TinyUtils;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.JarURLConnection;
+import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public abstract class FabricTweaker implements ITweaker {
+	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Map<String, String> args;
 	protected MixinLoader mixinLoader;
 
@@ -72,11 +88,6 @@ public abstract class FabricTweaker implements ITweaker {
 		mixinLoader = new MixinLoader();
 		mixinLoader.load(new File(gameDir, "mods"));
 
-		// Setup Mixin environment
-		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getSide(), args, mixinLoader);
-		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
-
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
 			// Development environment
 			Launch.blackboard.put("fabric.development", true);
@@ -86,21 +97,111 @@ public abstract class FabricTweaker implements ITweaker {
 		} else {
 			// Obfuscated environment
 			Launch.blackboard.put("fabric.development", false);
+
+			String mappingFileName = args.get("--fabricMappingFile");
+			if (mappingFileName != null) {
+				LOGGER.debug("Fabric mapping file detected, applying...");
+
+				try {
+					String target = getLaunchTarget();
+					URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
+					JarURLConnection locConn = (JarURLConnection) loc.openConnection();
+					String jarFileName = locConn.getJarFileURL().getFile();
+					File jarFile = new File(jarFileName);
+					File mappingFile = new File(mappingFileName);
+					File deobfJarFile = new File(jarFileName.substring(0, jarFileName.lastIndexOf('.')) + "_remapped.jar");
+
+					Path jarPath = jarFile.toPath();
+					Path deobfJarPath = deobfJarFile.toPath();
+
+					if (!deobfJarFile.exists()) {
+						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
+						LOGGER.info(deobfJarFile);
+						LOGGER.info(deobfJarPath);
+
+						TinyRemapper remapper = TinyRemapper.newRemapper()
+							.withMappings(TinyUtils.createTinyMappingProvider(mappingFile.toPath(), "mojang", "intermediary"))
+							.build();
+						List<Path> depPaths = new ArrayList<>();
+
+						try {
+							OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath);
+							remapper.read(jarPath);
+
+							for (URL url : launchClassLoader.getSources()) {
+								if (!url.equals(loc)) {
+									remapper.read();
+									depPaths.add(new File(url.getFile()).toPath());
+								}
+							}
+							remapper.apply(jarPath, outputConsumer);
+							outputConsumer.finish();
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						} finally {
+							remapper.finish();
+						}
+
+						// Minecraft doesn't tend to check if a ZipFileSystem is already present,
+						// so we clean up here.
+
+						depPaths.add(jarPath);
+						depPaths.add(deobfJarPath);
+						for (Path p : depPaths) {
+							try {
+								p.getFileSystem().close();
+							} catch (Exception e) {
+								// pass
+							}
+
+							try {
+								FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
+							} catch (Exception e) {
+								// pass
+							}
+						}
+					}
+
+					launchClassLoader.addURL(deobfJarFile.toURI().toURL());
+
+					// Pre-populate resource cache
+					Map<String, byte[]> resourceCache = null;
+					try {
+						Field f = LaunchClassLoader.class.getDeclaredField("resourceCache");
+						f.setAccessible(true);
+						//noinspection unchecked
+						resourceCache = (Map) f.get(launchClassLoader);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					if (resourceCache != null) {
+						try (FileInputStream jarFileStream = new FileInputStream(deobfJarFile)) {
+							JarInputStream jarStream = new JarInputStream(jarFileStream);
+							JarEntry entry;
+
+							while ((entry = jarStream.getNextJarEntry()) != null) {
+								if (!entry.getName().startsWith("net/minecraft/class_") && entry.getName().endsWith(".class")) {
+									String className = entry.getName();
+									className = className.substring(0, className.length() - 6).replace('/', '.');
+									LOGGER.debug("Appending " + className + " to resource cache...");
+									resourceCache.put(className, ByteStreams.toByteArray(jarStream));
+								}
+							}
+						}
+					} else {
+						LOGGER.warn("Resource cache not pre-populated - this will probably cause issues...");
+					}
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 
-		// Locate version-related files
-		try {
-			String target = getLaunchTarget();
-			URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
-			JarURLConnection locConn = (JarURLConnection) loc.openConnection();
-			String jarFileName = locConn.getJarFileURL().getFile();
-			File jarFile = new File(jarFileName);
-			File mappingFile = new File(jarFileName.substring(0, jarFileName.lastIndexOf('.')) + ".tiny.gz");
-			File deobfJarFile = new File(jarFileName.substring(0, jarFileName.lastIndexOf('.')) + "_remapped.jar");
-			System.out.println(deobfJarFile);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		// Setup Mixin environment
+		MixinBootstrap.init();
+		FabricMixinBootstrap.init(getSide(), args, mixinLoader);
+		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 	}
 
 	@Override

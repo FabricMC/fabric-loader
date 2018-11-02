@@ -30,6 +30,7 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() {
@@ -49,31 +50,31 @@ public final class FabricMixinBootstrap {
 		}
 
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			try {
-				String mappingFileName = args.get("--fabricMappingFile");
-				if (mappingFileName != null) {
-					File mappingFile = new File(mappingFileName);
-					if (mappingFile.exists()) {
-						InputStream mappingStream = new FileInputStream(mappingFile);
+			String mappingFileName = args.get("--fabricMappingFile");
+			if (mappingFileName != null) {
+				File mappingFile = new File(mappingFileName);
+				if (mappingFile.exists()) {
+					try (InputStream mappingStream = new FileInputStream(mappingFile)) {
+						InputStream targetStream = mappingStream;
 
-						try {
-							MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper();
-							remapper.readMapping(new BufferedReader(new InputStreamReader(mappingStream)), "intermediary", "pomf");
-							mappingStream.close();
-
-							MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-
-							LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
-						} catch (IOException e) {
-							LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
-							e.printStackTrace();
+						if (mappingFileName.endsWith(".gz")) {
+							targetStream = new GZIPInputStream(mappingStream);
 						}
-					} else {
-						LOGGER.error("Fabric development mappings not found despite being specified - the game will probably crash soon!");
+
+						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper();
+						remapper.readMapping(new BufferedReader(new InputStreamReader(targetStream)), "intermediary", "pomf");
+						mappingStream.close();
+
+						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+
+						LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
+					} catch (IOException e) {
+						LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
+						e.printStackTrace();
 					}
+				} else {
+					LOGGER.error("Fabric development mappings not found despite being specified - the game will probably crash soon!");
 				}
-			} catch (FileNotFoundException e) {
-				// Ignore
 			}
 		}
 
