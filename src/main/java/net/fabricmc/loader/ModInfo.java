@@ -46,7 +46,6 @@ public class ModInfo {
 	private String[] initializers;
 
 	// Optional (metadata)
-	private String title = "";
 	private String description = "";
 	private Links links = Links.EMPTY;
 	private DependencyMap recommends = new DependencyMap();
@@ -96,10 +95,6 @@ public class ModInfo {
 
 	public boolean isLazilyLoaded() {
 		return lazilyLoaded;
-	}
-
-	public String getTitle() {
-		return title;
 	}
 
 	public String getDescription() {

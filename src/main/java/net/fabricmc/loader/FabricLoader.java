@@ -24,6 +24,7 @@ import net.fabricmc.api.Stage;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import net.fabricmc.loader.util.json.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -278,7 +279,7 @@ public class FabricLoader {
 			}
 
 			conflicts:
-			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getRequires().entrySet()) {
+			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getConflicts().entrySet()) {
 				String depId = entry.getKey();
 				ModInfo.Dependency dep = entry.getValue();
 				for (ModContainer mod2 : mods) {
