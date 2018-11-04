@@ -11,10 +11,6 @@ buildscript {
 			url = 'http://maven.modmuss50.me/'
 		}
 		maven {
-			name = 'SpongePowered'
-			url = 'http://repo.spongepowered.org/maven'
-		}
-		maven {
 			name = 'mojang'
 			url = 'https://libraries.minecraft.net/'
 		}
@@ -76,7 +72,7 @@ dependencies {
 	compile 'org.ow2.asm:asm-tree:7.0'
 	compile 'org.ow2.asm:asm-util:7.0'
 
-	compile('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+	compile('net.fabricmc:sponge-mixin:0.7.11.3') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}

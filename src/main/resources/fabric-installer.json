@@ -9,8 +9,8 @@
         "name": "net.minecraft:launchwrapper:1.12"
       },
       {
-        "name": "org.spongepowered:mixin:0.7.11-SNAPSHOT",
-        "url": "https://asie.pl/javadeps/"
+        "name": "net.fabricmc:sponge-mixin:0.7.11.3",
+        "url": "https://maven.modmuss50.me/"
       },
       {
         "name": "net.fabricmc:tiny-remapper:0.1.0.16",
