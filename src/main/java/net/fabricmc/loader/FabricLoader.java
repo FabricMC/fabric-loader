@@ -166,13 +166,13 @@ public class FabricLoader {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getId()) && dep.satisfiedBy(mod)) {
-							addMod(mod, pair.getRight(), true);
+							addMod(mod, pair.getRight(), loaderInitializesMods());
 						}
 					}
 				}
 				continue mods;
 			} */
-			addMod(mod, pair.getRight(), true);
+			addMod(mod, pair.getRight(), loaderInitializesMods());
 		}
 
 		String modText;
@@ -200,7 +200,9 @@ public class FabricLoader {
 	protected void onModsPopulated() {
 		checkDependencies();
 		sortMods();
-		initializeMods();
+		if (loaderInitializesMods()) {
+			initializeMods();
+		}
 	}
 
 	public boolean isModLoaded(String id) {
@@ -246,6 +248,10 @@ public class FabricLoader {
 			}
 		}
 		return mods;
+	}
+
+	protected boolean loaderInitializesMods() {
+		return true;
 	}
 
 	protected void addMod(ModInfo info, File originFile, boolean initialize) {

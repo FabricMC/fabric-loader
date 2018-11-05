@@ -61,8 +61,8 @@ class MixinLoader extends FabricLoader {
 	}
 
 	@Override
-	protected void onModsPopulated() {
-		checkDependencies();
+	protected boolean loaderInitializesMods() {
+		return false;
 	}
 
 	@Override
