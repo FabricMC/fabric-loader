@@ -16,7 +16,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.0.12-SNAPSHOT'
+		classpath 'net.fabricmc:fabric-loom:0.0.13-SNAPSHOT'
 	}
 }
 
@@ -58,13 +58,10 @@ repositories {
 	}
 }
 
-minecraft {
-	version = minecraft_version
-	pomfVersion = pomf_version
-	refmapName = "fabric-base-refmap.json"
-}
-
 dependencies {
+	minecraft "com.mojang:minecraft:" + minecraft_version
+	mappings "net.fabricmc:pomf:18w44a.38"
+
 	compile "com.github.zafarkhaja:java-semver:0.9.0"
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 	compile 'org.ow2.asm:asm:7.0'
@@ -89,16 +86,14 @@ dependencies {
 jar {
 	manifest {
 		attributes(
-			'MinecraftVersion': minecraft_version,
-			'FabricVersion': project.version,
-			'PomfVersion': pomf_version,
+			'Minecraft-Version': minecraft_version,
 			'Main-Class': 'net.fabricmc.loader.launch.FabricServerLauncher',
 			'Class-Path': 'minecraft_server.' + minecraft_version + '.jar' + getClasspathEntries()
 		)
 	}
 }
 
-task copyJson(type: Copy, dependsOn: ["jar"]) {
+task copyJson(type: Copy, dependsOn: ["remapJar"]) {
 	from('src/main/resources/fabric-installer.json') {
 		rename { "${archivesBaseName}-${version}.json" }
 	}
