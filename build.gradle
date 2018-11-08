@@ -35,12 +35,8 @@ targetCompatibility = 1.8
 archivesBaseName = modid
 
 // Fetch build number from Jenkins
-def build = "local"
 def ENV = System.getenv()
-if (ENV.BUILD_NUMBER) {
-	build = ENV.BUILD_NUMBER
-}
-version = version + "." + build
+version = version + "." + (ENV.BUILD_NUMBER ?: "local")
 
 repositories {
 	mavenCentral()
