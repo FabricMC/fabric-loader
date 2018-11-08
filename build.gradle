@@ -33,13 +33,14 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 archivesBaseName = modid
-version = minecraft_version + '-' + version
 
 // Fetch build number from Jenkins
+def build = "local"
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
-	version = version + "." + "${System.getenv().BUILD_NUMBER}"
+	build = ENV.BUILD_NUMBER
 }
+version = version + "." + build
 
 repositories {
 	mavenCentral()
