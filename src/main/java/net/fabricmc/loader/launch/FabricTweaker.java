@@ -148,8 +148,9 @@ public abstract class FabricTweaker implements ITweaker {
 							.build();
 						List<Path> depPaths = new ArrayList<>();
 
+						OutputConsumerPath outputConsumer = null;
 						try {
-							OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath);
+							outputConsumer = new OutputConsumerPath(deobfJarPath);
 							remapper.read(jarPath);
 
 							for (URL url : launchClassLoader.getSources()) {
@@ -159,10 +160,16 @@ public abstract class FabricTweaker implements ITweaker {
 								}
 							}
 							remapper.apply(jarPath, outputConsumer);
-							outputConsumer.finish();
 						} catch (IOException e) {
 							throw new RuntimeException(e);
 						} finally {
+							if (outputConsumer != null) {
+								try {
+									outputConsumer.finish();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
 							remapper.finish();
 						}
 
