@@ -255,6 +255,10 @@ public class FabricLoader {
 	}
 
 	protected void addMod(ModInfo info, File originFile, boolean initialize) {
+		if (modMap.containsKey(info.getId())) {
+			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginFile().getName() + ", " + originFile.getName() + ")");
+		}
+
 		Side currentSide = getSidedHandler().getSide();
 		if ((currentSide == Side.CLIENT && !info.getSide().hasClient()) || (currentSide == Side.SERVER && !info.getSide().hasServer())) {
 			return;
