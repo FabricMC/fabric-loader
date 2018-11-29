@@ -85,7 +85,7 @@ public class FabricServerLauncher {
 	}
 
 	private static void handleMeta() throws IOException {
-		JsonObject installerMeta = readInstallerMeta();
+		JsonObject installerMeta = readJson("fabric-installer.json");
 		mainClass = installerMeta.get("mainClass").getAsString();
 
 		String[] validSides = new String[] { "common", "server" };
@@ -116,7 +116,7 @@ public class FabricServerLauncher {
 	}
 
 	private static void pomf() throws IOException {
-		JsonObject versionMeta = readMinecraftMeta();
+		JsonObject versionMeta = readJson("version.json");
 		String mcVersion = versionMeta.get("name").getAsString();
 
 		List<String> pomfVersions;
@@ -172,19 +172,9 @@ public class FabricServerLauncher {
 		method.invoke(classLoader, url);
 	}
 
-	private static JsonObject readInstallerMeta() throws IOException {
+	private static JsonObject readJson(String file) throws IOException {
 		Gson gson = new Gson();
-		InputStream inputStream = FabricServerLauncher.class.getClassLoader().getResourceAsStream("fabric-installer.json");
-		Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-		JsonObject installerMeta = gson.fromJson(reader, JsonObject.class);
-		reader.close();
-		inputStream.close();
-		return installerMeta;
-	}
-
-	private static JsonObject readMinecraftMeta() throws IOException {
-		Gson gson = new Gson();
-		InputStream inputStream = MinecraftServer.class.getClassLoader().getResourceAsStream("version.json");
+		InputStream inputStream = FabricServerLauncher.class.getClassLoader().getResourceAsStream(file);
 		Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 		JsonObject installerMeta = gson.fromJson(reader, JsonObject.class);
 		reader.close();
