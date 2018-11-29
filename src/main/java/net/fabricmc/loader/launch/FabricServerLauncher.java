@@ -199,15 +199,15 @@ public class FabricServerLauncher {
 	}
 
 	private static class Library {
-		String name;
-		String url = "https://libraries.minecraft.net/";
+		private String name;
+		private String url = "https://libraries.minecraft.net/";
 
-		public Library(String name, String url) {
+		private Library(String name, String url) {
 			this.name = name;
 			this.url = url;
 		}
 
-		public Library(JsonElement jsonElement) {
+		private Library(JsonElement jsonElement) {
 			JsonObject jsonObject = (JsonObject) jsonElement;
 			name = jsonObject.get("name").getAsString();
 			if (jsonObject.has("url")) {
@@ -215,12 +215,12 @@ public class FabricServerLauncher {
 			}
 		}
 
-		public File getFile() {
+		private File getFile() {
 			String[] parts = this.name.split(":", 3);
 			return new File(LIBRARIES, parts[0].replace(".", File.separator) + File.separator + parts[1] + File.separator + parts[2] + File.separator + parts[1] + "-" + parts[2] + ".jar");
 		}
 
-		public String getURL() {
+		private String getURL() {
 			String path;
 			String[] parts = this.name.split(":", 3);
 			path = parts[0].replace(".", "/") + "/" + parts[1] + "/" + parts[2] + "/" + parts[1] + "-" + parts[2] + ".jar";
