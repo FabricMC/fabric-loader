@@ -18,7 +18,7 @@ package net.fabricmc.loader.server;
 
 import net.fabricmc.api.Side;
 import net.fabricmc.loader.ISidedHandler;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
 public class ServerSidedHandler implements ISidedHandler {
@@ -34,7 +34,7 @@ public class ServerSidedHandler implements ISidedHandler {
 	}
 
 	@Override
-	public EntityPlayer getClientPlayer() {
+	public PlayerEntity getClientPlayer() {
 		return null;
 	}
 
