@@ -73,7 +73,7 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-remapper:0.1.0.16'
+	compile 'net.fabricmc:tiny-remapper:0.1.0.18'
 
 	// Mojang
 	compile ('net.minecraft:launchwrapper:1.12') {

@@ -163,13 +163,6 @@ public abstract class FabricTweaker implements ITweaker {
 						} catch (IOException e) {
 							throw new RuntimeException(e);
 						} finally {
-							if (outputConsumer != null) {
-								try {
-									outputConsumer.finish();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}
 							remapper.finish();
 						}
 
