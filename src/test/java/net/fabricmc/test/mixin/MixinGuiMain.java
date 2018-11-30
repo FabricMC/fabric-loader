@@ -17,13 +17,13 @@
 package net.fabricmc.test.mixin;
 
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraft.client.gui.MainMenuGui;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = GuiMainMenu.class, remap = false)
+@Mixin(value = MainMenuGui.class, remap = false)
 public abstract class MixinGuiMain extends Gui {
 
 	@Inject(method = "draw(IIF)V", at = @At("RETURN"))

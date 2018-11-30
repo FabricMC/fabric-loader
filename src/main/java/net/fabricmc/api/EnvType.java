@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.api.function;
+package net.fabricmc.api;
 
-@FunctionalInterface
-public interface QuintPredicate<T, U, V, W, X> {
-	boolean test(T t, U u, V v, W w, X x);
+public enum EnvType {
+	CLIENT,
+	SERVER
 }

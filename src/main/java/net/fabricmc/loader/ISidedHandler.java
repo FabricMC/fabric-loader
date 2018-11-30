@@ -17,14 +17,14 @@
 package net.fabricmc.loader;
 
 import net.fabricmc.api.Side;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
 public interface ISidedHandler {
 
 	Side getSide();
 
-	EntityPlayer getClientPlayer();
+	PlayerEntity getClientPlayer();
 
 	void runOnMainThread(Runnable runnable);
 
