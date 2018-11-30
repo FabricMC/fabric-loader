@@ -18,7 +18,7 @@ package net.fabricmc.loader.mixin.client;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.client.ClientSidedHandler;
-import net.minecraft.client.MinecraftGame;
+import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,12 +26,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 
-@Mixin(value = MinecraftGame.class)
-public class MixinMinecraftGame {
+@Mixin(value = MinecraftClient.class)
+public class MixinMinecraftClient {
 
 	@Inject(method = "init()V", at = @At("HEAD"))
 	public void init(CallbackInfo info) {
-		MinecraftGame game = ((MinecraftGame) (Object) this);
+		MinecraftClient game = ((MinecraftClient) (Object) this);
 		FabricLoader.INSTANCE.initialize(game.runDirectory, new ClientSidedHandler());
 		FabricLoader.INSTANCE.load(new File(game.runDirectory, "mods"));
 	}
