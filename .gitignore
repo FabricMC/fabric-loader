@@ -8,6 +8,7 @@
 # Files
 !/.gitattributes
 !/.gitignore
+!/.editorconfig
 !/build.gradle
 !/gradle.properties
 !/gradlew
