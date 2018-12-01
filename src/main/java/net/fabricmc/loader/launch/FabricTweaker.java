@@ -239,13 +239,26 @@ public abstract class FabricTweaker implements ITweaker {
 	@Override
 	public String[] getLaunchArguments() {
 		List<String> launchArgs = new ArrayList<>();
+		List<String> invalidPrefixes = new ArrayList<>();
+		getInvalidArgPrefixes(invalidPrefixes);
 		for (Map.Entry<String, String> arg : this.args.entrySet()) {
-			if (!arg.getKey().startsWith("--fabric")) {
-				launchArgs.add(arg.getKey());
-				launchArgs.add(arg.getValue());
+			boolean invalid = false;
+			for(String prefix : invalidPrefixes){
+				if(arg.getKey().startsWith(prefix)){
+					invalid = true;
+				}
 			}
+			if(invalid){
+				continue;
+			}
+			launchArgs.add(arg.getKey());
+			launchArgs.add(arg.getValue());
  		}
 		return launchArgs.toArray(new String[launchArgs.size()]);
+	}
+
+	public void getInvalidArgPrefixes(List<String> list){
+		list.add("--fabric");
 	}
 
 	public abstract Side getSide();
