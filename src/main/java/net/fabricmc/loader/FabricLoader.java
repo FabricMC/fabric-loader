@@ -20,11 +20,9 @@ import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.api.Side;
-import net.fabricmc.api.Stage;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import net.fabricmc.loader.util.json.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
-import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,9 +50,6 @@ public class FabricLoader {
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
-
-	private final Stage.StageTrigger modInitStageTrigger = new Stage.StageTrigger();
-	public final Stage modsInitialized = Stage.newBuilder("modsInitialized").after(modInitStageTrigger).build();
 
 	private final InstanceStorage instanceStorage = new InstanceStorage();
 
@@ -346,8 +341,6 @@ public class FabricLoader {
 		}
 
 		getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
-
-		modsInitialized.trigger(modInitStageTrigger);
 	}
 
 	protected static boolean checkModsDirectory(File modsDir) {

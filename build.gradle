@@ -16,7 +16,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.0.13-SNAPSHOT'
+		classpath 'net.fabricmc:fabric-loom:0.0.14-SNAPSHOT'
 	}
 }
 
@@ -33,13 +33,10 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 archivesBaseName = modid
-version = minecraft_version + '-' + version
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-if (ENV.BUILD_NUMBER) {
-	version = version + "." + "${System.getenv().BUILD_NUMBER}"
-}
+version = version + "." + (ENV.BUILD_NUMBER ?: "local")
 
 repositories {
 	mavenCentral()
@@ -59,8 +56,8 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:" + minecraft_version
-	mappings "net.fabricmc:pomf:18w48b.2"
+	minecraft "com.mojang:minecraft:18w48b"
+	mappings "net.fabricmc:pomf:18w48b.5"
 
 	compile "com.github.zafarkhaja:java-semver:0.9.0"
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
