@@ -148,9 +148,7 @@ public abstract class FabricTweaker implements ITweaker {
 							.build();
 						List<Path> depPaths = new ArrayList<>();
 
-						OutputConsumerPath outputConsumer = null;
-						try {
-							outputConsumer = new OutputConsumerPath(deobfJarPath);
+						try(OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)){
 							remapper.read(jarPath);
 
 							for (URL url : launchClassLoader.getSources()) {
@@ -160,16 +158,9 @@ public abstract class FabricTweaker implements ITweaker {
 								}
 							}
 							remapper.apply(jarPath, outputConsumer);
-						} catch (IOException e) {
+						} catch (IOException e){
 							throw new RuntimeException(e);
 						} finally {
-							if (outputConsumer != null) {
-								try {
-									outputConsumer.finish();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}
 							remapper.finish();
 						}
 
@@ -248,13 +239,26 @@ public abstract class FabricTweaker implements ITweaker {
 	@Override
 	public String[] getLaunchArguments() {
 		List<String> launchArgs = new ArrayList<>();
+		List<String> invalidPrefixes = new ArrayList<>();
+		getInvalidArgPrefixes(invalidPrefixes);
 		for (Map.Entry<String, String> arg : this.args.entrySet()) {
-			if (!arg.getKey().startsWith("--fabric")) {
-				launchArgs.add(arg.getKey());
-				launchArgs.add(arg.getValue());
+			boolean invalid = false;
+			for(String prefix : invalidPrefixes){
+				if(arg.getKey().startsWith(prefix)){
+					invalid = true;
+				}
 			}
+			if(invalid){
+				continue;
+			}
+			launchArgs.add(arg.getKey());
+			launchArgs.add(arg.getValue());
  		}
 		return launchArgs.toArray(new String[launchArgs.size()]);
+	}
+
+	public void getInvalidArgPrefixes(List<String> list){
+		list.add("--fabric");
 	}
 
 	public abstract Side getSide();

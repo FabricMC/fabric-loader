@@ -18,6 +18,8 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.Side;
 
+import java.util.List;
+
 public class FabricServerTweaker extends FabricTweaker {
 	@Override
 	public String getLaunchTarget() {
@@ -27,5 +29,12 @@ public class FabricServerTweaker extends FabricTweaker {
 	@Override
 	public Side getSide() {
 		return Side.SERVER;
+	}
+
+	@Override
+	public void getInvalidArgPrefixes(List<String> list) {
+		super.getInvalidArgPrefixes(list);
+		list.add("--version");
+		list.add("--gameDir");
 	}
 }
