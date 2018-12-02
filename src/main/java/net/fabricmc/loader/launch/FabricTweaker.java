@@ -145,6 +145,7 @@ public abstract class FabricTweaker implements ITweaker {
 
 						TinyRemapper remapper = TinyRemapper.newRemapper()
 							.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
+							.rebuildSourceFilenames(true)
 							.build();
 						List<Path> depPaths = new ArrayList<>();
 

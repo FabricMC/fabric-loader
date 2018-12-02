@@ -38,36 +38,37 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FabricServerLauncher {
+	private static final File LIBRARIES = new File(".fabric/libraries");
+	private static final String MAPPINGS_NAME = "net.fabricmc:pomf";
+	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/pomf/maven-metadata.xml";
 
-	//Default main class, fabric-installer.json can override this
+	// The default main class, fabric-installer.json can override this
 	private static String mainClass = "net.minecraft.launchwrapper.Launch";
-	private static File LIBRARIES = new File(".fabric/libraries");
-	private static String POMF_MAVENMETA = "https://maven.modmuss50.me/net/fabricmc/pomf/maven-metadata.xml";
-
-	private static List<String> runArguments = new ArrayList<>();
 
 	//Launches a minecraft server along with fabric and its libs. All args are passed onto the minecraft server.
 	//This expects a minecraft jar called server.jar
 	public static void main(String[] args) {
+		List<String> runArguments = new ArrayList<>();
 		File serverJar = null;
-		for (int i = 0; i < args.length; i++) {
-			if(i == 0){
-				serverJar = new File(args[0]);
-			} else {
-				runArguments.add(args[i]);
-			}
-		}
 
 		if (!Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
+			for (int i = 0; i < args.length; i++) {
+				if (i == 0) {
+					serverJar = new File(args[0]);
+				} else {
+					runArguments.add(args[i]);
+				}
+			}
+
 			try {
-				setup(serverJar);
+				setup(serverJar, runArguments);
 			} catch (Exception e) {
-				throw new RuntimeException("Failed to setup fabric server environment", e);
+				throw new RuntimeException("Failed to setup Fabric server environment!", e);
 			}
 		} else {
-			//Add the tweak class when in a dev env
-			runArguments.add("--tweakClass");
-			runArguments.add("net.fabricmc.loader.launch.FabricServerTweaker");
+			for (int i = 0; i < args.length; i++) {
+				runArguments.add(args[i]);
+			}
 		}
 
 		Object[] objectList = runArguments.toArray();
@@ -75,27 +76,27 @@ public class FabricServerLauncher {
 		launch(mainClass, stringArray);
 	}
 
-	private static void setup(File serverJar) throws IOException {
-		if(serverJar == null){
-			throw new RuntimeException("No server jar specified as first run argument!");
+	private static void setup(File serverJar, List<String> runArguments) throws IOException {
+		if (serverJar == null) {
+			throw new RuntimeException("No server .JAR! Please specify the server .JAR as the first launch argument.");
 		}
 		if (!serverJar.exists()) {
-			throw new RuntimeException("Failed to find minecraft 'server.jar' please download from minecraft.net");
+			throw new RuntimeException("Failed to find the specified server .JAR!");
 		}
 
 		//Here is where we add the server jar to the class path
 		try {
 			addToClasspath(serverJar);
 		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException("Failed to append server jar to classpath");
+			throw new RuntimeException("Failed to append server .JAR to classpath!");
 		}
 
 		//Now that we have some libs like gson we can parse the fabric-installer json
-		setupFabricEnvironment();
+		setupFabricEnvironment(runArguments);
 		setupMappings();
 	}
 
-	private static void setupFabricEnvironment() throws IOException {
+	private static void setupFabricEnvironment(List<String> runArguments) throws IOException {
 		JsonObject installerMeta = readJson("fabric-installer.json");
 		mainClass = installerMeta.get("mainClass").getAsString();
 
@@ -117,14 +118,14 @@ public class FabricServerLauncher {
 			try {
 				FileUtils.copyURLToFile(new URL(library.getURL()), library.getFile());
 			} catch (IOException e) {
-				throw new RuntimeException("Failed to download library", e);
+				throw new RuntimeException("Failed to download library!", e);
 			}
 		}
 
 		try {
 			addToClasspath(library.getFile());
 		} catch (MalformedURLException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException("Failed to append library to classpath", e);
+			throw new RuntimeException("Failed to append library to classpath!", e);
 		}
 	}
 
@@ -132,27 +133,27 @@ public class FabricServerLauncher {
 		JsonObject versionMeta = readJson("version.json");
 		String mcVersion = versionMeta.get("name").getAsString();
 
-		List<String> pomfVersions;
+		List<String> mappingVersions;
 		try {
-			pomfVersions = findMappingVersionsMaven(mcVersion, POMF_MAVENMETA);
+			mappingVersions = findMappingVersionsMaven(mcVersion, MAPPINGS_MAVEN_META);
 		} catch (XMLStreamException e) {
-			throw new RuntimeException("Failed to parse pomf version metadata xml", e);
+			throw new RuntimeException("Failed to parse mapping version metadata xml", e);
 		}
 
-		if(pomfVersions.isEmpty()){
-			throw new RuntimeException("No versions of pomf found for " + mcVersion);
+		if (mappingVersions.isEmpty()) {
+			throw new RuntimeException("No mapping versions found for " + mcVersion);
 		}
 
-		String pomfVersion = pomfVersions.get(pomfVersions.size() - 1);
-		if(System.getProperty("fabric.pomf") != null){
-			String pomfVesionProp = System.getProperty("fabric.pomf");
-			if(!pomfVersions.contains(pomfVesionProp)){
-				throw new RuntimeException(String.format("Pomf version (%s) not found", pomfVesionProp));
+		String mappingVersion = mappingVersions.get(mappingVersions.size() - 1);
+		if(System.getProperty("fabric.mappings") != null){
+			String mappingVersionValue = System.getProperty("fabric.mappings");
+			if(!mappingVersions.contains(mappingVersionValue)){
+				throw new RuntimeException(String.format("Mappings version (%s) not found", mappingVersionValue));
 			}
-			pomfVersion = pomfVesionProp;
+			mappingVersion = mappingVersionValue;
 		}
 
-		setupLibrary(new Library("net.fabricmc:pomf:" + pomfVersion, "https://maven.modmuss50.me/"));
+		setupLibrary(new Library(MAPPINGS_NAME + ":" + mappingVersion, "https://maven.modmuss50.me/"));
 	}
 
 	private static List<String> findMappingVersionsMaven(String mcVersion, String mavenMetadataUrl) throws IOException, XMLStreamException {
@@ -175,7 +176,7 @@ public class FabricServerLauncher {
 		try {
 			Class.forName(mainClass).getMethod("main", String[].class).invoke(null, (Object) args);
 		} catch (Exception e) {
-			throw new RuntimeException("An Exception occurred when running minecraft", e);
+			throw new RuntimeException("An exception occurred when launching the server!", e);
 		}
 	}
 
