@@ -44,48 +44,39 @@ public final class FabricMixinBootstrap {
 		Mixins.addConfiguration(configuration);
 	}
 
+	static void init(Side side, Map<String, String> args, MixinLoader mixinLoader, BufferedReader mappingReader) {
+		if (initialized) {
+			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
+		}
+
+		if (mappingReader != null) {
+			MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper();
+			try {
+				remapper.readMapping(mappingReader, "intermediary", "named");
+				MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+				LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
+			} catch (IOException e) {
+				LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
+				e.printStackTrace();
+			}
+		}
+
+		init(side, args, mixinLoader);
+	}
+
 	static void init(Side side, Map<String, String> args, MixinLoader mixinLoader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
 
-		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			String mappingFileName = args.get("--fabricMappingFile");
-			if (mappingFileName != null) {
-				File mappingFile = new File(mappingFileName);
-				if (mappingFile.exists()) {
-					try (InputStream mappingStream = new FileInputStream(mappingFile)) {
-						InputStream targetStream = mappingStream;
-
-						if (mappingFileName.endsWith(".gz")) {
-							targetStream = new GZIPInputStream(mappingStream);
-						}
-
-						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper();
-						remapper.readMapping(new BufferedReader(new InputStreamReader(targetStream)), "intermediary", "named");
-						mappingStream.close();
-
-						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-
-						LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
-					} catch (IOException e) {
-						LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
-						e.printStackTrace();
-					}
-				} else {
-					LOGGER.error("Fabric development mappings not found despite being specified - the game will probably crash soon!");
-				}
-			}
-		}
-
 		MixinBootstrap.init();
 
-		addConfiguration("fabricmc.mixins.common.json");
+		addConfiguration("fabric-loader.mixins.common.json");
 		if (side.hasClient()) {
-			addConfiguration("fabricmc.mixins.client.json");
+			addConfiguration("fabric-loader.mixins.client.json");
 		}
 		if (side.hasServer()) {
-			addConfiguration("fabricmc.mixins.server.json");
+			addConfiguration("fabric-loader.mixins.server.json");
 		}
 
 		mixinLoader.getCommonMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
