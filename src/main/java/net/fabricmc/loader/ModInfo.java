@@ -19,10 +19,7 @@ package net.fabricmc.loader;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,6 +44,7 @@ public class ModInfo {
 	private String[] initializers;
 
 	// Optional (metadata)
+	private String icon;
 	private String description = "";
 	private Links links = Links.EMPTY;
 	private DependencyMap recommends = new DependencyMap();
@@ -124,6 +122,10 @@ public class ModInfo {
 
 	public List<Person> getContributors() {
 		return Arrays.asList(contributors);
+	}
+
+	public Optional<String> getIcon() {
+		return Optional.ofNullable(icon);
 	}
 
 	public String getLicense() {
