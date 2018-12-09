@@ -39,8 +39,8 @@ import java.util.List;
 
 public class FabricServerLauncher {
 	private static final File LIBRARIES = new File(".fabric/libraries");
-	private static final String MAPPINGS_NAME = "net.fabricmc:pomf";
-	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/pomf/maven-metadata.xml";
+	private static final String MAPPINGS_NAME = "net.fabricmc:yarn";
+	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/yarn/maven-metadata.xml";
 
 	// The default main class, fabric-installer.json can override this
 	private static String mainClass = "net.minecraft.launchwrapper.Launch";
