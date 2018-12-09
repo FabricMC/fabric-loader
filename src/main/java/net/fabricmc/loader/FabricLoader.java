@@ -32,6 +32,9 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
+/**
+ * The main class for mod loading operations.
+ */
 public class FabricLoader {
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
@@ -52,11 +55,21 @@ public class FabricLoader {
 	private boolean frozen = false;
 	private boolean gameInitialized = false;
 
-	private SidedHandler sidedHandler;
+	private EnvironmentHandler environmentHandler;
 
 	private File gameDir;
 	private File configDir;
 
+	/**
+	 * Initializers are a way to inject the initial code which runs on the
+	 * start of the game loading process without requiring a patch by each
+	 * mod in question.
+	 *
+	 * They are added to the fabric.mod.json file, in the "initializers" array.
+	 *
+	 * @param type The type of the initializer class being looked for.
+	 * @return The list of initialized objects for that specific class type.
+	 */
 	public <T> Collection<T> getInitializers(Class<T> type) {
 		return instanceStorage.getInitializers(type);
 	}
@@ -65,6 +78,9 @@ public class FabricLoader {
 
 	}
 
+	/**
+	 * Freeze the FabricLoader, preventing additional mods from being loaded.
+	 */
 	public void freeze() {
 		if (frozen) {
 			throw new RuntimeException("Already frozen!");
@@ -73,25 +89,36 @@ public class FabricLoader {
 		frozen = true;
 	}
 
-	// INTERNAL: DO NOT USE
-	public void initialize(File gameDir, SidedHandler sidedHandler) {
+	/**
+	 * DO NOT USE. It bites.
+	 */
+	public void initialize(File gameDir, EnvironmentHandler sidedHandler) {
 		if (gameInitialized) {
 			throw new RuntimeException("FabricLoader has already been game-initialized!");
 		}
 
 		this.gameDir = gameDir;
-		this.sidedHandler = sidedHandler;
+		this.environmentHandler = sidedHandler;
 		gameInitialized = true;
 	}
 
-	public SidedHandler getSidedHandler() {
-		return sidedHandler;
+	/**
+	 * @return The environment handler for the current game instance.
+	 */
+	public EnvironmentHandler getEnvironmentHandler() {
+		return environmentHandler;
 	}
 
+	/**
+	 * @return The game instance's root directory.
+	 */
 	public File getGameDirectory() {
 		return gameDir;
 	}
 
+	/**
+	 * @return The game instance's confgiuration directory.
+	 */
 	public File getConfigDirectory() {
 		if (configDir == null) {
 			configDir = new File(gameDir, "config");
@@ -211,10 +238,18 @@ public class FabricLoader {
 		}
 	}
 
+	/**
+	 * Check if a mod with a given ID is present.
+	 * @param id The mod ID.
+	 * @return True if loaded, false otherwise.
+	 */
 	public boolean isModLoaded(String id) {
 		return modMap.containsKey(id);
 	}
 
+	/**
+	 * @return A list of all loaded mods, as ModContainers.
+	 */
 	public List<ModContainer> getMods() {
 		return Collections.unmodifiableList(mods);
 	}
@@ -270,7 +305,7 @@ public class FabricLoader {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginFile().getName() + ", " + originFile.getName() + ")");
 		}
 
-		EnvType currentSide = getSidedHandler().getEnvironmentType();
+		EnvType currentSide = getEnvironmentHandler().getEnvironmentType();
 		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
 			return;
 		}

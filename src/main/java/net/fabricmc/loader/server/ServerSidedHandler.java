@@ -17,11 +17,11 @@
 package net.fabricmc.loader.server;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.SidedHandler;
+import net.fabricmc.loader.EnvironmentHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
-public final class ServerSidedHandler implements SidedHandler {
+public final class ServerSidedHandler implements EnvironmentHandler {
 	private final MinecraftServer server;
 
 	public ServerSidedHandler(MinecraftServer server) {

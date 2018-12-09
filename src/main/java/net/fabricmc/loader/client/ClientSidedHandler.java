@@ -17,12 +17,12 @@
 package net.fabricmc.loader.client;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.SidedHandler;
+import net.fabricmc.loader.EnvironmentHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
-public final class ClientSidedHandler implements SidedHandler {
+public final class ClientSidedHandler implements EnvironmentHandler {
 	@Override
 	public EnvType getEnvironmentType() {
 		return EnvType.CLIENT;

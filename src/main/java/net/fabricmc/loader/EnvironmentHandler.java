@@ -21,14 +21,33 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ThreadTaskQueue;
 
-public interface SidedHandler {
+/**
+ * A EnvironmentHandler provides certain crucial information about the
+ * environment of the game, which can be the client or the server.
+ *
+ * @see FabricLoader#getEnvironmentHandler()
+ */
+public interface EnvironmentHandler {
+	/**
+	 * @return The environment type the game is currently in.
+	 */
 	EnvType getEnvironmentType();
 
+	/**
+	 * @deprecated Will be removed in 0.3.0.
+	 */
 	@Deprecated
 	PlayerEntity getClientPlayer();
 
+	/**
+	 * @deprecated Will be removed in 0.3.0.
+	 */
+	@Deprecated
 	void runOnMainThread(Runnable runnable);
 
+	/**
+	 * @return The server instance for this environment.
+	 *         It can be integrated or dedicated.
+	 */
 	MinecraftServer getServerInstance();
-
 }

@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Definition class for "fabric.mod.json" files.
+ */
 public class ModInfo {
 
 	// Required
