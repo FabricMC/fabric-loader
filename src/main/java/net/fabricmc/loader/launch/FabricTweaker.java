@@ -38,6 +38,7 @@ import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.zip.GZIPInputStream;
@@ -77,48 +78,63 @@ public abstract class FabricTweaker implements ITweaker {
 		}
 	}
 
+	private void withMappingReader(LaunchClassLoader launchClassLoader, Consumer<BufferedReader> consumer, Runnable orElse) {
+		String mappingFileName = args.get("--fabricMappingFile");
+		FileInputStream mappingFileStream = null;
+		InputStream mappingStream = null;
+		BufferedReader mappingReader = null;
+
+		if (mappingFileName != null) {
+			try {
+				mappingFileStream = new FileInputStream(mappingFileName);
+				if (mappingFileName.toLowerCase().endsWith(".gz")) {
+					mappingStream = new GZIPInputStream(mappingFileStream);
+				} else {
+					mappingStream = mappingFileStream;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				mappingStream = null;
+			}
+		} else {
+			mappingStream = launchClassLoader.getResourceAsStream("mappings/mappings.tiny");
+		}
+
+		if (mappingStream != null) {
+			mappingReader = new BufferedReader(new InputStreamReader(mappingStream));
+			consumer.accept(mappingReader);
+
+			try {
+				mappingReader.close();
+				mappingStream.close();
+				if (mappingFileStream != mappingStream && mappingFileStream != null) {
+					mappingFileStream.close();
+				}
+			} catch (IOException ee) {
+				ee.printStackTrace();
+			}
+		} else {
+			orElse.run();
+		}
+	}
+
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
+		boolean isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
+		Launch.blackboard.put("fabric.development", isDevelopment);
+
 		File gameDir = new File(args.get("--gameDir"));
 		mixinLoader = new MixinLoader();
 		mixinLoader.load(new File(gameDir, "mods"));
 		mixinLoader.freeze();
 
-		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			// Development environment
-			Launch.blackboard.put("fabric.development", true);
-
-			// TODO: remove this
+		if (isDevelopment) {
 			launchClassLoader.registerTransformer("net.fabricmc.loader.transformer.PublicAccessTransformer");
 		} else {
 			// Obfuscated environment
 			Launch.blackboard.put("fabric.development", false);
 
-			String mappingFileName = args.get("--fabricMappingFile");
-			FileInputStream mappingFileStream = null;
-			InputStream mappingStream = null;
-			BufferedReader mappingReader = null;
-
-			if (mappingFileName != null) {
-				try {
-					mappingFileStream = new FileInputStream(mappingFileName);
-					if (mappingFileName.toLowerCase().endsWith(".gz")) {
-						mappingStream = new GZIPInputStream(mappingFileStream);
-					} else {
-						mappingStream = mappingFileStream;
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-					mappingStream = null;
-				}
-			} else {
-				mappingStream = launchClassLoader.getResourceAsStream("mappings/mappings.tiny");
-			}
-
-
-
-			if (mappingStream != null) {
-				mappingReader = new BufferedReader(new InputStreamReader(mappingStream));
+			withMappingReader(launchClassLoader, (mappingReader) -> {
 				LOGGER.debug("Fabric mapping file detected, applying...");
 
 				try {
@@ -146,7 +162,7 @@ public abstract class FabricTweaker implements ITweaker {
 							.build();
 						List<Path> depPaths = new ArrayList<>();
 
-						try(OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)){
+						try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
 							remapper.read(jarPath);
 
 							for (URL url : launchClassLoader.getSources()) {
@@ -156,7 +172,7 @@ public abstract class FabricTweaker implements ITweaker {
 								}
 							}
 							remapper.apply(jarPath, outputConsumer);
-						} catch (IOException e){
+						} catch (IOException e) {
 							throw new RuntimeException(e);
 						} finally {
 							remapper.finish();
@@ -214,23 +230,20 @@ public abstract class FabricTweaker implements ITweaker {
 					}
 				} catch (IOException e) {
 					throw new RuntimeException(e);
-				} finally {
-					try {
-						mappingReader.close();
-						mappingStream.close();
-						if (mappingFileStream != mappingStream && mappingFileStream != null) {
-							mappingFileStream.close();
-						}
-					} catch (IOException ee) {
-						ee.printStackTrace();
-					}
 				}
-			}
+			}, () -> {
+			});
 		}
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader);
+		if (isDevelopment) {
+			withMappingReader(launchClassLoader,
+				(reader) -> FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader, reader),
+				() -> FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader));
+		} else {
+			FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader);
+		}
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 	}
 
