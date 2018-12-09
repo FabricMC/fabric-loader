@@ -16,12 +16,10 @@
 
 package net.fabricmc.loader;
 
-import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.api.Side;
 import net.fabricmc.loader.util.json.SideDeserializer;
-import net.fabricmc.loader.util.json.VersionDeserializer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +39,6 @@ public class FabricLoader {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 	private static final Gson GSON = new GsonBuilder()
 		.registerTypeAdapter(Side.class, new SideDeserializer())
-		.registerTypeAdapter(Version.class, new VersionDeserializer())
 		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
 		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
 		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())

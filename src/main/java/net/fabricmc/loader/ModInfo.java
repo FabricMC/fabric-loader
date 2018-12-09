@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader;
 
-import com.github.zafarkhaja.semver.Version;
 import com.google.gson.*;
 import net.fabricmc.api.Side;
 
@@ -33,7 +32,7 @@ public class ModInfo {
 	// Required
 	private String id;
 	private String name;
-	private Version version;
+	private String version;
 
 	// Optional (environment)
 	private DependencyMap requires = new DependencyMap();
@@ -77,7 +76,7 @@ public class ModInfo {
 		return name;
 	}
 
-	public Version getVersion() {
+	public String getVersionString() {
 		return version;
 	}
 
@@ -211,8 +210,9 @@ public class ModInfo {
 		}
 
 		public boolean satisfiedBy(ModInfo info) {
+			// TODO: Actually implement this once we decide on an implementation.
 			for (String s : versionMatchers) {
-				if (!info.version.satisfies(s)) {
+				if (!info.version.equals(s)) {
 					return false;
 				}
 			}
