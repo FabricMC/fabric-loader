@@ -50,8 +50,8 @@ public class FabricLoader {
 
 	private final InstanceStorage instanceStorage = new InstanceStorage();
 
+	private boolean frozen = false;
 	private boolean gameInitialized = false;
-	private boolean modsLoaded = false;
 
 	private ISidedHandler sidedHandler;
 
@@ -60,6 +60,18 @@ public class FabricLoader {
 
 	public <T> Collection<T> getInitializers(Class<T> type) {
 		return instanceStorage.getInitializers(type);
+	}
+
+	protected FabricLoader() {
+
+	}
+
+	public void freeze() {
+		if (frozen) {
+			throw new RuntimeException("Already frozen!");
+		}
+
+		frozen = true;
 	}
 
 	// INTERNAL: DO NOT USE
@@ -92,6 +104,10 @@ public class FabricLoader {
 	}
 
 	public void load(File modsDir) {
+		if (frozen) {
+			throw new RuntimeException("Frozen - cannot load additional mods!");
+		}
+
 		if (!checkModsDirectory(modsDir)) {
 			return;
 		}
@@ -103,8 +119,8 @@ public class FabricLoader {
 	}
 
 	public void load(Collection<File> modFiles) {
-		if (modsLoaded) {
-			throw new RuntimeException("FabricLoader has already had mods loaded!");
+		if (frozen) {
+			throw new RuntimeException("Frozen - cannot load additional mods!");
 		}
 
 		List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
@@ -185,7 +201,6 @@ public class FabricLoader {
 			.map(ModInfo::getId)
 			.collect(Collectors.toList())));
 
-		modsLoaded = true;
 		onModsPopulated();
 	}
 
@@ -221,7 +236,12 @@ public class FabricLoader {
 			File f = new File(url.getFile());
 			if (f.exists()) {
 				if (f.isDirectory()) {
-					File modJson = new File(f, "mod.json");
+					File modJson = new File(f, "fabric.mod.json");
+					if (!modJson.exists()) {
+						// TODO: Remove in 0.3.0 (backwards compat)
+						modJson = new File(f, "mod.json");
+					}
+
 					if (modJson.exists()) {
 						try {
 							for (ModInfo info : getMods(new FileInputStream(modJson))) {
@@ -351,7 +371,11 @@ public class FabricLoader {
 	protected static ModInfo[] getJarMods(File f) {
 		try {
 			JarFile jar = new JarFile(f);
-			ZipEntry entry = jar.getEntry("mod.json");
+			ZipEntry entry = jar.getEntry("fabric.mod.json");
+			if (entry == null) {
+				// TODO: Remove in 0.3.0 (backwards compat)
+				entry = jar.getEntry("mod.json");
+			}
 			if (entry != null) {
 				try (InputStream in = jar.getInputStream(entry)) {
 					return getMods(in);

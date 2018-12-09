@@ -34,6 +34,7 @@ public class MixinMinecraftClient {
 		MinecraftClient game = ((MinecraftClient) (Object) this);
 		FabricLoader.INSTANCE.initialize(game.runDirectory, new ClientSidedHandler());
 		FabricLoader.INSTANCE.load(new File(game.runDirectory, "mods"));
+		FabricLoader.INSTANCE.freeze();
 	}
 
 }

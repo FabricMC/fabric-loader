@@ -36,5 +36,6 @@ public abstract class MixinDedicatedServer {
 	public void setupServer(CallbackInfoReturnable<Boolean> info) throws IOException {
 		FabricLoader.INSTANCE.initialize(((IServerGetFile) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
 		FabricLoader.INSTANCE.load(((IServerGetFile) (Object) this).fabricHookGetFile("mods"));
+		FabricLoader.INSTANCE.freeze();
 	}
 }

@@ -86,6 +86,7 @@ public abstract class FabricTweaker implements ITweaker {
 		File gameDir = new File(args.get("--gameDir"));
 		mixinLoader = new MixinLoader();
 		mixinLoader.load(new File(gameDir, "mods"));
+		mixinLoader.freeze();
 
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
 			// Development environment
