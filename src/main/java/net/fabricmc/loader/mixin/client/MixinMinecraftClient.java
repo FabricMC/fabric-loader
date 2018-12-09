@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.mixin.client;
 
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.client.ClientSidedHandler;
 import net.minecraft.client.MinecraftClient;
@@ -35,6 +37,8 @@ public class MixinMinecraftClient {
 		FabricLoader.INSTANCE.initialize(game.runDirectory, new ClientSidedHandler());
 		FabricLoader.INSTANCE.load(new File(game.runDirectory, "mods"));
 		FabricLoader.INSTANCE.freeze();
+		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
+		FabricLoader.INSTANCE.getInitializers(ClientModInitializer.class).forEach(ClientModInitializer::onInitializeClient);
 	}
 
 }

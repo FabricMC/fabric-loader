@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.client;
 
-import net.fabricmc.api.Side;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.ISidedHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
@@ -25,8 +25,8 @@ import net.minecraft.server.MinecraftServer;
 public class ClientSidedHandler implements ISidedHandler {
 
 	@Override
-	public Side getSide() {
-		return Side.CLIENT;
+	public EnvType getEnvironmentType() {
+		return EnvType.CLIENT;
 	}
 
 	@Override

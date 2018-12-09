@@ -16,14 +16,18 @@
 
 package net.fabricmc.loader;
 
-import net.fabricmc.loader.language.ILanguageAdapter;
+import net.fabricmc.loader.language.LanguageAdapter;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ModContainer {
+	private static final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
+
 	private ModInfo info;
 	private File originFile;
-	private ILanguageAdapter adapter;
+	private LanguageAdapter adapter;
 
 	public ModContainer(ModInfo info, File originFile, boolean instantiate) {
 		this.info = info;
@@ -41,15 +45,17 @@ public class ModContainer {
 		return originFile;
 	}
 
-	public ILanguageAdapter getAdapter() {
+	public LanguageAdapter getAdapter() {
 		return adapter;
 	}
 
-	private ILanguageAdapter createAdapter() {
-		try {
-			return (ILanguageAdapter) Class.forName(info.getLanguageAdapter()).newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s", info.getLanguageAdapter(), info.getId()), e);
-		}
+	private LanguageAdapter createAdapter() {
+		return adapterMap.computeIfAbsent(info.getLanguageAdapter(), (adapter) -> {
+			try {
+				return (LanguageAdapter) Class.forName(adapter).newInstance();
+			} catch (Exception e) {
+				throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s", adapter, info.getId()), e);
+			}
+		});
 	}
 }

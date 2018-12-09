@@ -17,15 +17,21 @@
 package net.fabricmc.loader.mixin.client;
 
 import net.minecraft.client.ClientBrandRetriever;
+import org.lwjgl.system.CallbackI;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = ClientBrandRetriever.class, remap = false)
 public abstract class MixinClientBrandRetriever {
-
-	@Overwrite
-	public static String getClientModName() {
-		return "Fabric";
+	@Inject(at = @At("RETURN"), method = "getClientModName", cancellable = true)
+	private void getClientModName(CallbackInfoReturnable<String> info) {
+		if (info.getReturnValue().equals("vanilla")) {
+			info.setReturnValue("Fabric");
+		} else {
+			info.setReturnValue(info.getReturnValue() + "+Fabric");
+		}
 	}
-
 }

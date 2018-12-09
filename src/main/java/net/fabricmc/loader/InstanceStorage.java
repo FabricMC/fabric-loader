@@ -18,12 +18,16 @@ package net.fabricmc.loader;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import net.fabricmc.loader.language.ILanguageAdapter;
+import net.fabricmc.loader.language.LanguageAdapter;
 import net.fabricmc.loader.language.LanguageAdapterException;
 
 import java.util.Collection;
 
 class InstanceStorage {
+	private static final LanguageAdapter.Options options = LanguageAdapter.Options.Builder.create()
+		.missingSuperclassBehaviour(LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
+		.build();
+
 	private final Multimap<Class, Object> instances = HashMultimap.create();
 
 	@SuppressWarnings("unchecked")
@@ -31,16 +35,14 @@ class InstanceStorage {
 		return (Collection<T>) instances.get(type);
 	}
 
-	protected void instantiate(String name, ILanguageAdapter adapter, boolean force) {
+	protected void instantiate(String name, LanguageAdapter adapter) {
 		try {
-			Object o = adapter.createInstance(name);
-			add(o);
-		} catch (ClassNotFoundException | LanguageAdapterException e) {
-			if (force) {
-				throw new RuntimeException(e);
-			} else {
-				return;
+			Object o = adapter.createInstance(name, options);
+			if (o != null) {
+				add(o);
 			}
+		} catch (ClassNotFoundException | LanguageAdapterException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

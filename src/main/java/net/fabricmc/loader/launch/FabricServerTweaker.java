@@ -16,7 +16,8 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.Side;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.ModInfo;
 
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class FabricServerTweaker extends FabricTweaker {
 	}
 
 	@Override
-	public Side getSide() {
-		return Side.SERVER;
+	public EnvType getEnvironmentType() {
+		return EnvType.SERVER;
 	}
 
 	@Override

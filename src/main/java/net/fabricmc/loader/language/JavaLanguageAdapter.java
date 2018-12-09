@@ -16,21 +16,78 @@
 
 package net.fabricmc.loader.language;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
+import org.objectweb.asm.ClassReader;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
-public class JavaLanguageAdapter implements ILanguageAdapter {
+public class JavaLanguageAdapter implements LanguageAdapter {
+	private static boolean canApplyInterface(String itfString) throws IOException {
+		String className = itfString.replace('.', '/') + ".class";
+		InputStream stream = JavaLanguageAdapter.class.getClassLoader().getResourceAsStream(className);
+		if (stream == null) {
+			return false;
+		}
+
+		// TODO: Be a bit more involved
+		if (className.equals("net/fabricmc/api/ClientModInitializer.class")) {
+			if (FabricLoader.INSTANCE.getSidedHandler().getEnvironmentType() == EnvType.SERVER) {
+				return false;
+			}
+		} else if (className.equals("net/fabricmc/api/DedicatedServerModInitializer.class")) {
+			if (FabricLoader.INSTANCE.getSidedHandler().getEnvironmentType() == EnvType.CLIENT) {
+				return false;
+			}
+		}
+
+		ClassReader reader = new ClassReader(stream);
+		for (String s : reader.getInterfaces()) {
+			if (!canApplyInterface(s)) {
+				return false;
+			}
+		}
+
+		stream.close();
+		return true;
+	}
+
+	public static Class<?> getClass(String classString, Options options) throws ClassNotFoundException, IOException {
+		String className = classString.replace('.', '/') + ".class";
+		InputStream stream = JavaLanguageAdapter.class.getClassLoader().getResourceAsStream(className);
+		if (stream == null) {
+			throw new ClassNotFoundException("Could not find file " + className);
+		}
+
+		ClassReader reader = new ClassReader(stream);
+		for (String s : reader.getInterfaces()) {
+			if (!canApplyInterface(s)) {
+				switch (options.getMissingSuperclassBehavior()) {
+					case RETURN_NULL:
+						return null;
+					case CRASH:
+					default:
+						throw new ClassNotFoundException("Could not find or load class " + s);
+
+				}
+			}
+		}
+
+		return Class.forName(classString);
+	}
+
 	@Override
-	public Object createInstance(Class<?> modClass) throws LanguageAdapterException {
+	public Object createInstance(Class<?> modClass, Options options) throws LanguageAdapterException {
 		try {
 			Constructor<?> constructor = modClass.getDeclaredConstructor();
-			constructor.setAccessible(true);
 			return constructor.newInstance();
 		} catch (NoSuchMethodException e) {
 			throw new LanguageAdapterException("Could not find constructor for class " + modClass.getName() + "!", e);
 		} catch (IllegalAccessException e) {
-			throw new LanguageAdapterException("!?", e);
+			throw new LanguageAdapterException("Could not access constructor of class " + modClass.getName() + "!", e);
 		} catch (InvocationTargetException | IllegalArgumentException | InstantiationException e) {
 			throw new LanguageAdapterException("Could not instantiate class " + modClass.getName() + "!", e);
 		}

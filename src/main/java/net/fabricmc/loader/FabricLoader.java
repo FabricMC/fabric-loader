@@ -17,8 +17,8 @@
 package net.fabricmc.loader;
 
 import com.google.gson.*;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.api.Side;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,7 +38,7 @@ public class FabricLoader {
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 	private static final Gson GSON = new GsonBuilder()
-		.registerTypeAdapter(Side.class, new SideDeserializer())
+		.registerTypeAdapter(ModInfo.Side.class, new SideDeserializer())
 		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
 		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
 		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
@@ -271,8 +271,8 @@ public class FabricLoader {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginFile().getName() + ", " + originFile.getName() + ")");
 		}
 
-		Side currentSide = getSidedHandler().getSide();
-		if ((currentSide == Side.CLIENT && !info.getSide().hasClient()) || (currentSide == Side.SERVER && !info.getSide().hasServer())) {
+		EnvType currentSide = getSidedHandler().getEnvironmentType();
+		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
 			return;
 		}
 		ModContainer container = new ModContainer(info, originFile, initialize);
@@ -353,11 +353,9 @@ public class FabricLoader {
 	private void initializeMods() {
 		for (ModContainer mod : mods) {
 			for (String in : mod.getInfo().getInitializers()) {
-				instanceStorage.instantiate(in, mod.getAdapter(), true);
+				instanceStorage.instantiate(in, mod.getAdapter());
 			}
 		}
-
-		getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
 	}
 
 	protected static boolean checkModsDirectory(File modsDir) {

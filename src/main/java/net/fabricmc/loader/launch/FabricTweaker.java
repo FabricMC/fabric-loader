@@ -17,9 +17,8 @@
 package net.fabricmc.loader.launch;
 
 import com.google.common.io.ByteStreams;
-import com.sun.nio.zipfs.ZipFileSystem;
-import com.sun.nio.zipfs.ZipFileSystemProvider;
-import net.fabricmc.api.Side;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.ModInfo;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.tinyremapper.TinyUtils;
@@ -36,15 +35,12 @@ import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 public abstract class FabricTweaker implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
@@ -234,8 +230,8 @@ public abstract class FabricTweaker implements ITweaker {
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getSide(), args, mixinLoader);
-		MixinEnvironment.getDefaultEnvironment().setSide(getSide() == Side.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
+		FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader);
+		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 	}
 
 	@Override
@@ -263,5 +259,5 @@ public abstract class FabricTweaker implements ITweaker {
 		list.add("--fabric");
 	}
 
-	public abstract Side getSide();
+	public abstract EnvType getEnvironmentType();
 }

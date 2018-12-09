@@ -16,18 +16,17 @@
 
 package net.fabricmc.loader.mixin.server;
 
+import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.mixin.hooks.IServerGetFile;
 import net.fabricmc.loader.server.ServerSidedHandler;
-import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.io.File;
 import java.io.IOException;
 
 @Mixin(MinecraftDedicatedServer.class)
@@ -37,5 +36,7 @@ public abstract class MixinDedicatedServer {
 		FabricLoader.INSTANCE.initialize(((IServerGetFile) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
 		FabricLoader.INSTANCE.load(((IServerGetFile) (Object) this).fabricHookGetFile("mods"));
 		FabricLoader.INSTANCE.freeze();
+		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
+		FabricLoader.INSTANCE.getInitializers(DedicatedServerModInitializer.class).forEach(DedicatedServerModInitializer::onInitializeServer);
 	}
 }

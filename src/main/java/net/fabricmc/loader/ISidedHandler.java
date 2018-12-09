@@ -16,13 +16,13 @@
 
 package net.fabricmc.loader;
 
-import net.fabricmc.api.Side;
+import net.fabricmc.api.EnvType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
 public interface ISidedHandler {
 
-	Side getSide();
+	EnvType getEnvironmentType();
 
 	PlayerEntity getClientPlayer();
 

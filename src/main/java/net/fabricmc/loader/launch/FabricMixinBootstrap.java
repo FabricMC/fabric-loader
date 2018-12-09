@@ -16,9 +16,8 @@
 
 package net.fabricmc.loader.launch;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
-import net.fabricmc.api.Side;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.ModInfo;
 import net.fabricmc.loader.util.mixin.MixinIntermediaryDevRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,8 +26,6 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -44,7 +41,7 @@ public final class FabricMixinBootstrap {
 		Mixins.addConfiguration(configuration);
 	}
 
-	static void init(Side side, Map<String, String> args, MixinLoader mixinLoader) {
+	static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -81,18 +78,18 @@ public final class FabricMixinBootstrap {
 		MixinBootstrap.init();
 
 		addConfiguration("fabricmc.mixins.common.json");
-		if (side.hasClient()) {
+		if (side == EnvType.CLIENT) {
 			addConfiguration("fabricmc.mixins.client.json");
 		}
-		if (side.hasServer()) {
+		if (side == EnvType.SERVER) {
 			addConfiguration("fabricmc.mixins.server.json");
 		}
 
 		mixinLoader.getCommonMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
-		if (side.hasClient()) {
+		if (side == EnvType.CLIENT) {
 			mixinLoader.getClientMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
 		}
-		if (side.hasServer()) {
+		if (side == EnvType.SERVER) {
 			mixinLoader.getServerMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
 		}
 

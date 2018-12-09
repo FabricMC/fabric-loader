@@ -20,15 +20,15 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
-import net.fabricmc.api.Side;
+import net.fabricmc.loader.ModInfo;
 
 import java.lang.reflect.Type;
 
-public class SideDeserializer implements JsonDeserializer<Side> {
+public class SideDeserializer implements JsonDeserializer<ModInfo.Side> {
 
 	@Override
-	public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-		return Side.valueOf(element.getAsString().toUpperCase());
+	public ModInfo.Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+		return ModInfo.Side.valueOf(element.getAsString().toUpperCase());
 	}
 
 }
