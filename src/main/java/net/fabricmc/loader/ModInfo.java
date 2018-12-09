@@ -213,11 +213,11 @@ public class ModInfo {
 
 		public boolean satisfiedBy(ModInfo info) {
 			// TODO: Actually implement this once we decide on an implementation.
-			for (String s : versionMatchers) {
+			/* for (String s : versionMatchers) {
 				if (!info.version.equals(s)) {
 					return false;
 				}
-			}
+			} */
 			return true;
 		}
 
