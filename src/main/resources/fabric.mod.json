@@ -1,5 +1,5 @@
 {
-  "id": "fabric-loader",
+  "id": "loader",
   "name": "Fabric Loader",
   "version": "0.2.0",
   "side": "universal",
