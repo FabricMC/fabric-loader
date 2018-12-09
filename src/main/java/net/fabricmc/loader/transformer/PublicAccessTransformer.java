@@ -22,7 +22,15 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
-public class PublicAccessTransformer implements IClassTransformer {
+public final class PublicAccessTransformer implements IClassTransformer {
+	private static final int modAccess(int access) {
+		if ((access & 0x7) != Opcodes.ACC_PRIVATE) {
+			return (access & (~0x7)) | Opcodes.ACC_PUBLIC;
+		} else {
+			return access;
+		}
+	}
+
 	static class AccessClassVisitor extends ClassVisitor {
 		public AccessClassVisitor(int api, ClassVisitor classVisitor) {
 			super(api, classVisitor);
@@ -36,13 +44,13 @@ public class PublicAccessTransformer implements IClassTransformer {
 			final String signature,
 			final String superName,
 			final String[] interfaces) {
-			super.visit(version, (access & (~0x7)) | Opcodes.ACC_PUBLIC, name, signature, superName, interfaces);
+			super.visit(version, modAccess(access), name, signature, superName, interfaces);
 		}
 
 		@Override
 		public void visitInnerClass(
 			final String name, final String outerName, final String innerName, final int access) {
-			super.visitInnerClass(name, outerName, innerName, (access & (~0x7)) | Opcodes.ACC_PUBLIC);
+			super.visitInnerClass(name, outerName, innerName, modAccess(access));
 		}
 
 		@Override
@@ -52,7 +60,7 @@ public class PublicAccessTransformer implements IClassTransformer {
 			final String descriptor,
 			final String signature,
 			final Object value) {
-			return super.visitField((access & (~0x7)) | Opcodes.ACC_PUBLIC, name, descriptor, signature, value);
+			return super.visitField(modAccess(access), name, descriptor, signature, value);
 		}
 
 		@Override
@@ -62,18 +70,18 @@ public class PublicAccessTransformer implements IClassTransformer {
 			final String descriptor,
 			final String signature,
 			final String[] exceptions) {
-			return super.visitMethod((access & (~0x7)) | Opcodes.ACC_PUBLIC, name, descriptor, signature, exceptions);
+			return super.visitMethod(modAccess(access), name, descriptor, signature, exceptions);
 		}
 	}
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] bytes) {
-		if (!name.startsWith("net.minecraft") && name.contains(".")) {
+		if (!name.startsWith("net.minecraft") && name.indexOf('.') >= 0) {
 			return bytes;
 		}
 		ClassReader classReader = new ClassReader(bytes);
 		ClassWriter classWriter = new ClassWriter(0);
-		classReader.accept(new AccessClassVisitor(Opcodes.ASM6, classWriter), 0);
+		classReader.accept(new AccessClassVisitor(Opcodes.ASM7, classWriter), 0);
 		return classWriter.toByteArray();
 	}
 }

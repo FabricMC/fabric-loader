@@ -16,16 +16,11 @@
 
 package net.fabricmc.loader.mixin.common.server;
 
-import net.fabricmc.loader.mixin.hooks.IServerGetFile;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.io.File;
 
 @Mixin(value = MinecraftServer.class, remap = false)
 public abstract class MixinMinecraftServerBrand {

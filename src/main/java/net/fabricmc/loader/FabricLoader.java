@@ -18,7 +18,6 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.lang3.tuple.Pair;
@@ -53,7 +52,7 @@ public class FabricLoader {
 	private boolean frozen = false;
 	private boolean gameInitialized = false;
 
-	private ISidedHandler sidedHandler;
+	private SidedHandler sidedHandler;
 
 	private File gameDir;
 	private File configDir;
@@ -75,7 +74,7 @@ public class FabricLoader {
 	}
 
 	// INTERNAL: DO NOT USE
-	public void initialize(File gameDir, ISidedHandler sidedHandler) {
+	public void initialize(File gameDir, SidedHandler sidedHandler) {
 		if (gameInitialized) {
 			throw new RuntimeException("FabricLoader has already been game-initialized!");
 		}
@@ -85,7 +84,7 @@ public class FabricLoader {
 		gameInitialized = true;
 	}
 
-	public ISidedHandler getSidedHandler() {
+	public SidedHandler getSidedHandler() {
 		return sidedHandler;
 	}
 

@@ -16,16 +16,15 @@
 
 package net.fabricmc.loader.mixin.server;
 
-import net.fabricmc.loader.mixin.hooks.IServerGetFile;
+import net.fabricmc.loader.mixin.hooks.FabricServerFileGetProxy;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.io.File;
 
 @Mixin(MinecraftServer.class)
-public abstract class MixinMinecraftServer implements IServerGetFile {
+public abstract class MixinMinecraftServer implements FabricServerFileGetProxy {
 	@Shadow
 	public abstract File getFile(String s);
 

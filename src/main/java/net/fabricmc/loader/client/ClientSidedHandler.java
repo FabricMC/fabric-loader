@@ -17,35 +17,30 @@
 package net.fabricmc.loader.client;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.ISidedHandler;
+import net.fabricmc.loader.SidedHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
-public class ClientSidedHandler implements ISidedHandler {
-
+public final class ClientSidedHandler implements SidedHandler {
 	@Override
 	public EnvType getEnvironmentType() {
 		return EnvType.CLIENT;
 	}
 
 	@Override
+	@Deprecated
 	public PlayerEntity getClientPlayer() {
 		return MinecraftClient.getInstance().player;
 	}
 
 	@Override
 	public void runOnMainThread(Runnable runnable) {
-		if (MinecraftClient.getInstance().isMainThread()) {
-			runnable.run();
-		} else {
-			MinecraftClient.getInstance().execute(runnable);
-		}
+		MinecraftClient.getInstance().execute(runnable);
 	}
 
 	@Override
 	public MinecraftServer getServerInstance() {
 		return MinecraftClient.getInstance().getServer();
 	}
-
 }

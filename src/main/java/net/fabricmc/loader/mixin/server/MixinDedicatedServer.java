@@ -19,7 +19,7 @@ package net.fabricmc.loader.mixin.server;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.mixin.hooks.IServerGetFile;
+import net.fabricmc.loader.mixin.hooks.FabricServerFileGetProxy;
 import net.fabricmc.loader.server.ServerSidedHandler;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,8 +33,8 @@ import java.io.IOException;
 public abstract class MixinDedicatedServer {
 	@Inject(method = "setupServer", at = @At("HEAD"))
 	public void setupServer(CallbackInfoReturnable<Boolean> info) throws IOException {
-		FabricLoader.INSTANCE.initialize(((IServerGetFile) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
-		FabricLoader.INSTANCE.load(((IServerGetFile) (Object) this).fabricHookGetFile("mods"));
+		FabricLoader.INSTANCE.initialize(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
+		FabricLoader.INSTANCE.load(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile("mods"));
 		FabricLoader.INSTANCE.freeze();
 		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
 		FabricLoader.INSTANCE.getInitializers(DedicatedServerModInitializer.class).forEach(DedicatedServerModInitializer::onInitializeServer);

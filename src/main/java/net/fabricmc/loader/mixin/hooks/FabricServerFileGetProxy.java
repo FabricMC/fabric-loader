@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader;
+package net.fabricmc.loader.mixin.hooks;
 
-import net.fabricmc.api.EnvType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
+import java.io.File;
 
-public interface ISidedHandler {
-
-	EnvType getEnvironmentType();
-
-	PlayerEntity getClientPlayer();
-
-	void runOnMainThread(Runnable runnable);
-
-	MinecraftServer getServerInstance();
-
+public interface FabricServerFileGetProxy {
+	File fabricHookGetFile(String s);
 }

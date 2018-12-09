@@ -17,11 +17,11 @@
 package net.fabricmc.loader.server;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.ISidedHandler;
+import net.fabricmc.loader.SidedHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
-public class ServerSidedHandler implements ISidedHandler {
+public final class ServerSidedHandler implements SidedHandler {
 	private final MinecraftServer server;
 
 	public ServerSidedHandler(MinecraftServer server) {
@@ -34,17 +34,14 @@ public class ServerSidedHandler implements ISidedHandler {
 	}
 
 	@Override
+	@Deprecated
 	public PlayerEntity getClientPlayer() {
 		return null;
 	}
 
 	@Override
 	public void runOnMainThread(Runnable runnable) {
-		if (server.isMainThread()) {
-			runnable.run();
-		} else {
-			server.execute(runnable);
-		}
+		server.execute(runnable);
 	}
 
 	@Override
