@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = ClientBrandRetriever.class, remap = false)
 public abstract class MixinClientBrandRetriever {
 	@Inject(at = @At("RETURN"), method = "getClientModName", cancellable = true)
-	private void getClientModName(CallbackInfoReturnable<String> info) {
+	private static void getClientModName(CallbackInfoReturnable<String> info) {
 		if (info.getReturnValue().equals("vanilla")) {
 			info.setReturnValue("Fabric");
 		} else {
