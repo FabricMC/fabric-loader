@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.mixin.common.server;
+package net.fabricmc.loader.util;
 
-import net.fabricmc.loader.util.BrandingUtil;
-import net.minecraft.server.MinecraftServer;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = MinecraftServer.class, remap = false)
-public abstract class MixinMinecraftServerBrand {
-	@Inject(at = @At("RETURN"), method = "getServerModName", cancellable = true)
-	private void getServerModName(final CallbackInfoReturnable<String> cir) {
-		BrandingUtil.brand(cir);
+public final class BrandingUtil {
+	public static final String FABRIC = "fabric";
+	public static final String VANILLA = "vanilla";
+
+	private BrandingUtil() {
+	}
+
+	public static void brand(final CallbackInfoReturnable<String> cir) {
+		if (cir.getReturnValue().equals(VANILLA)) {
+			cir.setReturnValue(FABRIC);
+		} else {
+			cir.setReturnValue(cir.getReturnValue() + "," + FABRIC);
+		}
 	}
 }
