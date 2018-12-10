@@ -18,6 +18,7 @@ package net.fabricmc.loader.language;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
+import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -27,11 +28,12 @@ import java.lang.reflect.InvocationTargetException;
 
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
-		String className = itfString.replace('.', '/') + ".class";
-		InputStream stream = JavaLanguageAdapter.class.getClassLoader().getResourceAsStream(className);
-		if (stream == null) {
+		String className = itfString.replace('/', '.');
+		byte[] data = ((LaunchClassLoader) JavaLanguageAdapter.class.getClassLoader()).getClassBytes(className);
+		if (data == null) {
 			return false;
 		}
+		ClassReader reader = new ClassReader(data);
 
 		// TODO: Be a bit more involved
 		if (className.equals("net/fabricmc/api/ClientModInitializer.class")) {
@@ -44,25 +46,22 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 			}
 		}
 
-		ClassReader reader = new ClassReader(stream);
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
 				return false;
 			}
 		}
 
-		stream.close();
 		return true;
 	}
 
 	public static Class<?> getClass(String classString, Options options) throws ClassNotFoundException, IOException {
-		String className = classString.replace('.', '/') + ".class";
-		InputStream stream = JavaLanguageAdapter.class.getClassLoader().getResourceAsStream(className);
-		if (stream == null) {
-			throw new ClassNotFoundException("Could not find file " + className);
+		byte[] data = ((LaunchClassLoader) JavaLanguageAdapter.class.getClassLoader()).getClassBytes(classString);
+		if (data == null) {
+			throw new ClassNotFoundException("Could not find file " + classString);
 		}
 
-		ClassReader reader = new ClassReader(stream);
+		ClassReader reader = new ClassReader(data);
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
 				switch (options.getMissingSuperclassBehavior()) {

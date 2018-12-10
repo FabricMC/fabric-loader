@@ -143,7 +143,7 @@ public abstract class FabricTweaker implements ITweaker {
 					JarURLConnection locConn = (JarURLConnection) loc.openConnection();
 					String jarFileName = locConn.getJarFileURL().getFile();
 					File jarFile = new File(jarFileName);
-					File deobfJarDir = new File(".fabric" + File.separator + "remappedJars");
+					File deobfJarDir = new File(gameDir, ".fabric" + File.separator + "remappedJars");
 					if (!deobfJarDir.exists()) {
 						deobfJarDir.mkdirs();
 					}
