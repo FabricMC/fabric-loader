@@ -27,6 +27,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class MixinLoader extends FabricLoader {
 	static {
@@ -37,7 +38,7 @@ class MixinLoader extends FabricLoader {
 		return mods.stream()
 			.map(ModContainer::getInfo)
 			.map(ModInfo::getMixins)
-			.map(ModInfo.Mixins::getClient)
+			.flatMap(info -> Stream.of(info.getClient()))
 			.filter(s -> s != null && !s.isEmpty())
 			.collect(Collectors.toSet());
 	}
@@ -46,7 +47,7 @@ class MixinLoader extends FabricLoader {
 		return mods.stream()
 			.map(ModContainer::getInfo)
 			.map(ModInfo::getMixins)
-			.map(ModInfo.Mixins::getCommon)
+			.flatMap(info -> Stream.of(info.getCommon()))
 			.filter(s -> s != null && !s.isEmpty())
 			.collect(Collectors.toSet());
 	}
@@ -55,7 +56,7 @@ class MixinLoader extends FabricLoader {
 		return mods.stream()
 			.map(ModContainer::getInfo)
 			.map(ModInfo::getMixins)
-			.map(ModInfo.Mixins::getServer)
+			.flatMap(info -> Stream.of(info.getServer()))
 			.filter(s -> s != null && !s.isEmpty())
 			.collect(Collectors.toSet());
 	}
