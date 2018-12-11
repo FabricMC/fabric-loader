@@ -26,10 +26,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
 /**
@@ -144,11 +147,27 @@ public class FabricLoader {
 		}
 	}
 
+	private String join(Stream<String> strings, String joiner) {
+		StringBuilder builder = new StringBuilder();
+		AtomicInteger i = new AtomicInteger();
+
+		strings.sequential().forEach((s) -> {
+			if ((i.getAndIncrement()) > 0) {
+				builder.append(joiner);
+			}
+
+			builder.append(s);
+		});
+
+		return builder.toString();
+	}
+
 	public void load(Collection<File> modFiles) {
 		if (frozen) {
 			throw new RuntimeException("Frozen - cannot load additional mods!");
 		}
 
+		Map<String, Set<File>> modIdSources = new HashMap<>();
 		List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
 
 		int classpathModsCount = 0;
@@ -189,6 +208,7 @@ public class FabricLoader {
 		mods:
 		for (Pair<ModInfo, File> pair : existingMods) {
 			ModInfo mod = pair.getLeft();
+
 			/* if (mod.isLazilyLoaded()) {
 				innerMods:
 				for (Pair<ModInfo, File> pair2 : existingMods) {
@@ -207,6 +227,19 @@ public class FabricLoader {
 				continue mods;
 			} */
 			addMod(mod, pair.getRight(), loaderInitializesMods());
+			modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>()).add(pair.getRight());
+		}
+
+		List<String> modIdsDuplicate = new ArrayList<>();
+		for (String s : modIdSources.keySet()) {
+			Set<File> originFiles = modIdSources.get(s);
+			if (originFiles.size() >= 2) {
+				modIdsDuplicate.add(s + ": " + join(originFiles.stream().map(File::getName), ", "));
+			}
+		}
+
+		if (!modIdsDuplicate.isEmpty()) {
+			throw new RuntimeException("Duplicate mod IDs: [" + join(modIdsDuplicate.stream(), "; ") + "]");
 		}
 
 		String modText;
@@ -267,7 +300,14 @@ public class FabricLoader {
 			}
 
 			LOGGER.debug("Attempting to find classpath mods from " + url.getPath());
-			File f = new File(url.getFile());
+			File f;
+			try {
+				f = new File(url.toURI());
+			} catch (URISyntaxException e) {
+				// pass
+				continue;
+			}
+
 			if (f.exists()) {
 				if (f.isDirectory()) {
 					File modJson = new File(f, "fabric.mod.json");
