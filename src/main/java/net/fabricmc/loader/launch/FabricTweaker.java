@@ -34,6 +34,7 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -141,8 +142,11 @@ public abstract class FabricTweaker implements ITweaker {
 					String target = getLaunchTarget();
 					URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
 					JarURLConnection locConn = (JarURLConnection) loc.openConnection();
-					String jarFileName = locConn.getJarFileURL().getFile();
-					File jarFile = new File(jarFileName);
+					File jarFile = new File(locConn.getJarFileURL().toURI());
+					if (!jarFile.exists()) {
+						throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
+					}
+
 					File deobfJarDir = new File(gameDir, ".fabric" + File.separator + "remappedJars");
 					if (!deobfJarDir.exists()) {
 						deobfJarDir.mkdirs();
@@ -228,7 +232,7 @@ public abstract class FabricTweaker implements ITweaker {
 					} else {
 						LOGGER.warn("Resource cache not pre-populated - this will probably cause issues...");
 					}
-				} catch (IOException e) {
+				} catch (IOException | URISyntaxException e) {
 					throw new RuntimeException(e);
 				}
 			}, () -> {
