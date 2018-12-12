@@ -400,13 +400,16 @@ public class FabricLoader {
 		LOGGER.debug("Validating mods");
 		for (ModContainer mod : mods) {
 			if(StringUtils.isEmpty(mod.getInfo().getId())){
-				throw new RuntimeException(String.format("Mod %s has no mod id", mod.getOriginFile().getName()));
+				throw new RuntimeException(String.format("Mod %s has no id", mod.getOriginFile().getName()));
 			}
 			if(!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()){
 				throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", mod.getInfo().getId()));
 			}
+			if(StringUtils.isEmpty(mod.getInfo().getVersionString())){
+				throw new RuntimeException(String.format("Mod %s requires a version to be set", mod.getInfo().getId()));
+			}
 			if(StringUtils.isEmpty(mod.getInfo().getName())){
-				throw new RuntimeException(String.format("Mod %s requires a mod name to be set", mod.getInfo().getId()));
+				mod.getInfo().name = mod.getInfo().getId();
 			}
 		}
 	}

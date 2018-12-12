@@ -33,7 +33,6 @@ public class ModInfo {
 
 	// Required
 	private String id;
-	private String name;
 	private String version;
 
 	// Optional (environment)
@@ -47,6 +46,7 @@ public class ModInfo {
 	private String[] initializers;
 
 	// Optional (metadata)
+	String name;
 	private String description = "";
 	private Links links = Links.EMPTY;
 	private DependencyMap recommends = new DependencyMap();
