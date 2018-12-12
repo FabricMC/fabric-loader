@@ -17,7 +17,6 @@
 package net.fabricmc.loader;
 
 import com.google.gson.*;
-import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -76,7 +75,7 @@ public class ModInfo {
 	}
 
 	public String getName() {
-		if(StringUtils.isEmpty(name)){
+		if(name == null || name.isEmpty()){
 			return id;
 		}
 		return name;

@@ -20,7 +20,6 @@ import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import net.minecraft.launchwrapper.Launch;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -399,13 +398,13 @@ public class FabricLoader {
 	protected void validateMods(){
 		LOGGER.debug("Validating mods");
 		for (ModContainer mod : mods) {
-			if(StringUtils.isEmpty(mod.getInfo().getId())){
+			if(mod.getInfo().getId() == null || mod.getInfo().getId().isEmpty()){
 				throw new RuntimeException(String.format("Mod %s has no id", mod.getOriginFile().getName()));
 			}
 			if(!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()){
 				throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", mod.getInfo().getId()));
 			}
-			if(StringUtils.isEmpty(mod.getInfo().getVersionString())){
+			if(mod.getInfo().getVersionString() == null || mod.getInfo().getVersionString().isEmpty()){
 				throw new RuntimeException(String.format("Mod %s requires a version to be set", mod.getInfo().getId()));
 			}
 		}
