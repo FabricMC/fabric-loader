@@ -34,8 +34,12 @@ public class FabricClientTweaker extends FabricTweaker {
 		if (!this.args.containsKey("--accessToken")) {
 			this.args.put("--accessToken", "FabricMC");
 		}
-		
-		this.args.put("--versionType", "Fabric");
+
+		String versionType = "";
+		if(this.args.containsKey("--versionType") && !this.args.get("--versionType").equalsIgnoreCase("release")){
+			versionType = this.args.get("--versionType") + "/";
+		}
+		this.args.put("--versionType", versionType + "Fabric");
 	}
 
 	@Override
