@@ -408,9 +408,6 @@ public class FabricLoader {
 			if(StringUtils.isEmpty(mod.getInfo().getVersionString())){
 				throw new RuntimeException(String.format("Mod %s requires a version to be set", mod.getInfo().getId()));
 			}
-			if(StringUtils.isEmpty(mod.getInfo().getName())){
-				mod.getInfo().name = mod.getInfo().getId();
-			}
 		}
 	}
 

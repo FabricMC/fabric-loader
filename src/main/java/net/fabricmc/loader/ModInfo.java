@@ -17,6 +17,7 @@
 package net.fabricmc.loader;
 
 import com.google.gson.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -46,7 +47,7 @@ public class ModInfo {
 	private String[] initializers;
 
 	// Optional (metadata)
-	String name;
+	private String name;
 	private String description = "";
 	private Links links = Links.EMPTY;
 	private DependencyMap recommends = new DependencyMap();
@@ -75,6 +76,9 @@ public class ModInfo {
 	}
 
 	public String getName() {
+		if(StringUtils.isEmpty(name)){
+			return id;
+		}
 		return name;
 	}
 
