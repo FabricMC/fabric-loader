@@ -20,6 +20,7 @@ import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import net.minecraft.launchwrapper.Launch;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +32,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -49,6 +51,7 @@ public class FabricLoader {
 		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
 		.create();
 	private static final JsonParser JSON_PARSER = new JsonParser();
+	private static final Pattern MOD_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{0,63}");
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
@@ -264,6 +267,7 @@ public class FabricLoader {
 	}
 
 	protected void onModsPopulated() {
+		validateMods();
 		checkDependencies();
 		sortMods();
 		if (loaderInitializesMods()) {
@@ -392,6 +396,21 @@ public class FabricLoader {
 		}
 	}
 
+	protected void validateMods(){
+		LOGGER.debug("Validating mods");
+		for (ModContainer mod : mods) {
+			if(StringUtils.isEmpty(mod.getInfo().getId())){
+				throw new RuntimeException(String.format("Mod %s has no mod id", mod.getOriginFile().getName()));
+			}
+			if(!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()){
+				throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", mod.getInfo().getId()));
+			}
+			if(StringUtils.isEmpty(mod.getInfo().getName())){
+				throw new RuntimeException(String.format("Mod %s requires a mod name to be set", mod.getInfo().getId()));
+			}
+		}
+	}
+
 	private void sortMods() {
 		/* LOGGER.debug("Sorting mods");
 
@@ -447,6 +466,9 @@ public class FabricLoader {
 			if (entry == null) {
 				// TODO: Remove in 0.3.0 (backwards compat)
 				entry = jar.getEntry("mod.json");
+				if(entry != null){
+					LOGGER.warn("%s is using a deprecated mod.json file, as of 0.3.0 it must be named fabric.mod.json", jar.getName());
+				}
 			}
 			if (entry != null) {
 				try (InputStream in = jar.getInputStream(entry)) {
