@@ -18,9 +18,6 @@ package net.fabricmc.loader.transformer;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.*;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.MethodNode;
 
 public final class PublicAccessTransformer implements IClassTransformer {
 	private static final int modAccess(int access) {
