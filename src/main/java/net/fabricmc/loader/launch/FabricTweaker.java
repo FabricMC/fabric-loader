@@ -124,6 +124,9 @@ public abstract class FabricTweaker implements ITweaker {
 		boolean isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 		Launch.blackboard.put("fabric.development", isDevelopment);
 
+		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
+		launchClassLoader.addClassLoaderExclusion("org.spongepowered.asm.");
+
 		File gameDir = new File(args.get("--gameDir"));
 		mixinLoader = new MixinLoader();
 		mixinLoader.load(new File(gameDir, "mods"));

@@ -9,7 +9,7 @@
         "name": "net.minecraft:launchwrapper:1.12"
       },
       {
-        "name": "net.fabricmc:sponge-mixin:0.7.11.3",
+        "name": "net.fabricmc:sponge-mixin:0.7.11.5",
         "url": "https://maven.modmuss50.me/"
       },
       {
