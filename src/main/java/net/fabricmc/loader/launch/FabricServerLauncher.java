@@ -38,20 +38,37 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FabricServerLauncher {
+	private enum Mode {
+		KNOT(""),
+		LAUNCHWRAPPER("launchwrapper");
+
+		private final String name;
+
+		Mode(String name) {
+			this.name = name;
+		}
+
+		public String getJsonFilename() {
+			return "fabric-installer" + (name.isEmpty() ? ".json" : "." + name + ".json");
+		}
+	}
+
 	private static final File LIBRARIES = new File(".fabric/libraries");
 	private static final String MAPPINGS_NAME = "net.fabricmc:yarn";
 	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/yarn/maven-metadata.xml";
 
 	// The default main class, fabric-installer.json can override this
-	private static String mainClass = "net.minecraft.launchwrapper.Launch";
+	private static String mainClass = "net.fabricmc.loader.launch.knot.KnotServer";
+	private static Mode mode;
 
 	//Launches a minecraft server along with fabric and its libs. All args are passed onto the minecraft server.
 	//This expects a minecraft jar called server.jar
 	public static void main(String[] args) {
+		boolean dev = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 		List<String> runArguments = new ArrayList<>();
 		File serverJar = null;
 
-		if (!Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
+		if (!dev) {
 			for (int i = 0; i < args.length; i++) {
 				if (i == 0) {
 					serverJar = new File(args[0]);
@@ -59,15 +76,23 @@ public class FabricServerLauncher {
 					runArguments.add(args[i]);
 				}
 			}
+		} else {
+			for (int i = 0; i < args.length; i++) {
+				runArguments.add(args[i]);
+			}
+		}
 
+		if (runArguments.contains("--tweakClass")) {
+			mode = Mode.LAUNCHWRAPPER;
+		} else {
+			mode = Mode.KNOT;
+		}
+
+		if (!dev) {
 			try {
 				setup(serverJar, runArguments);
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to setup Fabric server environment!", e);
-			}
-		} else {
-			for (int i = 0; i < args.length; i++) {
-				runArguments.add(args[i]);
 			}
 		}
 
@@ -97,8 +122,13 @@ public class FabricServerLauncher {
 	}
 
 	private static void setupFabricEnvironment(List<String> runArguments) throws IOException {
-		JsonObject installerMeta = readJson("fabric-installer.json");
-		mainClass = installerMeta.get("mainClass").getAsString();
+		JsonObject installerMeta = readJson(mode.getJsonFilename());
+		JsonElement mainClassElem = installerMeta.get("mainClass");
+		if (mainClassElem.isJsonPrimitive()) {
+			mainClass = mainClassElem.getAsString();
+		} else {
+			mainClass = mainClassElem.getAsJsonObject().get("server").getAsString();
+		}
 
 		String[] validSides = new String[] { "common", "server" };
 		JsonObject libraries = installerMeta.getAsJsonObject("libraries");

@@ -80,7 +80,6 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	private static class PatchingClassLoader extends ClassLoader {
-		private final List<String> excludedClasses = new ArrayList<>();
 		private final DynamicURLClassLoader urlLoader;
 		private final ClassLoader originalLoader;
 		private final boolean isDevelopment;
@@ -150,25 +149,27 @@ public final class Knot extends FabricLauncherBase {
 				Class<?> c = findLoadedClass(name);
 
 				if (c == null) {
-					byte[] input = getClassByteArray(name, true);
-					if (input != null) {
-						if (name.indexOf('.') < 0) {
-							throw new ClassNotFoundException("Root packages forbidden: class '" + name + "' could not be loaded");
-						}
-
-						if (mixinTransformer == null) {
-							try {
-								Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
-								constructor.setAccessible(true);
-								mixinTransformer = constructor.newInstance();
-							} catch (Exception e) {
-								throw new RuntimeException(e);
+					if (!name.startsWith("net.fabricmc.loader.launch.")) {
+						byte[] input = getClassByteArray(name, true);
+						if (input != null) {
+							if (name.indexOf('.') < 0) {
+								throw new ClassNotFoundException("Root packages forbidden: class '" + name + "' could not be loaded");
 							}
-						}
 
-						byte[] b = isDevelopment ? PublicAccessTransformer.transform(name, input) : input;
-						b = mixinTransformer.transformClassBytes(name, name, b);
-						c = defineClass(name, b, 0, b.length);
+							if (mixinTransformer == null) {
+								try {
+									Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
+									constructor.setAccessible(true);
+									mixinTransformer = constructor.newInstance();
+								} catch (Exception e) {
+									throw new RuntimeException(e);
+								}
+							}
+
+							byte[] b = isDevelopment ? PublicAccessTransformer.transform(name, input) : input;
+							b = mixinTransformer.transformClassBytes(name, name, b);
+							c = defineClass(name, b, 0, b.length);
+						}
 					}
 				}
 
@@ -263,12 +264,15 @@ public final class Knot extends FabricLauncherBase {
 		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";
 
 		// Setup classloader
-
 		loader = new PatchingClassLoader(isDevelopment());
 		String[] classpathStrings = System.getProperty("java.class.path").split(":");
 
 		classpath = new ArrayList<>(classpathStrings.length - 1);
 		populateClasspath(argMap, classpathStrings);
+
+		// Add loader to classpath - this is necessary so that net.fabricmc.loader gets
+		// loaded in the correct location.
+		propose(getClass().getProtectionDomain().getCodeSource().getLocation());
 
 		// Setup Mixin environment
 		MixinLoader mixinLoader = new MixinLoader();
