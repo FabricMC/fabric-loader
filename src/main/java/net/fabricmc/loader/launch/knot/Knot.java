@@ -1,8 +1,7 @@
-package net.fabricmc.loader.launch.nolauncher;
+package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.launch.common.CommonLauncherUtils;
-import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.transformer.PublicAccessTransformer;
@@ -25,10 +24,9 @@ import java.util.*;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
-public class NoLauncher implements FabricLauncher {
-	public static NoLauncher INSTANCE = new NoLauncher();
+public final class Knot extends FabricLauncherBase {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
-	public Map<String, Object> properties = new HashMap<>();
+	protected Map<String, Object> properties = new HashMap<>();
 
 	private PatchingClassLoader loader;
 	private boolean isDevelopment;
@@ -85,12 +83,14 @@ public class NoLauncher implements FabricLauncher {
 		private final List<String> excludedClasses = new ArrayList<>();
 		private final DynamicURLClassLoader urlLoader;
 		private final ClassLoader originalLoader;
+		private final boolean isDevelopment;
 		private MixinTransformer mixinTransformer;
 
-		public PatchingClassLoader() {
+		public PatchingClassLoader(boolean isDevelopment) {
 			super(new DynamicURLClassLoader(new URL[0]));
 			this.originalLoader = getClass().getClassLoader();
 			this.urlLoader = (DynamicURLClassLoader) getParent();
+			this.isDevelopment = isDevelopment;
 		}
 
 		public boolean isClassLoaded(String name) {
@@ -166,7 +166,7 @@ public class NoLauncher implements FabricLauncher {
 							}
 						}
 
-						byte[] b = NoLauncher.INSTANCE.isDevelopment() ? PublicAccessTransformer.transform(name, input) : input;
+						byte[] b = isDevelopment ? PublicAccessTransformer.transform(name, input) : input;
 						b = mixinTransformer.transformClassBytes(name, name, b);
 						c = defineClass(name, b, 0, b.length);
 					}
@@ -223,26 +223,12 @@ public class NoLauncher implements FabricLauncher {
 		}
 	}
 
-	private void init(String[] args) {
-		CommonLauncherUtils.properties = properties;
-		CommonLauncherUtils.setLauncher(this);
+	protected Knot(EnvType type) {
+		this.envType = type;
+	}
 
-		String side = System.getProperty("fabric.side");
-		if (side == null || side.isEmpty()) {
-			side = "CLIENT";
-		}
-
-		side = side.toLowerCase();
-		if ("client".equals(side)) {
-			envType = EnvType.CLIENT;
-		} else if ("server".equals(side)) {
-			envType = EnvType.SERVER;
-		} else {
-			throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
-		}
-
-		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
-		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";
+	protected void init(String[] args) {
+		setProperties(properties);
 
 		// parse args
 		Map<String, String> argMap = new LinkedHashMap<>();
@@ -253,12 +239,32 @@ public class NoLauncher implements FabricLauncher {
 			}
 		}
 
-		CommonLauncherUtils.processArgumentMap(argMap, envType);
-		String[] newArgs = CommonLauncherUtils.asStringArray(argMap);
+		FabricLauncherBase.processArgumentMap(argMap, envType);
+		String[] newArgs = FabricLauncherBase.asStringArray(argMap);
+
+		// configure fabric vars
+		if (envType == null) {
+			String side = System.getProperty("fabric.side");
+			if (side == null) {
+				throw new RuntimeException("Please specify side or use a dedicated Knot!");
+			}
+
+			side = side.toLowerCase();
+			if ("client".equals(side)) {
+				envType = EnvType.CLIENT;
+			} else if ("server".equals(side)) {
+				envType = EnvType.SERVER;
+			} else {
+				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
+			}
+		}
+
+		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
+		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";
 
 		// Setup classloader
 
-		loader = new PatchingClassLoader();
+		loader = new PatchingClassLoader(isDevelopment());
 		String[] classpathStrings = System.getProperty("java.class.path").split(":");
 
 		classpath = new ArrayList<>(classpathStrings.length - 1);
@@ -271,7 +277,7 @@ public class NoLauncher implements FabricLauncher {
 
 		MixinBootstrap.init();
 		if (isDevelopment) {
-			CommonLauncherUtils.withMappingReader(
+			FabricLauncherBase.withMappingReader(
 				(reader) -> FabricMixinBootstrap.init(envType, argMap, mixinLoader, reader),
 				() -> FabricMixinBootstrap.init(envType, argMap, mixinLoader));
 		} else {
@@ -337,7 +343,7 @@ public class NoLauncher implements FabricLauncher {
 			throw new RuntimeException("Entrypoint '" + entryPoint + "' not found!");
 		}
 
-		CommonLauncherUtils.deobfuscate(
+		FabricLauncherBase.deobfuscate(
 			new File(argMap.getOrDefault("--gameDir", ".")),
 			gameFile,
 			this
@@ -385,6 +391,6 @@ public class NoLauncher implements FabricLauncher {
 	}
 
 	public static void main(String[] args) {
-		NoLauncher.INSTANCE.init(args);
+		new Knot(null).init(args);
 	}
 }

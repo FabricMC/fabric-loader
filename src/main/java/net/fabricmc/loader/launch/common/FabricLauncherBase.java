@@ -18,13 +18,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public final class CommonLauncherUtils {
-	public static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
-	public static Map<String, Object> properties;
+public abstract class FabricLauncherBase implements FabricLauncher {
+	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
+	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
 
-	public static void withMappingReader(Consumer<BufferedReader> consumer, Runnable orElse) {
-		InputStream mappingStream = CommonLauncherUtils.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
+	protected FabricLauncherBase() {
+		setLauncher(this);
+	}
+
+	protected static void withMappingReader(Consumer<BufferedReader> consumer, Runnable orElse) {
+		InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
 		BufferedReader mappingReader = null;
 
 		if (mappingStream != null) {
@@ -42,7 +46,7 @@ public final class CommonLauncherUtils {
 		}
 	}
 
-	public static void deobfuscate(File gameDir, File jarFile, FabricLauncher launcher) {
+	protected static void deobfuscate(File gameDir, File jarFile, FabricLauncher launcher) {
 		if (launcher.isDevelopment()) {
 			try {
 				launcher.propose(jarFile.toURI().toURL());
@@ -127,11 +131,7 @@ public final class CommonLauncherUtils {
 		});
 	}
 
-	private CommonLauncherUtils() {
-
-	}
-
-	public static void processArgumentMap(Map<String, String> argMap, EnvType envType) {
+	protected static void processArgumentMap(Map<String, String> argMap, EnvType envType) {
 		switch (envType) {
 			case CLIENT:
 				if (!argMap.containsKey("--accessToken")) {
@@ -160,7 +160,7 @@ public final class CommonLauncherUtils {
 		}
 	}
 
-	public static String[] asStringArray(Map<String, String> argMap) {
+	protected static String[] asStringArray(Map<String, String> argMap) {
 		String[] newArgs = new String[argMap.size() * 2];
 		int i = 0;
 		for (String s : argMap.keySet()) {
@@ -170,7 +170,15 @@ public final class CommonLauncherUtils {
 		return newArgs;
 	}
 
-	public static void setLauncher(FabricLauncher launcherA) {
+	protected static void setProperties(Map<String, Object> propertiesA) {
+		if (properties != null && properties != propertiesA) {
+			throw new RuntimeException("Duplicate setProperties call!");
+		}
+
+		properties = propertiesA;
+	}
+
+	private static void setLauncher(FabricLauncher launcherA) {
 		if (launcher != null && launcher != launcherA) {
 			throw new RuntimeException("Duplicate setLauncher call!");
 		}
@@ -180,5 +188,9 @@ public final class CommonLauncherUtils {
 
 	public static FabricLauncher getLauncher() {
 		return launcher;
+	}
+
+	public static Map<String, Object> getProperties() {
+		return properties;
 	}
 }

@@ -17,7 +17,7 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.launch.common.CommonLauncherUtils;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
@@ -35,7 +35,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
-public abstract class FabricTweaker implements ITweaker, FabricLauncher {
+public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Map<String, String> args;
 	protected MixinLoader mixinLoader;
@@ -44,8 +44,6 @@ public abstract class FabricTweaker implements ITweaker, FabricLauncher {
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
-		CommonLauncherUtils.setLauncher(this);
-
 		//noinspection unchecked
 		this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
 
@@ -70,14 +68,14 @@ public abstract class FabricTweaker implements ITweaker, FabricLauncher {
 			this.args.put("--assetsDir", assetsDir.getAbsolutePath());
 		}
 
-		CommonLauncherUtils.processArgumentMap(args, getEnvironmentType());
+		FabricLauncherBase.processArgumentMap(args, getEnvironmentType());
 	}
 
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
 		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 		Launch.blackboard.put("fabric.development", isDevelopment);
-		CommonLauncherUtils.properties = Launch.blackboard;
+		setProperties(Launch.blackboard);
 
 		this.launchClassLoader = launchClassLoader;
 		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
@@ -102,7 +100,7 @@ public abstract class FabricTweaker implements ITweaker, FabricLauncher {
 					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
 
-				CommonLauncherUtils.deobfuscate(gameDir, jarFile, this);
+				FabricLauncherBase.deobfuscate(gameDir, jarFile, this);
 			} catch (IOException | URISyntaxException e) {
 				throw new RuntimeException(e);
 			}
@@ -111,7 +109,7 @@ public abstract class FabricTweaker implements ITweaker, FabricLauncher {
 		// Setup Mixin environment
 		MixinBootstrap.init();
 		if (isDevelopment) {
-			CommonLauncherUtils.withMappingReader(
+			FabricLauncherBase.withMappingReader(
 				(reader) -> FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader, reader),
 				() -> FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader));
 		} else {
@@ -122,7 +120,7 @@ public abstract class FabricTweaker implements ITweaker, FabricLauncher {
 
 	@Override
 	public String[] getLaunchArguments() {
-		return CommonLauncherUtils.asStringArray(args);
+		return FabricLauncherBase.asStringArray(args);
 	}
 
 	@Override

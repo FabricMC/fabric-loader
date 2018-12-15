@@ -18,7 +18,7 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.launch.common.CommonLauncherUtils;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -191,7 +191,7 @@ public class FabricLoader {
 
 			if (fileMods.length != 0) {
 				try {
-					CommonLauncherUtils.getLauncher().propose(f.toURI().toURL());
+					FabricLauncherBase.getLauncher().propose(f.toURI().toURL());
 				} catch (MalformedURLException e) {
 					LOGGER.error("Unable to load mod from %s", f.getName());
 					e.printStackTrace();
@@ -295,7 +295,7 @@ public class FabricLoader {
 		String javaHome = System.getProperty("java.home");
 		String modsDir = new File(getGameDirectory(), "mods").getAbsolutePath();
 
-		for (URL url : CommonLauncherUtils.getLauncher().getClasspathURLs()) {
+		for (URL url : FabricLauncherBase.getLauncher().getClasspathURLs()) {
 			if (url.getPath().startsWith(javaHome) || url.getPath().startsWith(modsDir)) {
 				continue;
 			}

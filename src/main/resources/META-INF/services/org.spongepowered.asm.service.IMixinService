@@ -1,1 +1,1 @@
-net.fabricmc.loader.launch.nolauncher.MixinServiceNoLauncher
+net.fabricmc.loader.launch.knot.MixinServiceKnot

@@ -1,7 +1,7 @@
-package net.fabricmc.loader.launch.nolauncher;
+package net.fabricmc.loader.launch.knot;
 
 import com.google.common.collect.ImmutableList;
-import net.fabricmc.loader.launch.common.CommonLauncherUtils;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.spongepowered.asm.lib.ClassReader;
 import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.MixinEnvironment;
@@ -17,26 +17,26 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 
-public class MixinServiceNoLauncher implements IMixinService, IClassProvider, IClassBytecodeProvider {
+public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider {
 	private final ReEntranceLock lock;
 
-	public MixinServiceNoLauncher() {
+	public MixinServiceKnot() {
 		lock = new ReEntranceLock(1);
 	}
 
 	@Override
 	public byte[] getClassBytes(String name, String transformedName) throws IOException {
-		return NoLauncher.INSTANCE.getClassByteArray(name);
+		return ((Knot) FabricLauncherBase.getLauncher()).getClassByteArray(name);
 	}
 
 	@Override
 	public byte[] getClassBytes(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
-		return NoLauncher.INSTANCE.getClassByteArray(name);
+		return ((Knot) FabricLauncherBase.getLauncher()).getClassByteArray(name);
 	}
 
 	@Override
 	public ClassNode getClassNode(String name) throws ClassNotFoundException, IOException {
-		ClassReader reader = new ClassReader(NoLauncher.INSTANCE.getClassByteArray(name));
+		ClassReader reader = new ClassReader(((Knot) FabricLauncherBase.getLauncher()).getClassByteArray(name));
 		ClassNode node = new ClassNode();
 		reader.accept(node, 0);
 		return node;
@@ -44,32 +44,32 @@ public class MixinServiceNoLauncher implements IMixinService, IClassProvider, IC
 
 	@Override
 	public URL[] getClassPath() {
-		return NoLauncher.INSTANCE.getClasspathURLs().toArray(new URL[0]);
+		return FabricLauncherBase.getLauncher().getClasspathURLs().toArray(new URL[0]);
 	}
 
 	@Override
 	public Class<?> findClass(String name) throws ClassNotFoundException {
-		return NoLauncher.INSTANCE.getTargetClassLoader().loadClass(name);
+		return FabricLauncherBase.getLauncher().getTargetClassLoader().loadClass(name);
 	}
 
 	@Override
 	public Class<?> findClass(String name, boolean initialize) throws ClassNotFoundException {
-		return Class.forName(name, initialize, NoLauncher.INSTANCE.getTargetClassLoader());
+		return Class.forName(name, initialize, FabricLauncherBase.getLauncher().getTargetClassLoader());
 	}
 
 	@Override
 	public Class<?> findAgentClass(String name, boolean initialize) throws ClassNotFoundException {
-		return Class.forName(name, initialize, NoLauncher.class.getClassLoader());
+		return Class.forName(name, initialize, Knot.class.getClassLoader());
 	}
 
 	@Override
 	public String getName() {
-		return "NoLauncher";
+		return "Knot";
 	}
 
 	@Override
 	public boolean isValid() {
-		return CommonLauncherUtils.getLauncher() instanceof NoLauncher;
+		return FabricLauncherBase.getLauncher() instanceof Knot;
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public class MixinServiceNoLauncher implements IMixinService, IClassProvider, IC
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
-		return NoLauncher.INSTANCE.getResourceAsStream(name);
+		return FabricLauncherBase.getLauncher().getResourceAsStream(name);
 	}
 
 	@Override
@@ -128,7 +128,7 @@ public class MixinServiceNoLauncher implements IMixinService, IClassProvider, IC
 
 	@Override
 	public boolean isClassLoaded(String className) {
-		return NoLauncher.INSTANCE.isClassLoaded(className);
+		return FabricLauncherBase.getLauncher().isClassLoaded(className);
 	}
 
 	@Override
@@ -143,6 +143,6 @@ public class MixinServiceNoLauncher implements IMixinService, IClassProvider, IC
 
 	@Override
 	public String getSideName() {
-		return NoLauncher.INSTANCE.getEnvironmentType().name();
+		return FabricLauncherBase.getLauncher().getEnvironmentType().name();
 	}
 }

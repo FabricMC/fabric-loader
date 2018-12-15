@@ -22,7 +22,7 @@ import net.fabricmc.loader.ModInfo;
 import java.io.File;
 import java.util.List;
 
-public class FabricClientTweaker extends FabricTweaker {
+public final class FabricClientTweaker extends FabricTweaker {
 	@Override
 	public EnvType getEnvironmentType() {
 		return EnvType.CLIENT;
