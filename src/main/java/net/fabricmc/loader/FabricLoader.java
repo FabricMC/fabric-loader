@@ -18,8 +18,8 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.launch.common.CommonLauncherUtils;
 import net.fabricmc.loader.util.json.SideDeserializer;
-import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,7 +80,6 @@ public class FabricLoader {
 	}
 
 	protected FabricLoader() {
-
 	}
 
 	/**
@@ -190,9 +189,9 @@ public class FabricLoader {
 
 			ModInfo[] fileMods = getJarMods(f);
 
-			if (Launch.classLoader != null && fileMods.length != 0) {
+			if (fileMods.length != 0) {
 				try {
-					Launch.classLoader.addURL(f.toURI().toURL());
+					CommonLauncherUtils.getLauncher().propose(f.toURI().toURL());
 				} catch (MalformedURLException e) {
 					LOGGER.error("Unable to load mod from %s", f.getName());
 					e.printStackTrace();
@@ -296,8 +295,7 @@ public class FabricLoader {
 		String javaHome = System.getProperty("java.home");
 		String modsDir = new File(getGameDirectory(), "mods").getAbsolutePath();
 
-		URL[] urls = Launch.classLoader.getURLs();
-		for (URL url : urls) {
+		for (URL url : CommonLauncherUtils.getLauncher().getClasspathURLs()) {
 			if (url.getPath().startsWith(javaHome) || url.getPath().startsWith(modsDir)) {
 				continue;
 			}

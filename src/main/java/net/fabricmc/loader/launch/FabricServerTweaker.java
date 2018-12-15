@@ -17,9 +17,6 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.ModInfo;
-
-import java.util.List;
 
 public class FabricServerTweaker extends FabricTweaker {
 	@Override
@@ -30,12 +27,5 @@ public class FabricServerTweaker extends FabricTweaker {
 	@Override
 	public EnvType getEnvironmentType() {
 		return EnvType.SERVER;
-	}
-
-	@Override
-	public void getInvalidArgPrefixes(List<String> list) {
-		super.getInvalidArgPrefixes(list);
-		list.add("--version");
-		list.add("--gameDir");
 	}
 }
