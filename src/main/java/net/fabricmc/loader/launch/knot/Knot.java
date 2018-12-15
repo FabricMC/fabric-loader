@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
@@ -35,6 +51,18 @@ public final class Knot extends FabricLauncherBase {
 	private List<URL> classpath;
 
 	private static class NullClassLoader extends ClassLoader {
+		private static final Enumeration<URL> NULL_ENUMERATION = new Enumeration<URL>() {
+			@Override
+			public boolean hasMoreElements() {
+				return false;
+			}
+
+			@Override
+			public URL nextElement() {
+				return null;
+			}
+		};
+
 		static {
 			registerAsParallelCapable();
 		}
@@ -51,17 +79,7 @@ public final class Knot extends FabricLauncherBase {
 
 		@Override
 		public Enumeration<URL> getResources(String var1) throws IOException {
-			return new Enumeration<URL>() {
-				@Override
-				public boolean hasMoreElements() {
-					return false;
-				}
-
-				@Override
-				public URL nextElement() {
-					return null;
-				}
-			};
+			return NULL_ENUMERATION;
 		}
 	}
 
@@ -240,9 +258,6 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		FabricLauncherBase.processArgumentMap(argMap, envType);
-		String[] newArgs = FabricLauncherBase.asStringArray(argMap);
-
 		// configure fabric vars
 		if (envType == null) {
 			String side = System.getProperty("fabric.side");
@@ -259,6 +274,9 @@ public final class Knot extends FabricLauncherBase {
 				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
 			}
 		}
+
+		FabricLauncherBase.processArgumentMap(argMap, envType);
+		String[] newArgs = FabricLauncherBase.asStringArray(argMap);
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";
@@ -336,7 +354,6 @@ public final class Knot extends FabricLauncherBase {
 				try {
 					URL url = file.toURI().toURL();
 					classpath.add(url);
-					System.out.println("adding " + url);
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}
