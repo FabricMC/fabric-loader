@@ -18,6 +18,7 @@ package net.fabricmc.loader.language;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
 		String className = itfString.replace('.', '/') + ".class";
-		ClassReader reader = new ClassReader(JavaLanguageAdapter.class.getResourceAsStream(className));
+		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
 
 		// TODO: Be a bit more involved
 		if (className.equals("net/fabricmc/api/ClientModInitializer.class")) {
@@ -52,7 +53,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 
 	public static Class<?> getClass(String classString, Options options) throws ClassNotFoundException, IOException {
 		String className = classString.replace('.', '/') + ".class";
-		ClassReader reader = new ClassReader(JavaLanguageAdapter.class.getResourceAsStream(className));
+		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
 				switch (options.getMissingSuperclassBehavior()) {
