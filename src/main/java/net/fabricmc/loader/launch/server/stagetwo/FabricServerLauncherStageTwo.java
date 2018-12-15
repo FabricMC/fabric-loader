@@ -164,9 +164,9 @@ public class FabricServerLauncherStageTwo {
 		try {
 			// If we don't add the loader here, the ClassLoader for Knot will be different...
 			libraries.add(FabricServerLauncherStageTwo.class.getProtectionDomain().getCodeSource().getLocation());
+			// MixinLoader needs the log4j copy from here. It will be overridden by Knot.
 			libraries.add(new File(System.getProperty("fabric.gameJarPath")).toURI().toURL());
 
-			// By using the FabricServerLauncher class loader, we ensure that the server JAR is no longer on the classpath.
 			URLClassLoader newClassLoader = new InjectingURLClassLoader(libraries.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
 
 			newClassLoader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, (Object) args);

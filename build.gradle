@@ -82,7 +82,7 @@ dependencies {
 jar {
 	manifest {
 		attributes (
-			'Main-Class': 'net.fabricmc.loader.launch.FabricServerLauncher'
+			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
 		)
 	}
 }
@@ -94,7 +94,15 @@ task copyJson(type: Copy, dependsOn: ["remapJar"]) {
 	into 'build/libs'
 }
 
+task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
+	from('src/main/resources/fabric-installer.launchwrapper.json') {
+		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
+	}
+	into 'build/libs'
+}
+
 tasks.build.dependsOn "copyJson"
+tasks.build.dependsOn "copyJsonLw"
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '4.10.2'
