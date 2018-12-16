@@ -43,6 +43,10 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		setLauncher(this);
 	}
 
+	protected static File getLaunchDirectory(Map<String, String> argMap) {
+		return new File(argMap.getOrDefault("--gameDir", "."));
+	}
+
 	protected static void withMappingReader(Consumer<BufferedReader> consumer, Runnable orElse) {
 		InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
 		BufferedReader mappingReader = null;
@@ -165,7 +169,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 				argMap.put("--versionType", versionType + "Fabric");
 
 				if (!argMap.containsKey("--gameDir")) {
-					argMap.put("--gameDir", new File(".").getAbsolutePath());
+					argMap.put("--gameDir", getLaunchDirectory(argMap).getAbsolutePath());
 				}
 				break;
 			case SERVER:

@@ -296,7 +296,7 @@ public final class Knot extends FabricLauncherBase {
 
 		// Setup Mixin environment
 		MixinLoader mixinLoader = new MixinLoader();
-		mixinLoader.load(new File(".", "mods"));
+		mixinLoader.load(new File(getLaunchDirectory(argMap), "mods"));
 		mixinLoader.freeze();
 
 		MixinBootstrap.init();
@@ -320,9 +320,6 @@ public final class Knot extends FabricLauncherBase {
 
 		try {
 			Class c = loader.loadClass(entryPoint);
-			System.out.println(c.getClassLoader());
-			System.out.println(loader.originalLoader);
-			System.out.println(loader.originalLoader.getParent());
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) newArgs);
 		} catch (Exception e) {
@@ -384,7 +381,7 @@ public final class Knot extends FabricLauncherBase {
 		}
 
 		FabricLauncherBase.deobfuscate(
-			new File(argMap.getOrDefault("--gameDir", ".")),
+			getLaunchDirectory(argMap),
 			gameFile,
 			this
 		);
