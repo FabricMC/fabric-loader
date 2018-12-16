@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader;
 
+import com.google.common.collect.Lists;
 import com.google.gson.*;
 
 import java.lang.reflect.Type;
@@ -308,7 +309,7 @@ public class ModInfo {
 			public Person deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
 				if (element.isJsonPrimitive()) {
 					String person = element.getAsString();
-					List<String> parts = Arrays.asList(person.split(" "));
+					List<String> parts = Lists.newArrayList(person.split(" "));
 
 					String name, email = "", website = "";
 
@@ -325,6 +326,13 @@ public class ModInfo {
 					}
 
 					name = String.join(" ", parts);
+
+					return new Person(name, email, website);
+				} else if (element.isJsonObject()) {
+					JsonObject object = element.getAsJsonObject();
+					String name = object.has("name") ? object.get("name").getAsString() : "";
+					String email = object.has("email") ? object.get("email").getAsString() : "";
+					String website = object.has("website") ? object.get("website").getAsString() : "";
 
 					return new Person(name, email, website);
 				}
