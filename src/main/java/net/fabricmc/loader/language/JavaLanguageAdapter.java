@@ -36,11 +36,11 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 		ClassReader reader = new ClassReader(data);
 
 		// TODO: Be a bit more involved
-		if (className.equals("net/fabricmc/api/ClientModInitializer.class")) {
+		if (className.equals("net.fabricmc.api.ClientModInitializer")) {
 			if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.SERVER) {
 				return false;
 			}
-		} else if (className.equals("net/fabricmc/api/DedicatedServerModInitializer.class")) {
+		} else if (className.equals("net.fabricmc.api.DedicatedServerModInitializer")) {
 			if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.CLIENT) {
 				return false;
 			}
