@@ -214,11 +214,11 @@ public final class Knot extends FabricLauncherBase {
 			registerAsParallelCapable();
 		}
 
-		public byte[] getClassByteArray(String name, boolean forTransforming) {
+		public byte[] getClassByteArray(String name, boolean skipOriginalLoader) {
 			String classFile = name.replace('.', '/') + ".class";
 			try {
 				InputStream inputStream = urlLoader.getResourceAsStream(classFile);
-				if (inputStream == null && !forTransforming) {
+				if (inputStream == null && !skipOriginalLoader) {
 					inputStream = originalLoader.getResourceAsStream(classFile);
 				}
 				if (inputStream == null) {

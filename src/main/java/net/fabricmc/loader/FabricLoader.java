@@ -197,17 +197,6 @@ public class FabricLoader {
 			}
 
 			ModInfo[] fileMods = getJarMods(f);
-
-			if (fileMods.length != 0) {
-				try {
-					FabricLauncherBase.getLauncher().propose(f.toURI().toURL());
-				} catch (MalformedURLException e) {
-					LOGGER.error("Unable to load mod from %s", f.getName());
-					e.printStackTrace();
-					continue;
-				}
-			}
-
 			for (ModInfo info : fileMods) {
 				existingMods.add(new ModEntry(info, f));
 			}
@@ -277,6 +266,17 @@ public class FabricLoader {
 		validateMods();
 		checkDependencies();
 		sortMods();
+
+		// add mods to classpath
+		// TODO: This can probably be made safer, but that's a long-term goal
+		for (ModContainer mod : mods) {
+			try {
+				FabricLauncherBase.getLauncher().propose(mod.getOriginFile().toURI().toURL());
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+
 		if (loaderInitializesMods()) {
 			initializeMods();
 		}
