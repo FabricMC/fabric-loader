@@ -18,6 +18,7 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.api.loader.Loader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +39,7 @@ import java.util.zip.ZipEntry;
 /**
  * The main class for mod loading operations.
  */
-public class FabricLoader {
+public class FabricLoader implements Loader {
 	private class ModEntry {
 		private final ModInfo info;
 		private final File file;
@@ -282,11 +283,7 @@ public class FabricLoader {
 		}
 	}
 
-	/**
-	 * Check if a mod with a given ID is present.
-	 * @param id The mod ID.
-	 * @return True if loaded, false otherwise.
-	 */
+	@Override
 	public boolean isModLoaded(String id) {
 		return modMap.containsKey(id);
 	}
@@ -294,6 +291,11 @@ public class FabricLoader {
 	/**
 	 * @return A list of all loaded mods, as ModContainers.
 	 */
+	public Collection<ModContainer> getModContainers() {
+		return Collections.unmodifiableList(mods);
+	}
+
+	@Deprecated
 	public List<ModContainer> getMods() {
 		return Collections.unmodifiableList(mods);
 	}
