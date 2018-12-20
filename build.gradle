@@ -57,7 +57,7 @@ repositories {
 
 dependencies {
 	minecraft "com.mojang:minecraft:18w50a"
-	mappings "net.fabricmc:yarn:18w50a.19"
+	mappings "net.fabricmc:yarn:18w50a.43"
 
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 	compile 'org.ow2.asm:asm:7.0'
@@ -66,8 +66,7 @@ dependencies {
 	compile 'org.ow2.asm:asm-tree:7.0'
 	compile 'org.ow2.asm:asm-util:7.0'
 
-	compile('net.fabricmc:sponge-mixin:0.7.11.10') {
-		exclude module: 'launchwrapper'
+	compile('net.fabricmc:sponge-mixin:0.7.11.12:full') {
 		exclude module: 'guava'
 	}
 	compile 'net.fabricmc:tiny-remapper:0.1.0.20'

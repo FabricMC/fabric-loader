@@ -22,8 +22,10 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.tinyremapper.TinyUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -212,5 +214,16 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	public static Map<String, Object> getProperties() {
 		return properties;
+	}
+
+	protected static void pretendMixinPhases() {
+		try {
+			Method m = MixinEnvironment.class.getDeclaredMethod("gotoPhase", MixinEnvironment.Phase.class);
+			m.setAccessible(true);
+			m.invoke(null, MixinEnvironment.Phase.INIT);
+			m.invoke(null, MixinEnvironment.Phase.DEFAULT);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

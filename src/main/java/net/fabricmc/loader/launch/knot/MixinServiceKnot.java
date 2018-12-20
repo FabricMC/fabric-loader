@@ -80,12 +80,12 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public String getName() {
-		return "Knot";
+		return FabricLauncherBase.getLauncher() instanceof Knot ? "Knot/Fabric" : "Launchwrapper/Fabric";
 	}
 
 	@Override
 	public boolean isValid() {
-		return FabricLauncherBase.getLauncher() instanceof Knot;
+		return true;
 	}
 
 	@Override
