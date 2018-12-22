@@ -16,8 +16,6 @@
 
 package net.fabricmc.loader.launch.server;
 
-import sun.misc.PerfCounter;
-
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
