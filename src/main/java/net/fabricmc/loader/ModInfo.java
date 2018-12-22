@@ -136,20 +136,55 @@ public class ModInfo {
 	public static class Mixins {
 		public static final Mixins EMPTY = new Mixins();
 
-		private String client;
-		private String common;
-		private String server;
+		private String[] client = {};
+		private String[] common = {};
+		private String[] server = {};
 
-		public String getClient() {
+		public String[] getClient() {
 			return client;
 		}
 
-		public String getCommon() {
+		public String[] getCommon() {
 			return common;
 		}
 
-		public String getServer() {
+		public String[] getServer() {
 			return server;
+		}
+
+		public static class Deserializer implements JsonDeserializer<Mixins> {
+			@Override
+			public Mixins deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				Mixins mixins = new Mixins();
+
+				if (element.isJsonObject()) {
+					JsonObject object = element.getAsJsonObject();
+					mixins.client = getStringArray(object, "client");
+					mixins.common = getStringArray(object, "common");
+					mixins.server = getStringArray(object, "server");
+				} else {
+					throw new JsonParseException("Expected mixins to be an object.");
+				}
+
+
+				return mixins;
+			}
+
+			private String[] getStringArray(JsonObject object, String name) throws JsonParseException {
+				JsonElement element = object.get(name);
+				if (element.isJsonPrimitive()) {
+					return new String[]{ element.getAsString() };
+				} else if (element.isJsonArray()) {
+					JsonArray array = element.getAsJsonArray();
+					String[] strings = new String[array.size()];
+					for (int i = 0; i < array.size(); i++) {
+						strings[i] = array.get(i).getAsString();
+					}
+					return strings;
+				} else {
+					throw new JsonParseException("Expected " + name + " to be a string or an array of strings");
+				}
+			}
 		}
 	}
 

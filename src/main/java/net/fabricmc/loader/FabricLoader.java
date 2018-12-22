@@ -45,6 +45,7 @@ public class FabricLoader {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 	private static final Gson GSON = new GsonBuilder()
 		.registerTypeAdapter(ModInfo.Side.class, new SideDeserializer())
+		.registerTypeAdapter(ModInfo.Mixins.class, new ModInfo.Mixins.Deserializer())
 		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
 		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
 		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
