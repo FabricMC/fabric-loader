@@ -34,13 +34,13 @@ public interface EnvironmentHandler {
 	EnvType getEnvironmentType();
 
 	/**
-	 * @deprecated Will be removed in 0.3.0.
+	 * @deprecated Will be removed in 0.4.0.
 	 */
 	@Deprecated
 	PlayerEntity getClientPlayer();
 
 	/**
-	 * @deprecated Will be removed in 0.3.0.
+	 * @deprecated Will be removed in 0.4.0.
 	 */
 	@Deprecated
 	void runOnMainThread(Runnable runnable);

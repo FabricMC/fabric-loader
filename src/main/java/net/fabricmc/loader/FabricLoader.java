@@ -316,7 +316,7 @@ public class FabricLoader {
 				if (f.isDirectory()) {
 					File modJson = new File(f, "fabric.mod.json");
 					if (!modJson.exists()) {
-						// TODO: Remove in 0.3.0 (backwards compat)
+						// TODO: Remove in 0.4.0 (backwards compat)
 						modJson = new File(f, "mod.json");
 					}
 
@@ -464,10 +464,10 @@ public class FabricLoader {
 			JarFile jar = new JarFile(f);
 			ZipEntry entry = jar.getEntry("fabric.mod.json");
 			if (entry == null) {
-				// TODO: Remove in 0.3.0 (backwards compat)
+				// TODO: Remove in 0.4.0 (backwards compat)
 				entry = jar.getEntry("mod.json");
 				if(entry != null){
-					LOGGER.warn("%s is using a deprecated mod.json file, as of 0.3.0 it must be named fabric.mod.json", jar.getName());
+					LOGGER.warn("%s is using a deprecated mod.json file, as of 0.4.0 it must be named fabric.mod.json", jar.getName());
 				}
 			}
 			if (entry != null) {
