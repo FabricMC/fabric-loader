@@ -173,7 +173,9 @@ public class ModInfo {
 
 			private String[] getStringArray(JsonObject object, String name) throws JsonParseException {
 				JsonElement element = object.get(name);
-				if (element.isJsonPrimitive()) {
+				if (element == null || element.isJsonNull()) {
+					return new String[0];
+				} else if (element.isJsonPrimitive()) {
 					return new String[]{ element.getAsString() };
 				} else if (element.isJsonArray()) {
 					JsonArray array = element.getAsJsonArray();
