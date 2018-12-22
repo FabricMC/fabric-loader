@@ -22,26 +22,7 @@ import net.fabricmc.loader.ModInfo;
 import java.io.File;
 import java.util.List;
 
-public class FabricClientTweaker extends FabricTweaker {
-	@Override
-	public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {
-		super.acceptOptions(args, gameDir, assetsDir, profile);
-
-		if (!this.args.containsKey("--assetsDir") && assetsDir != null) {
-			this.args.put("--assetsDir", assetsDir.getAbsolutePath());
-		}
-
-		if (!this.args.containsKey("--accessToken")) {
-			this.args.put("--accessToken", "FabricMC");
-		}
-
-		String versionType = "";
-		if(this.args.containsKey("--versionType") && !this.args.get("--versionType").equalsIgnoreCase("release")){
-			versionType = this.args.get("--versionType") + "/";
-		}
-		this.args.put("--versionType", versionType + "Fabric");
-	}
-
+public final class FabricClientTweaker extends FabricTweaker {
 	@Override
 	public EnvType getEnvironmentType() {
 		return EnvType.CLIENT;

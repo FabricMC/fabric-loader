@@ -56,8 +56,8 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:18w49a"
-	mappings "net.fabricmc:yarn:18w49a.1"
+	minecraft "com.mojang:minecraft:18w50a"
+	mappings "net.fabricmc:yarn:18w50a.43"
 
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 	compile 'org.ow2.asm:asm:7.0'
@@ -66,8 +66,7 @@ dependencies {
 	compile 'org.ow2.asm:asm-tree:7.0'
 	compile 'org.ow2.asm:asm-util:7.0'
 
-	compile('net.fabricmc:sponge-mixin:0.7.11.10') {
-		exclude module: 'launchwrapper'
+	compile('net.fabricmc:sponge-mixin:0.7.11.12:full') {
 		exclude module: 'guava'
 	}
 	compile 'net.fabricmc:tiny-remapper:0.1.0.20'
@@ -76,14 +75,13 @@ dependencies {
 	compile ('net.minecraft:launchwrapper:1.12') {
 		transitive = false
 	}
-	compile 'com.mojang:authlib:1.5.25'
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
 }
 
 jar {
 	manifest {
 		attributes (
-			'Main-Class': 'net.fabricmc.loader.launch.FabricServerLauncher'
+			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
 		)
 	}
 }
@@ -95,7 +93,15 @@ task copyJson(type: Copy, dependsOn: ["remapJar"]) {
 	into 'build/libs'
 }
 
+task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
+	from('src/main/resources/fabric-installer.launchwrapper.json') {
+		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
+	}
+	into 'build/libs'
+}
+
 tasks.build.dependsOn "copyJson"
+tasks.build.dependsOn "copyJsonLw"
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '4.10.2'

@@ -14,18 +14,29 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch;
+package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
 
-public final class FabricServerTweaker extends FabricTweaker {
-	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
-	}
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Collection;
 
-	@Override
-	public EnvType getEnvironmentType() {
-		return EnvType.SERVER;
-	}
+public interface FabricLauncher {
+	void propose(URL url);
+
+	Collection<URL> getClasspathURLs();
+
+	EnvType getEnvironmentType();
+
+	boolean isClassLoaded(String name);
+
+	InputStream getResourceAsStream(String name);
+
+	ClassLoader getTargetClassLoader();
+
+	byte[] getClassByteArray(String name) throws IOException;
+
+	boolean isDevelopment();
 }

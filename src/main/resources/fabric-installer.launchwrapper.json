@@ -6,6 +6,9 @@
     ],
     "common": [
       {
+        "name": "net.minecraft:launchwrapper:1.12"
+      },
+      {
         "name": "net.fabricmc:sponge-mixin:0.7.11.12",
         "url": "https://maven.modmuss50.me/"
       },
@@ -38,8 +41,28 @@
 
     ]
   },
-  "mainClass": {
-    "client": "net.fabricmc.loader.launch.knot.KnotClient",
-    "server": "net.fabricmc.loader.launch.knot.KnotServer"
+  "mainClass": "net.minecraft.launchwrapper.Launch",
+  "arguments": {
+    "client": [
+
+    ],
+    "common": [
+
+    ],
+    "server": [
+
+    ]
+  },
+  "launchwrapper": {
+    "tweakers": {
+      "client": [
+        "net.fabricmc.loader.launch.FabricClientTweaker"
+      ],
+      "common": [
+      ],
+      "server": [
+        "net.fabricmc.loader.launch.FabricServerTweaker"
+      ]
+    }
   }
 }

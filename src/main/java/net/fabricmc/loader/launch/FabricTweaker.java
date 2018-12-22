@@ -16,12 +16,11 @@
 
 package net.fabricmc.loader.launch;
 
-import com.google.common.io.ByteStreams;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.ModInfo;
-import net.fabricmc.tinyremapper.OutputConsumerPath;
-import net.fabricmc.tinyremapper.TinyRemapper;
-import net.fabricmc.tinyremapper.TinyUtils;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.launch.common.MixinLoader;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -31,23 +30,17 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.JarURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
-import java.util.zip.GZIPInputStream;
 
-public abstract class FabricTweaker implements ITweaker {
+public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Map<String, String> args;
 	protected MixinLoader mixinLoader;
+	private LaunchClassLoader launchClassLoader;
+	private boolean isDevelopment;
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
@@ -67,63 +60,24 @@ public abstract class FabricTweaker implements ITweaker {
 			}
 		}
 
-		if (!this.args.containsKey("--version")) {
-			this.args.put("--version", profile != null ? profile : "Fabric");
-		}
-
-		if (!this.args.containsKey("--gameDir")) {
-			if (gameDir == null) {
-				gameDir = new File(".");
-			}
+		if (!this.args.containsKey("--gameDir") && gameDir != null) {
 			this.args.put("--gameDir", gameDir.getAbsolutePath());
 		}
-	}
 
-	private void withMappingReader(LaunchClassLoader launchClassLoader, Consumer<BufferedReader> consumer, Runnable orElse) {
-		String mappingFileName = args.get("--fabricMappingFile");
-		FileInputStream mappingFileStream = null;
-		InputStream mappingStream = null;
-		BufferedReader mappingReader = null;
-
-		if (mappingFileName != null) {
-			try {
-				mappingFileStream = new FileInputStream(mappingFileName);
-				if (mappingFileName.toLowerCase().endsWith(".gz")) {
-					mappingStream = new GZIPInputStream(mappingFileStream);
-				} else {
-					mappingStream = mappingFileStream;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				mappingStream = null;
-			}
-		} else {
-			mappingStream = launchClassLoader.getResourceAsStream("mappings/mappings.tiny");
+		if (getEnvironmentType() == EnvType.CLIENT && !this.args.containsKey("--assetsDir") && assetsDir != null) {
+			this.args.put("--assetsDir", assetsDir.getAbsolutePath());
 		}
 
-		if (mappingStream != null) {
-			mappingReader = new BufferedReader(new InputStreamReader(mappingStream));
-			consumer.accept(mappingReader);
-
-			try {
-				mappingReader.close();
-				mappingStream.close();
-				if (mappingFileStream != mappingStream && mappingFileStream != null) {
-					mappingFileStream.close();
-				}
-			} catch (IOException ee) {
-				ee.printStackTrace();
-			}
-		} else {
-			orElse.run();
-		}
+		FabricLauncherBase.processArgumentMap(args, getEnvironmentType());
 	}
 
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-		boolean isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
+		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 		Launch.blackboard.put("fabric.development", isDevelopment);
+		setProperties(Launch.blackboard);
 
+		this.launchClassLoader = launchClassLoader;
 		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
 		launchClassLoader.addClassLoaderExclusion("org.spongepowered.asm.");
 
@@ -133,119 +87,29 @@ public abstract class FabricTweaker implements ITweaker {
 		mixinLoader.freeze();
 
 		if (isDevelopment) {
-			launchClassLoader.registerTransformer("net.fabricmc.loader.transformer.PublicAccessTransformer");
+			launchClassLoader.registerTransformer("net.fabricmc.loader.launch.FabricClassTransformer");
 		} else {
 			// Obfuscated environment
 			Launch.blackboard.put("fabric.development", false);
-
-			withMappingReader(launchClassLoader, (mappingReader) -> {
-				LOGGER.debug("Fabric mapping file detected, applying...");
-
-				try {
-					String target = getLaunchTarget();
-					URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
-					JarURLConnection locConn = (JarURLConnection) loc.openConnection();
-					File jarFile = new File(locConn.getJarFileURL().toURI());
-					if (!jarFile.exists()) {
-						throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
-					}
-
-					File deobfJarDir = new File(gameDir, ".fabric" + File.separator + "remappedJars");
-					if (!deobfJarDir.exists()) {
-						deobfJarDir.mkdirs();
-					}
-
-					File deobfJarFile = new File(deobfJarDir, jarFile.getName());
-
-					Path jarPath = jarFile.toPath();
-					Path deobfJarPath = deobfJarFile.toPath();
-
-					if (!deobfJarFile.exists()) {
-						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
-
-						TinyRemapper remapper = TinyRemapper.newRemapper()
-							.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
-							.rebuildSourceFilenames(true)
-							.build();
-						List<Path> depPaths = new ArrayList<>();
-
-						try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
-							remapper.read(jarPath);
-
-							for (URL url : launchClassLoader.getSources()) {
-								if (!url.equals(loc)) {
-									remapper.read();
-									depPaths.add(new File(url.getFile()).toPath());
-								}
-							}
-							remapper.apply(jarPath, outputConsumer);
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						} finally {
-							remapper.finish();
-						}
-
-						// Minecraft doesn't tend to check if a ZipFileSystem is already present,
-						// so we clean up here.
-
-						depPaths.add(jarPath);
-						depPaths.add(deobfJarPath);
-						for (Path p : depPaths) {
-							try {
-								p.getFileSystem().close();
-							} catch (Exception e) {
-								// pass
-							}
-
-							try {
-								FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
-							} catch (Exception e) {
-								// pass
-							}
-						}
-					}
-
-					launchClassLoader.addURL(deobfJarFile.toURI().toURL());
-
-					// Pre-populate resource cache
-					Map<String, byte[]> resourceCache = null;
-					try {
-						Field f = LaunchClassLoader.class.getDeclaredField("resourceCache");
-						f.setAccessible(true);
-						//noinspection unchecked
-						resourceCache = (Map) f.get(launchClassLoader);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-
-					if (resourceCache != null) {
-						try (FileInputStream jarFileStream = new FileInputStream(deobfJarFile)) {
-							JarInputStream jarStream = new JarInputStream(jarFileStream);
-							JarEntry entry;
-
-							while ((entry = jarStream.getNextJarEntry()) != null) {
-								if (!entry.getName().startsWith("net/minecraft/class_") && entry.getName().endsWith(".class")) {
-									String className = entry.getName();
-									className = className.substring(0, className.length() - 6).replace('/', '.');
-									LOGGER.debug("Appending " + className + " to resource cache...");
-									resourceCache.put(className, ByteStreams.toByteArray(jarStream));
-								}
-							}
-						}
-					} else {
-						LOGGER.warn("Resource cache not pre-populated - this will probably cause issues...");
-					}
-				} catch (IOException | URISyntaxException e) {
-					throw new RuntimeException(e);
+			try {
+				String target = getLaunchTarget();
+				URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
+				JarURLConnection locConn = (JarURLConnection) loc.openConnection();
+				File jarFile = new File(locConn.getJarFileURL().toURI());
+				if (!jarFile.exists()) {
+					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
-			}, () -> {
-			});
+
+				FabricLauncherBase.deobfuscate(gameDir, jarFile, this);
+			} catch (IOException | URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
 		if (isDevelopment) {
-			withMappingReader(launchClassLoader,
+			FabricLauncherBase.withMappingReader(
 				(reader) -> FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader, reader),
 				() -> FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader));
 		} else {
@@ -256,28 +120,43 @@ public abstract class FabricTweaker implements ITweaker {
 
 	@Override
 	public String[] getLaunchArguments() {
-		List<String> launchArgs = new ArrayList<>();
-		List<String> invalidPrefixes = new ArrayList<>();
-		getInvalidArgPrefixes(invalidPrefixes);
-		for (Map.Entry<String, String> arg : this.args.entrySet()) {
-			boolean invalid = false;
-			for(String prefix : invalidPrefixes){
-				if(arg.getKey().startsWith(prefix)){
-					invalid = true;
-				}
-			}
-			if(invalid){
-				continue;
-			}
-			launchArgs.add(arg.getKey());
-			launchArgs.add(arg.getValue());
- 		}
-		return launchArgs.toArray(new String[launchArgs.size()]);
+		return FabricLauncherBase.asStringArray(args);
 	}
 
-	public void getInvalidArgPrefixes(List<String> list){
-		list.add("--fabric");
+	@Override
+	public void propose(URL url) {
+		launchClassLoader.addURL(url);
+	}
+
+	@Override
+	public Collection<URL> getClasspathURLs() {
+		return launchClassLoader.getSources();
 	}
 
 	public abstract EnvType getEnvironmentType();
+
+	@Override
+	public boolean isClassLoaded(String name) {
+		throw new RuntimeException("TODO isClassLoaded/launchwrapper");
+	}
+
+	@Override
+	public InputStream getResourceAsStream(String name) {
+		return launchClassLoader.getResourceAsStream(name);
+	}
+
+	@Override
+	public ClassLoader getTargetClassLoader() {
+		return launchClassLoader;
+	}
+
+	@Override
+	public byte[] getClassByteArray(String name) throws IOException {
+		return launchClassLoader.getClassBytes(name);
+	}
+
+	@Override
+	public boolean isDevelopment() {
+		return isDevelopment;
+	}
 }

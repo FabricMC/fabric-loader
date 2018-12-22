@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch;
+package net.fabricmc.loader.launch.server.stagetwo;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.fabricmc.loader.launch.server.FabricServerLauncher;
+import net.fabricmc.loader.launch.server.InjectingURLClassLoader;
 import org.apache.commons.io.FileUtils;
 
 import javax.xml.stream.XMLInputFactory;
@@ -27,8 +29,6 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -37,68 +37,55 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FabricServerLauncher {
+public class FabricServerLauncherStageTwo {
+	private enum Mode {
+		KNOT(""),
+		LAUNCHWRAPPER("launchwrapper");
+
+		private final String name;
+
+		Mode(String name) {
+			this.name = name;
+		}
+
+		public String getJsonFilename() {
+			return "fabric-installer" + (name.isEmpty() ? ".json" : "." + name + ".json");
+		}
+	}
+
 	private static final File LIBRARIES = new File(".fabric/libraries");
 	private static final String MAPPINGS_NAME = "net.fabricmc:yarn";
 	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/yarn/maven-metadata.xml";
 
 	// The default main class, fabric-installer.json can override this
-	private static String mainClass = "net.minecraft.launchwrapper.Launch";
+	private static List<URL> libraries = new ArrayList<>();
+	private static String mainClass = "net.fabricmc.loader.launch.knot.KnotServer";
+	private static Mode mode;
 
-	//Launches a minecraft server along with fabric and its libs. All args are passed onto the minecraft server.
-	//This expects a minecraft jar called server.jar
-	public static void main(String[] args) {
-		List<String> runArguments = new ArrayList<>();
-		File serverJar = null;
-
-		if (!Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			for (int i = 0; i < args.length; i++) {
-				if (i == 0) {
-					serverJar = new File(args[0]);
-				} else {
-					runArguments.add(args[i]);
-				}
-			}
-
-			try {
-				setup(serverJar, runArguments);
-			} catch (Exception e) {
-				throw new RuntimeException("Failed to setup Fabric server environment!", e);
-			}
+	public static void stageTwo(List<String> runArguments) throws IOException {
+		if (runArguments.contains("--tweakClass")) {
+			mode = Mode.LAUNCHWRAPPER;
 		} else {
-			for (int i = 0; i < args.length; i++) {
-				runArguments.add(args[i]);
-			}
+			mode = Mode.KNOT;
 		}
+
+		//Now that we have some libs like gson we can parse the fabric-installer json
+		setupFabricEnvironment(runArguments);
+		setupMappings();
 
 		Object[] objectList = runArguments.toArray();
 		String[] stringArray = Arrays.copyOf(objectList, objectList.length, String[].class);
 		launch(mainClass, stringArray);
 	}
 
-	private static void setup(File serverJar, List<String> runArguments) throws IOException {
-		if (serverJar == null) {
-			throw new RuntimeException("No server .JAR! Please specify the server .JAR as the first launch argument.");
-		}
-		if (!serverJar.exists()) {
-			throw new RuntimeException("Failed to find the specified server .JAR!");
-		}
-
-		//Here is where we add the server jar to the class path
-		try {
-			addToClasspath(serverJar);
-		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			throw new RuntimeException("Failed to append server .JAR to classpath!");
-		}
-
-		//Now that we have some libs like gson we can parse the fabric-installer json
-		setupFabricEnvironment(runArguments);
-		setupMappings();
-	}
-
 	private static void setupFabricEnvironment(List<String> runArguments) throws IOException {
-		JsonObject installerMeta = readJson("fabric-installer.json");
-		mainClass = installerMeta.get("mainClass").getAsString();
+		JsonObject installerMeta = readJson(mode.getJsonFilename());
+		JsonElement mainClassElem = installerMeta.get("mainClass");
+		if (mainClassElem.isJsonPrimitive()) {
+			mainClass = mainClassElem.getAsString();
+		} else {
+			mainClass = mainClassElem.getAsJsonObject().get("server").getAsString();
+		}
 
 		String[] validSides = new String[] { "common", "server" };
 		JsonObject libraries = installerMeta.getAsJsonObject("libraries");
@@ -107,9 +94,11 @@ public class FabricServerLauncher {
 			librariesArray.forEach(jsonElement -> setupLibrary(new Library(jsonElement)));
 		}
 
-		String serverTweakClass = installerMeta.get("launchwrapper").getAsJsonObject().get("tweakers").getAsJsonObject().get("server").getAsString();
-		runArguments.add("--tweakClass");
-		runArguments.add(serverTweakClass);
+		if (installerMeta.has("launchwrapper")) {
+			String serverTweakClass = installerMeta.get("launchwrapper").getAsJsonObject().get("tweakers").getAsJsonObject().get("server").getAsString();
+			runArguments.add("--tweakClass");
+			runArguments.add(serverTweakClass);
+		}
 	}
 
 	private static void setupLibrary(Library library) {
@@ -123,8 +112,8 @@ public class FabricServerLauncher {
 		}
 
 		try {
-			addToClasspath(library.getFile());
-		} catch (MalformedURLException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+			libraries.add(library.getFile().toURI().toURL());
+		} catch (MalformedURLException e) {
 			throw new RuntimeException("Failed to append library to classpath!", e);
 		}
 	}
@@ -171,27 +160,24 @@ public class FabricServerLauncher {
 		return versions;
 	}
 
-	//This is done with reflection as when the class is loaded launchwrapper wont be on the classpath
 	private static void launch(String mainClass, String[] args) {
 		try {
-			Class.forName(mainClass).getMethod("main", String[].class).invoke(null, (Object) args);
+			// If we don't add the loader here, the ClassLoader for Knot will be different...
+			libraries.add(FabricServerLauncherStageTwo.class.getProtectionDomain().getCodeSource().getLocation());
+			// MixinLoader needs the log4j copy from here. It will be overridden by Knot.
+			libraries.add(new File(System.getProperty("fabric.gameJarPath")).toURI().toURL());
+
+			URLClassLoader newClassLoader = new InjectingURLClassLoader(libraries.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
+
+			newClassLoader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, (Object) args);
 		} catch (Exception e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
 		}
 	}
 
-	//TODO does this even work with j9? is there a better way to do this?
-	private static void addToClasspath(File file) throws MalformedURLException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-		URL url = file.toURI().toURL();
-		URLClassLoader classLoader = (URLClassLoader) FabricServerLauncher.class.getClassLoader();
-		Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class); //weeee :)
-		method.setAccessible(true);
-		method.invoke(classLoader, url);
-	}
-
 	private static JsonObject readJson(String file) throws IOException {
 		Gson gson = new Gson();
-		InputStream inputStream = FabricServerLauncher.class.getClassLoader().getResourceAsStream(file);
+		InputStream inputStream = FabricServerLauncherStageTwo.class.getClassLoader().getResourceAsStream(file);
 		Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 		JsonObject installerMeta = gson.fromJson(reader, JsonObject.class);
 		reader.close();

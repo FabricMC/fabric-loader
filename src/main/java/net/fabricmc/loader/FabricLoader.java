@@ -18,9 +18,9 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.api.loader.Loader;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.json.SideDeserializer;
-import net.minecraft.launchwrapper.Launch;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,7 +39,17 @@ import java.util.zip.ZipEntry;
 /**
  * The main class for mod loading operations.
  */
-public class FabricLoader {
+public class FabricLoader implements Loader {
+	private class ModEntry {
+		private final ModInfo info;
+		private final File file;
+
+		ModEntry(ModInfo info, File file) {
+			this.info = info;
+			this.file = file;
+		}
+	}
+
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
@@ -81,7 +91,6 @@ public class FabricLoader {
 	}
 
 	protected FabricLoader() {
-
 	}
 
 	/**
@@ -171,11 +180,11 @@ public class FabricLoader {
 		}
 
 		Map<String, Set<File>> modIdSources = new HashMap<>();
-		List<Pair<ModInfo, File>> existingMods = new ArrayList<>();
+		List<ModEntry> existingMods = new ArrayList<>();
 
 		int classpathModsCount = 0;
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			List<Pair<ModInfo, File>> classpathMods = getClasspathMods();
+			List<ModEntry> classpathMods = getClasspathMods();
 			existingMods.addAll(classpathMods);
 			classpathModsCount = classpathMods.size();
 			LOGGER.debug("Found %d classpath mods", classpathModsCount);
@@ -190,27 +199,16 @@ public class FabricLoader {
 			}
 
 			ModInfo[] fileMods = getJarMods(f);
-
-			if (Launch.classLoader != null && fileMods.length != 0) {
-				try {
-					Launch.classLoader.addURL(f.toURI().toURL());
-				} catch (MalformedURLException e) {
-					LOGGER.error("Unable to load mod from %s", f.getName());
-					e.printStackTrace();
-					continue;
-				}
-			}
-
 			for (ModInfo info : fileMods) {
-				existingMods.add(Pair.of(info, f));
+				existingMods.add(new ModEntry(info, f));
 			}
 		}
 
 		LOGGER.debug("Found %d JAR mods", existingMods.size() - classpathModsCount);
 
 		mods:
-		for (Pair<ModInfo, File> pair : existingMods) {
-			ModInfo mod = pair.getLeft();
+		for (ModEntry pair : existingMods) {
+			ModInfo mod = pair.info;
 
 			/* if (mod.isLazilyLoaded()) {
 				innerMods:
@@ -229,8 +227,8 @@ public class FabricLoader {
 				}
 				continue mods;
 			} */
-			addMod(mod, pair.getRight(), loaderInitializesMods());
-			modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>()).add(pair.getRight());
+			addMod(mod, pair.file, loaderInitializesMods());
+			modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>()).add(pair.file);
 		}
 
 		List<String> modIdsDuplicate = new ArrayList<>();
@@ -270,16 +268,23 @@ public class FabricLoader {
 		validateMods();
 		checkDependencies();
 		sortMods();
+
+		// add mods to classpath
+		// TODO: This can probably be made safer, but that's a long-term goal
+		for (ModContainer mod : mods) {
+			try {
+				FabricLauncherBase.getLauncher().propose(mod.getOriginFile().toURI().toURL());
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+
 		if (loaderInitializesMods()) {
 			initializeMods();
 		}
 	}
 
-	/**
-	 * Check if a mod with a given ID is present.
-	 * @param id The mod ID.
-	 * @return True if loaded, false otherwise.
-	 */
+	@Override
 	public boolean isModLoaded(String id) {
 		return modMap.containsKey(id);
 	}
@@ -287,18 +292,22 @@ public class FabricLoader {
 	/**
 	 * @return A list of all loaded mods, as ModContainers.
 	 */
+	public Collection<ModContainer> getModContainers() {
+		return Collections.unmodifiableList(mods);
+	}
+
+	@Deprecated
 	public List<ModContainer> getMods() {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected List<Pair<ModInfo, File>> getClasspathMods() {
-		List<Pair<ModInfo, File>> mods = new ArrayList<>();
+	protected List<ModEntry> getClasspathMods() {
+		List<ModEntry> mods = new ArrayList<>();
 
 		String javaHome = System.getProperty("java.home");
 		String modsDir = new File(getGameDirectory(), "mods").getAbsolutePath();
 
-		URL[] urls = Launch.classLoader.getURLs();
-		for (URL url : urls) {
+		for (URL url : FabricLauncherBase.getLauncher().getClasspathURLs()) {
 			if (url.getPath().startsWith(javaHome) || url.getPath().startsWith(modsDir)) {
 				continue;
 			}
@@ -323,7 +332,7 @@ public class FabricLoader {
 					if (modJson.exists()) {
 						try {
 							for (ModInfo info : getMods(new FileInputStream(modJson))) {
-								mods.add(Pair.of(info, f));
+								mods.add(new ModEntry(info, f));
 							}
 						} catch (FileNotFoundException e) {
 							LOGGER.error("Unable to load mod from directory " + f.getPath());
@@ -332,7 +341,7 @@ public class FabricLoader {
 					}
 				} else if (f.getName().endsWith(".jar")) {
 					for (ModInfo info : getJarMods(f)) {
-						mods.add(Pair.of(info, f));
+						mods.add(new ModEntry(info, f));
 					}
 				}
 			}

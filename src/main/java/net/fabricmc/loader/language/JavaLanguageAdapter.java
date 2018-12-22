@@ -18,7 +18,7 @@ package net.fabricmc.loader.language;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
-import net.minecraft.launchwrapper.LaunchClassLoader;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -28,12 +28,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
-		String className = itfString.replace('/', '.');
-		byte[] data = ((LaunchClassLoader) JavaLanguageAdapter.class.getClassLoader()).getClassBytes(className);
-		if (data == null) {
-			return false;
-		}
-		ClassReader reader = new ClassReader(data);
+		String className = itfString.replace('.', '/') + ".class";
+		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
 
 		// TODO: Be a bit more involved
 		if (className.equals("net.fabricmc.api.ClientModInitializer")) {
@@ -56,12 +52,8 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 	}
 
 	public static Class<?> getClass(String classString, Options options) throws ClassNotFoundException, IOException {
-		byte[] data = ((LaunchClassLoader) JavaLanguageAdapter.class.getClassLoader()).getClassBytes(classString);
-		if (data == null) {
-			throw new ClassNotFoundException("Could not find file " + classString);
-		}
-
-		ClassReader reader = new ClassReader(data);
+		String className = classString.replace('.', '/') + ".class";
+		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
 				switch (options.getMissingSuperclassBehavior()) {

@@ -16,16 +16,17 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.transformer.PublicAccessTransformer;
+import net.minecraft.launchwrapper.IClassTransformer;
 
-public final class FabricServerTweaker extends FabricTweaker {
+public class FabricClassTransformer implements IClassTransformer {
 	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
-	}
-
-	@Override
-	public EnvType getEnvironmentType() {
-		return EnvType.SERVER;
+	public byte[] transform(String name, String transformedName, byte[] basicClass) {
+		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+			return PublicAccessTransformer.transform(name, basicClass);
+		} else {
+			return basicClass;
+		}
 	}
 }

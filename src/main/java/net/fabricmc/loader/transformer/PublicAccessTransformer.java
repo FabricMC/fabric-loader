@@ -16,10 +16,13 @@
 
 package net.fabricmc.loader.transformer;
 
-import net.minecraft.launchwrapper.IClassTransformer;
+import com.google.common.io.ByteStreams;
 import org.objectweb.asm.*;
 
-public final class PublicAccessTransformer implements IClassTransformer {
+import java.io.IOException;
+import java.io.InputStream;
+
+public final class PublicAccessTransformer {
 	private static final int modAccess(int access) {
 		if ((access & 0x7) != Opcodes.ACC_PRIVATE) {
 			return (access & (~0x7)) | Opcodes.ACC_PUBLIC;
@@ -71,11 +74,11 @@ public final class PublicAccessTransformer implements IClassTransformer {
 		}
 	}
 
-	@Override
-	public byte[] transform(String name, String transformedName, byte[] bytes) {
+	public static byte[] transform(String name, byte[] bytes) {
 		if (!name.startsWith("net.minecraft") && name.indexOf('.') >= 0) {
 			return bytes;
 		}
+
 		ClassReader classReader = new ClassReader(bytes);
 		ClassWriter classWriter = new ClassWriter(0);
 		classReader.accept(new AccessClassVisitor(Opcodes.ASM7, classWriter), 0);

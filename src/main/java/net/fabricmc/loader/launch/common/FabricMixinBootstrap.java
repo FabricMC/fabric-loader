@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch;
+package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.ModInfo;
 import net.fabricmc.loader.util.mixin.MixinIntermediaryDevRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +26,6 @@ import org.spongepowered.asm.mixin.Mixins;
 
 import java.io.*;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() {
@@ -41,7 +39,7 @@ public final class FabricMixinBootstrap {
 		Mixins.addConfiguration(configuration);
 	}
 
-	static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader, BufferedReader mappingReader) {
+	public static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader, BufferedReader mappingReader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -61,7 +59,7 @@ public final class FabricMixinBootstrap {
 		init(side, args, mixinLoader);
 	}
 
-	static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader) {
+	public static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}

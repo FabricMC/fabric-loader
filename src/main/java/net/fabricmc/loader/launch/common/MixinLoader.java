@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch;
+package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.ModContainer;
 import net.fabricmc.loader.ModInfo;
-import net.minecraft.launchwrapper.Launch;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class MixinLoader extends FabricLoader {
+public class MixinLoader extends FabricLoader {
 	static {
 		LOGGER = LogManager.getFormatterLogger("Fabric|MixinLoader");
 	}

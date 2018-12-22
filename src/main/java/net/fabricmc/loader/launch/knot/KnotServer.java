@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch;
+package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
 
-public final class FabricServerTweaker extends FabricTweaker {
-	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
-	}
+import java.io.File;
 
-	@Override
-	public EnvType getEnvironmentType() {
-		return EnvType.SERVER;
+public class KnotServer {
+	public static void main(String[] args) {
+		String gameJarPath = System.getProperty("fabric.gameJarPath");
+		new Knot(EnvType.SERVER, gameJarPath != null ? new File(gameJarPath) : null).init(args);
 	}
 }

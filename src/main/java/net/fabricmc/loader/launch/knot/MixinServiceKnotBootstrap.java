@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch;
+package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
+import org.spongepowered.asm.service.IMixinServiceBootstrap;
 
-public final class FabricServerTweaker extends FabricTweaker {
+public class MixinServiceKnotBootstrap implements IMixinServiceBootstrap {
 	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
+	public String getName() {
+		return "Knot";
 	}
 
 	@Override
-	public EnvType getEnvironmentType() {
-		return EnvType.SERVER;
+	public String getServiceClassName() {
+		return "net.fabricmc.loader.launch.knot.MixinServiceKnot";
+	}
+
+	@Override
+	public void bootstrap() {
+		// already done in Knot
 	}
 }
