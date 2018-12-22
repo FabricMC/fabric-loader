@@ -10,11 +10,11 @@
       },
       {
         "name": "net.fabricmc:sponge-mixin:0.7.11.12",
-        "url": "https://maven.modmuss50.me/"
+        "url": "https://maven.fabricmc.net/"
       },
       {
         "name": "net.fabricmc:tiny-remapper:0.1.0.20",
-        "url": "https://maven.modmuss50.me/"
+        "url": "https://maven.fabricmc.net/"
       },
       {
         "name": "org.ow2.asm:asm:7.0",
