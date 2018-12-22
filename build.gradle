@@ -8,7 +8,7 @@ buildscript {
 		mavenCentral()
 		maven {
 			name = 'Fabric'
-			url = 'http://maven.modmuss50.me/'
+			url = 'https://maven.fabricmc.net/'
 		}
 		maven {
 			name = 'mojang'
@@ -16,7 +16,7 @@ buildscript {
 		}
 	}
 	dependencies {
-		classpath 'net.fabricmc:fabric-loom:0.1.0-SNAPSHOT'
+		classpath 'net.fabricmc:fabric-loom:0.2.0-SNAPSHOT'
 	}
 }
 
@@ -126,6 +126,11 @@ String getClasspathEntries(){
 
 artifacts {
 	archives file("src/main/resources/fabric-installer.json")
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
 }
 
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
