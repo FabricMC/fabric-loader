@@ -283,7 +283,7 @@ public final class Knot extends FabricLauncherBase {
 
 		// Setup classloader
 		loader = new PatchingClassLoader(isDevelopment());
-		String[] classpathStrings = System.getProperty("java.class.path").split(":");
+		String[] classpathStrings = System.getProperty("java.class.path").split(File.pathSeparator);
 
 		classpath = new ArrayList<>(classpathStrings.length - 1);
 		populateClasspath(argMap, classpathStrings);
