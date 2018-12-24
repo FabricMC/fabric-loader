@@ -15,23 +15,23 @@
       },
       {
         "name": "org.ow2.asm:asm:7.0",
-        "url": "http://repo.maven.apache.org/maven2/"
+        "url": "https://maven.fabricmc.net/"
       },
       {
         "name": "org.ow2.asm:asm-analysis:7.0",
-        "url": "http://repo.maven.apache.org/maven2/"
+        "url": "https://maven.fabricmc.net/"
       },
       {
         "name": "org.ow2.asm:asm-commons:7.0",
-        "url": "http://repo.maven.apache.org/maven2/"
+        "url": "https://maven.fabricmc.net/"
       },
       {
         "name": "org.ow2.asm:asm-tree:7.0",
-        "url": "http://repo.maven.apache.org/maven2/"
+        "url": "https://maven.fabricmc.net/"
       },
       {
         "name": "org.ow2.asm:asm-util:7.0",
-        "url": "http://repo.maven.apache.org/maven2/"
+        "url": "https://maven.fabricmc.net/"
       }
     ],
     "server": [
