@@ -28,16 +28,16 @@ import java.lang.reflect.InvocationTargetException;
 
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
-		String className = itfString.replace('.', '/') + ".class";
+		String className = itfString + ".class";
 
 		// TODO: Be a bit more involved
 		switch (itfString) {
-			case "net.fabricmc.api.ClientModInitializer":
+			case "net/fabricmc/api/ClientModInitializer":
 				if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.SERVER) {
 					return false;
 				}
 				break;
-			case "net.fabricmc.api.DedicatedServerModInitializer":
+			case "net/fabricmc/api/DedicatedServerModInitializer":
 				if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.CLIENT) {
 					return false;
 				}
