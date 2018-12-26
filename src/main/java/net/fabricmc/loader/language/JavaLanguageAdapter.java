@@ -29,18 +29,21 @@ import java.lang.reflect.InvocationTargetException;
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
 		String className = itfString.replace('.', '/') + ".class";
-		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
 
 		// TODO: Be a bit more involved
-		if (className.equals("net.fabricmc.api.ClientModInitializer")) {
-			if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.SERVER) {
-				return false;
-			}
-		} else if (className.equals("net.fabricmc.api.DedicatedServerModInitializer")) {
-			if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.CLIENT) {
-				return false;
-			}
+		switch (itfString) {
+			case "net.fabricmc.api.ClientModInitializer":
+				if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.SERVER) {
+					return false;
+				}
+				break;
+			case "net.fabricmc.api.DedicatedServerModInitializer":
+				if (FabricLoader.INSTANCE.getEnvironmentHandler().getEnvironmentType() == EnvType.CLIENT) {
+					return false;
+				}
 		}
+
+		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
 
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
