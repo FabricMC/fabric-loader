@@ -20,7 +20,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
-import net.fabricmc.loader.transformer.PublicAccessTransformer;
+import net.fabricmc.loader.transformer.FabricTransformer;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.MixinTransformer;
@@ -99,13 +99,15 @@ public final class Knot extends FabricLauncherBase {
 		private final DynamicURLClassLoader urlLoader;
 		private final ClassLoader originalLoader;
 		private final boolean isDevelopment;
+		private final EnvType envType;
 		private MixinTransformer mixinTransformer;
 
-		public PatchingClassLoader(boolean isDevelopment) {
+		public PatchingClassLoader(boolean isDevelopment, EnvType envType) {
 			super(new DynamicURLClassLoader(new URL[0]));
 			this.originalLoader = getClass().getClassLoader();
 			this.urlLoader = (DynamicURLClassLoader) getParent();
 			this.isDevelopment = isDevelopment;
+			this.envType = envType;
 		}
 
 		public boolean isClassLoaded(String name) {
@@ -187,7 +189,7 @@ public final class Knot extends FabricLauncherBase {
 								}
 							}
 
-							byte[] b = isDevelopment ? PublicAccessTransformer.transform(name, input) : input;
+							byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
 							b = mixinTransformer.transformClassBytes(name, name, b);
 							c = defineClass(name, b, 0, b.length);
 						}
@@ -282,7 +284,7 @@ public final class Knot extends FabricLauncherBase {
 		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";
 
 		// Setup classloader
-		loader = new PatchingClassLoader(isDevelopment());
+		loader = new PatchingClassLoader(isDevelopment(), envType);
 		String[] classpathStrings = System.getProperty("java.class.path").split(File.pathSeparator);
 
 		classpath = new ArrayList<>(classpathStrings.length - 1);

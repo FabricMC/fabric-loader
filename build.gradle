@@ -57,7 +57,7 @@ repositories {
 
 dependencies {
 	minecraft "com.mojang:minecraft:18w50a"
-	mappings "net.fabricmc:yarn:18w50a.43"
+	mappings "net.fabricmc:yarn:18w50a.72"
 
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 	compile 'org.ow2.asm:asm:7.0'
