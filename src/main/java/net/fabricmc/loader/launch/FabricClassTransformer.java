@@ -27,6 +27,6 @@ public class FabricClassTransformer implements IClassTransformer {
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-        return FabricTransformer.transform(isDevelopment, envType, name, basicClass);
+		return FabricTransformer.transform(isDevelopment, envType, name, basicClass);
 	}
 }
