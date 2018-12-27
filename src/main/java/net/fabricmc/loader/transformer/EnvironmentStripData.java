@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	 http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -79,16 +79,16 @@ public class EnvironmentStripData extends ClassVisitor {
 
 	@Override
 	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
-            return new AnnotationVisitor(api) {
-                @Override
-                public void visitEnum(String name, String descriptor, String value) {
-                    if ("value".equals(name) && !envType.equals(value)) {
-                    	stripEntireClass = true;
-                    }
-                }
-            };
-        } else if (ENVIRONMENT_INTERFACE_DESCRIPTOR.equals(descriptor)) {
+		if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
+			return new AnnotationVisitor(api) {
+				@Override
+				public void visitEnum(String name, String descriptor, String value) {
+					if ("value".equals(name) && !envType.equals(value)) {
+						stripEntireClass = true;
+					}
+				}
+			};
+		} else if (ENVIRONMENT_INTERFACE_DESCRIPTOR.equals(descriptor)) {
 			return new AnnotationVisitor(api) {
 				private boolean envMismatch;
 
@@ -115,7 +115,7 @@ public class EnvironmentStripData extends ClassVisitor {
 				}
 			};
 		}
-        return null;
+		return null;
 	}
 
 	@Override
