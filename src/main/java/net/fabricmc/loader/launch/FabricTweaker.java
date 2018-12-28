@@ -86,9 +86,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		mixinLoader.load(new File(gameDir, "mods"));
 		mixinLoader.freeze();
 
-		if (isDevelopment) {
-			launchClassLoader.registerTransformer("net.fabricmc.loader.launch.FabricClassTransformer");
-		} else {
+		launchClassLoader.registerTransformer("net.fabricmc.loader.launch.FabricClassTransformer");
+
+		if (!isDevelopment) {
 			// Obfuscated environment
 			Launch.blackboard.put("fabric.development", false);
 			try {

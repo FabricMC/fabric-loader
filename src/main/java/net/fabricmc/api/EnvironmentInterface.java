@@ -16,18 +16,17 @@
 
 package net.fabricmc.api;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
- * Applied to declare that the element is present only in the specified environment.
- * Use with caution, as Fabric-loader will completely remove annotated elements in a mismatched environment!
- * This annotation should be inherited when overriding a method.
+ * Applied to declare that an interface implementation is present only in the specified environment.
+ * Use with caution, as Fabric-loader will completely remove interface implementations in a mismatched environment!
+ * Implemented methods are not removed. To remove implemented methods, use {@link Environment}.
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ ElementType.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR })
-public @interface Environment {
+@Repeatable(EnvironmentInterfaces.class)
+@Target(ElementType.TYPE)
+public @interface EnvironmentInterface {
 	EnvType value();
+	Class<?> itf();
 }
