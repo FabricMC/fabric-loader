@@ -35,7 +35,7 @@ public final class FabricTransformer {
 			visitor = new PackageAccessFixer(Opcodes.ASM7, visitor);
 		}
 		if (environmentStrip) {
-			EnvironmentStripData stripData = new EnvironmentStripData(Opcodes.ASM7, envType.toString());
+			EnvironmentStrippingData stripData = new EnvironmentStrippingData(Opcodes.ASM7, envType.toString());
 			classReader.accept(stripData, 0);
 			if (stripData.stripEntireClass()) {
 				throw new RuntimeException("Cannot load class " + name + " in environment type " + envType);

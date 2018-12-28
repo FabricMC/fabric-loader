@@ -27,7 +27,7 @@ import java.util.HashSet;
 /**
  * Scans a class for Environment and EnvironmentInterface annotations to figure out what needs to be stripped.
  */
-public class EnvironmentStripData extends ClassVisitor {
+public class EnvironmentStrippingData extends ClassVisitor {
 	private static final String ENVIRONMENT_DESCRIPTOR = Type.getDescriptor(Environment.class);
 	private static final String ENVIRONMENT_INTERFACE_DESCRIPTOR = Type.getDescriptor(EnvironmentInterface.class);
 	private static final String ENVIRONMENT_INTERFACES_DESCRIPTOR = Type.getDescriptor(EnvironmentInterfaces.class);
@@ -92,7 +92,7 @@ public class EnvironmentStripData extends ClassVisitor {
 		return null;
 	}
 
-	public EnvironmentStripData(int api, String envType) {
+	public EnvironmentStrippingData(int api, String envType) {
 		super(api);
 		this.envType = envType;
 	}
