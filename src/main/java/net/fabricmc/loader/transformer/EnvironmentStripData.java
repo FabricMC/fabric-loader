@@ -28,16 +28,6 @@ import java.util.HashSet;
  * Scans a class for Environment and EnvironmentInterface annotations to figure out what needs to be stripped.
  */
 public class EnvironmentStripData extends ClassVisitor {
-	// TODO: Remove this
-	private static final Collection<String> NAUGHTY_INTERFACES = new HashSet<>();
-	static {
-		NAUGHTY_INTERFACES.add("net/minecraft/class_2618");
-		NAUGHTY_INTERFACES.add("net/minecraft/class_3856");
-		NAUGHTY_INTERFACES.add("net/minecraft/class_3851");
-		NAUGHTY_INTERFACES.add("net/minecraft/client/block/ChestAnimationProgress");
-		NAUGHTY_INTERFACES.add("net/minecraft/village/VillagerDataContainer");
-	}
-
 	private static final String ENVIRONMENT_DESCRIPTOR = Type.getDescriptor(Environment.class);
 	private static final String ENVIRONMENT_INTERFACE_DESCRIPTOR = Type.getDescriptor(EnvironmentInterface.class);
 	private static final String ENVIRONMENT_INTERFACES_DESCRIPTOR = Type.getDescriptor(EnvironmentInterfaces.class);
@@ -105,17 +95,6 @@ public class EnvironmentStripData extends ClassVisitor {
 	public EnvironmentStripData(int api, String envType) {
 		super(api);
 		this.envType = envType;
-	}
-
-	@Override
-	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-		if (!"CLIENT".equals(envType)) {
-			for (String itf : interfaces) {
-				if (NAUGHTY_INTERFACES.contains(itf)) {
-					this.stripInterfaces.add(itf);
-				}
-			}
-		}
 	}
 
 	@Override
