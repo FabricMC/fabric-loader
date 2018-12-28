@@ -18,6 +18,7 @@ package net.fabricmc.loader.transformer;
 
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvironmentInterface;
+import net.fabricmc.api.EnvironmentInterfaces;
 import org.objectweb.asm.*;
 
 import java.util.HashSet;
@@ -39,6 +40,7 @@ public class EnvironmentStripData extends ClassVisitor {
 
 	private static final String ENVIRONMENT_DESCRIPTOR = Type.getDescriptor(Environment.class);
 	private static final String ENVIRONMENT_INTERFACE_DESCRIPTOR = Type.getDescriptor(EnvironmentInterface.class);
+	private static final String ENVIRONMENT_INTERFACES_DESCRIPTOR = Type.getDescriptor(EnvironmentInterfaces.class);
 
 	private final String envType;
 
@@ -47,16 +49,55 @@ public class EnvironmentStripData extends ClassVisitor {
 	private final Set<String> stripFields = new HashSet<>();
 	private final Set<String> stripMethods = new HashSet<>();
 
-	private AnnotationVisitor visitAnnotation(String descriptor, boolean visible, Runnable onEnvMismatch) {
+	private class EnvironmentAnnotationVisitor extends AnnotationVisitor {
+		private final Runnable onEnvMismatch;
+
+		private EnvironmentAnnotationVisitor(int api, Runnable onEnvMismatch) {
+			super(api);
+			this.onEnvMismatch = onEnvMismatch;
+		}
+
+		@Override
+		public void visitEnum(String name, String descriptor, String value) {
+			if ("value".equals(name) && !envType.equals(value)) {
+				onEnvMismatch.run();
+			}
+		}
+	}
+
+	private class EnvironmentInterfaceAnnotationVisitor extends AnnotationVisitor {
+		private boolean envMismatch;
+		private Type itf;
+
+		private EnvironmentInterfaceAnnotationVisitor(int api) {
+			super(api);
+		}
+
+		@Override
+		public void visitEnum(String name, String descriptor, String value) {
+			if ("value".equals(name) && !envType.equals(value)) {
+				envMismatch = true;
+			}
+		}
+
+		@Override
+		public void visit(String name, Object value) {
+			if ("itf".equals(name)) {
+				itf = (Type) value;
+			}
+		}
+
+		@Override
+		public void visitEnd() {
+			if (envMismatch) {
+				stripInterfaces.add(itf.getInternalName());
+			}
+		}
+	}
+
+	private AnnotationVisitor visitMemberAnnotation(String descriptor, boolean visible, Runnable onEnvMismatch) {
 		if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
-			return new AnnotationVisitor(api) {
-				@Override
-				public void visitEnum(String name, String descriptor, String value) {
-					if ("value".equals(name) && !envType.equals(value)) {
-						onEnvMismatch.run();
-					}
-				}
-			};
+			return new EnvironmentAnnotationVisitor(api, onEnvMismatch);
 		}
 		return null;
 	}
@@ -80,34 +121,18 @@ public class EnvironmentStripData extends ClassVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
 		if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
-			return new AnnotationVisitor(api) {
-				@Override
-				public void visitEnum(String name, String descriptor, String value) {
-					if ("value".equals(name) && !envType.equals(value)) {
-						stripEntireClass = true;
-					}
-				}
-			};
+			return new EnvironmentAnnotationVisitor(api, () -> stripEntireClass = true);
 		} else if (ENVIRONMENT_INTERFACE_DESCRIPTOR.equals(descriptor)) {
+			return new EnvironmentInterfaceAnnotationVisitor(api);
+		} else if (ENVIRONMENT_INTERFACES_DESCRIPTOR.equals(descriptor)) {
 			return new AnnotationVisitor(api) {
-				private boolean envMismatch;
-
-				@Override
-				public void visitEnum(String name, String descriptor, String value) {
-					if ("value".equals(name) && !envType.equals(value)) {
-						envMismatch = true;
-					}
-				}
-
 				@Override
 				public AnnotationVisitor visitArray(String name) {
-					if ("itf".equals(name)) {
+					if ("value".equals(name)) {
 						return new AnnotationVisitor(api) {
 							@Override
-							public void visit(String name, Object value) {
-								if (envMismatch) {
-									stripInterfaces.add(((Type) value).getInternalName());
-								}
+							public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+								return new EnvironmentInterfaceAnnotationVisitor(api);
 							}
 						};
 					}
@@ -123,7 +148,7 @@ public class EnvironmentStripData extends ClassVisitor {
 		return new FieldVisitor(api) {
 			@Override
 			public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-				return EnvironmentStripData.this.visitAnnotation(descriptor, visible, () -> stripFields.add(name + descriptor));
+				return visitMemberAnnotation(descriptor, visible, () -> stripFields.add(name + descriptor));
 			}
 		};
 	}
@@ -134,7 +159,7 @@ public class EnvironmentStripData extends ClassVisitor {
 		return new MethodVisitor(api) {
 			@Override
 			public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-				return EnvironmentStripData.this.visitAnnotation(descriptor, visible, () -> stripMethods.add(methodId));
+				return visitMemberAnnotation(descriptor, visible, () -> stripMethods.add(methodId));
 			}
 		};
 	}
