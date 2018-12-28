@@ -21,18 +21,18 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Strips the specified interfaces, fields and methods from a class.
  */
 public class ClassStripper extends ClassVisitor {
-	private final Set<String> stripInterfaces;
-	private final Set<String> stripFields;
-	private final Set<String> stripMethods;
+	private final Collection<String> stripInterfaces;
+	private final Collection<String> stripFields;
+	private final Collection<String> stripMethods;
 
-	public ClassStripper(int api, ClassVisitor classVisitor, Set<String> stripInterfaces, Set<String> stripFields, Set<String> stripMethods) {
+	public ClassStripper(int api, ClassVisitor classVisitor, Collection<String> stripInterfaces, Collection<String> stripFields, Collection<String> stripMethods) {
 		super(api, classVisitor);
 		this.stripInterfaces = stripInterfaces;
 		this.stripFields = stripFields;

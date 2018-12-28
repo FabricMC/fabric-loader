@@ -21,15 +21,15 @@ import net.fabricmc.api.EnvironmentInterface;
 import net.fabricmc.api.EnvironmentInterfaces;
 import org.objectweb.asm.*;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Scans a class for Environment and EnvironmentInterface annotations to figure out what needs to be stripped.
  */
 public class EnvironmentStripData extends ClassVisitor {
 	// TODO: Remove this
-	private static final Set<String> NAUGHTY_INTERFACES = new HashSet<>();
+	private static final Collection<String> NAUGHTY_INTERFACES = new HashSet<>();
 	static {
 		NAUGHTY_INTERFACES.add("net/minecraft/class_2618");
 		NAUGHTY_INTERFACES.add("net/minecraft/class_3856");
@@ -45,9 +45,9 @@ public class EnvironmentStripData extends ClassVisitor {
 	private final String envType;
 
 	private boolean stripEntireClass = false;
-	private final Set<String> stripInterfaces = new HashSet<>();
-	private final Set<String> stripFields = new HashSet<>();
-	private final Set<String> stripMethods = new HashSet<>();
+	private final Collection<String> stripInterfaces = new HashSet<>();
+	private final Collection<String> stripFields = new HashSet<>();
+	private final Collection<String> stripMethods = new HashSet<>();
 
 	private class EnvironmentAnnotationVisitor extends AnnotationVisitor {
 		private final Runnable onEnvMismatch;
@@ -168,15 +168,15 @@ public class EnvironmentStripData extends ClassVisitor {
 		return stripEntireClass;
 	}
 
-	public Set<String> getStripInterfaces() {
+	public Collection<String> getStripInterfaces() {
 		return stripInterfaces;
 	}
 
-	public Set<String> getStripFields() {
+	public Collection<String> getStripFields() {
 		return stripFields;
 	}
 
-	public Set<String> getStripMethods() {
+	public Collection<String> getStripMethods() {
 		return stripMethods;
 	}
 
