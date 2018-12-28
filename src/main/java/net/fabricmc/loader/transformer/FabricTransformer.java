@@ -41,7 +41,7 @@ public final class FabricTransformer {
 				throw new RuntimeException("Cannot load class " + name + " in environment type " + envType);
 			}
 			if (!stripData.isEmpty()) {
-				visitor = new Stripper(Opcodes.ASM7, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
+				visitor = new ClassStripper(Opcodes.ASM7, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
 			}
 		}
 		classReader.accept(visitor, 0);

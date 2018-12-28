@@ -27,12 +27,12 @@ import java.util.Set;
 /**
  * Strips the specified interfaces, fields and methods from a class.
  */
-public class Stripper extends ClassVisitor {
+public class ClassStripper extends ClassVisitor {
 	private final Set<String> stripInterfaces;
 	private final Set<String> stripFields;
 	private final Set<String> stripMethods;
 
-	public Stripper(int api, ClassVisitor classVisitor, Set<String> stripInterfaces, Set<String> stripFields, Set<String> stripMethods) {
+	public ClassStripper(int api, ClassVisitor classVisitor, Set<String> stripInterfaces, Set<String> stripFields, Set<String> stripMethods) {
 		super(api, classVisitor);
 		this.stripInterfaces = stripInterfaces;
 		this.stripFields = stripFields;
