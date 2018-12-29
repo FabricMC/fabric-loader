@@ -42,17 +42,22 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public byte[] getClassBytes(String name, String transformedName) throws IOException {
-		return ((Knot) FabricLauncherBase.getLauncher()).getClassByteArray(name);
+		return FabricLauncherBase.getLauncher().getClassByteArray(name);
 	}
 
 	@Override
 	public byte[] getClassBytes(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
-		return ((Knot) FabricLauncherBase.getLauncher()).getClassByteArray(name);
+		byte[] classBytes = FabricLauncherBase.getLauncher().getClassByteArray(name);
+		if (classBytes != null) {
+			return classBytes;
+		} else {
+			throw new ClassNotFoundException(name);
+		}
 	}
 
 	@Override
 	public ClassNode getClassNode(String name) throws ClassNotFoundException, IOException {
-		ClassReader reader = new ClassReader(((Knot) FabricLauncherBase.getLauncher()).getClassByteArray(name));
+		ClassReader reader = new ClassReader(getClassBytes(name, true /* irrelevant, at least right now */));
 		ClassNode node = new ClassNode();
 		reader.accept(node, 0);
 		return node;

@@ -173,7 +173,12 @@ public final class Knot extends FabricLauncherBase {
 
 				if (c == null) {
 					if (!name.startsWith("net.fabricmc.loader.launch.") && /* MixinLoader -> */ !name.startsWith("org.apache.logging.log4j")) {
-						byte[] input = getClassByteArray(name, true);
+						byte[] input;
+						try {
+							input = getClassByteArray(name, true);
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
 						if (input != null) {
 							if (name.indexOf('.') < 0) {
 								throw new ClassNotFoundException("Root packages forbidden: class '" + name + "' could not be loaded");
@@ -216,30 +221,26 @@ public final class Knot extends FabricLauncherBase {
 			registerAsParallelCapable();
 		}
 
-		public byte[] getClassByteArray(String name, boolean skipOriginalLoader) {
+		public byte[] getClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
 			String classFile = name.replace('.', '/') + ".class";
-			try {
-				InputStream inputStream = urlLoader.getResourceAsStream(classFile);
-				if (inputStream == null && !skipOriginalLoader) {
-					inputStream = originalLoader.getResourceAsStream(classFile);
-				}
-				if (inputStream == null) {
-					return null;
-				}
-
-				int a = inputStream.available();
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream(a < 32 ? 32768 : a);
-				byte[] buffer = new byte[8192];
-				int len;
-				while ((len = inputStream.read(buffer)) > 0) {
-					outputStream.write(buffer, 0, len);
-				}
-
-				inputStream.close();
-				return outputStream.toByteArray();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			InputStream inputStream = urlLoader.getResourceAsStream(classFile);
+			if (inputStream == null && !skipOriginalLoader) {
+				inputStream = originalLoader.getResourceAsStream(classFile);
 			}
+			if (inputStream == null) {
+				return null;
+			}
+
+			int a = inputStream.available();
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream(a < 32 ? 32768 : a);
+			byte[] buffer = new byte[8192];
+			int len;
+			while ((len = inputStream.read(buffer)) > 0) {
+				outputStream.write(buffer, 0, len);
+			}
+
+			inputStream.close();
+			return outputStream.toByteArray();
 		}
 	}
 
@@ -413,7 +414,7 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public byte[] getClassByteArray(String name) {
+	public byte[] getClassByteArray(String name) throws IOException {
 		return loader.getClassByteArray(name, false);
 	}
 
