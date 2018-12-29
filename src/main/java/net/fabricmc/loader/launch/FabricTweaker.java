@@ -81,7 +81,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
 		launchClassLoader.addClassLoaderExclusion("org.spongepowered.asm.");
 
-		File gameDir = new File(args.get("--gameDir"));
+		File gameDir = getLaunchDirectory(this.args);
 		mixinLoader = new MixinLoader();
 		mixinLoader.load(new File(gameDir, "mods"));
 		mixinLoader.freeze();

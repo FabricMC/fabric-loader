@@ -57,7 +57,7 @@ repositories {
 
 dependencies {
 	minecraft "com.mojang:minecraft:18w50a"
-	mappings "net.fabricmc:yarn:18w50a.72"
+	mappings "net.fabricmc:yarn:18w50a.80"
 
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 	compile 'org.ow2.asm:asm:7.0'
@@ -70,7 +70,7 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-remapper:0.1.0.20'
+	compile 'net.fabricmc:tiny-remapper:0.1.0.22'
 
 	// Mojang
 	compile ('net.minecraft:launchwrapper:1.12') {
