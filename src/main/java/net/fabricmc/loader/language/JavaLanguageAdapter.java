@@ -43,33 +43,46 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 				}
 		}
 
-		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
+		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(className);
+		if (stream == null) {
+			return false;
+		}
+		ClassReader reader = new ClassReader(stream);
 
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
+				stream.close();
 				return false;
 			}
 		}
 
+		stream.close();
 		return true;
 	}
 
 	public static Class<?> getClass(String classString, Options options) throws ClassNotFoundException, IOException {
 		String className = classString.replace('.', '/') + ".class";
-		ClassReader reader = new ClassReader(FabricLauncherBase.getLauncher().getResourceAsStream(className));
+		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(className);
+		if (stream == null) {
+			throw new ClassNotFoundException("Could not find or load class " + className);
+		}
+		ClassReader reader = new ClassReader(stream);
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
 				switch (options.getMissingSuperclassBehavior()) {
 					case RETURN_NULL:
+						stream.close();
 						return null;
 					case CRASH:
 					default:
+						stream.close();
 						throw new ClassNotFoundException("Could not find or load class " + s);
 
 				}
 			}
 		}
 
+		stream.close();
 		return Class.forName(classString);
 	}
 
