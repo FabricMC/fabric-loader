@@ -31,9 +31,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
@@ -104,14 +102,20 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 						.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
 						.rebuildSourceFilenames(true)
 						.build();
-					List<Path> depPaths = new ArrayList<>();
+					Set<Path> depPaths = new HashSet<>();
+					depPaths.add(jarPath);
+
+					for (URL url : launcher.getClasspathURLs()) {
+						Path path = new File(url.getFile()).toPath();
+						if (!path.equals(jarPath)) {
+							depPaths.add(path);
+						}
+					}
 
 					try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
-						remapper.read(jarPath);
-
-						for (URL url : launcher.getClasspathURLs()) {
-							remapper.read();
-							depPaths.add(new File(url.getFile()).toPath());
+						for (Path path : depPaths) {
+							LOGGER.debug("Appending '" + path + "' to remapper classpath");
+							remapper.read(path);
 						}
 						remapper.apply(jarPath, outputConsumer);
 					} catch (IOException e) {
@@ -123,7 +127,6 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 					// Minecraft doesn't tend to check if a ZipFileSystem is already present,
 					// so we clean up here.
 
-					depPaths.add(jarPath);
 					depPaths.add(deobfJarPath);
 					for (Path p : depPaths) {
 						try {
