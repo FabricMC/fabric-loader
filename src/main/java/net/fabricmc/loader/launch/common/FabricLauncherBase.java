@@ -30,9 +30,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.jar.JarFile;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
@@ -96,49 +98,60 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 				Path deobfJarPath = deobfJarFile.toPath();
 
 				if (!deobfJarFile.exists()) {
-					LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
+					boolean found = false;
+					while (!found) {
+						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
 
-					TinyRemapper remapper = TinyRemapper.newRemapper()
-						.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
-						.rebuildSourceFilenames(true)
-						.build();
-					Set<Path> depPaths = new HashSet<>();
-					depPaths.add(jarPath);
+						TinyRemapper remapper = TinyRemapper.newRemapper()
+							.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
+							.rebuildSourceFilenames(true)
+							.build();
+						Set<Path> depPaths = new HashSet<>();
+						depPaths.add(jarPath);
 
-					for (URL url : launcher.getClasspathURLs()) {
-						Path path = new File(url.getFile()).toPath();
-						if (!path.equals(jarPath)) {
-							depPaths.add(path);
-						}
-					}
-
-					try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
-						for (Path path : depPaths) {
-							LOGGER.debug("Appending '" + path + "' to remapper classpath");
-							remapper.read(path);
-						}
-						remapper.apply(jarPath, outputConsumer);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					} finally {
-						remapper.finish();
-					}
-
-					// Minecraft doesn't tend to check if a ZipFileSystem is already present,
-					// so we clean up here.
-
-					depPaths.add(deobfJarPath);
-					for (Path p : depPaths) {
-						try {
-							p.getFileSystem().close();
-						} catch (Exception e) {
-							// pass
+						for (URL url : launcher.getClasspathURLs()) {
+							Path path = new File(url.getFile()).toPath();
+							if (!path.equals(jarPath)) {
+								depPaths.add(path);
+							}
 						}
 
-						try {
-							FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
-						} catch (Exception e) {
-							// pass
+						try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
+							for (Path path : depPaths) {
+								LOGGER.debug("Appending '" + path + "' to remapper classpath");
+								remapper.read(path);
+							}
+							remapper.apply(jarPath, outputConsumer);
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						} finally {
+							remapper.finish();
+						}
+
+						// Minecraft doesn't tend to check if a ZipFileSystem is already present,
+						// so we clean up here.
+
+						depPaths.add(deobfJarPath);
+						for (Path p : depPaths) {
+							try {
+								p.getFileSystem().close();
+							} catch (Exception e) {
+								// pass
+							}
+
+							try {
+								FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
+							} catch (Exception e) {
+								// pass
+							}
+						}
+
+						JarFile jar = new JarFile(deobfJarFile);
+						if (jar.stream().noneMatch((e) -> e.getName().endsWith(".class"))) {
+							LOGGER.error("Generated deobfuscated JAR contains no classes! Trying again...");
+							Files.delete(deobfJarPath);
+						} else {
+							found = true;
 						}
 					}
 				}
