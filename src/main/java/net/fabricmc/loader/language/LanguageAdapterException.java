@@ -24,4 +24,8 @@ public class LanguageAdapterException extends Exception {
 	public LanguageAdapterException(String s, Throwable t) {
 		super(s, t);
 	}
+
+	public LanguageAdapterException(Throwable t) {
+		super(t);
+	}
 }
