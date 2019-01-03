@@ -36,7 +36,7 @@ public class FabricServerLauncher {
 
 		if (!dev) {
 			for (int i = 0; i < args.length; i++) {
-				if (i == 0 && !args[0].startsWith("-")) {
+				if (i == 0 && !args[0].startsWith("-") && args[0].endsWith(".jar")) {
 					serverJar = new File(args[0]);
 				} else {
 					runArguments.add(args[i]);
