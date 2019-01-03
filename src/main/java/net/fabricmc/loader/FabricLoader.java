@@ -454,8 +454,12 @@ public class FabricLoader implements Loader {
 
 	private void initializeMods() {
 		for (ModContainer mod : mods) {
-			for (String in : mod.getInfo().getInitializers()) {
-				instanceStorage.instantiate(in, mod.getAdapter());
+			try {
+				for (String in : mod.getInfo().getInitializers()) {
+					instanceStorage.instantiate(in, mod.getAdapter());
+				}
+			} catch (Exception e){
+				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginFile().getName()), e);
 			}
 		}
 	}
