@@ -149,14 +149,7 @@ public class FabricLoader implements Loader {
 			throw new RuntimeException("Frozen - cannot load additional mods!");
 		}
 
-		if (!checkModsDirectory(modsDir)) {
-			return;
-		}
-
-		File[] dirFiles = modsDir.listFiles();
-		if (dirFiles != null) {
-			load(Arrays.asList(dirFiles));
-		}
+		load(getFilesInDirectory(modsDir));
 	}
 
 	private String join(Stream<String> strings, String joiner) {
@@ -464,12 +457,20 @@ public class FabricLoader implements Loader {
 		}
 	}
 
-	protected static boolean checkModsDirectory(File modsDir) {
+	protected static List<File> getFilesInDirectory(File modsDir) {
 		if (!modsDir.exists()) {
-			modsDir.mkdirs();
-			return false;
+			if (!modsDir.mkdirs()) {
+				throw new RuntimeException("Unable to create directory");
+			}
 		}
-		return modsDir.isDirectory();
+
+		File[] dirFiles = modsDir.listFiles();
+
+		if (dirFiles == null) {
+			throw new RuntimeException("Unable to get files from mods directory because of I/O error or the mods directory is not a directory");
+		}
+
+		return Arrays.asList(dirFiles);
 	}
 
 	protected static ModInfo[] getJarMods(File f) {
