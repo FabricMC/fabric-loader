@@ -35,8 +35,7 @@ public class MixinMinecraftClient {
 	public void init(CallbackInfo info) {
 		MinecraftClient game = ((MinecraftClient) (Object) this);
 		FabricLoader.INSTANCE.initialize(game.runDirectory, new ClientSidedHandler());
-		FabricLoader.INSTANCE.load(new File(game.runDirectory, "mods"));
-		FabricLoader.INSTANCE.freeze();
+		FabricLoader.INSTANCE.instantiateMods();
 		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
 		FabricLoader.INSTANCE.getInitializers(ClientModInitializer.class).forEach(ClientModInitializer::onInitializeClient);
 	}

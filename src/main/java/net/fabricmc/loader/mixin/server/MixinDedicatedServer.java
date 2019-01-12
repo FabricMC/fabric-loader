@@ -34,8 +34,7 @@ public abstract class MixinDedicatedServer {
 	@Inject(method = "setupServer", at = @At("HEAD"))
 	public void setupServer(CallbackInfoReturnable<Boolean> info) throws IOException {
 		FabricLoader.INSTANCE.initialize(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
-		FabricLoader.INSTANCE.load(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile("mods"));
-		FabricLoader.INSTANCE.freeze();
+		FabricLoader.INSTANCE.instantiateMods();
 		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
 		FabricLoader.INSTANCE.getInitializers(DedicatedServerModInitializer.class).forEach(DedicatedServerModInitializer::onInitializeServer);
 	}
