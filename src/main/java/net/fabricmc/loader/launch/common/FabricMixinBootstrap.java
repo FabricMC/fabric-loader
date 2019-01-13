@@ -17,9 +17,6 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModContainer;
-import net.fabricmc.loader.ModInfo;
 import net.fabricmc.loader.util.mixin.MixinIntermediaryDevRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,9 +26,6 @@ import org.spongepowered.asm.mixin.Mixins;
 
 import java.io.*;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() {
@@ -45,7 +39,7 @@ public final class FabricMixinBootstrap {
 		Mixins.addConfiguration(configuration);
 	}
 
-	public static void init(EnvType side, Map<String, String> args, FabricLoader loader, BufferedReader mappingReader) {
+	public static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader, BufferedReader mappingReader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -62,37 +56,10 @@ public final class FabricMixinBootstrap {
 			}
 		}
 
-		init(side, args, loader);
+		init(side, args, mixinLoader);
 	}
 
-	static Set<String> getClientMixinConfigs(FabricLoader loader) {
-		return loader.getModContainers().stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getClient()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	static Set<String> getCommonMixinConfigs(FabricLoader loader) {
-		return loader.getModContainers().stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getCommon()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	static Set<String> getServerMixinConfigs(FabricLoader loader) {
-		return loader.getModContainers().stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getServer()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	public static void init(EnvType side, Map<String, String> args, FabricLoader loader) {
+	public static void init(EnvType side, Map<String, String> args, MixinLoader mixinLoader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -107,14 +74,12 @@ public final class FabricMixinBootstrap {
 			addConfiguration("fabric-loader.mixins.server.json");
 		}
 
-	    getCommonMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
-		switch (side) {
-			case CLIENT:
-				getClientMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
-				break;
-			case SERVER:
-				getServerMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
-				break;
+		mixinLoader.getCommonMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
+		if (side == EnvType.CLIENT) {
+			mixinLoader.getClientMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
+		}
+		if (side == EnvType.SERVER) {
+			mixinLoader.getServerMixinConfigs().forEach(FabricMixinBootstrap::addConfiguration);
 		}
 
 		initialized = true;

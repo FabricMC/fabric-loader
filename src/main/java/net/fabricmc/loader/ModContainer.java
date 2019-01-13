@@ -29,9 +29,12 @@ public class ModContainer {
 	private File originFile;
 	private LanguageAdapter adapter;
 
-	public ModContainer(ModInfo info, File originFile) {
+	public ModContainer(ModInfo info, File originFile, boolean instantiate) {
 		this.info = info;
 		this.originFile = originFile;
+		if (instantiate) {
+			this.adapter = createAdapter();
+		}
 	}
 
 	public ModInfo getInfo() {
@@ -54,11 +57,5 @@ public class ModContainer {
 				throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s", adapter, info.getId()), e);
 			}
 		});
-	}
-
-	void instantiate() {
-		if (this.adapter == null) {
-			this.adapter = createAdapter();
-		}
 	}
 }

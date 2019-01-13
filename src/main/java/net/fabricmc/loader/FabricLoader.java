@@ -70,7 +70,6 @@ public class FabricLoader implements Loader {
 
 	private boolean frozen = false;
 	private boolean gameInitialized = false;
-	private boolean modsInstantiated = false;
 
 	private EnvironmentHandler environmentHandler;
 
@@ -88,31 +87,10 @@ public class FabricLoader implements Loader {
 	 * @return The list of initialized objects for that specific class type.
 	 */
 	public <T> Collection<T> getInitializers(Class<T> type) {
-		if (!modsInstantiated) {
-			throw new RuntimeException("Cannot get initializers if mods not instantiated!");
-		}
-
 		return instanceStorage.getInitializers(type);
 	}
 
 	protected FabricLoader() {
-	}
-
-	/**
-	 * Instantiate the classes for Fabric mods. Should only be done after transformations
-	 * (Mixins, etc.) are fully set up.
-	 */
-	public void instantiateMods() {
-		if (!frozen) {
-			throw new RuntimeException("Cannot instantiate mods if loader not frozen!");
-		}
-
-		if (modsInstantiated) {
-			throw new RuntimeException("Mods already instantiated!");
-		}
-
-		initializeMods();
-		modsInstantiated = true;
 	}
 
 	/**
@@ -236,13 +214,13 @@ public class FabricLoader implements Loader {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getId()) && dep.satisfiedBy(mod)) {
-							addMod(mod, pair.getRight());
+							addMod(mod, pair.getRight(), loaderInitializesMods());
 						}
 					}
 				}
 				continue mods;
 			} */
-			addMod(mod, pair.file);
+			addMod(mod, pair.file, loaderInitializesMods());
 			modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>()).add(pair.file);
 		}
 
@@ -292,6 +270,10 @@ public class FabricLoader implements Loader {
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
+		}
+
+		if (loaderInitializesMods()) {
+			initializeMods();
 		}
 	}
 
@@ -360,16 +342,20 @@ public class FabricLoader implements Loader {
 		return mods;
 	}
 
-	protected void addMod(ModInfo info, File originFile) {
+	protected boolean loaderInitializesMods() {
+		return true;
+	}
+
+	protected void addMod(ModInfo info, File originFile, boolean initialize) {
 		if (modMap.containsKey(info.getId())) {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginFile().getName() + ", " + originFile.getName() + ")");
 		}
 
-		EnvType currentSide = FabricLauncherBase.getLauncher().getEnvironmentType();
+		EnvType currentSide = getEnvironmentHandler().getEnvironmentType();
 		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
 			return;
 		}
-		ModContainer container = new ModContainer(info, originFile);
+		ModContainer container = new ModContainer(info, originFile, initialize);
 		mods.add(container);
 		modMap.put(info.getId(), container);
 	}
@@ -462,7 +448,6 @@ public class FabricLoader implements Loader {
 	private void initializeMods() {
 		for (ModContainer mod : mods) {
 			try {
-				mod.instantiate();
 				for (String in : mod.getInfo().getInitializers()) {
 					instanceStorage.instantiate(in, mod.getAdapter());
 				}

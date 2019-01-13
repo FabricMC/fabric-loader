@@ -17,9 +17,9 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
@@ -297,17 +297,18 @@ public final class Knot extends FabricLauncherBase {
 
 		Thread.currentThread().setContextClassLoader(loader);
 
-		// Load Fabric mods
-		FabricLoader.INSTANCE.load(new File(getLaunchDirectory(argMap), "mods"));
-		FabricLoader.INSTANCE.freeze();
+		// Setup Mixin environment
+		MixinLoader mixinLoader = new MixinLoader();
+		mixinLoader.load(new File(getLaunchDirectory(argMap), "mods"));
+		mixinLoader.freeze();
 
 		MixinBootstrap.init();
 		if (isDevelopment) {
 			FabricLauncherBase.withMappingReader(
-				(reader) -> FabricMixinBootstrap.init(envType, argMap, FabricLoader.INSTANCE, reader),
-				() -> FabricMixinBootstrap.init(envType, argMap, FabricLoader.INSTANCE));
+				(reader) -> FabricMixinBootstrap.init(envType, argMap, mixinLoader, reader),
+				() -> FabricMixinBootstrap.init(envType, argMap, mixinLoader));
 		} else {
-			FabricMixinBootstrap.init(envType, argMap, FabricLoader.INSTANCE);
+			FabricMixinBootstrap.init(envType, argMap, mixinLoader);
 		}
 		MixinEnvironment.getDefaultEnvironment().setSide(envType == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
