@@ -249,10 +249,10 @@ public class FabricLoader implements Loader {
 				break;
 		}
 
-		LOGGER.info(modText, mods.size(), String.join(", ", mods.stream()
+		LOGGER.info(modText, mods.size(), mods.stream()
 			.map(ModContainer::getInfo)
 			.map(ModInfo::getId)
-			.collect(Collectors.toList())));
+			.collect(Collectors.joining(", ")));
 
 		onModsPopulated();
 	}
