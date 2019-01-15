@@ -251,7 +251,7 @@ public class FabricLoader implements Loader {
 
 		LOGGER.info(modText, mods.size(), mods.stream()
 			.map(ModContainer::getInfo)
-			.map(ModInfo::getId)
+			.map(info -> String.format("%s(%s)", info.getId(), info.getVersionString()))
 			.collect(Collectors.joining(", ")));
 
 		onModsPopulated();
