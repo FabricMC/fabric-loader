@@ -9,6 +9,10 @@
         "name": "net.minecraft:launchwrapper:1.12"
       },
       {
+        "name": "net.fabricmc:tiny-mappings-parser:0.1.0.4",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
         "name": "net.fabricmc:sponge-mixin:0.7.11.14",
         "url": "https://maven.fabricmc.net/"
       },

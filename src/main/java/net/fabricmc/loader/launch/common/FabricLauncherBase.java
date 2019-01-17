@@ -17,9 +17,11 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.util.TinyRemapperMappingsHelper;
+import net.fabricmc.mappings.Mappings;
+import net.fabricmc.mappings.MappingsProvider;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
-import net.fabricmc.tinyremapper.TinyUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.MixinEnvironment;
@@ -33,13 +35,14 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.jar.JarFile;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
+	private static Mappings mappings;
+	private static boolean checkedMappings;
 
 	protected FabricLauncherBase() {
 		setLauncher(this);
@@ -49,23 +52,33 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		return new File(argMap.getOrDefault("--gameDir", "."));
 	}
 
-	protected static void withMappingReader(Consumer<BufferedReader> consumer, Runnable orElse) {
-		InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
-		BufferedReader mappingReader = null;
+	@Override
+	public Mappings getMappings() {
+		if (!checkedMappings) {
+			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
 
-		if (mappingStream != null) {
-			mappingReader = new BufferedReader(new InputStreamReader(mappingStream));
-			consumer.accept(mappingReader);
+			if (mappingStream != null) {
+				try {
+					mappings = MappingsProvider.readTinyMappings(mappingStream);
+				} catch (IOException ee) {
+					ee.printStackTrace();
+				}
 
-			try {
-				mappingReader.close();
-				mappingStream.close();
-			} catch (IOException ee) {
-				ee.printStackTrace();
+				try {
+					mappingStream.close();
+				} catch (IOException ee) {
+					ee.printStackTrace();
+				}
 			}
-		} else {
-			orElse.run();
+
+			if (mappings == null) {
+				mappings = MappingsProvider.createEmptyMappings();
+			}
+
+			checkedMappings = true;
 		}
+
+		return mappings;
 	}
 
 	protected static void deobfuscate(File gameDir, File jarFile, FabricLauncher launcher) {
@@ -79,7 +92,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			return;
 		}
 
-		withMappingReader((mappingReader) -> {
+		Mappings mappings = launcher.getMappings();
+		if (mappings != null && mappings.getNamespaces().contains("intermediary")) {
 			LOGGER.debug("Fabric mapping file detected, applying...");
 
 			try {
@@ -103,7 +117,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
 
 						TinyRemapper remapper = TinyRemapper.newRemapper()
-							.withMappings(TinyUtils.createTinyMappingProvider(mappingReader, "official", "intermediary"))
+							.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", "intermediary"))
 							.rebuildSourceFilenames(true)
 							.build();
 						Set<Path> depPaths = new HashSet<>();
@@ -160,13 +174,13 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-		}, () -> {
+		} else {
 			try {
 				launcher.propose(jarFile.toURI().toURL());
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
-		});
+		}
 	}
 
 	protected static void processArgumentMap(Map<String, String> argMap, EnvType envType) {

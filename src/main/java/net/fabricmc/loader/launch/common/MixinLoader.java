@@ -31,33 +31,6 @@ public class MixinLoader extends FabricLoader {
 		LOGGER = LogManager.getFormatterLogger("Fabric|MixinLoader");
 	}
 
-	public Set<String> getClientMixinConfigs() {
-		return mods.stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getClient()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	public Set<String> getCommonMixinConfigs() {
-		return mods.stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getCommon()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	public Set<String> getServerMixinConfigs() {
-		return mods.stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getServer()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
 	@Override
 	protected boolean loaderInitializesMods() {
 		return false;

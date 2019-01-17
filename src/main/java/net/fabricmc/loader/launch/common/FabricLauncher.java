@@ -17,6 +17,7 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.mappings.Mappings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,8 @@ import java.net.URL;
 import java.util.Collection;
 
 public interface FabricLauncher {
+	Mappings getMappings();
+
 	void propose(URL url);
 
 	Collection<URL> getClasspathURLs();

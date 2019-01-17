@@ -10,6 +10,10 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
+        "name": "net.fabricmc:tiny-mappings-parser:0.1.0.4",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
         "name": "net.fabricmc:tiny-remapper:0.1.0.22",
         "url": "https://maven.fabricmc.net/"
       },
