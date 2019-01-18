@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.launch.server;
 
+import net.fabricmc.loader.util.UrlUtil;
+
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -92,7 +94,7 @@ public class FabricServerLauncher {
 
 		System.setProperty("fabric.gameJarPath", serverJar.getAbsolutePath());
 		try {
-			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), serverJar.toURI().toURL() }, FabricServerLauncher.class.getClassLoader());
+			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, FabricServerLauncher.class.getClassLoader());
 			Class.forName("net.fabricmc.loader.launch.server.stagetwo.FabricServerLauncherStageTwo", true, newClassLoader)
 				.getMethod("stageTwo", List.class).invoke(null, runArguments);
 		} catch (Exception ex) {

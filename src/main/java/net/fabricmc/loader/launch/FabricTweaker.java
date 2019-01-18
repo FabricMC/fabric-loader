@@ -18,9 +18,10 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -31,7 +32,6 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.*;
 import java.net.JarURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -95,13 +95,13 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 				String target = getLaunchTarget();
 				URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
 				JarURLConnection locConn = (JarURLConnection) loc.openConnection();
-				File jarFile = new File(locConn.getJarFileURL().toURI());
+				File jarFile = UrlUtil.asFile(locConn.getJarFileURL());
 				if (!jarFile.exists()) {
 					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
 
 				FabricLauncherBase.deobfuscate(gameDir, jarFile, this);
-			} catch (IOException | URISyntaxException e) {
+			} catch (IOException | UrlConversionException e) {
 				throw new RuntimeException(e);
 			}
 		}

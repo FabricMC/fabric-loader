@@ -21,6 +21,8 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.transformer.FabricTransformer;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.MixinTransformer;
@@ -31,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -345,9 +346,8 @@ public final class Knot extends FabricLauncherBase {
 					gameFile = file;
 				} else {
 					try {
-						URL url = file.toURI().toURL();
-						classpath.add(url);
-					} catch (MalformedURLException e) {
+						classpath.add(UrlUtil.asUrl(file));
+					} catch (UrlConversionException e) {
 						e.printStackTrace();
 					}
 				}
@@ -357,9 +357,8 @@ public final class Knot extends FabricLauncherBase {
 				File file = new File(filename);
 				if (!file.equals(gameFile)) {
 					try {
-						URL url = file.toURI().toURL();
-						classpath.add(url);
-					} catch (MalformedURLException e) {
+						classpath.add(UrlUtil.asUrl(file));
+					} catch (UrlConversionException e) {
 						e.printStackTrace();
 					}
 				}

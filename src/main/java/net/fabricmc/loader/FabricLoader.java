@@ -20,13 +20,13 @@ import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.loader.Loader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.json.SideDeserializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -249,7 +249,7 @@ public class FabricLoader implements Loader {
 				break;
 		}
 
-		LOGGER.info(modText, mods.size(), mods.stream()
+		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, mods.size(), mods.stream()
 			.map(ModContainer::getInfo)
 			.map(info -> String.format("%s(%s)", info.getId(), info.getVersionString()))
 			.collect(Collectors.joining(", ")));
@@ -266,8 +266,8 @@ public class FabricLoader implements Loader {
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainer mod : mods) {
 			try {
-				FabricLauncherBase.getLauncher().propose(mod.getOriginFile().toURI().toURL());
-			} catch (MalformedURLException e) {
+				FabricLauncherBase.getLauncher().propose(UrlUtil.asUrl(mod.getOriginFile()));
+			} catch (UrlConversionException e) {
 				e.printStackTrace();
 			}
 		}
@@ -308,8 +308,8 @@ public class FabricLoader implements Loader {
 			LOGGER.debug("Attempting to find classpath mods from " + url.getPath());
 			File f;
 			try {
-				f = new File(url.toURI());
-			} catch (URISyntaxException e) {
+				f = UrlUtil.asFile(url);
+			} catch (UrlConversionException e) {
 				// pass
 				continue;
 			}

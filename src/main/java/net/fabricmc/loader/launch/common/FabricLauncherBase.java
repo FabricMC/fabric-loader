@@ -18,6 +18,8 @@ package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.TinyRemapperMappingsHelper;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.MappingsProvider;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
@@ -28,7 +30,6 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -82,17 +83,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	}
 
 	protected static void deobfuscate(File gameDir, File jarFile, FabricLauncher launcher) {
-		if (launcher.isDevelopment()) {
-			try {
-				launcher.propose(jarFile.toURI().toURL());
-			} catch (MalformedURLException e) {
-				throw new RuntimeException(e);
-			}
-
-			return;
-		}
-
-		Mappings mappings = launcher.getMappings();
+		Mappings mappings = launcher.isDevelopment() ? null : launcher.getMappings();
 		if (mappings != null && mappings.getNamespaces().contains("intermediary")) {
 			LOGGER.debug("Fabric mapping file detected, applying...");
 
@@ -124,9 +115,17 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 						depPaths.add(jarPath);
 
 						for (URL url : launcher.getClasspathURLs()) {
-							Path path = new File(url.getFile()).toPath();
-							if (!path.equals(jarPath)) {
-								depPaths.add(path);
+							try {
+								Path path = UrlUtil.asPath(url);
+								if (!Files.exists(path)) {
+									throw new RuntimeException("Path does not exist: " + path);
+								}
+
+								if (!path.equals(jarPath)) {
+									depPaths.add(path);
+								}
+							} catch (UrlConversionException e) {
+								throw new RuntimeException(e);
 							}
 						}
 
@@ -170,14 +169,14 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 					}
 				}
 
-				launcher.propose(deobfJarFile.toURI().toURL());
-			} catch (IOException e) {
+				launcher.propose(UrlUtil.asUrl(deobfJarFile));
+			} catch (IOException | UrlConversionException e) {
 				throw new RuntimeException(e);
 			}
 		} else {
 			try {
-				launcher.propose(jarFile.toURI().toURL());
-			} catch (MalformedURLException e) {
+				launcher.propose(UrlUtil.asUrl(jarFile));
+			} catch (UrlConversionException e) {
 				throw new RuntimeException(e);
 			}
 		}

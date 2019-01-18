@@ -20,8 +20,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.fabricmc.loader.launch.server.FabricServerLauncher;
 import net.fabricmc.loader.launch.server.InjectingURLClassLoader;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 import org.apache.commons.io.FileUtils;
 
 import javax.xml.stream.XMLInputFactory;
@@ -29,7 +30,6 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -112,8 +112,8 @@ public class FabricServerLauncherStageTwo {
 		}
 
 		try {
-			libraries.add(library.getFile().toURI().toURL());
-		} catch (MalformedURLException e) {
+			libraries.add(UrlUtil.asUrl(library.getFile()));
+		} catch (UrlConversionException e) {
 			throw new RuntimeException("Failed to append library to classpath!", e);
 		}
 	}
@@ -165,7 +165,7 @@ public class FabricServerLauncherStageTwo {
 			// If we don't add the loader here, the ClassLoader for Knot will be different...
 			libraries.add(FabricServerLauncherStageTwo.class.getProtectionDomain().getCodeSource().getLocation());
 			// MixinLoader needs the log4j copy from here. It will be overridden by Knot.
-			libraries.add(new File(System.getProperty("fabric.gameJarPath")).toURI().toURL());
+			libraries.add(UrlUtil.asUrl(new File(System.getProperty("fabric.gameJarPath"))));
 
 			URLClassLoader newClassLoader = new InjectingURLClassLoader(libraries.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
 

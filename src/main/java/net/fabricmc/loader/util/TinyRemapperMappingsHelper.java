@@ -47,7 +47,7 @@ public class TinyRemapperMappingsHelper {
 			}
 
 			for (MethodEntry entry : mappings.getMethodEntries()) {
-				fieldMap.put(methodToString(entry.get(from)), entryToValueString(entry.get(to)));
+				methodMap.put(methodToString(entry.get(from)), entryToValueString(entry.get(to)));
 			}
 		};
 	}
