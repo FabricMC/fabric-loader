@@ -38,25 +38,30 @@ import java.util.*;
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Map<String, String> args;
+	protected List<String> extraArgs;
 	protected MixinLoader mixinLoader;
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
-		//noinspection unchecked
-		this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
+		// TODO: What was this for?
+		/* this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
 
 		if (this.args == null) {
 			this.args = new HashMap<>();
 			Launch.blackboard.put("launchArgs", this.args);
-		}
+		} */
+
+		this.args = new HashMap<>();
+		this.extraArgs = new ArrayList<>();
 
 		for (int i = 0; i < localArgs.size(); i++) {
 			String arg = localArgs.get(i);
-			if (arg.startsWith("--")) {
-				this.args.put(arg, localArgs.get(i + 1));
-				i++;
+			if (arg.startsWith("--") && i < localArgs.size() - 1) {
+				this.args.put(arg, localArgs.get(++i));
+			} else {
+				this.extraArgs.add(arg);
 			}
 		}
 
@@ -114,7 +119,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public String[] getLaunchArguments() {
-		return FabricLauncherBase.asStringArray(args);
+		return FabricLauncherBase.asStringArray(args, extraArgs);
 	}
 
 	@Override

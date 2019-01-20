@@ -255,10 +255,13 @@ public final class Knot extends FabricLauncherBase {
 
 		// parse args
 		Map<String, String> argMap = new LinkedHashMap<>();
+		List<String> extraArgs = new ArrayList<>();
 		for (int i = 0; i < args.length; i++) {
 			String arg = args[i];
-			if (arg.startsWith("--")) {
+			if (arg.startsWith("--") && i < args.length - 1) {
 				argMap.put(arg, args[++i]);
+			} else {
+				extraArgs.add(args[i]);
 			}
 		}
 
@@ -280,7 +283,7 @@ public final class Knot extends FabricLauncherBase {
 		}
 
 		FabricLauncherBase.processArgumentMap(argMap, envType);
-		String[] newArgs = FabricLauncherBase.asStringArray(argMap);
+		String[] newArgs = FabricLauncherBase.asStringArray(argMap, extraArgs);
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";

@@ -212,11 +212,18 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	}
 
 	protected static String[] asStringArray(Map<String, String> argMap) {
-		String[] newArgs = new String[argMap.size() * 2];
+		return asStringArray(argMap, Collections.emptyList());
+	}
+
+	protected static String[] asStringArray(Map<String, String> argMap, List<String> extraArgs) {
+		String[] newArgs = new String[argMap.size() * 2 + extraArgs.size()];
 		int i = 0;
 		for (String s : argMap.keySet()) {
 			newArgs[i++] = s;
 			newArgs[i++] = argMap.get(s);
+		}
+		for (String s : extraArgs) {
+			newArgs[i++] = s;
 		}
 		return newArgs;
 	}
