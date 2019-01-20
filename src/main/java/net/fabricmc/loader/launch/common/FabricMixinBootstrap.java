@@ -20,6 +20,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.ModContainer;
 import net.fabricmc.loader.ModInfo;
+import net.fabricmc.loader.util.MixinIntermediaryDevRemapper;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.helpers.mixin.MixinMappingsRemapper;
 import org.apache.logging.log4j.LogManager;
@@ -81,7 +82,7 @@ public final class FabricMixinBootstrap {
 			Mappings mappings = FabricLauncherBase.getLauncher().getMappings();
 			if (mappings != null && mappings.getNamespaces().contains("intermediary") && mappings.getNamespaces().contains("named")) {
 				try {
-					MixinMappingsRemapper remapper = new MixinMappingsRemapper(mappings, "intermediary", "named");
+					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", "named");
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 					LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
 				} catch (Exception e) {
