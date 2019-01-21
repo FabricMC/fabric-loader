@@ -290,9 +290,18 @@ public final class Knot extends FabricLauncherBase {
 
 		// Setup classloader
 		loader = new PatchingClassLoader(isDevelopment(), envType);
-		String[] classpathStrings = System.getProperty("java.class.path").split(File.pathSeparator);
+		String[] classpathStringsIn = System.getProperty("java.class.path").split(File.pathSeparator);
+		List<String> classpathStrings = new ArrayList<>(classpathStringsIn.length);
 
-		classpath = new ArrayList<>(classpathStrings.length - 1);
+		for (String s : classpathStringsIn) {
+			if (s.equals("*") || s.endsWith(File.separator + "*")) {
+				System.err.println("WARNING: Knot does not support wildcard classpath entries: " + s + " - the game may not load properly!");
+			} else {
+				classpathStrings.add(s);
+			}
+		}
+
+		classpath = new ArrayList<>(classpathStrings.size() - 1);
 		populateClasspath(argMap, classpathStrings);
 
 		// Add loader to classpath - this is necessary so that net.fabricmc.loader gets
@@ -321,7 +330,7 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
-	private void populateClasspath(Map<String, String> argMap, String[] classpathStrings) {
+	private void populateClasspath(Map<String, String> argMap, Collection<String> classpathStrings) {
 		String entryPointFilename = entryPoint.replace('.', '/') + ".class";
 		File gameFile = this.gameJarFile;
 
