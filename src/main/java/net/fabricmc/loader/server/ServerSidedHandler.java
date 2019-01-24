@@ -21,6 +21,7 @@ import net.fabricmc.loader.EnvironmentHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
+@SuppressWarnings("deprecation")
 public final class ServerSidedHandler implements EnvironmentHandler {
 	private final MinecraftServer server;
 

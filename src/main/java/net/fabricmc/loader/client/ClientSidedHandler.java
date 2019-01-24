@@ -22,6 +22,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 
+@SuppressWarnings("deprecation")
 public final class ClientSidedHandler implements EnvironmentHandler {
 	@Override
 	public EnvType getEnvironmentType() {

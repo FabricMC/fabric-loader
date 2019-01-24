@@ -16,6 +16,7 @@
 
 package net.fabricmc.api.loader;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 
 /**
@@ -28,6 +29,7 @@ import net.fabricmc.loader.FabricLoader;
  *   ModContainer itself! Use another interface or simply separate methods
  */
 public interface Loader {
+	@SuppressWarnings("deprecation")
 	static Loader getInstance() {
 		if (FabricLoader.INSTANCE == null) {
 			throw new RuntimeException("Accessed Loader too early!");
@@ -42,4 +44,18 @@ public interface Loader {
 	 * @return Whether or not the mod is present in this Loader instance.
 	 */
 	boolean isModLoaded(String id);
+
+	/**
+	 * Get the current environment type.
+	 * @return The current environment type.
+	 */
+	EnvType getEnvironmentType();
+
+	/**
+	 * Get the current game instance. Can represent a Minecraft client or
+	 * server object. As such, the exact return is dependent on the
+	 * current environment type.
+	 * @return A client or server instance object.
+	 */
+	Object getGameInstance();
 }
