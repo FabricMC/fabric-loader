@@ -17,8 +17,7 @@
 package net.fabricmc.loader.language;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.api.loader.Loader;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.Loader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
 
