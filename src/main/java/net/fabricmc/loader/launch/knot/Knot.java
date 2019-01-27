@@ -173,7 +173,7 @@ public final class Knot extends FabricLauncherBase {
 				Class<?> c = findLoadedClass(name);
 
 				if (c == null) {
-					if (!name.startsWith("net.fabricmc.loader.launch.") && /* MixinLoader -> */ !name.startsWith("org.apache.logging.log4j")) {
+					if (!"net.fabricmc.api.EnvType".equals(name) && !"net.fabricmc.api.loader.Loader".equals(name) && !name.startsWith("net.fabricmc.loader.launch.") && /* MixinLoader -> */ !name.startsWith("org.apache.logging.log4j")) {
 						byte[] input;
 						try {
 							input = getClassByteArray(name, true);
