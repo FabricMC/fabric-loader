@@ -27,6 +27,10 @@ public class Arguments {
 		extraArgs = new ArrayList<>();
 	}
 
+	public Collection<String> keys() {
+		return values.keySet();
+	}
+
 	public List<String> getExtraArgs() {
 		return Collections.unmodifiableList(extraArgs);
 	}

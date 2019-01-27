@@ -32,7 +32,7 @@ apply plugin: LoomGradlePlugin
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = fabric-loader
+archivesBaseName = "fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()

@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.entrypoint;
 
+import net.fabricmc.loader.util.args.Arguments;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
@@ -51,20 +53,51 @@ public class AppletFrame extends Frame implements WindowListener {
 	}
 
 	public void launch(String[] args) {
-		String username = "Player";
-		String sessionid = "0";
-		File instance = new File(".");
+		Arguments arguments = new Arguments();
+		arguments.parse(args);
+
+		String username = arguments.getOrDefault("username", "Player");
+		String sessionid;
+		if (arguments.containsKey("session") /* 1.6 */) {
+			sessionid = arguments.get("session");
+		} else /* fallback */ {
+			sessionid = "";
+		}
+
+		File instance = new File(arguments.getOrDefault("gameDir", "."));
 		if (System.getProperty("minecraft.applet.TargetDirectory") == null) {
 			System.setProperty("minecraft.applet.TargetDirectory", instance.toString());
 		} else {
 			instance = new File(System.getProperty("minecraft.applet.TargetDirectory"));
 		}
 
-		applet = new AppletLauncher(instance, username, sessionid, "", "", false);
-/*			System.setProperty("org.lwjgl.librarypath", new File(lwjgl, "natives").getAbsolutePath());
-		System.setProperty("net.java.games.input.librarypath", new File(lwjgl, "natives").getAbsolutePath()); */
+		boolean doConnect = arguments.containsKey("server") && arguments.containsKey("port");
+		String host = "";
+		String port = "";
+
+		if (doConnect) {
+			host = arguments.get("server");
+			port = arguments.get("port");
+		}
+
+		boolean fullscreen = arguments.getExtraArgs().contains("--fullscreen");
+		boolean demo = arguments.getExtraArgs().contains("--demo");
+		int width = Integer.parseInt(arguments.getOrDefault("width", "854"));
+		int height = Integer.parseInt(arguments.getOrDefault("height", "480"));
+
+		applet = new AppletLauncher(
+			instance,
+			username, sessionid,
+			host, port, doConnect,
+			fullscreen, demo
+		);
+
+		for (String key : arguments.keys()) {
+			applet.getParams().put("fabric.arguments." + key, arguments.get(key));
+		}
+
 		this.add(applet);
-		applet.setPreferredSize(new Dimension(854, 480));
+		applet.setPreferredSize(new Dimension(width, height));
 		this.pack();
 		this.setLocationRelativeTo(null);
 		this.setResizable(true);

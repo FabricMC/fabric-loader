@@ -47,7 +47,7 @@ public class AppletLauncher extends Applet implements AppletStub {
 	private Applet mcApplet;
 	private boolean active;
 
-	public AppletLauncher(File instance, String username, String sessionid, String host, String port, boolean doConnect) {
+	public AppletLauncher(File instance, String username, String sessionid, String host, String port, boolean doConnect, boolean fullscreen, boolean demo) {
 		gameDir = instance;
 
 		params = new HashMap<>();
@@ -58,7 +58,8 @@ public class AppletLauncher extends Applet implements AppletStub {
 			params.put("server", host);
 			params.put("port", port);
 		}
-		params.put("fullscreen","false"); //Required param for vanilla. Forge handles the absence gracefully.
+		params.put("fullscreen", Boolean.toString(fullscreen)); //Required param for vanilla. Forge handles the absence gracefully.
+		params.put("demo", Boolean.toString(demo));
 
 		try {
 			mcApplet = (Applet) FabricLauncherBase.getLauncher().getTargetClassLoader().loadClass(EntrypointTransformer.appletMainClass).newInstance();
@@ -70,6 +71,10 @@ public class AppletLauncher extends Applet implements AppletStub {
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public Map<String, String> getParams() {
+		return params;
 	}
 
 	public void replace(Applet applet) {
