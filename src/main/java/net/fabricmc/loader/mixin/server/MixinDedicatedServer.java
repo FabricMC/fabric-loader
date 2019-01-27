@@ -31,9 +31,10 @@ import java.io.IOException;
 
 @Mixin(MinecraftDedicatedServer.class)
 public abstract class MixinDedicatedServer {
+	@SuppressWarnings("deprecation")
 	@Inject(method = "setupServer", at = @At("HEAD"))
 	public void setupServer(CallbackInfoReturnable<Boolean> info) throws IOException {
-		FabricLoader.INSTANCE.initialize(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile(""), new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
+		FabricLoader.INSTANCE.initialize(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile(""), (Object) this, new ServerSidedHandler((MinecraftDedicatedServer) (Object) this));
 		FabricLoader.INSTANCE.load(((FabricServerFileGetProxy) (Object) this).fabricHookGetFile("mods"));
 		FabricLoader.INSTANCE.freeze();
 		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);

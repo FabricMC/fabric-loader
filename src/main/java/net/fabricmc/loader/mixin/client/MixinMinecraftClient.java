@@ -31,10 +31,11 @@ import java.io.File;
 @Mixin(value = MinecraftClient.class)
 public class MixinMinecraftClient {
 
+	@SuppressWarnings("deprecation")
 	@Inject(method = "init()V", at = @At("HEAD"))
 	public void init(CallbackInfo info) {
 		MinecraftClient game = ((MinecraftClient) (Object) this);
-		FabricLoader.INSTANCE.initialize(game.runDirectory, new ClientSidedHandler());
+		FabricLoader.INSTANCE.initialize(game.runDirectory, (Object) this, new ClientSidedHandler());
 		FabricLoader.INSTANCE.load(new File(game.runDirectory, "mods"));
 		FabricLoader.INSTANCE.freeze();
 		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);

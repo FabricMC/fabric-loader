@@ -19,15 +19,12 @@ package net.fabricmc.api.loader;
 import net.fabricmc.loader.FabricLoader;
 
 /**
- * The public-facing Loader instance.
- *
- * TODO: When we get a change to break this:
- * - remove getMods()List
- * - move ModInfo to net.fabricmc.api.loader
- * - add a way to get the ModContainer information, but do not expose
- *   ModContainer itself! Use another interface or simply separate methods
+ * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader}
  */
+@Deprecated
 public interface Loader {
+	@SuppressWarnings("deprecation")
+	@Deprecated
 	static Loader getInstance() {
 		if (FabricLoader.INSTANCE == null) {
 			throw new RuntimeException("Accessed Loader too early!");
@@ -41,5 +38,6 @@ public interface Loader {
 	 * @param id The ID of the mod, as defined in fabric.mod.json.
 	 * @return Whether or not the mod is present in this Loader instance.
 	 */
+	@Deprecated
 	boolean isModLoaded(String id);
 }

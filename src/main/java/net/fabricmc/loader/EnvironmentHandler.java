@@ -25,12 +25,15 @@ import net.minecraft.util.ThreadTaskQueue;
  * A EnvironmentHandler provides certain crucial information about the
  * environment of the game, which can be the client or the server.
  *
- * @see FabricLoader#getEnvironmentHandler()
+ * @deprecated Scheduled for removal in Loader 0.4.0.
  */
+@Deprecated
 public interface EnvironmentHandler {
 	/**
 	 * @return The environment type the game is currently in.
+	 * @deprecated See FabricLoader#getEnvironmentType()
 	 */
+	@Deprecated
 	EnvType getEnvironmentType();
 
 	/**
@@ -48,6 +51,8 @@ public interface EnvironmentHandler {
 	/**
 	 * @return The server instance for this environment.
 	 *         It can be integrated or dedicated.
+	 * @deprecated See FabricLoader#getGameInstance()
 	 */
+	@Deprecated
 	MinecraftServer getServerInstance();
 }

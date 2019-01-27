@@ -18,7 +18,6 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.api.loader.Loader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -39,7 +38,7 @@ import java.util.zip.ZipEntry;
 /**
  * The main class for mod loading operations.
  */
-public class FabricLoader implements Loader {
+public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricmc.loader.api.FabricLoader {
 	private class ModEntry {
 		private final ModInfo info;
 		private final File file;
@@ -50,6 +49,11 @@ public class FabricLoader implements Loader {
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getInstance()} where possible,
+	 * report missing areas as an issue.
+	 */
+	@Deprecated
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
@@ -71,7 +75,9 @@ public class FabricLoader implements Loader {
 	private boolean frozen = false;
 	private boolean gameInitialized = false;
 
+	@SuppressWarnings("deprecation")
 	private EnvironmentHandler environmentHandler;
+	private Object gameInstance;
 
 	private File gameDir;
 	private File configDir;
@@ -107,21 +113,40 @@ public class FabricLoader implements Loader {
 	/**
 	 * DO NOT USE. It bites.
 	 */
-	public void initialize(File gameDir, EnvironmentHandler sidedHandler) {
+	public void initialize(File gameDir, Object gameInstance, EnvironmentHandler sidedHandler) {
 		if (gameInitialized) {
 			throw new RuntimeException("FabricLoader has already been game-initialized!");
 		}
 
 		this.gameDir = gameDir;
+		this.gameInstance = gameInstance;
 		this.environmentHandler = sidedHandler;
 		gameInitialized = true;
 	}
 
 	/**
 	 * @return The environment handler for the current game instance.
+	 * @deprecated This functionality will be removed in 0.4.0 to provide
+	 * a fully-Minecraft/mapping-independent loader. For alternatives:
+	 *
+	 * - {@link FabricLoader#getEnvironmentType()}
+	 * - {@link FabricLoader#getGameInstance()}
+	 * - cast the above and implement desired methods on top in an API
+	 *   library
 	 */
+	@Deprecated
 	public EnvironmentHandler getEnvironmentHandler() {
 		return environmentHandler;
+	}
+
+	@Override
+	public Object getGameInstance() {
+		return gameInstance;
+	}
+
+	@Override
+	public EnvType getEnvironmentType() {
+		return FabricLauncherBase.getLauncher().getEnvironmentType();
 	}
 
 	/**
@@ -351,7 +376,7 @@ public class FabricLoader implements Loader {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginFile().getName() + ", " + originFile.getName() + ")");
 		}
 
-		EnvType currentSide = getEnvironmentHandler().getEnvironmentType();
+		EnvType currentSide = getEnvironmentType();
 		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
 			return;
 		}
