@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint;
+package net.fabricmc.loader.entrypoint.applet;
 
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -25,8 +26,6 @@ import java.applet.AppletStub;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;

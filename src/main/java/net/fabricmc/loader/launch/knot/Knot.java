@@ -36,8 +36,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLConnection;
+import java.security.CodeSigner;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -198,9 +203,43 @@ public final class Knot extends FabricLauncherBase {
 								}
 							}
 
+							ProtectionDomain protectionDomain = null;
+							URL resourceURL = urlLoader.getResource(getClassFileName(name));
+							if (resourceURL != null) {
+								URL codeSourceURL = null;
+
+								try {
+									URLConnection connection = resourceURL.openConnection();
+									if (connection instanceof JarURLConnection) {
+										codeSourceURL = ((JarURLConnection) connection).getJarFileURL();
+									} else {
+										// assume directory
+										String s = UrlUtil.asFile(resourceURL).getAbsolutePath();
+										s = s.replace(name.replace('.', File.separatorChar), "");
+										codeSourceURL = UrlUtil.asUrl(new File(s));
+									}
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+
+								// TODO: protection domain stub
+								if (codeSourceURL != null) {
+									protectionDomain = new ProtectionDomain(new CodeSource(codeSourceURL, (CodeSigner[]) null), null);
+								}
+							}
+
 							byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
 							b = mixinTransformer.transformClassBytes(name, name, b);
-							c = defineClass(name, b, 0, b.length);
+							c = defineClass(name, b, 0, b.length, protectionDomain);
+
+							int pkgDelimiterPos = name.lastIndexOf('.');
+							if (pkgDelimiterPos > 0) {
+								// TODO: package definition stub
+								String pkgString = name.substring(0, pkgDelimiterPos);
+								if (getPackage(pkgString) == null) {
+									definePackage(pkgString, null, null, null, null, null, null, null);
+								}
+							}
 						}
 					}
 				}
@@ -225,8 +264,12 @@ public final class Knot extends FabricLauncherBase {
 			registerAsParallelCapable();
 		}
 
+		private String getClassFileName(String name) {
+			return name.replace('.', '/') + ".class";
+		}
+
 		public byte[] getClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
-			String classFile = name.replace('.', '/') + ".class";
+			String classFile = getClassFileName(name);
 			InputStream inputStream = urlLoader.getResourceAsStream(classFile);
 			if (inputStream == null && !skipOriginalLoader) {
 				inputStream = originalLoader.getResourceAsStream(classFile);
@@ -308,7 +351,7 @@ public final class Knot extends FabricLauncherBase {
 		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
 
 		if (envType == EnvType.CLIENT && entryPoint.contains("Applet")) {
-			entryPoint = "net.fabricmc.loader.entrypoint.AppletMain";
+			entryPoint = "net.fabricmc.loader.entrypoint.applet.AppletMain";
 		}
 
 		Thread.currentThread().setContextClassLoader(loader);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint;
+package net.fabricmc.loader.entrypoint.applet;
 
 /**
  * PLEASE NOTE:

@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint;
+package net.fabricmc.loader.entrypoint.applet;
 
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-
-import javax.swing.*;
 import java.io.File;
-import java.net.URL;
 
 public final class AppletMain {
 	private AppletMain() {

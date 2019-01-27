@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint;
+package net.fabricmc.loader.entrypoint.hooks;
 
 public final class EntrypointBranding {
 	public static final String FABRIC = "fabric";

@@ -40,6 +40,8 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
+	public static File minecraftJar;
+
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
@@ -84,6 +86,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	}
 
 	protected static void deobfuscate(File gameDir, File jarFile, FabricLauncher launcher) {
+		minecraftJar = jarFile;
+
 		Mappings mappings = launcher.isDevelopment() ? null : launcher.getMappings();
 		if (mappings != null && mappings.getNamespaces().contains("intermediary")) {
 			LOGGER.debug("Fabric mapping file detected, applying...");
@@ -171,12 +175,14 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 				}
 
 				launcher.propose(UrlUtil.asUrl(deobfJarFile));
+				minecraftJar = deobfJarFile;
 			} catch (IOException | UrlConversionException e) {
 				throw new RuntimeException(e);
 			}
 		} else {
 			try {
 				launcher.propose(UrlUtil.asUrl(jarFile));
+				minecraftJar = jarFile;
 			} catch (UrlConversionException e) {
 				throw new RuntimeException(e);
 			}
