@@ -17,6 +17,7 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.minecraft.launchwrapper.IClassTransformer;
@@ -27,6 +28,11 @@ public class FabricClassTransformer implements IClassTransformer {
 
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-		return FabricTransformer.transform(isDevelopment, envType, name, basicClass);
+		byte[] input = EntrypointTransformer.INSTANCE.transform(name);
+		if (input != null) {
+			return FabricTransformer.transform(isDevelopment, envType, name, input);
+		} else {
+			return FabricTransformer.transform(isDevelopment, envType, name, basicClass);
+		}
 	}
 }

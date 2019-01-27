@@ -17,11 +17,13 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.loader.util.args.Arguments;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -37,43 +39,29 @@ import java.util.*;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
-	protected Map<String, String> args;
-	protected List<String> extraArgs;
+	protected Arguments arguments = new Arguments();
 	protected MixinLoader mixinLoader;
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
 
 	@Override
+	public String getEntrypoint() {
+		return getLaunchTarget();
+	}
+
+	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
-		// TODO: What was this for?
-		/* this.args = (Map<String, String>) Launch.blackboard.get("launchArgs");
+		arguments.parse(localArgs);
 
-		if (this.args == null) {
-			this.args = new HashMap<>();
-			Launch.blackboard.put("launchArgs", this.args);
-		} */
-
-		this.args = new HashMap<>();
-		this.extraArgs = new ArrayList<>();
-
-		for (int i = 0; i < localArgs.size(); i++) {
-			String arg = localArgs.get(i);
-			if (arg.startsWith("--") && i < localArgs.size() - 1) {
-				this.args.put(arg, localArgs.get(++i));
-			} else {
-				this.extraArgs.add(arg);
-			}
+		if (!arguments.containsKey("gameDir") && gameDir != null) {
+			arguments.put("gameDir", gameDir.getAbsolutePath());
 		}
 
-		if (!this.args.containsKey("--gameDir") && gameDir != null) {
-			this.args.put("--gameDir", gameDir.getAbsolutePath());
+		if (getEnvironmentType() == EnvType.CLIENT && !arguments.containsKey("assetsDir") && assetsDir != null) {
+			arguments.put("assetsDir", assetsDir.getAbsolutePath());
 		}
 
-		if (getEnvironmentType() == EnvType.CLIENT && !this.args.containsKey("--assetsDir") && assetsDir != null) {
-			this.args.put("--assetsDir", assetsDir.getAbsolutePath());
-		}
-
-		FabricLauncherBase.processArgumentMap(args, getEnvironmentType());
+		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());
 	}
 
 	@Override
@@ -86,7 +74,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
 		launchClassLoader.addClassLoaderExclusion("org.spongepowered.asm.");
 
-		File gameDir = getLaunchDirectory(this.args);
+		File gameDir = getLaunchDirectory(arguments);
 		mixinLoader = new MixinLoader();
 		mixinLoader.load(new File(gameDir, "mods"));
 		mixinLoader.freeze();
@@ -111,15 +99,17 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			}
 		}
 
+		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
+
 		// Setup Mixin environment
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), args, mixinLoader);
+		FabricMixinBootstrap.init(getEnvironmentType(), mixinLoader);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 	}
 
 	@Override
 	public String[] getLaunchArguments() {
-		return FabricLauncherBase.asStringArray(args, extraArgs);
+		return arguments.toArray();
 	}
 
 	@Override

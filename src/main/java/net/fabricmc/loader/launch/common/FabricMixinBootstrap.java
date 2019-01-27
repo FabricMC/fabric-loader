@@ -21,6 +21,7 @@ import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.ModContainer;
 import net.fabricmc.loader.ModInfo;
 import net.fabricmc.loader.util.MixinIntermediaryDevRemapper;
+import net.fabricmc.loader.util.args.Arguments;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.helpers.mixin.MixinMappingsRemapper;
 import org.apache.logging.log4j.LogManager;
@@ -73,7 +74,7 @@ public final class FabricMixinBootstrap {
 			.collect(Collectors.toSet());
 	}
 
-	public static void init(EnvType side, Map<String, String> args, FabricLoader loader) {
+	public static void init(EnvType side, FabricLoader loader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -93,14 +94,6 @@ public final class FabricMixinBootstrap {
 		}
 
 		MixinBootstrap.init();
-
-		addConfiguration("fabric-loader.mixins.common.json");
-		if (side == EnvType.CLIENT) {
-			addConfiguration("fabric-loader.mixins.client.json");
-		}
-		if (side == EnvType.SERVER) {
-			addConfiguration("fabric-loader.mixins.server.json");
-		}
 
 		getCommonMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
 		if (side == EnvType.CLIENT) {

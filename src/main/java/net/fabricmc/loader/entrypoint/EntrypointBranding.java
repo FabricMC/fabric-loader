@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.mixin.server;
+package net.fabricmc.loader.entrypoint;
 
-import net.fabricmc.loader.mixin.hooks.FabricServerFileGetProxy;
-import net.minecraft.server.MinecraftServer;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+public final class EntrypointBranding {
+	public static final String FABRIC = "fabric";
+	public static final String VANILLA = "vanilla";
 
-import java.io.File;
+	private EntrypointBranding() {
+	}
 
-@Mixin(MinecraftServer.class)
-public abstract class MixinMinecraftServer implements FabricServerFileGetProxy {
-	@Shadow
-	public abstract File getFile(String s);
-
-	@Override
-	public File fabricHookGetFile(String s) {
-		return getFile(s);
+	public static String brand(final String brand) {
+		if (brand.equals(VANILLA)) {
+			return FABRIC;
+		} else {
+			return brand + "," + FABRIC;
+		}
 	}
 }

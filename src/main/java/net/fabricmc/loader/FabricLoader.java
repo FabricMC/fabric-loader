@@ -38,7 +38,7 @@ import java.util.zip.ZipEntry;
 /**
  * The main class for mod loading operations.
  */
-public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricmc.loader.api.FabricLoader {
+public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private class ModEntry {
 		private final ModInfo info;
 		private final File file;
@@ -75,8 +75,6 @@ public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricm
 	private boolean frozen = false;
 	private boolean gameInitialized = false;
 
-	@SuppressWarnings("deprecation")
-	private EnvironmentHandler environmentHandler;
 	private Object gameInstance;
 
 	private File gameDir;
@@ -113,30 +111,14 @@ public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricm
 	/**
 	 * DO NOT USE. It bites.
 	 */
-	public void initialize(File gameDir, Object gameInstance, EnvironmentHandler sidedHandler) {
+	public void initialize(File gameDir, Object gameInstance) {
 		if (gameInitialized) {
 			throw new RuntimeException("FabricLoader has already been game-initialized!");
 		}
 
 		this.gameDir = gameDir;
 		this.gameInstance = gameInstance;
-		this.environmentHandler = sidedHandler;
 		gameInitialized = true;
-	}
-
-	/**
-	 * @return The environment handler for the current game instance.
-	 * @deprecated This functionality will be removed in 0.4.0 to provide
-	 * a fully-Minecraft/mapping-independent loader. For alternatives:
-	 *
-	 * - {@link FabricLoader#getEnvironmentType()}
-	 * - {@link FabricLoader#getGameInstance()}
-	 * - cast the above and implement desired methods on top in an API
-	 *   library
-	 */
-	@Deprecated
-	public EnvironmentHandler getEnvironmentHandler() {
-		return environmentHandler;
 	}
 
 	@Override

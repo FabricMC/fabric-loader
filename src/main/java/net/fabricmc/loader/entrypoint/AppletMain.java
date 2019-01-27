@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util;
+package net.fabricmc.loader.entrypoint;
 
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
-public final class BrandingUtil {
-	public static final String FABRIC = "fabric";
-	public static final String VANILLA = "vanilla";
+import javax.swing.*;
+import java.io.File;
+import java.net.URL;
 
-	private BrandingUtil() {
+public final class AppletMain {
+	private AppletMain() {
+
 	}
 
-	public static void brand(final CallbackInfoReturnable<String> cir) {
-		if (cir.getReturnValue().equals(VANILLA)) {
-			cir.setReturnValue(FABRIC);
+	public static File hookGameDir(File file) {
+		File proposed = AppletLauncher.gameDir;
+		if (proposed != null) {
+			return proposed;
 		} else {
-			cir.setReturnValue(cir.getReturnValue() + "," + FABRIC);
+			return file;
 		}
+	}
+
+	public static void main(String[] args) {
+		AppletFrame me = new AppletFrame("Minecraft", null);
+		me.launch(args);
 	}
 }

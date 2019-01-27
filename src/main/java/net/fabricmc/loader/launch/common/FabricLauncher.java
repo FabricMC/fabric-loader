@@ -19,6 +19,7 @@ package net.fabricmc.loader.launch.common;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.mappings.Mappings;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -42,4 +43,6 @@ public interface FabricLauncher {
 	byte[] getClassByteArray(String name) throws IOException;
 
 	boolean isDevelopment();
+
+	String getEntrypoint();
 }

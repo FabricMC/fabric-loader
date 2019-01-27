@@ -16,13 +16,16 @@
 
 package net.fabricmc.loader.launch.knot;
 
+import com.google.common.collect.Lists;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.loader.util.args.Arguments;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.MixinTransformer;
@@ -37,6 +40,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 public final class Knot extends FabricLauncherBase {
@@ -173,18 +177,17 @@ public final class Knot extends FabricLauncherBase {
 				Class<?> c = findLoadedClass(name);
 
 				if (c == null) {
-					if (!"net.fabricmc.api.EnvType".equals(name) && !"net.fabricmc.api.loader.Loader".equals(name) && !name.startsWith("net.fabricmc.loader.launch.") && /* MixinLoader -> */ !name.startsWith("org.apache.logging.log4j")) {
-						byte[] input;
-						try {
-							input = getClassByteArray(name, true);
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-						if (input != null) {
-							if (name.indexOf('.') < 0) {
-								throw new ClassNotFoundException("Root packages forbidden: class '" + name + "' could not be loaded");
+					if (!"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && !name.startsWith("org.apache.logging.log4j")) {
+						byte[] input = EntrypointTransformer.INSTANCE.transform(name);
+						if (input == null) {
+							try {
+								input = getClassByteArray(name, true);
+							} catch (IOException e) {
+								throw new RuntimeException(e);
 							}
+						}
 
+						if (input != null) {
 							if (mixinTransformer == null) {
 								try {
 									Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
@@ -254,16 +257,8 @@ public final class Knot extends FabricLauncherBase {
 		setProperties(properties);
 
 		// parse args
-		Map<String, String> argMap = new LinkedHashMap<>();
-		List<String> extraArgs = new ArrayList<>();
-		for (int i = 0; i < args.length; i++) {
-			String arg = args[i];
-			if (arg.startsWith("--") && i < args.length - 1) {
-				argMap.put(arg, args[++i]);
-			} else {
-				extraArgs.add(args[i]);
-			}
-		}
+		Arguments arguments = new Arguments();
+		arguments.parse(args);
 
 		// configure fabric vars
 		if (envType == null) {
@@ -282,11 +277,11 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		FabricLauncherBase.processArgumentMap(argMap, envType);
-		String[] newArgs = FabricLauncherBase.asStringArray(argMap, extraArgs);
+		FabricLauncherBase.processArgumentMap(arguments, envType);
+		String[] newArgs = arguments.toArray();
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
-		entryPoint = envType == EnvType.CLIENT ? "net.minecraft.client.main.Main" : "net.minecraft.server.MinecraftServer";
+		String proposedEntrypoint = System.getProperty("fabric.entrypoint");
 
 		// Setup classloader
 		loader = new PatchingClassLoader(isDevelopment(), envType);
@@ -302,27 +297,35 @@ public final class Knot extends FabricLauncherBase {
 		}
 
 		classpath = new ArrayList<>(classpathStrings.size() - 1);
-		populateClasspath(argMap, classpathStrings);
+		populateClasspath(arguments, classpathStrings,
+			/* order by most to least important */
+			proposedEntrypoint != null ? Collections.singletonList(proposedEntrypoint)
+			: (envType == EnvType.CLIENT
+			? Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet")
+			: Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer")));
 
-		// Add loader to classpath - this is necessary so that net.fabricmc.loader gets
-		// loaded in the correct location.
-		propose(getClass().getProtectionDomain().getCodeSource().getLocation());
+		// Locate entrypoints before switching class loaders
+		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
+
+		if (envType == EnvType.CLIENT && entryPoint.contains("Applet")) {
+			entryPoint = "net.fabricmc.loader.entrypoint.AppletMain";
+		}
 
 		Thread.currentThread().setContextClassLoader(loader);
 
 		// Setup Mixin environment
 		MixinLoader mixinLoader = new MixinLoader();
-		mixinLoader.load(new File(getLaunchDirectory(argMap), "mods"));
+		mixinLoader.load(new File(getLaunchDirectory(arguments), "mods"));
 		mixinLoader.freeze();
 
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), argMap, mixinLoader);
+		FabricMixinBootstrap.init(getEnvironmentType(), mixinLoader);
 		MixinEnvironment.getDefaultEnvironment().setSide(envType == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		FabricLauncherBase.pretendMixinPhases();
 
 		try {
-			Class c = loader.loadClass(entryPoint);
+			Class<?> c = loader.loadClass(entryPoint);
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) newArgs);
 		} catch (Exception e) {
@@ -330,24 +333,37 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
-	private void populateClasspath(Map<String, String> argMap, Collection<String> classpathStrings) {
-		String entryPointFilename = entryPoint.replace('.', '/') + ".class";
+	private void populateClasspath(Arguments argMap, Collection<String> classpathStrings, List<String> entrypointClasses) {
+		List<String> entrypointFilenames = entrypointClasses.stream()
+			.map((ep) -> ep.replace('.', '/') + ".class")
+			.collect(Collectors.toList());
 		File gameFile = this.gameJarFile;
 
 		if (gameFile == null) {
 			for (String filename : classpathStrings) {
 				File file = new File(filename);
 				boolean hasGame = false;
+				int i = 0;
 
-				if (file.isDirectory()) {
-					hasGame = new File(gameFile, entryPointFilename).exists();
-				} else if (file.isFile()) {
-					try {
-						JarFile jf = new JarFile(file);
-						ZipEntry entry = jf.getEntry(entryPointFilename);
-						hasGame = entry != null;
-					} catch (IOException e) {
-						// pass
+				while (i < entrypointClasses.size()) {
+					String entryPointFilename = entrypointFilenames.get(i);
+
+					if (file.isDirectory()) {
+						hasGame = new File(gameFile, entryPointFilename).exists();
+					} else if (file.isFile()) {
+						try {
+							JarFile jf = new JarFile(file);
+							ZipEntry entry = jf.getEntry(entryPointFilename);
+							hasGame = entry != null;
+						} catch (IOException e) {
+							// pass
+						}
+					}
+
+					if (hasGame) {
+						break;
+					} else {
+						i++;
 					}
 				}
 
@@ -355,6 +371,8 @@ public final class Knot extends FabricLauncherBase {
 					if (gameFile != null && !gameFile.equals(file)) {
 						throw new RuntimeException("Found duplicate game instances: [" + gameFile + ", " + file + "]");
 					}
+
+					entryPoint = entrypointClasses.get(i);
 					gameFile = file;
 				} else {
 					try {
@@ -377,8 +395,8 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		if (gameFile == null) {
-			throw new RuntimeException("Entrypoint '" + entryPoint + "' not found!");
+		if (entryPoint == null) {
+			throw new RuntimeException("Entrypoint not found!");
 		}
 
 		FabricLauncherBase.deobfuscate(
@@ -426,6 +444,11 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public boolean isDevelopment() {
 		return isDevelopment;
+	}
+
+	@Override
+	public String getEntrypoint() {
+		return entryPoint;
 	}
 
 	public static void main(String[] args) {

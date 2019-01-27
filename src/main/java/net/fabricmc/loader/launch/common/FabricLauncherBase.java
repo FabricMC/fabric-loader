@@ -20,6 +20,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.loader.util.args.Arguments;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.MappingsProvider;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
@@ -49,8 +50,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		setLauncher(this);
 	}
 
-	protected static File getLaunchDirectory(Map<String, String> argMap) {
-		return new File(argMap.getOrDefault("--gameDir", "."));
+	protected static File getLaunchDirectory(Arguments argMap) {
+		return new File(argMap.getOrDefault("gameDir", "."));
 	}
 
 	@Override
@@ -182,50 +183,33 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		}
 	}
 
-	protected static void processArgumentMap(Map<String, String> argMap, EnvType envType) {
+	protected static void processArgumentMap(Arguments argMap, EnvType envType) {
 		switch (envType) {
 			case CLIENT:
-				if (!argMap.containsKey("--accessToken")) {
-					argMap.put("--accessToken", "FabricMC");
+				if (!argMap.containsKey("accessToken")) {
+					argMap.put("accessToken", "FabricMC");
 				}
 
-				if (!argMap.containsKey("--version")) {
-					argMap.put("--version", "Fabric");
+				if (!argMap.containsKey("version")) {
+					argMap.put("version", "Fabric");
 				}
 
 				String versionType = "";
-				if(argMap.containsKey("--versionType") && !argMap.get("--versionType").equalsIgnoreCase("release")){
-					versionType = argMap.get("--versionType") + "/";
+				if(argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")){
+					versionType = argMap.get("versionType") + "/";
 				}
-				argMap.put("--versionType", versionType + "Fabric");
+				argMap.put("versionType", versionType + "Fabric");
 
-				if (!argMap.containsKey("--gameDir")) {
-					argMap.put("--gameDir", getLaunchDirectory(argMap).getAbsolutePath());
+				if (!argMap.containsKey("gameDir")) {
+					argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
 				}
 				break;
 			case SERVER:
-				argMap.remove("--version");
-				argMap.remove("--gameDir");
-				argMap.remove("--assetsDir");
+				argMap.remove("version");
+				argMap.remove("gameDir");
+				argMap.remove("assetsDir");
 				break;
 		}
-	}
-
-	protected static String[] asStringArray(Map<String, String> argMap) {
-		return asStringArray(argMap, Collections.emptyList());
-	}
-
-	protected static String[] asStringArray(Map<String, String> argMap, List<String> extraArgs) {
-		String[] newArgs = new String[argMap.size() * 2 + extraArgs.size()];
-		int i = 0;
-		for (String s : argMap.keySet()) {
-			newArgs[i++] = s;
-			newArgs[i++] = argMap.get(s);
-		}
-		for (String s : extraArgs) {
-			newArgs[i++] = s;
-		}
-		return newArgs;
 	}
 
 	protected static void setProperties(Map<String, Object> propertiesA) {
