@@ -16,11 +16,10 @@
 
 package net.fabricmc.api.loader;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 
 /**
- * @deprecated Use {@link net.fabricmc.loader.api.Loader}
+ * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader}
  */
 @Deprecated
 public interface Loader {

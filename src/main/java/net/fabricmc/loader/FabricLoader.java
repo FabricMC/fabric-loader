@@ -18,7 +18,6 @@ package net.fabricmc.loader;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.Loader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -39,7 +38,7 @@ import java.util.zip.ZipEntry;
 /**
  * The main class for mod loading operations.
  */
-public class FabricLoader implements net.fabricmc.api.loader.Loader, Loader {
+public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricmc.loader.api.FabricLoader {
 	private class ModEntry {
 		private final ModInfo info;
 		private final File file;
@@ -51,7 +50,7 @@ public class FabricLoader implements net.fabricmc.api.loader.Loader, Loader {
 	}
 
 	/**
-	 * @deprecated Use {@link Loader#getInstance()} where possible,
+	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getInstance()} where possible,
 	 * report missing areas as an issue.
 	 */
 	@Deprecated
