@@ -333,6 +333,30 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
+	private int findEntrypoint(List<String> entrypointClasses, List<String> entrypointFilenames, File file) {
+		for (int i = 0; i < entrypointClasses.size(); i++) {
+			String entryPointFilename = entrypointFilenames.get(i);
+
+			if (file.isDirectory()) {
+				if (new File(file, entryPointFilename).exists()) {
+					return i;
+				}
+			} else if (file.isFile()) {
+				try {
+					JarFile jf = new JarFile(file);
+					ZipEntry entry = jf.getEntry(entryPointFilename);
+					if (entry != null) {
+						return i;
+					}
+				} catch (IOException e) {
+					// pass
+				}
+			}
+		}
+
+		return -1;
+	}
+
 	private void populateClasspath(Arguments argMap, Collection<String> classpathStrings, List<String> entrypointClasses) {
 		List<String> entrypointFilenames = entrypointClasses.stream()
 			.map((ep) -> ep.replace('.', '/') + ".class")
@@ -342,32 +366,9 @@ public final class Knot extends FabricLauncherBase {
 		if (gameFile == null) {
 			for (String filename : classpathStrings) {
 				File file = new File(filename);
-				boolean hasGame = false;
-				int i = 0;
+				int i = findEntrypoint(entrypointClasses, entrypointFilenames, file);
 
-				while (i < entrypointClasses.size()) {
-					String entryPointFilename = entrypointFilenames.get(i);
-
-					if (file.isDirectory()) {
-						hasGame = new File(gameFile, entryPointFilename).exists();
-					} else if (file.isFile()) {
-						try {
-							JarFile jf = new JarFile(file);
-							ZipEntry entry = jf.getEntry(entryPointFilename);
-							hasGame = entry != null;
-						} catch (IOException e) {
-							// pass
-						}
-					}
-
-					if (hasGame) {
-						break;
-					} else {
-						i++;
-					}
-				}
-
-				if (hasGame) {
+				if (i >= 0) {
 					if (gameFile != null && !gameFile.equals(file)) {
 						throw new RuntimeException("Found duplicate game instances: [" + gameFile + ", " + file + "]");
 					}
@@ -392,6 +393,12 @@ public final class Knot extends FabricLauncherBase {
 						e.printStackTrace();
 					}
 				}
+			}
+
+			int i = findEntrypoint(entrypointClasses, entrypointFilenames, gameFile);
+
+			if (i >= 0) {
+				entryPoint = entrypointClasses.get(i);
 			}
 		}
 

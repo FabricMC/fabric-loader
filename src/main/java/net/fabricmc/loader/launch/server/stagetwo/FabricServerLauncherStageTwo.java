@@ -16,10 +16,7 @@
 
 package net.fabricmc.loader.launch.server.stagetwo;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import net.fabricmc.loader.launch.server.InjectingURLClassLoader;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -53,6 +50,7 @@ public class FabricServerLauncherStageTwo {
 		}
 	}
 
+	private static final JsonParser JSON_PARSER = new JsonParser();
 	private static final File LIBRARIES = new File(".fabric/libraries");
 	private static final String MAPPINGS_NAME = "net.fabricmc:yarn";
 	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/yarn/maven-metadata.xml";
@@ -78,8 +76,23 @@ public class FabricServerLauncherStageTwo {
 		launch(mainClass, stringArray);
 	}
 
+	private static void addLibraries(JsonObject installerMeta) {
+		String[] validSides = new String[] { "common", "server" };
+		JsonElement librariesElem = installerMeta.get("libraries");
+		if (librariesElem.isJsonObject()) {
+			JsonObject libraries = librariesElem.getAsJsonObject();
+			for (String side : validSides) {
+				JsonArray librariesArray = libraries.getAsJsonArray(side);
+				librariesArray.forEach(jsonElement -> setupLibrary(new Library(jsonElement)));
+			}
+		} else if (librariesElem.isJsonArray()) {
+			JsonArray librariesArray = librariesElem.getAsJsonArray();
+			librariesArray.forEach(jsonElement -> setupLibrary(new Library(jsonElement)));
+		}
+	}
+
 	private static void setupFabricEnvironment(List<String> runArguments) throws IOException {
-		JsonObject installerMeta = readJson(mode.getJsonFilename());
+		JsonObject installerMeta = readClasspathJson(mode.getJsonFilename());
 		JsonElement mainClassElem = installerMeta.get("mainClass");
 		if (mainClassElem.isJsonPrimitive()) {
 			mainClass = mainClassElem.getAsString();
@@ -87,17 +100,19 @@ public class FabricServerLauncherStageTwo {
 			mainClass = mainClassElem.getAsJsonObject().get("server").getAsString();
 		}
 
-		String[] validSides = new String[] { "common", "server" };
-		JsonObject libraries = installerMeta.getAsJsonObject("libraries");
-		for (String side : validSides) {
-			JsonArray librariesArray = libraries.getAsJsonArray(side);
-			librariesArray.forEach(jsonElement -> setupLibrary(new Library(jsonElement)));
-		}
+		addLibraries(installerMeta);
 
 		if (installerMeta.has("launchwrapper")) {
 			String serverTweakClass = installerMeta.get("launchwrapper").getAsJsonObject().get("tweakers").getAsJsonObject().get("server").getAsString();
 			runArguments.add("--tweakClass");
 			runArguments.add(serverTweakClass);
+		}
+
+		try {
+			JsonObject customLibraries = readFileJson(new File("fabric.custom-libraries.json"));
+			addLibraries(customLibraries);
+		} catch (FileNotFoundException e) {
+			// pass
 		}
 	}
 
@@ -119,30 +134,34 @@ public class FabricServerLauncherStageTwo {
 	}
 
 	private static void setupMappings() throws IOException {
-		JsonObject versionMeta = readJson("version.json");
-		String mcVersion = versionMeta.get("name").getAsString();
+		// TODO: Add config file with more fine-grained mappings configuration
+		String mappingsName = System.getProperty("fabric.mappings");
 
-		List<String> mappingVersions;
-		try {
-			mappingVersions = findMappingVersionsMaven(mcVersion, MAPPINGS_MAVEN_META);
-		} catch (XMLStreamException e) {
-			throw new RuntimeException("Failed to parse mapping version metadata xml", e);
-		}
+		if (mappingsName == null) {
+			try {
+				JsonObject versionMeta = readClasspathJson("version.json");
+				String mcVersion = versionMeta.get("name").getAsString();
 
-		if (mappingVersions.isEmpty()) {
-			throw new RuntimeException("No mapping versions found for " + mcVersion);
-		}
+				List<String> mappingVersions;
+				try {
+					mappingVersions = findMappingVersionsMaven(mcVersion, MAPPINGS_MAVEN_META);
+				} catch (XMLStreamException e) {
+					throw new RuntimeException("Failed to parse mapping version metadata xml", e);
+				}
 
-		String mappingVersion = mappingVersions.get(mappingVersions.size() - 1);
-		if(System.getProperty("fabric.mappings") != null){
-			String mappingVersionValue = System.getProperty("fabric.mappings");
-			if(!mappingVersions.contains(mappingVersionValue)){
-				throw new RuntimeException(String.format("Mappings version (%s) not found", mappingVersionValue));
+				if (mappingVersions.isEmpty()) {
+					throw new RuntimeException("No mapping versions found for " + mcVersion);
+				}
+
+				mappingsName = MAPPINGS_NAME + ":" + mappingVersions.get(mappingVersions.size() - 1);
+			} catch (FileNotFoundException e) {
+				System.err.println("Could not determine Minecraft version!");
 			}
-			mappingVersion = mappingVersionValue;
 		}
 
-		setupLibrary(new Library(MAPPINGS_NAME + ":" + mappingVersion, "https://maven.modmuss50.me/"));
+		if (mappingsName != null) {
+			setupLibrary(new Library(mappingsName, "https://maven.modmuss50.me/"));
+		}
 	}
 
 	private static List<String> findMappingVersionsMaven(String mcVersion, String mavenMetadataUrl) throws IOException, XMLStreamException {
@@ -168,18 +187,31 @@ public class FabricServerLauncherStageTwo {
 			libraries.add(UrlUtil.asUrl(new File(System.getProperty("fabric.gameJarPath"))));
 
 			URLClassLoader newClassLoader = new InjectingURLClassLoader(libraries.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
-
 			newClassLoader.loadClass(mainClass).getMethod("main", String[].class).invoke(null, (Object) args);
 		} catch (Exception e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
 		}
 	}
 
-	private static JsonObject readJson(String file) throws IOException {
-		Gson gson = new Gson();
+	private static JsonObject readClasspathJson(String file) throws IOException {
 		InputStream inputStream = FabricServerLauncherStageTwo.class.getClassLoader().getResourceAsStream(file);
+		if (inputStream == null) {
+			throw new FileNotFoundException(file);
+		}
+		return readJson(inputStream);
+	}
+
+	private static JsonObject readFileJson(File file) throws IOException {
+		if (!file.exists()) {
+			throw new FileNotFoundException(file.getName());
+		}
+		return readJson(new FileInputStream(file));
+	}
+
+	private static JsonObject readJson(InputStream inputStream) throws IOException {
 		Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-		JsonObject installerMeta = gson.fromJson(reader, JsonObject.class);
+		// Gson.read(JsonObject) doesn't seem to work on old Gson versions.
+		JsonObject installerMeta = JSON_PARSER.parse(reader).getAsJsonObject();
 		reader.close();
 		inputStream.close();
 		return installerMeta;
