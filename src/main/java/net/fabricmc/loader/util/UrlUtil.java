@@ -17,14 +17,34 @@
 package net.fabricmc.loader.util;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.nio.file.Path;
+import java.security.CodeSigner;
+import java.security.CodeSource;
 
 public class UrlUtil {
 	private UrlUtil() {
 
+	}
+
+	public static URL getSource(String filename, URL resourceURL) throws UrlConversionException {
+		URL codeSourceURL;
+
+		try {
+			URLConnection connection = resourceURL.openConnection();
+			if (connection instanceof JarURLConnection) {
+				codeSourceURL = ((JarURLConnection) connection).getJarFileURL();
+			} else {
+				// assume directory
+				String s = UrlUtil.asFile(resourceURL).getAbsolutePath();
+				s = s.replace(filename.replace('/', File.separatorChar), "");
+				codeSourceURL = UrlUtil.asUrl(new File(s));
+			}
+		} catch (Exception e) {
+			throw new UrlConversionException(e);
+		}
+
+		return codeSourceURL;
 	}
 
 	public static File asFile(URL url) throws UrlConversionException {

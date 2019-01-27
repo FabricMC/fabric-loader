@@ -22,27 +22,18 @@ import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
-import net.fabricmc.loader.transformer.FabricTransformer;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.args.Arguments;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.transformer.MixinTransformer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLConnection;
-import java.security.CodeSigner;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -51,245 +42,12 @@ import java.util.zip.ZipEntry;
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();
 
-	private PatchingClassLoader loader;
+	private KnotClassLoaderInterface loader;
 	private boolean isDevelopment;
 	private EnvType envType;
 	private String entryPoint;
 	private File gameJarFile;
 	private List<URL> classpath;
-
-	private static class NullClassLoader extends ClassLoader {
-		private static final Enumeration<URL> NULL_ENUMERATION = new Enumeration<URL>() {
-			@Override
-			public boolean hasMoreElements() {
-				return false;
-			}
-
-			@Override
-			public URL nextElement() {
-				return null;
-			}
-		};
-
-		static {
-			registerAsParallelCapable();
-		}
-
-		@Override
-		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			throw new ClassNotFoundException(name);
-		}
-
-		@Override
-		public URL getResource(String name) {
-			return null;
-		}
-
-		@Override
-		public Enumeration<URL> getResources(String var1) throws IOException {
-			return NULL_ENUMERATION;
-		}
-	}
-
-	private static class DynamicURLClassLoader extends URLClassLoader {
-		public DynamicURLClassLoader(URL[] urls) {
-			super(urls, new NullClassLoader());
-		}
-
-		public void addURL(URL url) {
-			super.addURL(url);
-		}
-
-		static {
-			registerAsParallelCapable();
-		}
-	}
-
-	private static class PatchingClassLoader extends ClassLoader {
-		private final DynamicURLClassLoader urlLoader;
-		private final ClassLoader originalLoader;
-		private final boolean isDevelopment;
-		private final EnvType envType;
-		private MixinTransformer mixinTransformer;
-
-		public PatchingClassLoader(boolean isDevelopment, EnvType envType) {
-			super(new DynamicURLClassLoader(new URL[0]));
-			this.originalLoader = getClass().getClassLoader();
-			this.urlLoader = (DynamicURLClassLoader) getParent();
-			this.isDevelopment = isDevelopment;
-			this.envType = envType;
-		}
-
-		public boolean isClassLoaded(String name) {
-			synchronized (getClassLoadingLock(name)) {
-				return findLoadedClass(name) != null;
-			}
-		}
-
-		@Override
-		public URL getResource(String name) {
-			Objects.requireNonNull(name);
-
-			URL url = urlLoader.getResource(name);
-			if (url == null) {
-				url = originalLoader.getResource(name);
-			}
-			return url;
-		}
-
-		@Override
-		public InputStream getResourceAsStream(String var1) {
-			return super.getResourceAsStream(var1);
-		}
-
-		@Override
-		public Enumeration<URL> getResources(String name) throws IOException {
-			Objects.requireNonNull(name);
-
-			Enumeration<URL> first = urlLoader.getResources(name);
-			Enumeration<URL> second = originalLoader.getResources(name);
-			return new Enumeration<URL>() {
-				Enumeration<URL> current = first;
-
-				@Override
-				public boolean hasMoreElements() {
-					return current != null && current.hasMoreElements();
-				}
-
-				@Override
-				public URL nextElement() {
-					if (current == null) {
-						return null;
-					}
-
-					if (!current.hasMoreElements()) {
-						if (current == first) {
-							current = second;
-						} else {
-							current = null;
-							return null;
-						}
-					}
-
-					return current.nextElement();
-				}
-			};
-		}
-
-		@Override
-		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			synchronized (getClassLoadingLock(name)) {
-				Class<?> c = findLoadedClass(name);
-
-				if (c == null) {
-					if (!"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && !name.startsWith("org.apache.logging.log4j")) {
-						byte[] input = EntrypointTransformer.INSTANCE.transform(name);
-						if (input == null) {
-							try {
-								input = getClassByteArray(name, true);
-							} catch (IOException e) {
-								throw new RuntimeException(e);
-							}
-						}
-
-						if (input != null) {
-							if (mixinTransformer == null) {
-								try {
-									Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
-									constructor.setAccessible(true);
-									mixinTransformer = constructor.newInstance();
-								} catch (Exception e) {
-									throw new RuntimeException(e);
-								}
-							}
-
-							ProtectionDomain protectionDomain = null;
-							URL resourceURL = urlLoader.getResource(getClassFileName(name));
-							if (resourceURL != null) {
-								URL codeSourceURL = null;
-
-								try {
-									URLConnection connection = resourceURL.openConnection();
-									if (connection instanceof JarURLConnection) {
-										codeSourceURL = ((JarURLConnection) connection).getJarFileURL();
-									} else {
-										// assume directory
-										String s = UrlUtil.asFile(resourceURL).getAbsolutePath();
-										s = s.replace(name.replace('.', File.separatorChar), "");
-										codeSourceURL = UrlUtil.asUrl(new File(s));
-									}
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-
-								// TODO: protection domain stub
-								if (codeSourceURL != null) {
-									protectionDomain = new ProtectionDomain(new CodeSource(codeSourceURL, (CodeSigner[]) null), null);
-								}
-							}
-
-							byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
-							b = mixinTransformer.transformClassBytes(name, name, b);
-							c = defineClass(name, b, 0, b.length, protectionDomain);
-
-							int pkgDelimiterPos = name.lastIndexOf('.');
-							if (pkgDelimiterPos > 0) {
-								// TODO: package definition stub
-								String pkgString = name.substring(0, pkgDelimiterPos);
-								if (getPackage(pkgString) == null) {
-									definePackage(pkgString, null, null, null, null, null, null, null);
-								}
-							}
-						}
-					}
-				}
-
-				if (c == null) {
-					c = originalLoader.loadClass(name);
-				}
-
-				if (resolve) {
-					resolveClass(c);
-				}
-
-				return c;
-			}
-        }
-
-		public void addURL(URL url) {
-			urlLoader.addURL(url);
-		}
-
-		static {
-			registerAsParallelCapable();
-		}
-
-		private String getClassFileName(String name) {
-			return name.replace('.', '/') + ".class";
-		}
-
-		public byte[] getClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
-			String classFile = getClassFileName(name);
-			InputStream inputStream = urlLoader.getResourceAsStream(classFile);
-			if (inputStream == null && !skipOriginalLoader) {
-				inputStream = originalLoader.getResourceAsStream(classFile);
-			}
-			if (inputStream == null) {
-				return null;
-			}
-
-			int a = inputStream.available();
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream(a < 32 ? 32768 : a);
-			byte[] buffer = new byte[8192];
-			int len;
-			while ((len = inputStream.read(buffer)) > 0) {
-				outputStream.write(buffer, 0, len);
-			}
-
-			inputStream.close();
-			return outputStream.toByteArray();
-		}
-	}
 
 	protected Knot(EnvType type, File gameJarFile) {
 		this.envType = type;
@@ -327,7 +85,8 @@ public final class Knot extends FabricLauncherBase {
 		String proposedEntrypoint = System.getProperty("fabric.entrypoint");
 
 		// Setup classloader
-		loader = new PatchingClassLoader(isDevelopment(), envType);
+		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
+		loader = new KnotClassLoader(isDevelopment(), envType);
 		String[] classpathStringsIn = System.getProperty("java.class.path").split(File.pathSeparator);
 		List<String> classpathStrings = new ArrayList<>(classpathStringsIn.length);
 
@@ -354,7 +113,7 @@ public final class Knot extends FabricLauncherBase {
 			entryPoint = "net.fabricmc.loader.entrypoint.applet.AppletMain";
 		}
 
-		Thread.currentThread().setContextClassLoader(loader);
+		Thread.currentThread().setContextClassLoader((ClassLoader) loader);
 
 		// Setup Mixin environment
 		MixinLoader mixinLoader = new MixinLoader();
@@ -368,7 +127,7 @@ public final class Knot extends FabricLauncherBase {
 		FabricLauncherBase.pretendMixinPhases();
 
 		try {
-			Class<?> c = loader.loadClass(entryPoint);
+			Class<?> c = ((ClassLoader) loader).loadClass(entryPoint);
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) newArgs);
 		} catch (Exception e) {
@@ -478,17 +237,21 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
-		return loader.getResourceAsStream(name);
+		try {
+			return loader.getResourceAsStream(name, false);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public ClassLoader getTargetClassLoader() {
-		return loader;
+		return (ClassLoader) loader;
 	}
 
 	@Override
 	public byte[] getClassByteArray(String name) throws IOException {
-		return loader.getClassByteArray(name, false);
+		return loader.getDelegate().getClassByteArray(name, false);
 	}
 
 	@Override
