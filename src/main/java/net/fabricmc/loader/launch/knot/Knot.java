@@ -82,11 +82,13 @@ public final class Knot extends FabricLauncherBase {
 		String[] newArgs = arguments.toArray();
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
-		String proposedEntrypoint = System.getProperty("fabric.entrypoint");
+		String proposedEntrypoint = System.getProperty("fabric.loader.entrypoint");
 
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
-		loader = new KnotClassLoader(isDevelopment(), envType);
+		boolean useCompatibility = Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
+		loader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType) : new KnotClassLoader(isDevelopment(), envType);
+
 		String[] classpathStringsIn = System.getProperty("java.class.path").split(File.pathSeparator);
 		List<String> classpathStrings = new ArrayList<>(classpathStringsIn.length);
 

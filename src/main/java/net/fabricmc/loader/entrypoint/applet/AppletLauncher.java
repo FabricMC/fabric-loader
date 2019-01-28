@@ -76,6 +76,7 @@ public class AppletLauncher extends Applet implements AppletStub {
 		return params;
 	}
 
+	// 1.3 ~ 1.5 FML
 	public void replace(Applet applet) {
 		this.mcApplet = applet;
 		init();
@@ -147,23 +148,31 @@ public class AppletLauncher extends Applet implements AppletStub {
 		active = false;
 	}
 
-	@Override
-	public URL getCodeBase() {
-		try {
-			return UrlUtil.asUrl(AppletMain.hookGameDir(new File(".")));
-		} catch (UrlConversionException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public URL getDocumentBase() {
+	/**
+	 * Minecraft 0.30 checks for "minecraft.net" or "www.minecraft.net" being
+	 * the applet hosting location, as an anti-rehosting measure. Of course,
+	 * being ran stand-alone, it's not actually "hosted" anywhere.
+	 *
+	 * The side effect of not providing the correct URL here is all levels,
+	 * loaded or generated, being set to null.
+	 */
+	private URL getMinecraftHostingUrl() {
 		try {
 			return new URL("http://www.minecraft.net/game");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public URL getCodeBase() {
+		return getMinecraftHostingUrl();
+	}
+
+	@Override
+	public URL getDocumentBase() {
+		return getMinecraftHostingUrl();
 	}
 
 	@Override

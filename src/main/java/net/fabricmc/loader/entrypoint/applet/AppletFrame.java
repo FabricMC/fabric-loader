@@ -71,6 +71,9 @@ public class AppletFrame extends Frame implements WindowListener {
 			instance = new File(System.getProperty("minecraft.applet.TargetDirectory"));
 		}
 
+		// 1.3 ~ 1.5 FML
+		System.setProperty("minecraft.applet.WrapperClass", AppletLauncher.class.getName());
+
 		boolean doConnect = arguments.containsKey("server") && arguments.containsKey("port");
 		String host = "";
 		String port = "";

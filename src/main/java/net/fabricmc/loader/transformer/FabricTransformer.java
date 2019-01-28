@@ -17,9 +17,28 @@
 package net.fabricmc.loader.transformer;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.*;
 
 public final class FabricTransformer {
+	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
+		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
+		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
+
+		byte[] input = EntrypointTransformer.INSTANCE.transform(name);
+		if (input != null) {
+			return FabricTransformer.transform(isDevelopment, envType, name, input);
+		} else {
+			if (bytes != null) {
+				return FabricTransformer.transform(isDevelopment, envType, name, bytes);
+			} else {
+				return null;
+			}
+		}
+
+	}
+
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isDevelopment && isMinecraftClass;

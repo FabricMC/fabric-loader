@@ -136,10 +136,13 @@ class KnotClassDelegate {
 
 			if (input != null) {
 				return transform(name, input);
+			} else {
+				return null;
 			}
+		} else {
+			// Allow injecting fake loader classes.
+			return EntrypointTransformer.INSTANCE.transform(name);
 		}
-
-		return null;
 	}
 
 	String getClassFileName(String name) {

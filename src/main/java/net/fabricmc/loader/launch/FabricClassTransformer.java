@@ -22,17 +22,11 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.minecraft.launchwrapper.IClassTransformer;
 
-public class FabricClassTransformer implements IClassTransformer {
-	private final boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
-	private final EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
+import java.util.List;
 
+public class FabricClassTransformer implements IClassTransformer {
 	@Override
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
-		byte[] input = EntrypointTransformer.INSTANCE.transform(name);
-		if (input != null) {
-			return FabricTransformer.transform(isDevelopment, envType, name, input);
-		} else {
-			return FabricTransformer.transform(isDevelopment, envType, name, basicClass);
-		}
+		return FabricTransformer.lwTransformerHook(name, transformedName, basicClass);
 	}
 }
