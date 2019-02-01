@@ -26,6 +26,7 @@ import net.fabricmc.loader.util.UrlUtil;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.MixinTransformer;
+import org.spongepowered.asm.util.Constants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -167,6 +168,20 @@ public final class Knot extends FabricLauncherBase {
 			};
 		}
 
+		private MixinTransformer getMixinTransformer() {
+			if (mixinTransformer == null) {
+				try {
+					Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
+					constructor.setAccessible(true);
+					mixinTransformer = constructor.newInstance();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+
+			return mixinTransformer;
+		}
+
 		@Override
 		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 			synchronized (getClassLoadingLock(name)) {
@@ -174,29 +189,30 @@ public final class Knot extends FabricLauncherBase {
 
 				if (c == null) {
 					if (!"net.fabricmc.api.EnvType".equals(name) && !"net.fabricmc.api.loader.Loader".equals(name) && !name.startsWith("net.fabricmc.loader.launch.") && /* MixinLoader -> */ !name.startsWith("org.apache.logging.log4j")) {
-						byte[] input;
-						try {
-							input = getClassByteArray(name, true);
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-						if (input != null) {
-							if (name.indexOf('.') < 0) {
-								throw new ClassNotFoundException("Root packages forbidden: class '" + name + "' could not be loaded");
+						byte[] b = null;
+
+						// handle runtime-generated mixin packages
+						if (name.startsWith(Constants.SYNTHETIC_PACKAGE + ".")) {
+							b = getMixinTransformer().transformClassBytes(name, name, null);
+						} else {
+							byte[] input;
+							try {
+								input = getClassByteArray(name, true);
+							} catch (IOException e) {
+								throw new RuntimeException(e);
 							}
 
-							if (mixinTransformer == null) {
-								try {
-									Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
-									constructor.setAccessible(true);
-									mixinTransformer = constructor.newInstance();
-								} catch (Exception e) {
-									throw new RuntimeException(e);
+							if (input != null) {
+								if (name.indexOf('.') < 0) {
+									throw new ClassNotFoundException("Root packages forbidden: class '" + name + "' could not be loaded");
 								}
-							}
 
-							byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
-							b = mixinTransformer.transformClassBytes(name, name, b);
+								b = FabricTransformer.transform(isDevelopment, envType, name, input);
+								b = getMixinTransformer().transformClassBytes(name, name, b);
+							}
+						}
+
+						if (b != null) {
 							c = defineClass(name, b, 0, b.length);
 						}
 					}
