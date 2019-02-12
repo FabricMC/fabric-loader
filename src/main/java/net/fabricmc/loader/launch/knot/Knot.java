@@ -317,12 +317,16 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		classpath = new ArrayList<>(classpathStrings.size() - 1);
+		classpath = new ArrayList<>(classpathStrings.size());
 		populateClasspath(argMap, classpathStrings);
 
 		// Add loader to classpath - this is necessary so that net.fabricmc.loader gets
 		// loaded in the correct location.
-		propose(getClass().getProtectionDomain().getCodeSource().getLocation());
+		URL loaderUrl = getClass().getProtectionDomain().getCodeSource().getLocation();
+		propose(loaderUrl);
+		if (!classpath.contains(loaderUrl)) {
+			classpath.add(loaderUrl);
+		}
 
 		Thread.currentThread().setContextClassLoader(loader);
 
