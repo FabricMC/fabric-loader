@@ -342,15 +342,20 @@ public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricm
 			if (f.exists()) {
 				if (f.isDirectory()) {
 					File modJson = new File(f, "fabric.mod.json");
+					boolean isBc = false;
 					if (!modJson.exists()) {
 						// TODO: Remove in 0.4.0 (backwards compat)
 						modJson = new File(f, "mod.json");
+						isBc = true;
 					}
 
 					if (modJson.exists()) {
 						try {
 							for (ModInfo info : getMods(new FileInputStream(modJson))) {
 								mods.add(new ModEntry(info, f));
+								if (isBc) {
+									LOGGER.warn("Mod id `%s` is using a deprecated mod.json file, as of 0.4.0 it must be named fabric.mod.json", info.getId());
+								}
 							}
 						} catch (FileNotFoundException e) {
 							LOGGER.error("Unable to load mod from directory " + f.getPath());
