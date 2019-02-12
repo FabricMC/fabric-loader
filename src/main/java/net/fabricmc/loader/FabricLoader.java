@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader;
 
+import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -134,13 +135,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	/**
 	 * @return The game instance's root directory.
 	 */
+	@Override
 	public File getGameDirectory() {
 		return gameDir;
 	}
 
 	/**
-	 * @return The game instance's confgiuration directory.
+	 * @return The game instance's configuration directory.
 	 */
+	@Override
 	public File getConfigDirectory() {
 		if (configDir == null) {
 			configDir = new File(gameDir, "config");
@@ -149,6 +152,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 		}
 		return configDir;
+	}
+
+	protected File getModsDirectory() {
+		return new File(getGameDirectory(), "mods");
 	}
 
 	public void load(File modsDir) {
@@ -180,15 +187,27 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		Map<String, Set<File>> modIdSources = new HashMap<>();
-		List<ModEntry> existingMods = new ArrayList<>();
 
 		int classpathModsCount = 0;
+		Stream<URL> urls;
+
 		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			List<ModEntry> classpathMods = getClasspathMods();
-			existingMods.addAll(classpathMods);
-			classpathModsCount = classpathMods.size();
-			LOGGER.debug("Found %d classpath mods", classpathModsCount);
+			String javaHome = System.getProperty("java.home");
+			String modsDir = getModsDirectory().getAbsolutePath();
+			urls = FabricLauncherBase.getLauncher().getClasspathURLs().stream()
+				.filter((url) -> !url.getPath().startsWith(javaHome) && !url.getPath().startsWith(modsDir));
+		} else {
+			try {
+				urls = Stream.of(FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation());
+			} catch (Throwable t) {
+				urls = Stream.empty();
+			}
 		}
+
+		List<ModEntry> classpathMods = getClasspathMods(urls);
+		List<ModEntry> existingMods = new ArrayList<>(classpathMods);
+		classpathModsCount = classpathMods.size();
+		LOGGER.debug("Found %d classpath mods", classpathModsCount);
 
 		for (File f : modFiles) {
 			if (f.isDirectory()) {
@@ -301,38 +320,36 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected List<ModEntry> getClasspathMods() {
+	protected List<ModEntry> getClasspathMods(Stream<URL> urls) {
 		List<ModEntry> mods = new ArrayList<>();
 
-		String javaHome = System.getProperty("java.home");
-		String modsDir = new File(getGameDirectory(), "mods").getAbsolutePath();
-
-		for (URL url : FabricLauncherBase.getLauncher().getClasspathURLs()) {
-			if (url.getPath().startsWith(javaHome) || url.getPath().startsWith(modsDir)) {
-				continue;
-			}
-
+		urls.forEach((url) -> {
 			LOGGER.debug("Attempting to find classpath mods from " + url.getPath());
 			File f;
 			try {
 				f = UrlUtil.asFile(url);
 			} catch (UrlConversionException e) {
 				// pass
-				continue;
+				return;
 			}
 
 			if (f.exists()) {
 				if (f.isDirectory()) {
 					File modJson = new File(f, "fabric.mod.json");
+					boolean isBc = false;
 					if (!modJson.exists()) {
 						// TODO: Remove in 0.4.0 (backwards compat)
 						modJson = new File(f, "mod.json");
+						isBc = true;
 					}
 
 					if (modJson.exists()) {
 						try {
 							for (ModInfo info : getMods(new FileInputStream(modJson))) {
 								mods.add(new ModEntry(info, f));
+								if (isBc) {
+									LOGGER.warn("Mod id `%s` is using a deprecated mod.json file, as of 0.4.0 it must be named fabric.mod.json", info.getId());
+								}
 							}
 						} catch (FileNotFoundException e) {
 							LOGGER.error("Unable to load mod from directory " + f.getPath());
@@ -345,7 +362,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					}
 				}
 			}
-		}
+		});
 		return mods;
 	}
 
