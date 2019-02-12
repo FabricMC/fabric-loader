@@ -17,10 +17,10 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.util.TinyRemapperMappingsHelper;
+import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.args.Arguments;
+import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.MappingsProvider;
 import net.fabricmc.tinyremapper.OutputConsumerPath;

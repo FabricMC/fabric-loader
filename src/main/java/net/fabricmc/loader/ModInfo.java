@@ -18,6 +18,9 @@ package net.fabricmc.loader;
 
 import com.google.common.collect.Lists;
 import com.google.gson.*;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.util.version.VersionParsingException;
+import net.fabricmc.loader.util.version.VersionPredicateParser;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -34,7 +37,7 @@ public class ModInfo {
 
 	// Required
 	private String id;
-	private String version;
+	private Version version;
 
 	// Optional (environment)
 	private DependencyMap requires = new DependencyMap();
@@ -76,14 +79,19 @@ public class ModInfo {
 	}
 
 	public String getName() {
-		if(name == null || name.isEmpty()){
+		if (name == null || name.isEmpty()) {
 			return id;
 		}
 		return name;
 	}
 
-	public String getVersionString() {
+	public Version getVersion() {
 		return version;
+	}
+
+	@Deprecated
+	public String getVersionString() {
+		return version.getFriendlyString();
 	}
 
 	public String getLanguageAdapter() {
@@ -253,13 +261,19 @@ public class ModInfo {
 		}
 
 		public boolean satisfiedBy(ModInfo info) {
-			// TODO: Actually implement this once we decide on an implementation.
-			/* for (String s : versionMatchers) {
-				if (!info.version.equals(s)) {
-					return false;
+			Version version = info.getVersion();
+			try {
+				for (String s : versionMatchers) {
+					if (!VersionPredicateParser.matches(version, s)) {
+						return false;
+					}
 				}
-			} */
-			return true;
+
+				return true;
+			} catch (VersionParsingException e) {
+				e.printStackTrace();
+				return false;
+			}
 		}
 
 		public static class Deserializer implements JsonDeserializer<Dependency> {
@@ -381,7 +395,6 @@ public class ModInfo {
 	}
 
 	public enum Side {
-
 		CLIENT,
 		SERVER,
 		UNIVERSAL;
@@ -402,5 +415,11 @@ public class ModInfo {
 			return this == SERVER;
 		}
 
+		public static class Deserializer implements JsonDeserializer<Side> {
+			@Override
+			public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+				return valueOf(element.getAsString().toUpperCase());
+			}
+		}
 	}
 }

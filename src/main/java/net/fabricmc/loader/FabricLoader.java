@@ -19,10 +19,12 @@ package net.fabricmc.loader;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.json.SideDeserializer;
+import net.fabricmc.loader.util.version.SemanticVersion;
+import net.fabricmc.loader.util.version.VersionDeserializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -59,7 +61,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 	private static final Gson GSON = new GsonBuilder()
-		.registerTypeAdapter(ModInfo.Side.class, new SideDeserializer())
+		.registerTypeAdapter(Version.class, new VersionDeserializer())
+		.registerTypeAdapter(ModInfo.Side.class, new ModInfo.Side.Deserializer())
 		.registerTypeAdapter(ModInfo.Mixins.class, new ModInfo.Mixins.Deserializer())
 		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
 		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
@@ -277,7 +280,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, mods.size(), mods.stream()
 			.map(ModContainer::getInfo)
-			.map(info -> String.format("%s(%s)", info.getId(), info.getVersionString()))
+			.map(info -> String.format("%s(%s)", info.getId(), info.getVersion().getFriendlyString()))
 			.collect(Collectors.joining(", ")));
 
 		onModsPopulated();
@@ -286,7 +289,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	protected void onModsPopulated() {
 		validateMods();
 		checkDependencies();
-		sortMods();
+		// sortMods();
 
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
@@ -336,20 +339,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			if (f.exists()) {
 				if (f.isDirectory()) {
 					File modJson = new File(f, "fabric.mod.json");
-					boolean isBc = false;
-					if (!modJson.exists()) {
-						// TODO: Remove in 0.4.0 (backwards compat)
-						modJson = new File(f, "mod.json");
-						isBc = true;
-					}
 
 					if (modJson.exists()) {
 						try {
 							for (ModInfo info : getMods(new FileInputStream(modJson))) {
 								mods.add(new ModEntry(info, f));
-								if (isBc) {
-									LOGGER.warn("Mod id `%s` is using a deprecated mod.json file, as of 0.4.0 it must be named fabric.mod.json", info.getId());
-								}
 							}
 						} catch (FileNotFoundException e) {
 							LOGGER.error("Unable to load mod from directory " + f.getPath());
@@ -422,23 +416,25 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 	}
 
-	protected void validateMods(){
+	protected void validateMods() {
 		LOGGER.debug("Validating mods");
 		for (ModContainer mod : mods) {
-			if(mod.getInfo().getId() == null || mod.getInfo().getId().isEmpty()){
-				throw new RuntimeException(String.format("Mod %s has no id", mod.getOriginFile().getName()));
+			if (mod.getInfo().getId() == null || mod.getInfo().getId().isEmpty()) {
+				throw new RuntimeException(String.format("Mod file `%s` has no id", mod.getOriginFile().getName()));
 			}
-			if(!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()){
+
+			if (!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()) {
 				throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", mod.getInfo().getId()));
 			}
-			if(mod.getInfo().getVersionString() == null || mod.getInfo().getVersionString().isEmpty()){
-				throw new RuntimeException(String.format("Mod %s requires a version to be set", mod.getInfo().getId()));
+
+			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
+				LOGGER.warn("Mod id `%s` does not respect SemVer: " + mod.getInfo().getId() + " - comparison support is limited");
 			}
 		}
 	}
 
-	private void sortMods() {
-		/* LOGGER.debug("Sorting mods");
+	/* private void sortMods() {
+		LOGGER.debug("Sorting mods");
 
 		LinkedList<ModContainer> sorted = new LinkedList<>();
 		for (ModContainer mod : mods) {
@@ -466,8 +462,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 		}
 
-		mods = sorted; */
-	}
+		mods = sorted;
+	} */
 
 	private void initializeMods() {
 		for (ModContainer mod : mods) {
@@ -475,7 +471,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				for (String in : mod.getInfo().getInitializers()) {
 					instanceStorage.instantiate(in, mod.getAdapter());
 				}
-			} catch (Exception e){
+			} catch (Exception e) {
 				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginFile().getName()), e);
 			}
 		}
@@ -501,13 +497,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		try {
 			JarFile jar = new JarFile(f);
 			ZipEntry entry = jar.getEntry("fabric.mod.json");
-			if (entry == null) {
-				// TODO: Remove in 0.4.0 (backwards compat)
-				entry = jar.getEntry("mod.json");
-				if(entry != null){
-					LOGGER.warn("%s is using a deprecated mod.json file, as of 0.4.0 it must be named fabric.mod.json", jar.getName());
-				}
-			}
 			if (entry != null) {
 				try (InputStream in = jar.getInputStream(entry)) {
 					return getMods(in);

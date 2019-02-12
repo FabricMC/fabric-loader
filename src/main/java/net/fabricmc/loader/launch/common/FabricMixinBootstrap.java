@@ -20,17 +20,14 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.ModContainer;
 import net.fabricmc.loader.ModInfo;
-import net.fabricmc.loader.util.MixinIntermediaryDevRemapper;
-import net.fabricmc.loader.util.args.Arguments;
+import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
 import net.fabricmc.mappings.Mappings;
-import net.fabricmc.mappings.helpers.mixin.MixinMappingsRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
