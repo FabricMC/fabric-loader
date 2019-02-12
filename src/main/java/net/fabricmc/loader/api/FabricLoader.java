@@ -18,6 +18,8 @@ package net.fabricmc.loader.api;
 
 import net.fabricmc.api.EnvType;
 
+import java.io.File;
+
 /**
  * The public-facing FabricLoader instance.
  *
@@ -57,4 +59,16 @@ public interface FabricLoader {
 	 * @return A client or server instance object.
 	 */
 	Object getGameInstance();
+
+	/**
+	 * Get the current game working directory.
+	 * @return The directory.
+	 */
+	File getGameDirectory();
+
+	/**
+	 * Get the current directory for game configuration files.
+	 * @return The directory.
+	 */
+	File getConfigDirectory();
 }

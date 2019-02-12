@@ -152,13 +152,15 @@ public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricm
 	/**
 	 * @return The game instance's root directory.
 	 */
+	@Override
 	public File getGameDirectory() {
 		return gameDir;
 	}
 
 	/**
-	 * @return The game instance's confgiuration directory.
+	 * @return The game instance's configuration directory.
 	 */
+	@Override
 	public File getConfigDirectory() {
 		if (configDir == null) {
 			configDir = new File(gameDir, "config");
