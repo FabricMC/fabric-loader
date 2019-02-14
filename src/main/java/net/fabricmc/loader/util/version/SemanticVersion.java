@@ -20,8 +20,10 @@ import net.fabricmc.loader.api.Version;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class SemanticVersion implements Comparable<SemanticVersion>, Version {
+	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("^[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*$");
 	private final int[] components;
 	private final String prerelease;
 	private final String build;
@@ -44,6 +46,14 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 			prerelease = null;
 		}
 
+		if (prerelease != null && !DOT_SEPARATED_ID.matcher(prerelease).matches()) {
+			throw new VersionParsingException("Invalid prerelease string '" + prerelease + "'!");
+		}
+
+		if (build != null && !DOT_SEPARATED_ID.matcher(build).matches()) {
+			throw new VersionParsingException("Invalid build string '" + build + "'!");
+		}
+
 		if (version.endsWith(".")) {
 			throw new VersionParsingException("Negative version number component found!");
 		} else if (version.startsWith(".")) {
@@ -54,9 +64,10 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 		if (componentStrings.length < 1) {
 			throw new VersionParsingException("Did not provide version numbers!");
 		}
+
 		components = new int[componentStrings.length];
 		for (int i = 0; i < componentStrings.length; i++) {
-			if (storeX && componentStrings[i].equals("x")) {
+			if (storeX && (componentStrings[i].equals("x") || componentStrings[i].equals("X") || componentStrings[i].equals("*"))) {
 				components[i] = Integer.MIN_VALUE;
 				continue;
 			}
@@ -73,6 +84,10 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 			} catch (NumberFormatException e) {
 				throw new VersionParsingException("Could not parse version number component '" + componentStrings[i] + "'!", e);
 			}
+		}
+
+		if (storeX && components.length == 1 && components[0] == Integer.MIN_VALUE) {
+			throw new VersionParsingException("Versions of form 'x' or 'X' not allowed!");
 		}
 
 		buildFriendlyName();

@@ -20,15 +20,28 @@ import net.fabricmc.loader.util.version.SemanticVersion;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
 import net.fabricmc.loader.util.version.VersionParsingException;
 
+import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
 public class VersionParsingTests {
-	private static boolean tryParseSemantic(String s, boolean storeX) {
+	private static Exception tryParseSemantic(String s, boolean storeX) {
 		try {
 			new SemanticVersion(s, storeX);
-			return true;
+			return null;
 		} catch (VersionParsingException e) {
-			return false;
+			return e;
+		}
+	}
+
+	private static void testTrue(@Nullable Exception b) {
+		if (b != null) {
+			throw new RuntimeException("Test failed!", b);
+		}
+	}
+
+	private static void testFalse(@Nullable Exception b) {
+		if (b == null) {
+			throw new RuntimeException("Test failed!");
 		}
 	}
 
@@ -47,11 +60,9 @@ public class VersionParsingTests {
 	public static void main(String[] args) throws Exception {
 		// Test: Semantic version creation.
 		testTrue(tryParseSemantic("0.3.5", false));
-		testTrue(tryParseSemantic("0.3.x", true));
 		testTrue(tryParseSemantic("0.3.5-beta.2", false));
 		testTrue(tryParseSemantic("0.3.5-alpha.6+build.120", false));
 		testTrue(tryParseSemantic("0.3.5+build.3000", false));
-		testFalse(tryParseSemantic("0.3.x", false));
 		testFalse(tryParseSemantic("0.0.-1", false));
 		testFalse(tryParseSemantic("0.-1.0", false));
 		testFalse(tryParseSemantic("-1.0.0", false));
@@ -59,6 +70,19 @@ public class VersionParsingTests {
 		testFalse(tryParseSemantic("0.0.a", false));
 		testFalse(tryParseSemantic("0.a.0", false));
 		testFalse(tryParseSemantic("a.0.0", false));
+		testFalse(tryParseSemantic("x", true));
+		testTrue(tryParseSemantic("2.x", true));
+		testTrue(tryParseSemantic("2.X", true));
+		testTrue(tryParseSemantic("2.*", true));
+		testFalse(tryParseSemantic("2.x", false));
+		testFalse(tryParseSemantic("2.X", false));
+		testFalse(tryParseSemantic("2.*", false));
+
+		// Test: Semantic version creation (spec).
+		testTrue(tryParseSemantic("1.0.0-0.3.7", false));
+		testTrue(tryParseSemantic("1.0.0-x.7.z.92", false));
+		testTrue(tryParseSemantic("1.0.0+20130313144700", false));
+		testTrue(tryParseSemantic("1.0.0-beta+exp.sha.5114f85", false));
 
 		// Test: comparator range with pre-releases.
 		{
