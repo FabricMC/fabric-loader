@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader;
 
-import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -224,7 +223,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		LOGGER.debug("Found %d JAR mods", existingMods.size() - classpathModsCount);
-
 		mods:
 		for (ModEntry pair : existingMods) {
 			ModInfo mod = pair.info;
@@ -240,14 +238,17 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 						String depId = entry.getKey();
 						ModInfo.Dependency dep = entry.getValue();
 						if (depId.equalsIgnoreCase(mod.getId()) && dep.satisfiedBy(mod)) {
-							addMod(mod, pair.getRight(), loaderInitializesMods());
+							addMod(mod, pair.getRight(), isPrimaryLoader());
 						}
 					}
 				}
 				continue mods;
 			} */
-			addMod(mod, pair.file, loaderInitializesMods());
-			modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>()).add(pair.file);
+			Set<File> files = modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>());
+			if (!files.contains(pair.file)) {
+				addMod(mod, pair.file, isPrimaryLoader());
+				files.add(pair.file);
+			}
 		}
 
 		List<String> modIdsDuplicate = new ArrayList<>();
@@ -298,7 +299,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 		}
 
-		if (loaderInitializesMods()) {
+		if (isPrimaryLoader()) {
 			initializeMods();
 		}
 	}
@@ -366,7 +367,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return mods;
 	}
 
-	protected boolean loaderInitializesMods() {
+	protected boolean isPrimaryLoader() {
 		return true;
 	}
 

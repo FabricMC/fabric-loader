@@ -32,7 +32,7 @@ public class MixinLoader extends FabricLoader {
 	}
 
 	@Override
-	protected boolean loaderInitializesMods() {
+	protected boolean isPrimaryLoader() {
 		return false;
 	}
 

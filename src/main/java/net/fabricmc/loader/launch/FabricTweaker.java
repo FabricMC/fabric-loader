@@ -73,6 +73,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		this.launchClassLoader = launchClassLoader;
 		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
 		launchClassLoader.addClassLoaderExclusion("org.spongepowered.asm.");
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.loader.");
 
 		File gameDir = getLaunchDirectory(arguments);
 		mixinLoader = new MixinLoader();
