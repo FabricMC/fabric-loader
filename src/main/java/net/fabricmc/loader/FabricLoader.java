@@ -433,7 +433,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				LOGGER.warn("Mod id `%s` does not respect SemVer: " + mod.getInfo().getId() + " - comparison support is limited");
+				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` does not respect SemVer - comparison support is limited.");
+			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
+				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
 			}
 		}
 	}
