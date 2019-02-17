@@ -21,11 +21,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class SemanticVersionPredicateParser {
-	private static final Map<String, Function<SemanticVersion, Predicate<SemanticVersion>>> PREFIXES;
+	private static final Map<String, Function<SemanticVersionImpl, Predicate<SemanticVersionImpl>>> PREFIXES;
 
-	public static Predicate<SemanticVersion> create(String text) throws VersionParsingException {
-		List<Predicate<SemanticVersion>> predicateList = new ArrayList<>();
-		List<SemanticVersion> prereleaseVersions = new ArrayList<>();
+	public static Predicate<SemanticVersionImpl> create(String text) throws VersionParsingException {
+		List<Predicate<SemanticVersionImpl>> predicateList = new ArrayList<>();
+		List<SemanticVersionImpl> prereleaseVersions = new ArrayList<>();
 
 		for (String s : text.split(" ")) {
 			s = s.trim();
@@ -33,7 +33,7 @@ public final class SemanticVersionPredicateParser {
 				continue;
 			}
 
-			Function<SemanticVersion, Predicate<SemanticVersion>> factory = null;
+			Function<SemanticVersionImpl, Predicate<SemanticVersionImpl>> factory = null;
 			for (String prefix : PREFIXES.keySet()) {
 				if (s.startsWith(prefix)) {
 					factory = PREFIXES.get(prefix);
@@ -42,7 +42,7 @@ public final class SemanticVersionPredicateParser {
 				}
 			}
 
-			SemanticVersion version = new SemanticVersion(s, true);
+			SemanticVersionImpl version = new SemanticVersionImpl(s, true);
 			if (version.isPrerelease()) {
 				if (version.hasXRanges()) {
 					throw new VersionParsingException("Pre-release versions are not allowed to use X-ranges!");
@@ -67,7 +67,7 @@ public final class SemanticVersionPredicateParser {
 				return (s) -> {
 					if (s.isPrerelease()) {
 						boolean match = false;
-						for (SemanticVersion version : prereleaseVersions) {
+						for (SemanticVersionImpl version : prereleaseVersions) {
 							if (version.equalsComponentsExactly(s)) {
 								match = true;
 								break;
@@ -79,7 +79,7 @@ public final class SemanticVersionPredicateParser {
 						}
 					}
 
-					for (Predicate<SemanticVersion> p : predicateList) {
+					for (Predicate<SemanticVersionImpl> p : predicateList) {
 						if (!p.test(s)) {
 							return false;
 						}
@@ -90,8 +90,8 @@ public final class SemanticVersionPredicateParser {
 		}
 	}
 
-	private static int length(SemanticVersion a, SemanticVersion b) {
-		return Math.min(a.getComponentLength(), b.getComponentLength());
+	private static int length(SemanticVersionImpl a, SemanticVersionImpl b) {
+		return Math.min(a.getVersionComponentCount(), b.getVersionComponentCount());
 	}
 
 	static {
@@ -103,16 +103,16 @@ public final class SemanticVersionPredicateParser {
 		PREFIXES.put("<", (target) -> (source) -> source.compareTo(target) < 0);
 		PREFIXES.put("=", (target) -> (source) -> source.compareTo(target) == 0);
 		PREFIXES.put("~", (target) -> (source) -> {
-			if (target.getComponentLength() == 1) {
+			if (target.getVersionComponentCount() == 1) {
 				if (target.isPrerelease()) {
 					throw new RuntimeException("Unsupported condition!");
 				}
 
-				return source.getComponent(0) == target.getComponent(0);
+				return source.getVersionComponent(0) == target.getVersionComponent(0);
 			} else {
 				return source.compareTo(target) >= 0
-					&& source.getComponent(0) == target.getComponent(0)
-					&& source.getComponent(1) == target.getComponent(1);
+					&& source.getVersionComponent(0) == target.getVersionComponent(0)
+					&& source.getVersionComponent(1) == target.getVersionComponent(1);
 			}
 		});
 		PREFIXES.put("^", (target) -> (source) -> {
@@ -120,9 +120,9 @@ public final class SemanticVersionPredicateParser {
 				return false;
 			}
 
-			for (int i = 0; i < target.getComponentLength(); i++) {
-				if (target.getComponent(i) != 0) {
-					return source.getComponent(i) == target.getComponent(i);
+			for (int i = 0; i < target.getVersionComponentCount(); i++) {
+				if (target.getVersionComponent(i) != 0) {
+					return source.getVersionComponent(i) == target.getVersionComponent(i);
 				}
 			}
 

@@ -16,6 +16,13 @@
 
 package net.fabricmc.loader.api;
 
+import net.fabricmc.loader.util.version.VersionDeserializer;
+import net.fabricmc.loader.util.version.VersionParsingException;
+
 public interface Version {
 	String getFriendlyString();
+
+	static Version parse(String string) throws VersionParsingException {
+		return VersionDeserializer.deserialize(string);
+	}
 }

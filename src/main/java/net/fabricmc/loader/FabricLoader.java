@@ -16,14 +16,14 @@
 
 package net.fabricmc.loader;
 
-import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.version.SemanticVersion;
+import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.VersionDeserializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -309,6 +309,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	@Override
 	public boolean isModLoaded(String id) {
 		return modMap.containsKey(id);
+	}
+
+	@Override
+	public boolean isDevelopmentEnvironment() {
+		return FabricLauncherBase.getLauncher().isDevelopment();
 	}
 
 	/**

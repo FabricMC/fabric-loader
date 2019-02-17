@@ -16,20 +16,22 @@
 
 package net.fabricmc.loader.util.version;
 
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
-public class SemanticVersion implements Comparable<SemanticVersion>, Version {
+public class SemanticVersionImpl implements SemanticVersion {
 	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("^[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*$");
 	private final int[] components;
 	private final String prerelease;
 	private final String build;
 	private String friendlyName;
 
-	public SemanticVersion(String version, boolean storeX) throws VersionParsingException {
+	public SemanticVersionImpl(String version, boolean storeX) throws VersionParsingException {
 		int buildDelimPos = version.indexOf('+');
 		if (buildDelimPos >= 0) {
 			build = version.substring(buildDelimPos + 1);
@@ -122,11 +124,13 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 		friendlyName = fnBuilder.toString();
 	}
 
-	int getComponentLength() {
+	@Override
+	public int getVersionComponentCount() {
 		return components.length;
 	}
 
-	int getComponent(int pos) {
+	@Override
+	public int getVersionComponent(int pos) {
 		if (pos < 0) {
 			throw new RuntimeException("Tried to access negative version number component!");
 		} else if (pos >= components.length) {
@@ -137,8 +141,14 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 		}
 	}
 
-	boolean isPrerelease() {
-		return prerelease != null;
+	@Override
+	public Optional<String> getPrereleaseKey() {
+		return Optional.ofNullable(prerelease);
+	}
+
+	@Override
+	public Optional<String> getBuildKey() {
+		return Optional.ofNullable(build);
 	}
 
 	@Override
@@ -148,10 +158,10 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof SemanticVersion)) {
+		if (!(o instanceof SemanticVersionImpl)) {
 			return false;
 		} else {
-			SemanticVersion other = (SemanticVersion) o;
+			SemanticVersionImpl other = (SemanticVersionImpl) o;
 			if (!equalsComponentsExactly(other)) {
 				return false;
 			}
@@ -165,32 +175,6 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 		return Arrays.hashCode(components) * 73 + (prerelease != null ? prerelease.hashCode() * 11 : 0) + (build != null ? build.hashCode() : 0);
 	}
 
-	@Override
-	public int compareTo(SemanticVersion o) {
-		for (int i = 0; i < Math.max(getComponentLength(), o.getComponentLength()); i++) {
-			int first = getComponent(i);
-			int second = o.getComponent(i);
-			if (first == Integer.MIN_VALUE || second == Integer.MIN_VALUE) {
-				continue;
-			}
-
-			int compare = Integer.compare(first, second);
-			if (compare != 0) {
-				return compare;
-			}
-		}
-
-		if (isPrerelease() || o.isPrerelease()) {
-			if (isPrerelease() && o.isPrerelease()) {
-				return prerelease.compareTo(o.prerelease);
-			} else {
-				return isPrerelease() ? -1 : 1;
-			}
-		} else {
-			return 0;
-		}
-	}
-
 	public boolean hasXRanges() {
 		for (int i : components) {
 			if (i < 0) {
@@ -201,13 +185,17 @@ public class SemanticVersion implements Comparable<SemanticVersion>, Version {
 		return false;
 	}
 
-	public boolean equalsComponentsExactly(SemanticVersion other) {
-		for (int i = 0; i < Math.max(getComponentLength(), other.getComponentLength()); i++) {
-			if (getComponent(i) != other.getComponent(i)) {
+	public boolean equalsComponentsExactly(SemanticVersionImpl other) {
+		for (int i = 0; i < Math.max(getVersionComponentCount(), other.getVersionComponentCount()); i++) {
+			if (getVersionComponent(i) != other.getVersionComponent(i)) {
 				return false;
 			}
 		}
 
 		return true;
+	}
+
+	boolean isPrerelease() {
+		return prerelease != null;
 	}
 }
