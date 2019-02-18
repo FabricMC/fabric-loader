@@ -47,6 +47,15 @@ public interface FabricLoader {
 	boolean isModLoaded(String id);
 
 	/**
+	 * Checks if Fabric Loader is currently running in a "development"
+	 * environment. Can be used for enabling debug mode or additional checks.
+	 * Should not be used to make assumptions about f.e. mappings.
+	 * @return Whether or not Loader is currently in a "development"
+	 * environment.
+	 */
+	boolean isDevelopmentEnvironment();
+
+	/**
 	 * Get the current environment type.
 	 * @return The current environment type.
 	 */

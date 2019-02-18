@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util;
+package net.fabricmc.loader.util.mappings;
 
 import net.fabricmc.mappings.*;
 import net.fabricmc.tinyremapper.IMappingProvider;

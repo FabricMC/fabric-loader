@@ -56,10 +56,13 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:19w04b"
-	mappings "net.fabricmc:yarn:19w04b.2"
+	minecraft "com.mojang:minecraft:19w05a"
+	mappings "net.fabricmc:yarn:19w05a.6"
 
+	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
+
+	// fabric-loader dependencies
 	compile 'org.ow2.asm:asm:7.0'
 	compile 'org.ow2.asm:asm-analysis:7.0'
 	compile 'org.ow2.asm:asm-commons:7.0'
@@ -73,7 +76,7 @@ dependencies {
 	compile 'net.fabricmc:tiny-mappings-parser:0.1.0.6'
 	compile 'net.fabricmc:tiny-remapper:0.1.0.23'
 
-	// Mojang
+	// launchwrapper + dependencies
 	compile ('net.minecraft:launchwrapper:1.12') {
 		transitive = false
 	}

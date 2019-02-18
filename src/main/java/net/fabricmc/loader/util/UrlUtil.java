@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 
-public class UrlUtil {
+public final class UrlUtil {
 	private UrlUtil() {
 
 	}

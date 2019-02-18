@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.entrypoint.applet;
 
-import net.fabricmc.loader.util.args.Arguments;
+import net.fabricmc.loader.util.Arguments;
 
 import javax.swing.*;
 import java.awt.*;

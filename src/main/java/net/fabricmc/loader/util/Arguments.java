@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util.args;
+package net.fabricmc.loader.util;
 
 import java.util.*;
 
-public class Arguments {
+public final class Arguments {
 	private final Map<String, String> values;
 	private final List<String> extraArgs;
 

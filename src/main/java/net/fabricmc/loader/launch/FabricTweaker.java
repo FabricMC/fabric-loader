@@ -23,7 +23,7 @@ import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.args.Arguments;
+import net.fabricmc.loader.util.Arguments;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
