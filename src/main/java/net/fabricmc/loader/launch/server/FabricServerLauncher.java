@@ -21,9 +21,7 @@ import net.fabricmc.loader.util.UrlUtil;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class FabricServerLauncher {
 	// The default main class, fabric-installer.json can override this
@@ -33,33 +31,15 @@ public class FabricServerLauncher {
 	//This expects a minecraft jar called server.jar
 	public static void main(String[] args) {
 		boolean dev = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
-		List<String> runArguments = new ArrayList<>();
-		File serverJar = null;
-
-		if (!dev) {
-			for (int i = 0; i < args.length; i++) {
-				if (i == 0 && !args[0].startsWith("-") && args[0].endsWith(".jar")) {
-					serverJar = new File(args[0]);
-				} else {
-					runArguments.add(args[i]);
-				}
-			}
-		} else {
-			for (int i = 0; i < args.length; i++) {
-				runArguments.add(args[i]);
-			}
-		}
 
 		if (!dev) {
 			try {
-				setup(serverJar, runArguments);
+				setup(Arrays.asList(args));
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to setup Fabric server environment!", e);
 			}
 		} else {
-			Object[] objectList = runArguments.toArray();
-			String[] stringArray = Arrays.copyOf(objectList, objectList.length, String[].class);
-			launch(mainClass, stringArray);
+			launch(mainClass, args);
 		}
 	}
 
@@ -71,23 +51,36 @@ public class FabricServerLauncher {
 		}
 	}
 
-	private static void setup(File serverJar, List<String> runArguments) throws IOException {
-		if (serverJar == null) {
-			// Most popular Minecraft server hosting platforms do not allow
-			// passing arbitrary arguments to the server .JAR. Meanwhile,
-			// Mojang's default server filename is "server.jar" as of
-			// a few versions... let's use this.
-			serverJar = new File("server.jar");
+	private static void setup(List<String> runArguments) throws IOException {
+		// Pre-load "fabric-server-launcher.properties"
+		File propertiesFile = new File("fabric-server-launcher.properties");
+		Properties properties = new Properties();
+
+		if (propertiesFile.exists()) {
+			try (FileInputStream stream = new FileInputStream(propertiesFile)) {
+				properties.load(stream);
+			}
 		}
 
+		// Most popular Minecraft server hosting platforms do not allow
+		// passing arbitrary arguments to the server .JAR. Meanwhile,
+		// Mojang's default server filename is "server.jar" as of
+		// a few versions... let's use this.
+		if (!properties.containsKey("serverJar")) {
+			properties.put("serverJar", "server.jar");
+			try (FileOutputStream stream = new FileOutputStream(propertiesFile)) {
+				properties.store(stream, null);
+			}
+		}
+
+		File serverJar = new File((String) properties.get("serverJar"));
+
 		if (!serverJar.exists()) {
-			System.err.println("Could not find Minecraft server .JAR!");
-			System.err.println("");
-			System.err.println("Fabric's server-side launcher expects the server .JAR to be provided in one of the following ways:");
-			System.err.println("- as the first argument to the JAR (f.e. java -jar fabric-loader.jar minecraft_server.jar),");
-			System.err.println("- as the file \"server.jar\", located in the server's current working directory");
-			System.err.println("  (which is usually the same directory as Fabric Loader).");
-			System.err.println("");
+			System.err.println("Could not find Minecraft server .JAR (" + properties.get("serverJar") + ")!");
+			System.err.println();
+			System.err.println("Fabric's server-side launcher expects the server .JAR to be provided.");
+			System.err.println("You can edit its location in fabric-server-launcher.properties.");
+			System.err.println();
 			System.err.println("Without the official Minecraft server .JAR, Fabric Loader cannot launch.");
 			throw new RuntimeException("Searched for '" + serverJar.getName() + "' but could not find it.");
 		}
