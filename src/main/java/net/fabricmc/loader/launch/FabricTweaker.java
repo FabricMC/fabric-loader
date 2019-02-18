@@ -78,7 +78,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		File gameDir = getLaunchDirectory(arguments);
 		mixinLoader = new MixinLoader();
-		mixinLoader.load(new File(gameDir, "mods"));
+		mixinLoader.load();
 		mixinLoader.freeze();
 
 		launchClassLoader.registerTransformer("net.fabricmc.loader.launch.FabricClassTransformer");

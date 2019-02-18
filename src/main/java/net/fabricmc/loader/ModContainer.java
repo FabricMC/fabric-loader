@@ -19,6 +19,7 @@ package net.fabricmc.loader;
 import net.fabricmc.loader.language.LanguageAdapter;
 
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,12 +27,12 @@ public class ModContainer {
 	private static final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 
 	private ModInfo info;
-	private File originFile;
+	private URL originUrl;
 	private LanguageAdapter adapter;
 
-	public ModContainer(ModInfo info, File originFile, boolean instantiate) {
+	public ModContainer(ModInfo info, URL originUrl, boolean instantiate) {
 		this.info = info;
-		this.originFile = originFile;
+		this.originUrl = originUrl;
 		if (instantiate) {
 			this.adapter = createAdapter();
 		}
@@ -41,8 +42,8 @@ public class ModContainer {
 		return info;
 	}
 
-	public File getOriginFile() {
-		return originFile;
+	public URL getOriginUrl() {
+		return originUrl;
 	}
 
 	public LanguageAdapter getAdapter() {

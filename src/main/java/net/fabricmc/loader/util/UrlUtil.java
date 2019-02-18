@@ -19,6 +19,7 @@ package net.fabricmc.loader.util;
 import java.io.File;
 import java.net.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 
@@ -56,12 +57,29 @@ public final class UrlUtil {
 	}
 
 	public static Path asPath(URL url) throws UrlConversionException {
-		return asFile(url).toPath();
+		if (url.getProtocol().equals("file")) {
+			// TODO: Is this required?
+			return asFile(url).toPath();
+		} else {
+			try {
+				return Paths.get(url.toURI());
+			} catch (URISyntaxException e) {
+				throw new UrlConversionException(e);
+			}
+		}
 	}
 
 	public static URL asUrl(File file) throws UrlConversionException {
 		try {
 			return file.toURI().toURL();
+		} catch (MalformedURLException e) {
+			throw new UrlConversionException(e);
+		}
+	}
+
+	public static URL asUrl(Path path) throws UrlConversionException {
+		try {
+			return new URL(null, path.toUri().toString());
 		} catch (MalformedURLException e) {
 			throw new UrlConversionException(e);
 		}

@@ -20,16 +20,19 @@ import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.VersionDeserializer;
+import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.FileSystem;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarFile;
@@ -42,16 +45,6 @@ import java.util.zip.ZipEntry;
  * The main class for mod loading operations.
  */
 public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
-	private class ModEntry {
-		private final ModInfo info;
-		private final File file;
-
-		ModEntry(ModInfo info, File file) {
-			this.info = info;
-			this.file = file;
-		}
-	}
-
 	/**
 	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getInstance()} where possible,
 	 * report missing areas as an issue.
@@ -60,15 +53,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
-	private static final Gson GSON = new GsonBuilder()
-		.registerTypeAdapter(Version.class, new VersionDeserializer())
-		.registerTypeAdapter(ModInfo.Side.class, new ModInfo.Side.Deserializer())
-		.registerTypeAdapter(ModInfo.Mixins.class, new ModInfo.Mixins.Deserializer())
-		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
-		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
-		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
-		.create();
-	private static final JsonParser JSON_PARSER = new JsonParser();
 	private static final Pattern MOD_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{0,63}");
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
@@ -157,16 +141,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return configDir;
 	}
 
-	protected File getModsDirectory() {
+	public File getModsDirectory() {
 		return new File(getGameDirectory(), "mods");
-	}
-
-	public void load(File modsDir) {
-		if (frozen) {
-			throw new RuntimeException("Frozen - cannot load additional mods!");
-		}
-
-		load(getFilesInDirectory(modsDir));
 	}
 
 	private String join(Stream<String> strings, String joiner) {
@@ -184,91 +160,23 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return builder.toString();
 	}
 
-	public void load(Collection<File> modFiles) {
+	public void load() {
 		if (frozen) {
 			throw new RuntimeException("Frozen - cannot load additional mods!");
 		}
 
-		Map<String, Set<File>> modIdSources = new HashMap<>();
-
-		int classpathModsCount = 0;
-		Stream<URL> urls;
-
-		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
-			String javaHome = System.getProperty("java.home");
-			String modsDir = getModsDirectory().getAbsolutePath();
-			urls = FabricLauncherBase.getLauncher().getClasspathURLs().stream()
-				.filter((url) -> !url.getPath().startsWith(javaHome) && !url.getPath().startsWith(modsDir));
-		} else {
-			try {
-				urls = Stream.of(FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation());
-			} catch (Throwable t) {
-				urls = Stream.empty();
-			}
-		}
-
-		List<ModEntry> classpathMods = getClasspathMods(urls);
-		List<ModEntry> existingMods = new ArrayList<>(classpathMods);
-		classpathModsCount = classpathMods.size();
-		LOGGER.debug("Found %d classpath mods", classpathModsCount);
-
-		for (File f : modFiles) {
-			if (f.isDirectory()) {
-				continue;
-			}
-			if (!f.getPath().endsWith(".jar")) {
-				continue;
-			}
-
-			ModInfo[] fileMods = getJarMods(f);
-			for (ModInfo info : fileMods) {
-				existingMods.add(new ModEntry(info, f));
-			}
-		}
-
-		LOGGER.debug("Found %d JAR mods", existingMods.size() - classpathModsCount);
-		mods:
-		for (ModEntry pair : existingMods) {
-			ModInfo mod = pair.info;
-
-			/* if (mod.isLazilyLoaded()) {
-				innerMods:
-				for (Pair<ModInfo, File> pair2 : existingMods) {
-					ModInfo mod2 = pair2.getLeft();
-					if (mod == mod2) {
-						continue innerMods;
-					}
-					for (Map.Entry<String, ModInfo.Dependency> entry : mod2.getRequires().entrySet()) {
-						String depId = entry.getKey();
-						ModInfo.Dependency dep = entry.getValue();
-						if (depId.equalsIgnoreCase(mod.getId()) && dep.satisfiedBy(mod)) {
-							addMod(mod, pair.getRight(), isPrimaryLoader());
-						}
-					}
-				}
-				continue mods;
-			} */
-			Set<File> files = modIdSources.computeIfAbsent(mod.getId(), (m) -> new LinkedHashSet<>());
-			if (!files.contains(pair.file)) {
-				addMod(mod, pair.file, isPrimaryLoader());
-				files.add(pair.file);
-			}
-		}
-
-		List<String> modIdsDuplicate = new ArrayList<>();
-		for (String s : modIdSources.keySet()) {
-			Set<File> originFiles = modIdSources.get(s);
-			if (originFiles.size() >= 2) {
-				modIdsDuplicate.add(s + ": " + join(originFiles.stream().map(File::getName), ", "));
-			}
-		}
-
-		if (!modIdsDuplicate.isEmpty()) {
-			throw new RuntimeException("Duplicate mod IDs: [" + join(modIdsDuplicate.stream(), "; ") + "]");
+		ModResolver resolver = new ModResolver();
+		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
+		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath()));
+		Map<String, ModCandidate> candidateMap;
+		try {
+			candidateMap = resolver.resolve(this);
+		} catch (ModResolutionException e) {
+			throw new RuntimeException("Failed to resolve mods!", e);
 		}
 
 		String modText;
-		switch (mods.size()) {
+		switch (candidateMap.values().size()) {
 			case 0:
 				modText = "Loading %d mods";
 				break;
@@ -280,10 +188,13 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				break;
 		}
 
-		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, mods.size(), mods.stream()
-			.map(ModContainer::getInfo)
-			.map(info -> String.format("%s(%s)", info.getId(), info.getVersion().getFriendlyString()))
+		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size(), candidateMap.values().stream()
+			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
 			.collect(Collectors.joining(", ")));
+
+		for (ModCandidate candidate : candidateMap.values()) {
+			addMod(candidate.getInfo(), candidate.getOriginUrl(), isPrimaryLoader());
+		}
 
 		onModsPopulated();
 	}
@@ -296,11 +207,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainer mod : mods) {
-			try {
-				FabricLauncherBase.getLauncher().propose(UrlUtil.asUrl(mod.getOriginFile()));
-			} catch (UrlConversionException e) {
-				e.printStackTrace();
-			}
+			FabricLauncherBase.getLauncher().propose(mod.getOriginUrl());
 		}
 
 		if (isPrimaryLoader()) {
@@ -330,40 +237,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected List<ModEntry> getClasspathMods(Stream<URL> urls) {
-		List<ModEntry> mods = new ArrayList<>();
+	protected List<ModCandidate> getClasspathMods(Stream<URL> urls) {
+		List<ModCandidate> mods = new ArrayList<>();
 
-		urls.forEach((url) -> {
-			LOGGER.debug("Attempting to find classpath mods from " + url.getPath());
-			File f;
-			try {
-				f = UrlUtil.asFile(url);
-			} catch (UrlConversionException e) {
-				// pass
-				return;
-			}
-
-			if (f.exists()) {
-				if (f.isDirectory()) {
-					File modJson = new File(f, "fabric.mod.json");
-
-					if (modJson.exists()) {
-						try {
-							for (ModInfo info : getMods(new FileInputStream(modJson))) {
-								mods.add(new ModEntry(info, f));
-							}
-						} catch (FileNotFoundException e) {
-							LOGGER.error("Unable to load mod from directory " + f.getPath());
-							e.printStackTrace();
-						}
-					}
-				} else if (f.getName().endsWith(".jar")) {
-					for (ModInfo info : getJarMods(f)) {
-						mods.add(new ModEntry(info, f));
-					}
-				}
-			}
-		});
 		return mods;
 	}
 
@@ -371,16 +247,16 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return true;
 	}
 
-	protected void addMod(ModInfo info, File originFile, boolean initialize) {
+	protected void addMod(ModInfo info, URL originUrl, boolean initialize) {
 		if (modMap.containsKey(info.getId())) {
-			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginFile().getName() + ", " + originFile.getName() + ")");
+			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
 		EnvType currentSide = getEnvironmentType();
 		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
 			return;
 		}
-		ModContainer container = new ModContainer(info, originFile, initialize);
+		ModContainer container = new ModContainer(info, originUrl, initialize);
 		mods.add(container);
 		modMap.put(info.getId(), container);
 	}
@@ -427,7 +303,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		LOGGER.debug("Validating mods");
 		for (ModContainer mod : mods) {
 			if (mod.getInfo().getId() == null || mod.getInfo().getId().isEmpty()) {
-				throw new RuntimeException(String.format("Mod file `%s` has no id", mod.getOriginFile().getName()));
+				throw new RuntimeException(String.format("Mod file `%s` has no id", mod.getOriginUrl().getFile()));
 			}
 
 			if (!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()) {
@@ -481,59 +357,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					instanceStorage.instantiate(in, mod.getAdapter());
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginFile().getName()), e);
+				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);
 			}
 		}
 	}
 
-	protected static List<File> getFilesInDirectory(File modsDir) {
-		if (!modsDir.exists()) {
-			if (!modsDir.mkdirs()) {
-				throw new RuntimeException("Unable to create directory");
-			}
-		}
-
-		File[] dirFiles = modsDir.listFiles();
-
-		if (dirFiles == null) {
-			throw new RuntimeException("Unable to get files from mods directory because of I/O error or the mods directory is not a directory");
-		}
-
-		return Arrays.asList(dirFiles);
+	public Logger getLogger() {
+		return LOGGER;
 	}
-
-	protected static ModInfo[] getJarMods(File f) {
-		try {
-			JarFile jar = new JarFile(f);
-			ZipEntry entry = jar.getEntry("fabric.mod.json");
-			if (entry != null) {
-				try (InputStream in = jar.getInputStream(entry)) {
-					return getMods(in);
-				}
-			}
-
-		} catch (Exception e) {
-			LOGGER.error("Unable to load mod from %s", f.getName());
-			e.printStackTrace();
-		}
-
-		return new ModInfo[0];
-	}
-
-	protected static ModInfo[] getMods(InputStream in) {
-		JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
-		if (el.isJsonObject()) {
-			return new ModInfo[] { GSON.fromJson(el, ModInfo.class) };
-		} else if (el.isJsonArray()) {
-			JsonArray array = el.getAsJsonArray();
-			ModInfo[] mods = new ModInfo[array.size()];
-			for (int i = 0; i < array.size(); i++) {
-				mods[i] = GSON.fromJson(array.get(i), ModInfo.class);
-			}
-			return mods;
-		}
-
-		return new ModInfo[0];
-	}
-
 }

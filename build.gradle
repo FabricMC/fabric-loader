@@ -76,6 +76,8 @@ dependencies {
 	compile 'net.fabricmc:tiny-mappings-parser:0.1.0.6'
 	compile 'net.fabricmc:tiny-remapper:0.1.0.23'
 
+	compile 'com.google.jimfs:jimfs:1.1'
+
 	// launchwrapper + dependencies
 	compile ('net.minecraft:launchwrapper:1.12') {
 		transitive = false

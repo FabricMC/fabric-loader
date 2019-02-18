@@ -120,7 +120,7 @@ public final class Knot extends FabricLauncherBase {
 
 		// Setup Mixin environment
 		MixinLoader mixinLoader = new MixinLoader();
-		mixinLoader.load(new File(getLaunchDirectory(arguments), "mods"));
+		mixinLoader.load();
 		mixinLoader.freeze();
 
 		MixinBootstrap.init();
@@ -128,6 +128,23 @@ public final class Knot extends FabricLauncherBase {
 		MixinEnvironment.getDefaultEnvironment().setSide(envType == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		FabricLauncherBase.pretendMixinPhases();
+
+		/*
+				try {
+			MixinLoader mixinLoader = (MixinLoader) Class.forName("net.fabricmc.loader.launch.common.MixinLoader", true, (ClassLoader) loader).newInstance();
+			mixinLoader.load();
+			mixinLoader.freeze();
+
+			MixinBootstrap.init();
+			FabricMixinBootstrap.init(getEnvironmentType(), mixinLoader);
+			MixinEnvironment.getDefaultEnvironment().setSide(envType == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
+
+			FabricLauncherBase.pretendMixinPhases();
+		} catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+			throw new RuntimeException(e);
+		}
+
+		 */
 
 		try {
 			Class<?> c = ((ClassLoader) loader).loadClass(entryPoint);

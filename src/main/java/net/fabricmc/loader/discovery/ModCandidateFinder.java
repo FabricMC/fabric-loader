@@ -14,32 +14,14 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch.common;
+package net.fabricmc.loader.discovery;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModContainer;
-import net.fabricmc.loader.ModInfo;
-import org.apache.logging.log4j.LogManager;
 
-import java.io.File;
 import java.net.URL;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
 
-public class MixinLoader extends FabricLoader {
-	static {
-		LOGGER = LogManager.getFormatterLogger("Fabric|MixinLoader");
-	}
-
-	@Override
-	protected boolean isPrimaryLoader() {
-		return false;
-	}
-
-	@Override
-	protected void addMod(ModInfo info, URL originUrl, boolean initialize) {
-		ModContainer container = new ModContainer(info, originUrl, initialize);
-		mods.add(container);
-	}
+@FunctionalInterface
+public interface ModCandidateFinder {
+	void findCandidates(FabricLoader loader, Consumer<URL> urlProposer);
 }
