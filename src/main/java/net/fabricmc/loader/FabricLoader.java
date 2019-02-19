@@ -16,30 +16,20 @@
 
 package net.fabricmc.loader;
 
-import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.version.SemanticVersionImpl;
-import net.fabricmc.loader.util.version.VersionDeserializer;
-import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.FileSystem;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
 
 /**
  * The main class for mod loading operations.
@@ -53,7 +43,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
-	private static final Pattern MOD_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{0,63}");
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
@@ -193,17 +182,13 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			.collect(Collectors.joining(", ")));
 
 		for (ModCandidate candidate : candidateMap.values()) {
-			addMod(candidate.getInfo(), candidate.getOriginUrl(), isPrimaryLoader());
+			addMod(candidate, isPrimaryLoader());
 		}
 
 		onModsPopulated();
 	}
 
 	protected void onModsPopulated() {
-		validateMods();
-		checkDependencies();
-		// sortMods();
-
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainer mod : mods) {
@@ -211,8 +196,19 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		if (isPrimaryLoader()) {
+			emitModFormatWarnings();
 			initializeMods();
 		}
+	}
+
+	@Override
+	public Optional<net.fabricmc.loader.api.ModContainer> getModContainer(String id) {
+		return Optional.ofNullable(modMap.get(id));
+	}
+
+	@Override
+	public Collection<net.fabricmc.loader.api.ModContainer> getAllMods() {
+		return Collections.unmodifiableList(mods);
 	}
 
 	@Override
@@ -227,7 +223,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	/**
 	 * @return A list of all loaded mods, as ModContainers.
+	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getAllMods()}
 	 */
+	@Deprecated
 	public Collection<ModContainer> getModContainers() {
 		return Collections.unmodifiableList(mods);
 	}
@@ -247,7 +245,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return true;
 	}
 
-	protected void addMod(ModInfo info, URL originUrl, boolean initialize) {
+	protected void addMod(ModCandidate candidate, boolean initialize) {
+		ModInfo info = candidate.getInfo();
+		URL originUrl = candidate.getOriginUrl();
+
 		if (modMap.containsKey(info.getId())) {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
@@ -256,60 +257,14 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
 			return;
 		}
-		ModContainer container = new ModContainer(info, originUrl, initialize);
+
+		ModContainer container = new ModContainer(info, originUrl);
 		mods.add(container);
 		modMap.put(info.getId(), container);
 	}
 
-	protected void checkDependencies() {
-		LOGGER.debug("Validating mod dependencies");
-
+	protected void emitModFormatWarnings() {
 		for (ModContainer mod : mods) {
-			dependencies:
-			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getRequires().entrySet()) {
-				String depId = entry.getKey();
-				ModInfo.Dependency dep = entry.getValue();
-				for (ModContainer mod2 : mods) {
-					if (mod == mod2) {
-						continue;
-					}
-					if (depId.equalsIgnoreCase(mod2.getInfo().getId()) && dep.satisfiedBy(mod2.getInfo())) {
-						continue dependencies;
-					}
-				}
-
-				throw new DependencyException(String.format("Mod %s requires %s @ %s", mod.getInfo().getId(), depId, String.join(", ", dep.getVersionMatchers())));
-			}
-
-			conflicts:
-			for (Map.Entry<String, ModInfo.Dependency> entry : mod.getInfo().getConflicts().entrySet()) {
-				String depId = entry.getKey();
-				ModInfo.Dependency dep = entry.getValue();
-				for (ModContainer mod2 : mods) {
-					if (mod == mod2) {
-						continue;
-					}
-					if (!depId.equalsIgnoreCase(mod2.getInfo().getId()) || !dep.satisfiedBy(mod2.getInfo())) {
-						continue conflicts;
-					}
-				}
-
-				throw new DependencyException(String.format("Mod %s conflicts with %s @ %s", mod.getInfo().getId(), depId, String.join(", ", dep.getVersionMatchers())));
-			}
-		}
-	}
-
-	protected void validateMods() {
-		LOGGER.debug("Validating mods");
-		for (ModContainer mod : mods) {
-			if (mod.getInfo().getId() == null || mod.getInfo().getId().isEmpty()) {
-				throw new RuntimeException(String.format("Mod file `%s` has no id", mod.getOriginUrl().getFile()));
-			}
-
-			if (!MOD_PATTERN.matcher(mod.getInfo().getId()).matches()) {
-				throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", mod.getInfo().getId()));
-			}
-
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
 				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` does not respect SemVer - comparison support is limited.");
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
@@ -353,6 +308,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private void initializeMods() {
 		for (ModContainer mod : mods) {
 			try {
+				mod.instantiate();
+
 				for (String in : mod.getInfo().getInitializers()) {
 					instanceStorage.instantiate(in, mod.getAdapter());
 				}

@@ -83,7 +83,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 		}
 
 		stream.close();
-		return Class.forName(classString);
+		return Class.forName(classString, true, FabricLauncherBase.getLauncher().getTargetClassLoader());
 	}
 
 	@Override

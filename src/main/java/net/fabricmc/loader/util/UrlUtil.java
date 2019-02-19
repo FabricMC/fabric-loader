@@ -35,11 +35,13 @@ public final class UrlUtil {
 			URLConnection connection = resourceURL.openConnection();
 			if (connection instanceof JarURLConnection) {
 				codeSourceURL = ((JarURLConnection) connection).getJarFileURL();
-			} else {
+			} else if (resourceURL.getProtocol().equals("file")) {
 				// assume directory
 				String s = UrlUtil.asFile(resourceURL).getAbsolutePath();
 				s = s.replace(filename.replace('/', File.separatorChar), "");
 				codeSourceURL = UrlUtil.asUrl(new File(s));
+			} else {
+				throw new UrlConversionException("Unknown protocol: " + resourceURL.getProtocol());
 			}
 		} catch (Exception e) {
 			throw new UrlConversionException(e);

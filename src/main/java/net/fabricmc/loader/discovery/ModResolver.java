@@ -17,7 +17,9 @@
 package net.fabricmc.loader.discovery;
 
 import com.google.common.base.Joiner;
+import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import com.google.common.jimfs.PathType;
 import com.google.gson.*;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.ModInfo;
@@ -27,6 +29,7 @@ import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.version.VersionDeserializer;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,11 +40,27 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.google.common.jimfs.Feature.FILE_CHANNEL;
+import static com.google.common.jimfs.Feature.LINKS;
+import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
+import static com.google.common.jimfs.Feature.SYMBOLIC_LINKS;
 
 public class ModResolver {
-	// JAR-in-JAR store
-	private static final FileSystem inMemoryFs = Jimfs.newFileSystem();
+	// nested JAR store
+	private static final FileSystem inMemoryFs = Jimfs.newFileSystem(
+		"nestedJarStore",
+		Configuration.builder(PathType.unix())
+			.setRoots("/")
+			.setWorkingDirectory("/")
+			.setAttributeViews("basic")
+			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
+			.build()
+	);
 	private static final Map<URL, List<Path>> inMemoryCache = new HashMap<>();
 
 	private static final Gson GSON = new GsonBuilder()
@@ -53,6 +72,7 @@ public class ModResolver {
 		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
 		.create();
 	private static final JsonParser JSON_PARSER = new JsonParser();
+	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{0,63}");
 
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
 	private final List<ModCandidate> candidates = new ArrayList<>();
@@ -93,109 +113,14 @@ public class ModResolver {
 		return new ModInfo[0];
 	}
 
-	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
-		LinkedList<URL> urls = new LinkedList<>();
-		Map<String, Set<ModCandidate>> candidatesById = new HashMap<>();
-
-		for (ModCandidateFinder f : candidateFinders) {
-			f.findCandidates(loader, urls::add);
-		}
-
-		while (!urls.isEmpty()) {
-			URL url = urls.remove();
-
-			try {
-				FileSystemUtil.FileSystemDelegate jarFs = null;
-				Path path = UrlUtil.asPath(url).normalize();
-				Path modJson;
-				Path jarsDir;
-
-				// normalize URL (used as key for JAR-in-JAR lookup)
-				url = UrlUtil.asUrl(path);
-
-				if (Files.isDirectory(path)) {
-					// Directory
-					modJson = path.resolve("fabric.mod.json");
-					jarsDir = path.resolve("jars");
-				} else {
-					// JAR file
-					jarFs = FileSystemUtil.getJarFileSystem(path, false);
-					modJson = jarFs.get().getPath("fabric.mod.json");
-					jarsDir = jarFs.get().getPath("jars");
-				}
-
-				ModInfo[] info;
-
-				try (InputStream stream = Files.newInputStream(modJson)) {
-					info = getMods(stream);
-				} catch (NoSuchFileException e) {
-					info = new ModInfo[0];
-				}
-
-				for (ModInfo i : info) {
-					ModCandidate candidate = new ModCandidate(i, url);
-					Set<ModCandidate> candidateSet = candidatesById.computeIfAbsent(candidate.getInfo().getId(), (s) -> new HashSet<>() /* version sorting not necessary at this stage */);
-					if (candidateSet.contains(candidate)) {
-						loader.getLogger().debug(candidate.getOriginUrl() + " already present as " + candidate);
-					} else {
-						loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
-						candidateSet.add(candidate);
-
-						if (Files.isDirectory(jarsDir)) {
-							List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
-								loader.getLogger().debug("Searching for JAR-in-JARs in " + candidate);
-								List<Path> list = new ArrayList<>();
-
-								try {
-									Files.walk(jarsDir, 1).forEach((modPath) -> {
-										if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
-											// TODO: pre-check the JAR before loading it, if possible
-											// TODO
-											loader.getLogger().debug("Found JAR-in-JAR: " + modPath);
-											Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
-
-											try {
-												Files.copy(modPath, dest);
-											} catch (IOException e) {
-												throw new RuntimeException(e);
-											}
-
-											list.add(dest);
-										}
-									});
-								} catch (IOException e) {
-									throw new RuntimeException(e);
-								}
-
-								return list;
-							});
-
-							for (Path p : jarInJars) {
-								try {
-									urls.add(UrlUtil.asUrl(p));
-								} catch (UrlConversionException e) {
-									throw new RuntimeException(e);
-								}
-							}
-						}
-					}
-				}
-
-				if (jarFs != null) {
-					jarFs.close();
-				}
-			} catch (UrlConversionException | IOException e) {
-				throw new RuntimeException(url.toString(), e);
-			}
-		}
-
+	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, Set<ModCandidate>> modCandidateMap) throws ModResolutionException {
 		Map<String, ModCandidate> resolvedMods = new HashMap<>();
 		Map<String, Set<ModCandidate>> unresolvedMods = new HashMap<>();
 		List<String> resolutionErrors = new ArrayList<>();
 
 		// Throw on non-semantic multiple JARs
 		// Also resolve all mods with just one candidate - they're "set"
-		for (Set<ModCandidate> set : candidatesById.values()) {
+		for (Set<ModCandidate> set : modCandidateMap.values()) {
 			if (set.size() > 1) {
 				String id = null;
 				boolean invalid = false;
@@ -221,7 +146,7 @@ public class ModResolver {
 			} else if (set.size() == 1) {
 				ModCandidate mc = set.iterator().next();
 				resolvedMods.put(mc.getInfo().getId(), mc);
-				loader.getLogger().debug("Resolved " + mc);
+				logger.debug("Resolved " + mc);
 			}
 		}
 
@@ -246,7 +171,7 @@ public class ModResolver {
 
 							if (resolvedMods.containsKey(depId)) {
 								if (!dep.satisfiedBy(resolvedMods.get(depId).getInfo())) {
-									loader.getLogger().debug("Rejected " + candidate);
+									logger.debug("Rejected " + candidate);
 									satisfiedAll = false;
 									mcIt.remove(); // will not be compatible again
 									break;
@@ -258,7 +183,7 @@ public class ModResolver {
 						}
 
 						if (satisfiedAll) {
-							loader.getLogger().debug("Resolved " + candidate);
+							logger.debug("Resolved " + candidate);
 							resolvedMods.put(id, candidates.iterator().next());
 							it.remove();
 							break;
@@ -288,12 +213,10 @@ public class ModResolver {
 					resolutionErrors.add("Could not find mod ID '" + dependencyEntry.getKey() + "', required by mod ID '" + modId + "'!");
 				} else {
 					ModInfo.Dependency dependency = dependencyEntry.getValue();
-
-					ModInfo dependingModInfo = candidate.getInfo();
 					ModInfo dependencyInfo = resolvedMods.get(dependencyEntry.getKey()).getInfo();
 
 					if (!dependency.satisfiedBy(dependencyInfo)) {
-						resolutionErrors.add("Mod ID '" + dependingModInfo.getId() + "'@" + dependingModInfo.getVersion() + " is incompatible with mod ID '" + modId + "'!");
+						resolutionErrors.add("Mod ID '" + dependencyInfo.getId() + "'@" + dependencyInfo.getVersion() + " is incompatible with mod ID '" + modId + "'!");
 					}
 				}
 			}
@@ -304,5 +227,154 @@ public class ModResolver {
 		} else {
 			return resolvedMods;
 		}
+	}
+
+	static class UrlProcessAction extends RecursiveAction {
+		private final FabricLoader loader;
+		private final Map<String, Set<ModCandidate>> candidatesById;
+		private final URL url;
+
+		public UrlProcessAction(FabricLoader loader, Map<String, Set<ModCandidate>> candidatesById, URL url) {
+			this.loader = loader;
+			this.candidatesById = candidatesById;
+			this.url = url;
+		}
+
+		@Override
+		protected void compute() {
+			try {
+				FileSystemUtil.FileSystemDelegate jarFs = null;
+				Path path = UrlUtil.asPath(url).normalize();
+				Path modJson;
+				Path jarsDir;
+
+				loader.getLogger().debug("Testing " + url);
+
+				// normalize URL (used as key for nested JAR lookup)
+				URL normalizedUrl = UrlUtil.asUrl(path);
+
+				if (Files.isDirectory(path)) {
+					// Directory
+					modJson = path.resolve("fabric.mod.json");
+					jarsDir = path.resolve("jars");
+				} else {
+					// JAR file
+					jarFs = FileSystemUtil.getJarFileSystem(path, false);
+					modJson = jarFs.get().getPath("fabric.mod.json");
+					jarsDir = jarFs.get().getPath("jars");
+				}
+
+				ModInfo[] info;
+
+				try (InputStream stream = Files.newInputStream(modJson)) {
+					info = getMods(stream);
+				} catch (NoSuchFileException e) {
+					info = new ModInfo[0];
+				}
+
+				for (ModInfo i : info) {
+					ModCandidate candidate = new ModCandidate(i, normalizedUrl);
+					boolean added;
+
+					if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
+						throw new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile()));
+					}
+
+					if (!MOD_ID_PATTERN.matcher(candidate.getInfo().getId()).matches()) {
+						throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", candidate.getInfo().getId()));
+					}
+
+					synchronized (candidatesById) {
+						Set<ModCandidate> candidateSet = candidatesById.computeIfAbsent(candidate.getInfo().getId(), (s) -> new HashSet<>() /* version sorting not necessary at this stage */);
+						added = candidateSet.add(candidate);
+					}
+
+					if (!added) {
+						loader.getLogger().debug(candidate.getOriginUrl() + " already present as " + candidate);
+					} else {
+						loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
+
+						if (Files.isDirectory(jarsDir)) {
+							List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+								loader.getLogger().debug("Searching for nested JARs in " + candidate);
+								List<Path> list = new ArrayList<>();
+
+								try {
+									Files.walk(jarsDir, 1).forEach((modPath) -> {
+										if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
+											// TODO: pre-check the JAR before loading it, if possible
+											// TODO
+											loader.getLogger().debug("Found nested JAR: " + modPath);
+											Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
+
+											try {
+												Files.copy(modPath, dest);
+											} catch (IOException e) {
+												throw new RuntimeException(e);
+											}
+
+											list.add(dest);
+										}
+									});
+								} catch (IOException e) {
+									throw new RuntimeException(e);
+								}
+
+								return list;
+							});
+
+							invokeAll(
+								jarInJars.stream()
+									.map((p) -> {
+										try {
+											return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()));
+										} catch (UrlConversionException e) {
+											throw new RuntimeException(e);
+										}
+									}).collect(Collectors.toList())
+							);
+						}
+					}
+				}
+
+				/* if (jarFs != null) {
+					jarFs.close();
+				} */
+			} catch (UrlConversionException | IOException e) {
+				throw new RuntimeException(url.toString(), e);
+			}
+		}
+	}
+
+	private Runnable processUrl(final ExecutorService service, final FabricLoader loader, final Map<String, Set<ModCandidate>> candidatesById, final URL url) {
+		return () -> {
+		};
+	}
+
+	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
+		Map<String, Set<ModCandidate>> candidatesById = new HashMap<>();
+
+		long time1 = System.currentTimeMillis();
+
+		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
+		for (ModCandidateFinder f : candidateFinders) {
+			f.findCandidates(loader, (u) -> pool.execute(new UrlProcessAction(loader, candidatesById, u)));
+		}
+
+		try {
+			pool.shutdown();
+			pool.awaitTermination(30, TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Mod resolution took too long!", e);
+		}
+
+		long time2 = System.currentTimeMillis();
+		Map<String, ModCandidate> result = findCompatibleSet(loader.getLogger(), candidatesById);
+
+		long time3 = System.currentTimeMillis();
+		loader.getLogger().debug("Mod resolution detection time: " + (time2 - time1) + "ms");
+		loader.getLogger().debug("Mod resolution time: " + (time3 - time2) + "ms");
+
+		return result;
 	}
 }

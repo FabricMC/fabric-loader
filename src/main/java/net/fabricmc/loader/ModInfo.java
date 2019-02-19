@@ -18,6 +18,7 @@ package net.fabricmc.loader;
 
 import com.google.common.collect.Lists;
 import com.google.gson.*;
+import net.fabricmc.loader.api.ModMetadata;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
@@ -33,7 +34,7 @@ import java.util.regex.Pattern;
 /**
  * Definition class for "fabric.mod.json" files.
  */
-public class ModInfo {
+public class ModInfo implements ModMetadata {
 
 	// Required
 	private String id;
@@ -74,6 +75,7 @@ public class ModInfo {
 		}
 	}
 
+	@Override
 	public String getId() {
 		return id;
 	}
@@ -85,6 +87,7 @@ public class ModInfo {
 		return name;
 	}
 
+	@Override
 	public Version getVersion() {
 		return version;
 	}

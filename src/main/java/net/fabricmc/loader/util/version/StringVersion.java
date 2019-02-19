@@ -29,4 +29,9 @@ public class StringVersion implements Version {
 	public String getFriendlyString() {
 		return version;
 	}
+
+	@Override
+	public String toString() {
+		return version;
+	}
 }
