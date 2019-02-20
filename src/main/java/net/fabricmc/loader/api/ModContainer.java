@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.api;
 
+import net.fabricmc.loader.api.metadata.ModMetadata;
+
 import java.nio.file.Path;
 
 public interface ModContainer {

@@ -19,7 +19,7 @@ package net.fabricmc.loader.launch.common;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.ModContainer;
-import net.fabricmc.loader.ModInfo;
+import net.fabricmc.loader.metadata.ModMetadataV0;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
 import net.fabricmc.mappings.Mappings;
 import org.apache.logging.log4j.LogManager;
@@ -44,29 +44,10 @@ public final class FabricMixinBootstrap {
 		Mixins.addConfiguration(configuration);
 	}
 
-	static Set<String> getClientMixinConfigs(FabricLoader loader) {
+	static Set<String> getMixinConfigs(FabricLoader loader, EnvType type) {
 		return loader.getModContainers().stream()
 			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getClient()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	static Set<String> getCommonMixinConfigs(FabricLoader loader) {
-		return loader.getModContainers().stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getCommon()))
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
-	}
-
-	static Set<String> getServerMixinConfigs(FabricLoader loader) {
-		return loader.getModContainers().stream()
-			.map(ModContainer::getInfo)
-			.map(ModInfo::getMixins)
-			.flatMap(info -> Stream.of(info.getServer()))
+			.flatMap((m) -> m.getMixinConfigs(type).stream())
 			.filter(s -> s != null && !s.isEmpty())
 			.collect(Collectors.toSet());
 	}
@@ -93,15 +74,7 @@ public final class FabricMixinBootstrap {
 		}
 
 		MixinBootstrap.init();
-
-		getCommonMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
-		if (side == EnvType.CLIENT) {
-			getClientMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
-		}
-		if (side == EnvType.SERVER) {
-			getServerMixinConfigs(loader).forEach(FabricMixinBootstrap::addConfiguration);
-		}
-
+		getMixinConfigs(loader, side).forEach(FabricMixinBootstrap::addConfiguration);
 		initialized = true;
 	}
 }

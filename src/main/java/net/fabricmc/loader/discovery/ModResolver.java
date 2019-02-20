@@ -22,9 +22,11 @@ import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
 import com.google.gson.*;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModInfo;
+import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.metadata.ModMetadataV0;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -48,15 +50,12 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.google.common.jimfs.Feature.FILE_CHANNEL;
-import static com.google.common.jimfs.Feature.LINKS;
 import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
-import static com.google.common.jimfs.Feature.SYMBOLIC_LINKS;
 
 public class ModResolver {
 	// nested JAR store
@@ -73,14 +72,14 @@ public class ModResolver {
 
 	private static final Gson GSON = new GsonBuilder()
 		.registerTypeAdapter(Version.class, new VersionDeserializer())
-		.registerTypeAdapter(ModInfo.Side.class, new ModInfo.Side.Deserializer())
-		.registerTypeAdapter(ModInfo.Mixins.class, new ModInfo.Mixins.Deserializer())
-		.registerTypeAdapter(ModInfo.Links.class, new ModInfo.Links.Deserializer())
-		.registerTypeAdapter(ModInfo.Dependency.class, new ModInfo.Dependency.Deserializer())
-		.registerTypeAdapter(ModInfo.Person.class, new ModInfo.Person.Deserializer())
+		.registerTypeAdapter(ModMetadataV0.Side.class, new ModMetadataV0.Side.Deserializer())
+		.registerTypeAdapter(ModMetadataV0.Mixins.class, new ModMetadataV0.Mixins.Deserializer())
+		.registerTypeAdapter(ModMetadataV0.Links.class, new ModMetadataV0.Links.Deserializer())
+		.registerTypeAdapter(ModMetadataV0.Dependency.class, new ModMetadataV0.Dependency.Deserializer())
+		.registerTypeAdapter(ModMetadataV0.Person.class, new ModMetadataV0.Person.Deserializer())
 		.create();
 	private static final JsonParser JSON_PARSER = new JsonParser();
-	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{0,63}");
+	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
 
@@ -104,26 +103,27 @@ public class ModResolver {
 		});
 	}
 
-	protected static ModInfo[] getMods(InputStream in) {
+	protected static LoaderModMetadata[] getMods(InputStream in) {
 		JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
 		if (el.isJsonObject()) {
-			return new ModInfo[] { GSON.fromJson(el, ModInfo.class) };
+			return new LoaderModMetadata[] { GSON.fromJson(el, ModMetadataV0.class) };
 		} else if (el.isJsonArray()) {
 			JsonArray array = el.getAsJsonArray();
-			ModInfo[] mods = new ModInfo[array.size()];
+			LoaderModMetadata[] mods = new LoaderModMetadata[array.size()];
 			for (int i = 0; i < array.size(); i++) {
-				mods[i] = GSON.fromJson(array.get(i), ModInfo.class);
+				mods[i] = GSON.fromJson(array.get(i), ModMetadataV0.class);
 			}
 			return mods;
 		}
 
-		return new ModInfo[0];
+		return new LoaderModMetadata[0];
 	}
 
 	private static IVecInt toVecInt(IntStream stream) {
 		return new VecInt(stream.toArray());
 	}
 
+	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
 	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, Set<ModCandidate>> modCandidateMap) throws ModResolutionException {
 		// Inspired by http://0install.net/solver.html
 		// probably also horrendously slow, for now
@@ -152,10 +152,14 @@ public class ModResolver {
 			for (String id : modCandidateMap.keySet()) {
 				IVecInt versionVec = toVecInt(modCandidateMap.get(id).stream().mapToInt(candidateIntMap::get));
 
-				if (mandatoryMods.contains(id)) {
-					solver.addExactly(versionVec, 1);
-				} else {
-					solver.addAtMost(versionVec, 1);
+				try {
+					if (mandatoryMods.contains(id)) {
+						solver.addExactly(versionVec, 1);
+					} else {
+						solver.addAtMost(versionVec, 1);
+					}
+				} catch (ContradictionException e) {
+					throw new ModResolutionException("Could not resolve valid mod collection (at: adding mod " + id + ")", e);
 				}
 			}
 
@@ -167,15 +171,15 @@ public class ModResolver {
 				// \> not mod OR ((a or b) AND (d or e))
 				// \> ((not mod OR a OR b) AND (not mod OR d OR e))
 
-				for (Map.Entry<String, ModInfo.Dependency> dep : mod.getInfo().getRequires().entrySet()) {
-					if (!modCandidateMap.containsKey(dep.getKey())) {
+				for (ModDependency dep : mod.getInfo().getDepends()) {
+					if (!modCandidateMap.containsKey(dep.getModId())) {
 						// bail early
-						throw new RuntimeException("Mod " + mod.getInfo().getId() + " depends on mod " + dep.getKey() + ", which is missing!");
+						throw new RuntimeException("Mod " + mod.getInfo().getId() + " depends on mod " + dep.getModId() + ", which is missing!");
 					}
 
-					int[] matchingCandidates = modCandidateMap.get(dep.getKey())
+					int[] matchingCandidates = modCandidateMap.get(dep.getModId())
 						.stream()
-						.filter((c) -> dep.getValue().satisfiedBy(c.getInfo()))
+						.filter((c) -> dep.matches(c.getInfo().getVersion()))
 						.mapToInt(candidateIntMap::get)
 						.toArray();
 
@@ -183,7 +187,11 @@ public class ModResolver {
 					System.arraycopy(matchingCandidates, 0, clause, 0, matchingCandidates.length);
 					clause[matchingCandidates.length] = -modClauseId;
 
-					solver.addClause(new VecInt(clause));
+					try {
+						solver.addClause(new VecInt(clause));
+					} catch (ContradictionException e) {
+						throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " requires " + dep.getModId() + ")", e);
+					}
 				}
 
 				// Each mod's breaks must be NOT satisfied, if it is to be present.
@@ -191,25 +199,30 @@ public class ModResolver {
 				// \> not mod OR (not a AND not b AND not d AND not e)
 				// \> (not mod OR not a) AND (not mod OR not b) ...
 
-				for (Map.Entry<String, ModInfo.Dependency> dep : mod.getInfo().getConflicts().entrySet()) {
-					int[] matchingCandidates = modCandidateMap.get(dep.getKey())
+				for (ModDependency dep : mod.getInfo().getBreaks()) {
+					int[] matchingCandidates = modCandidateMap.get(dep.getModId())
 						.stream()
-						.filter((c) -> dep.getValue().satisfiedBy(c.getInfo()))
+						.filter((c) -> dep.matches(c.getInfo().getVersion()))
 						.mapToInt(candidateIntMap::get)
 						.toArray();
 
-					for (int m : matchingCandidates) {
-						solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
+					try {
+						for (int m : matchingCandidates) {
+							solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
+						}
+					} catch (ContradictionException e) {
+						throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " breaks " + dep.getModId() + ")", e);
 					}
 				}
 			}
 
 			//noinspection UnnecessaryLocalVariable
 			IProblem problem = solver;
-			IVecInt assumptions = new VecInt(mandatoryMods.size());
-			for (String mod : mandatoryMods) {
+			IVecInt assumptions = new VecInt(modCandidateMap.size());
+
+			for (String mod : modCandidateMap.keySet()) {
 				int pos = assumptions.size();
-				assumptions.push(0);
+				assumptions = assumptions.push(0);
 				Set<ModCandidate> candidates = createNewestVersionSet();
 				candidates.addAll(modCandidateMap.get(mod));
 				boolean satisfied = false;
@@ -223,7 +236,11 @@ public class ModResolver {
 				}
 
 				if (!satisfied) {
-					throw new RuntimeException("Dependencies could not be resolved!");
+					if (mandatoryMods.contains(mod)) {
+						throw new ModResolutionException("Could not resolve mod collection including mandatory mod '" + mod + "'");
+					} else {
+						assumptions = assumptions.pop();
+					}
 				}
 			}
 
@@ -237,7 +254,7 @@ public class ModResolver {
 
 				ModCandidate candidate = intCandidateMap.get(i);
 				if (result.containsKey(candidate.getInfo().getId())) {
-					throw new RuntimeException("Duplicate ID after solving - wrong constraints?");
+					throw new ModResolutionException("Duplicate ID '" + candidate.getInfo().getId() + "' after solving - wrong constraints?");
 				} else {
 					result.put(candidate.getInfo().getId(), candidate);
 				}
@@ -251,12 +268,12 @@ public class ModResolver {
 			}
 
 			if (!missingMods.isEmpty()) {
-				throw new RuntimeException("Missing mods! Wrong constraints? " + Joiner.on(", ").join(missingMods));
+				throw new ModResolutionException("Missing mods! Wrong constraints? " + Joiner.on(", ").join(missingMods));
 			}
 
 			return result;
-		} catch (ContradictionException | TimeoutException e) {
-			throw new RuntimeException(e);
+		} catch (TimeoutException e) {
+			throw new ModResolutionException("Mod collection took too long to be resolved", e);
 		}
 	}
 
@@ -295,15 +312,15 @@ public class ModResolver {
 					jarsDir = jarFs.get().getPath("jars");
 				}
 
-				ModInfo[] info;
+				LoaderModMetadata[] info;
 
 				try (InputStream stream = Files.newInputStream(modJson)) {
 					info = getMods(stream);
 				} catch (NoSuchFileException e) {
-					info = new ModInfo[0];
+					info = new LoaderModMetadata[0];
 				}
 
-				for (ModInfo i : info) {
+				for (LoaderModMetadata i : info) {
 					ModCandidate candidate = new ModCandidate(i, normalizedUrl);
 					boolean added;
 
@@ -375,11 +392,6 @@ public class ModResolver {
 				throw new RuntimeException(url.toString(), e);
 			}
 		}
-	}
-
-	private Runnable processUrl(final ExecutorService service, final FabricLoader loader, final Map<String, Set<ModCandidate>> candidatesById, final URL url) {
-		return () -> {
-		};
 	}
 
 	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {

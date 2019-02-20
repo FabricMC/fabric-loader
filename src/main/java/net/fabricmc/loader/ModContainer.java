@@ -16,13 +16,14 @@
 
 package net.fabricmc.loader;
 
-import net.fabricmc.loader.api.ModMetadata;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.language.LanguageAdapter;
+import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.metadata.ModMetadataV0;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -33,12 +34,12 @@ import java.util.Map;
 public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private static final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 
-	private final ModInfo info;
+	private final LoaderModMetadata info;
 	private final URL originUrl;
 	private Path root;
 	private LanguageAdapter adapter;
 
-	public ModContainer(ModInfo info, URL originUrl) {
+	public ModContainer(LoaderModMetadata info, URL originUrl) {
 		this.info = info;
 		this.originUrl = originUrl;
 	}
@@ -74,7 +75,7 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 		return root;
 	}
 
-	public ModInfo getInfo() {
+	public LoaderModMetadata getInfo() {
 		return info;
 	}
 

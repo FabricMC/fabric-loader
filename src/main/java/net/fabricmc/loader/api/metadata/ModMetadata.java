@@ -14,9 +14,30 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api;
+package net.fabricmc.loader.api.metadata;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
+
+import java.util.Collection;
 
 public interface ModMetadata {
+	// When adding getters, follow the order as presented on the wiki.
+	// No defaults.
+
 	String getId();
 	Version getVersion();
+
+	Collection<ModDependency> getDepends();
+	Collection<ModDependency> getRecommends();
+	Collection<ModDependency> getSuggests();
+	Collection<ModDependency> getConflicts();
+	Collection<ModDependency> getBreaks();
+
+	String getName();
+	String getDescription();
+	Collection<Person> getAuthors();
+	Collection<Person> getContributors();
+	ContactInformation getContact();
+	Collection<String> getLicense();
 }

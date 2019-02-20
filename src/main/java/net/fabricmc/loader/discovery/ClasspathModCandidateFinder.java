@@ -17,14 +17,11 @@
 package net.fabricmc.loader.discovery;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModInfo;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.function.Consumer;
 import java.util.stream.Stream;

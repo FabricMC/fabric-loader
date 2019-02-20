@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader;
+package net.fabricmc.loader.metadata;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.gson.*;
-import net.fabricmc.loader.api.ModMetadata;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Definition class for "fabric.mod.json" files.
  */
-public class ModInfo implements ModMetadata {
-
+public class ModMetadataV0 implements LoaderModMetadata {
 	// Required
 	private String id;
 	private Version version;
@@ -61,7 +62,13 @@ public class ModInfo implements ModMetadata {
 	private Person[] contributors = new Person[0];
 	private String license = "";
 
-	public List<String> getInitializers() {
+	@Override
+	public String getLanguageAdapter() {
+		return languageAdapter;
+	}
+
+	@Override
+	public Collection<String> getInitializers() {
 		if (initializer != null) {
 			if (initializers != null) {
 				throw new RuntimeException("initializer and initializers should not be set at the same time! (mod " + id + ")");
@@ -72,6 +79,31 @@ public class ModInfo implements ModMetadata {
 			return Arrays.asList(initializers);
 		} else {
 			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	public Collection<String> getMixinConfigs(EnvType type) {
+		List<String> mixinConfigs = new ArrayList<>(Arrays.asList(mixins.common));
+		if (type == EnvType.CLIENT) {
+			mixinConfigs.addAll(Arrays.asList(mixins.client));
+		} else if (type == EnvType.SERVER) {
+			mixinConfigs.addAll(Arrays.asList(mixins.server));
+		}
+		return mixinConfigs;
+	}
+
+	@Override
+	public boolean matchesEnvironment(EnvType type) {
+		switch (side) {
+			case UNIVERSAL:
+				return true;
+			case CLIENT:
+				return type == EnvType.CLIENT;
+			case SERVER:
+				return type == EnvType.SERVER;
+			default:
+				return false;
 		}
 	}
 
@@ -88,61 +120,58 @@ public class ModInfo implements ModMetadata {
 	}
 
 	@Override
-	public Version getVersion() {
-		return version;
-	}
-
-	@Deprecated
-	public String getVersionString() {
-		return version.getFriendlyString();
-	}
-
-	public String getLanguageAdapter() {
-		return languageAdapter;
-	}
-
-	public Mixins getMixins() {
-		return mixins;
-	}
-
-	public Side getSide() {
-		return side;
-	}
-
-	public boolean isLazilyLoaded() {
-		return lazilyLoaded;
-	}
-
 	public String getDescription() {
 		return description;
 	}
 
-	public Links getLinks() {
-		return links;
-	}
-
-	public DependencyMap getRequires() {
-		return requires;
-	}
-
-	public DependencyMap getRecommends() {
-		return recommends;
-	}
-
-	public DependencyMap getConflicts() {
-		return conflicts;
-	}
-
-	public List<Person> getAuthors() {
+	@Override
+	public Collection<net.fabricmc.loader.api.metadata.Person> getAuthors() {
 		return Arrays.asList(authors);
 	}
 
-	public List<Person> getContributors() {
+	@Override
+	public Collection<net.fabricmc.loader.api.metadata.Person> getContributors() {
 		return Arrays.asList(contributors);
 	}
 
-	public String getLicense() {
-		return license;
+	@Override
+	public ContactInformation getContact() {
+		return links;
+	}
+
+	@Override
+	public Collection<String> getLicense() {
+		return Collections.singletonList(license);
+	}
+
+	@Override
+	public Version getVersion() {
+		return version;
+	}
+
+	@Override
+	public Collection<ModDependency> getDepends() {
+		return requires.toModDependencies();
+	}
+
+	@Override
+	public Collection<ModDependency> getRecommends() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public Collection<ModDependency> getSuggests() {
+		return recommends.toModDependencies();
+	}
+
+	@Override
+	public Collection<ModDependency> getConflicts() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public Collection<ModDependency> getBreaks() {
+		return conflicts.toModDependencies();
 	}
 
 	public static class Mixins {
@@ -202,48 +231,58 @@ public class ModInfo implements ModMetadata {
 		}
 	}
 
-	public static class Links {
-		public static final Links EMPTY = new Links();
+	public static class Links extends MapBackedContactInformation {
+		public static final Links EMPTY = new Links(Collections.emptyMap());
 
-		private String homepage;
-		private String issues;
-		private String sources;
-
-		public String getHomepage() {
-			return homepage;
-		}
-
-		public String getIssues() {
-			return issues;
-		}
-
-		public String getSources() {
-			return sources;
+		public Links(Map<String, String> map) {
+			super(map);
 		}
 
 		public static class Deserializer implements JsonDeserializer<Links> {
 			@Override
 			public Links deserialize(JsonElement element, Type resultType, JsonDeserializationContext context) throws JsonParseException {
-				Links links = new Links();
+				Map<String, String> map = new HashMap<>();
 
 				if (element.isJsonObject()) {
 					JsonObject object = element.getAsJsonObject();
-					links.homepage = object.has("homepage") ? object.get("homepage").getAsString() : "";
-					links.issues = object.has("issues") ? object.get("issues").getAsString() : "";
-					links.sources = object.has("sources") ? object.get("sources").getAsString() : "";
+					if (object.has("homepage")) map.put("homepage", object.get("homepage").getAsString());
+					if (object.has("issues")) map.put("issues", object.get("issues").getAsString());
+					if (object.has("sources")) map.put("sources", object.get("sources").getAsString());
 				} else if (element.isJsonPrimitive()) {
-					links.homepage = element.getAsString();
+					map.put("homepage", element.getAsString());
 				} else {
 					throw new JsonParseException("Expected links to be an object or string");
 				}
 
-				return links;
+				return new Links(map);
 			}
 		}
 	}
 
 	public static class DependencyMap extends HashMap<String, Dependency> {
+		private List<ModDependency> modDepList;
 
+		Collection<ModDependency> toModDependencies() {
+			if (modDepList == null) {
+				List<ModDependency> list = new ArrayList<>(this.size());
+				for (String s : this.keySet()) {
+					list.add(new ModDependency() {
+						@Override
+						public String getModId() {
+							return s;
+						}
+
+						@Override
+						public boolean matches(Version version) {
+							return DependencyMap.this.get(s).satisfiedBy(version);
+						}
+					});
+				}
+				modDepList = Collections.unmodifiableList(list);
+			}
+
+			return modDepList;
+		}
 	}
 
 	public static class Dependency {
@@ -263,8 +302,7 @@ public class ModInfo implements ModMetadata {
 			return side;
 		}
 
-		public boolean satisfiedBy(ModInfo info) {
-			Version version = info.getVersion();
+		public boolean satisfiedBy(Version version) {
 			try {
 				for (String s : versionMatchers) {
 					if (!VersionPredicateParser.matches(version, s)) {
@@ -277,6 +315,11 @@ public class ModInfo implements ModMetadata {
 				e.printStackTrace();
 				return false;
 			}
+		}
+
+		@Override
+		public String toString() {
+			return "[" + Joiner.on(", ").join(versionMatchers) + "]";
 		}
 
 		public static class Deserializer implements JsonDeserializer<Dependency> {
@@ -330,28 +373,30 @@ public class ModInfo implements ModMetadata {
 		}
 	}
 
-	public static class Person {
-
-		private String name;
-		private String email;
-		private String website;
+	public static class Person implements net.fabricmc.loader.api.metadata.Person {
+		private final String name;
+		private final MapBackedContactInformation contact;
 
 		public Person(String name, String email, String website) {
 			this.name = name;
-			this.email = email;
-			this.website = website;
+			Map<String, String> contactMap = new HashMap<>();
+			if (email != null) {
+				contactMap.put("email", email);
+			}
+			if (website != null) {
+				contactMap.put("website", website);
+			}
+			this.contact = new MapBackedContactInformation(contactMap);
 		}
 
+		@Override
 		public String getName() {
 			return name;
 		}
 
-		public String getEmail() {
-			return email;
-		}
-
-		public String getWebsite() {
-			return website;
+		@Override
+		public ContactInformation getContact() {
+			return contact;
 		}
 
 		public static class Deserializer implements JsonDeserializer<Person> {
@@ -392,9 +437,7 @@ public class ModInfo implements ModMetadata {
 				}
 				throw new RuntimeException("Expected person to be a string");
 			}
-
 		}
-
 	}
 
 	public enum Side {

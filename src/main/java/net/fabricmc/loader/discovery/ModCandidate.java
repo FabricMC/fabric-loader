@@ -16,16 +16,16 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.ModInfo;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.metadata.LoaderModMetadata;
 
-import java.io.File;
 import java.net.URL;
 
 public class ModCandidate {
-	private final ModInfo info;
+	private final LoaderModMetadata info;
 	private final URL originUrl;
 
-	public ModCandidate(ModInfo info, URL originUrl) {
+	public ModCandidate(LoaderModMetadata info, URL originUrl) {
 		this.info = info;
 		this.originUrl = originUrl;
 	}
@@ -34,7 +34,7 @@ public class ModCandidate {
 		return originUrl;
 	}
 
-	public ModInfo getInfo() {
+	public LoaderModMetadata getInfo() {
 		return info;
 	}
 

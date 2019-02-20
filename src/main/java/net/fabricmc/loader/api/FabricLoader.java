@@ -24,12 +24,6 @@ import java.util.Optional;
 
 /**
  * The public-facing FabricLoader instance.
- *
- * TODO: When we get a change to break this:
- * - remove getMods()List
- * - move ModInfo to net.fabricmc.api.loader
- * - add a way to get the ModContainer information, but do not expose
- *   ModContainer itself! Use another interface or simply separate methods
  */
 public interface FabricLoader {
 	@SuppressWarnings("deprecation")

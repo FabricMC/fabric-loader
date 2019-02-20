@@ -18,8 +18,11 @@ package net.fabricmc.loader;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.metadata.ModMetadataV0;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +30,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -246,15 +248,14 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	protected void addMod(ModCandidate candidate, boolean initialize) {
-		ModInfo info = candidate.getInfo();
+		LoaderModMetadata info = candidate.getInfo();
 		URL originUrl = candidate.getOriginUrl();
 
 		if (modMap.containsKey(info.getId())) {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
-		EnvType currentSide = getEnvironmentType();
-		if ((currentSide == EnvType.CLIENT && !info.getSide().hasClient()) || (currentSide == EnvType.SERVER && !info.getSide().hasServer())) {
+		if (!info.matchesEnvironment(getEnvironmentType())) {
 			return;
 		}
 
@@ -284,9 +285,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				boolean b = false;
 				l1:
 				for (int i = 0; i < sorted.size(); i++) {
-					for (Map.Entry<String, ModInfo.Dependency> entry : sorted.get(i).getInfo().getRequires().entrySet()) {
+					for (Map.Entry<String, ModMetadataV0.Dependency> entry : sorted.get(i).getInfo().getRequires().entrySet()) {
 						String depId = entry.getKey();
-						ModInfo.Dependency dep = entry.getValue();
+						ModMetadataV0.Dependency dep = entry.getValue();
 
 						if (depId.equalsIgnoreCase(mod.getInfo().getId()) && dep.satisfiedBy(mod.getInfo())) {
 							sorted.add(i, mod);
