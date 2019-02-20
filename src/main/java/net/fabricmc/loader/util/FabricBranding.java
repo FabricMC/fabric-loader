@@ -16,18 +16,24 @@
 
 package net.fabricmc.loader.util;
 
+import com.google.common.base.Strings;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public final class FabricBranding {
 	public static final String FABRIC = "fabric";
 	public static final String VANILLA = "vanilla";
+	
+	private static final Logger LOGGER = LogManager.getLogger("FabricBranding");
 
 	private FabricBranding() {
 	}
 
 	public static String apply(final String branding) {
-		if (branding.equals(VANILLA)) {
+		if (Strings.isNullOrEmpty(branding)) {
+			LOGGER.warn("Null or empty branding");
 			return FABRIC;
-		} else {
-			return branding + "," + FABRIC;
 		}
+		return VANILLA.equals(branding) ? FABRIC : branding + "," + FABRIC;
 	}
 }
