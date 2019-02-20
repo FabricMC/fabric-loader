@@ -31,7 +31,7 @@ public final class EntrypointBranding {
 
 	public static String brand(final String brand) {
 		if (Strings.isNullOrEmpty(brand)) {
-			LOGGER.warn("Null or empty branding found!");
+			LOGGER.warn("Null or empty branding found!", new IllegalStateException());
 			return FABRIC;
 		}
 		return VANILLA.equals(brand) ? FABRIC : brand + ',' + FABRIC;
