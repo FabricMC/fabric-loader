@@ -77,6 +77,7 @@ dependencies {
 	compile 'net.fabricmc:tiny-remapper:0.1.0.23'
 
 	compile 'com.google.jimfs:jimfs:1.1'
+	compile 'org.sat4j:org.sat4j.core:2.3.1'
 
 	// launchwrapper + dependencies
 	compile ('net.minecraft:launchwrapper:1.12') {

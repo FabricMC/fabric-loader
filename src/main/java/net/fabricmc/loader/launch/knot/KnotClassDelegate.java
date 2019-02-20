@@ -141,6 +141,11 @@ class KnotClassDelegate {
 	}
 
 	public byte[] loadClassData(String name, boolean resolve) {
+		// TODO remove before release
+		if (name.startsWith("org.sat4j.")) {
+			return EntrypointTransformer.INSTANCE.transform(name);
+		}
+
 		if (!"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && !name.startsWith("org.apache.logging.log4j")) {
 			byte[] input = EntrypointTransformer.INSTANCE.transform(name);
 			if (input == null) {
