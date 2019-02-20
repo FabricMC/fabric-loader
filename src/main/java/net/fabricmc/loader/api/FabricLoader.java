@@ -19,15 +19,11 @@ package net.fabricmc.loader.api;
 import net.fabricmc.api.EnvType;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * The public-facing FabricLoader instance.
- *
- * TODO: When we get a change to break this:
- * - remove getMods()List
- * - move ModInfo to net.fabricmc.api.loader
- * - add a way to get the ModContainer information, but do not expose
- *   ModContainer itself! Use another interface or simply separate methods
  */
 public interface FabricLoader {
 	@SuppressWarnings("deprecation")
@@ -40,11 +36,33 @@ public interface FabricLoader {
 	}
 
 	/**
+	 * Gets the container for a given mod.
+	 * @param id The ID of the mod.
+	 * @return The mod container, if present.
+	 */
+	Optional<ModContainer> getModContainer(String id);
+
+	/**
+	 * Gets all mod containers.
+	 * @return A collection of all loaded mod containers.
+	 */
+	Collection<ModContainer> getAllMods();
+
+	/**
 	 * Checks if a mod with a given ID is loaded.
 	 * @param id The ID of the mod, as defined in fabric.mod.json.
 	 * @return Whether or not the mod is present in this FabricLoader instance.
 	 */
 	boolean isModLoaded(String id);
+
+	/**
+	 * Checks if Fabric Loader is currently running in a "development"
+	 * environment. Can be used for enabling debug mode or additional checks.
+	 * Should not be used to make assumptions about f.e. mappings.
+	 * @return Whether or not Loader is currently in a "development"
+	 * environment.
+	 */
+	boolean isDevelopmentEnvironment();
 
 	/**
 	 * Get the current environment type.

@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader;
 
-import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -322,8 +321,24 @@ public class FabricLoader implements net.fabricmc.api.loader.Loader, net.fabricm
 	}
 
 	@Override
+	public Optional<net.fabricmc.loader.api.ModContainer> getModContainer(String id) {
+		return Optional.ofNullable(modMap.get(id));
+	}
+
+	@Override
+	public Collection<net.fabricmc.loader.api.ModContainer> getAllMods() {
+		//noinspection unchecked
+		return ((Collection<net.fabricmc.loader.api.ModContainer>) (Collection) modMap.values());
+	}
+
+	@Override
 	public boolean isModLoaded(String id) {
 		return modMap.containsKey(id);
+	}
+
+	@Override
+	public boolean isDevelopmentEnvironment() {
+		return false;
 	}
 
 	/**

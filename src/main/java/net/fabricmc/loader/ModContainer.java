@@ -16,13 +16,17 @@
 
 package net.fabricmc.loader;
 
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.language.LanguageAdapter;
+import net.fabricmc.loader.util.FileSystemUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModContainer {
+public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private static final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 
 	private ModInfo info;
@@ -57,5 +61,24 @@ public class ModContainer {
 				throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s", adapter, info.getId()), e);
 			}
 		});
+	}
+
+	@Override
+	public ModMetadata getMetadata() {
+		return info;
+	}
+
+	@Override
+	public Path getRoot() {
+		if (originFile.isDirectory()) {
+			return originFile.toPath();
+		} else {
+			try {
+				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(originFile, false);
+				return delegate.get().getRootDirectories().iterator().next();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 }
