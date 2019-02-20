@@ -27,6 +27,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinMinecraftServerBrand {
 	@Inject(at = @At("RETURN"), method = "getServerModName", cancellable = true)
 	private void getServerModName(final CallbackInfoReturnable<String> cir) {
-		cir.setReturnValue(FabricBranding.apply(cir.getReturnValue()));
+		cir.setReturnValue(FabricBranding.apply(cir.getReturnValue(), this));
 	}
 }

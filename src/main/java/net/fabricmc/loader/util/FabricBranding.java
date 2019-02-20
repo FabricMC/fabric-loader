@@ -29,9 +29,9 @@ public final class FabricBranding {
 	private FabricBranding() {
 	}
 
-	public static String apply(final String branding) {
+	public static String apply(final String branding, final Object environment) {
 		if (Strings.isNullOrEmpty(branding)) {
-			LOGGER.warn("Null or empty branding");
+			LOGGER.warn("Null or empty branding given for {}", environment);
 			return FABRIC;
 		}
 		return VANILLA.equals(branding) ? FABRIC : branding + "," + FABRIC;
