@@ -16,14 +16,14 @@
 
 package net.fabricmc.loader.util;
 
-public final class BrandingUtil {
+public final class FabricBranding {
 	public static final String FABRIC = "fabric";
 	public static final String VANILLA = "vanilla";
 
-	private BrandingUtil() {
+	private FabricBranding() {
 	}
 
-	public static String brand(final String branding) {
+	public static String apply(final String branding) {
 		if (branding.equals(VANILLA)) {
 			return FABRIC;
 		} else {

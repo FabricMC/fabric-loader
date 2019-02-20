@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.mixin.common.server;
 
-import net.fabricmc.loader.util.BrandingUtil;
+import net.fabricmc.loader.util.FabricBranding;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,6 +27,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinMinecraftServerBrand {
 	@Inject(at = @At("RETURN"), method = "getServerModName", cancellable = true)
 	private void getServerModName(final CallbackInfoReturnable<String> cir) {
-		cir.setReturnValue(BrandingUtil.brand(cir.getReturnValue()));
+		cir.setReturnValue(FabricBranding.apply(cir.getReturnValue()));
 	}
 }
