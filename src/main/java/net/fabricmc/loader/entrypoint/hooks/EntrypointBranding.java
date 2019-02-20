@@ -16,18 +16,24 @@
 
 package net.fabricmc.loader.entrypoint.hooks;
 
+import com.google.common.base.Strings;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public final class EntrypointBranding {
 	public static final String FABRIC = "fabric";
 	public static final String VANILLA = "vanilla";
+
+	private static final Logger LOGGER = LogManager.getLogger("Fabric|Branding");
 
 	private EntrypointBranding() {
 	}
 
 	public static String brand(final String brand) {
-		if (brand.equals(VANILLA)) {
+		if (Strings.isNullOrEmpty(brand)) {
+			LOGGER.warn("Null or empty branding found!");
 			return FABRIC;
-		} else {
-			return brand + "," + FABRIC;
 		}
+		return VANILLA.equals(brand) ? FABRIC : brand + ',' + FABRIC;
 	}
 }
