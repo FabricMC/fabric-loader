@@ -27,6 +27,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinClientBrandRetriever {
 	@Inject(at = @At("RETURN"), method = "getClientModName", cancellable = true)
 	private static void getClientModName(final CallbackInfoReturnable<String> cir) {
-		BrandingUtil.brand(cir);
+		cir.setReturnValue(BrandingUtil.brand(cir.getReturnValue()));
 	}
 }

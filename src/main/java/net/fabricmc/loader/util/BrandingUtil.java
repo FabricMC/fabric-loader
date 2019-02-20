@@ -16,8 +16,6 @@
 
 package net.fabricmc.loader.util;
 
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
 public final class BrandingUtil {
 	public static final String FABRIC = "fabric";
 	public static final String VANILLA = "vanilla";
@@ -25,11 +23,11 @@ public final class BrandingUtil {
 	private BrandingUtil() {
 	}
 
-	public static void brand(final CallbackInfoReturnable<String> cir) {
-		if (cir.getReturnValue().equals(VANILLA)) {
-			cir.setReturnValue(FABRIC);
+	public static String brand(final String branding) {
+		if (branding.equals(VANILLA)) {
+			return FABRIC;
 		} else {
-			cir.setReturnValue(cir.getReturnValue() + "," + FABRIC);
+			return branding + "," + FABRIC;
 		}
 	}
 }
