@@ -1,7 +1,7 @@
 {
   "id": "fabricloader",
   "name": "Fabric Loader",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "side": "universal",
   "description": "The base mod loader.",
   "license": "Apache-2.0"

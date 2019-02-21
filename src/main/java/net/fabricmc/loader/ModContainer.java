@@ -32,6 +32,7 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private ModInfo info;
 	private File originFile;
 	private LanguageAdapter adapter;
+	private Path root;
 
 	public ModContainer(ModInfo info, File originFile, boolean instantiate) {
 		this.info = info;
@@ -68,17 +69,29 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 		return info;
 	}
 
-	@Override
-	public Path getRoot() {
+	private Path findRoot() {
 		if (originFile.isDirectory()) {
 			return originFile.toPath();
 		} else {
 			try {
 				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(originFile, false);
+				if (delegate.get() == null) {
+					throw new RuntimeException("Could not open JAR file " + originFile.getName() + " for NIO reading!");
+				}
+
 				return delegate.get().getRootDirectories().iterator().next();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
+	}
+
+	@Override
+	public Path getRoot() {
+		if (root == null) {
+			root = findRoot();
+		}
+
+		return root;
 	}
 }
