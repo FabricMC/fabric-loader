@@ -6,15 +6,23 @@
     ],
     "common": [
       {
-        "name": "net.fabricmc:sponge-mixin:0.7.11.16",
-        "url": "https://maven.fabricmc.net/"
-      },
-      {
         "name": "net.fabricmc:tiny-mappings-parser:0.1.0.6",
         "url": "https://maven.fabricmc.net/"
       },
       {
+        "name": "net.fabricmc:sponge-mixin:0.7.11.16",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
         "name": "net.fabricmc:tiny-remapper:0.1.0.23",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
+        "name": "net.fabricmc:fabric-loader-sat4j:2.3.5.4",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
+        "name": "com.google.jimfs:jimfs:1.1",
         "url": "https://maven.fabricmc.net/"
       },
       {

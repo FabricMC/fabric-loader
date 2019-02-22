@@ -29,7 +29,7 @@ public final class EntrypointServer {
 		}
 
 		FabricLoader.INSTANCE.initialize(runDir, gameInstance);
-		FabricLoader.INSTANCE.load(new File(runDir, "mods"));
+		FabricLoader.INSTANCE.load();
 		FabricLoader.INSTANCE.freeze();
 		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
 		FabricLoader.INSTANCE.getInitializers(DedicatedServerModInitializer.class).forEach(DedicatedServerModInitializer::onInitializeServer);

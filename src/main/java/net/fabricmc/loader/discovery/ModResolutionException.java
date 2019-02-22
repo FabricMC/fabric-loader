@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch.common;
+package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.FabricLoader;
-import org.apache.logging.log4j.LogManager;
-
-public class MixinLoader extends FabricLoader {
-	static {
-		LOGGER = LogManager.getFormatterLogger("Fabric|MixinLoader");
+public class ModResolutionException extends Exception {
+	public ModResolutionException(String s) {
+		super(s);
 	}
 
-	@Override
-	protected boolean isPrimaryLoader() {
-		return false;
+	public ModResolutionException(Throwable t) {
+		super(t);
+	}
+
+	public ModResolutionException(String s, Throwable t) {
+		super(s, t);
 	}
 }

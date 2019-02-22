@@ -19,6 +19,7 @@ package net.fabricmc.loader.launch.knot;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.transformer.FabricTransformer;
+import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import org.spongepowered.asm.mixin.transformer.MixinTransformer;
@@ -28,12 +29,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -50,6 +57,7 @@ class KnotClassDelegate {
 		}
 	}
 
+	private final Map<URL, Manifest> manifestCache = new HashMap<>();
 	private final KnotClassLoaderInterface itf;
 	private final boolean isDevelopment;
 	private final EnvType envType;
@@ -90,23 +98,31 @@ class KnotClassDelegate {
 			}
 
 			if (codeSourceURL != null) {
-				try {
-					File codeSourceFile = UrlUtil.asFile(codeSourceURL);
-					if (codeSourceFile.isFile()) {
-						try {
-							JarFile codeSourceJar = new JarFile(codeSourceFile);
-							manifest = codeSourceJar.getManifest();
-							JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
-							if (codeEntry != null) {
-								codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
+				manifest = manifestCache.computeIfAbsent(codeSourceURL, (url) -> {
+					try {
+						Path path = UrlUtil.asPath(url);
+
+						if (Files.isRegularFile(path)) {
+							try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
+								Path manifestPath = jarFs.get().getPath("META-INF/MANIFEST.MF");
+								if (Files.exists(manifestPath)) {
+									try (InputStream stream = Files.newInputStream(manifestPath)) {
+										return new Manifest(stream);
+										// TODO
+								/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
+								if (codeEntry != null) {
+									codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
+								} */
+									}
+								}
 							}
-						} catch (IOException e) {
-							// pass
 						}
+
+						return null;
+					} catch (IOException | FileSystemNotFoundException | UrlConversionException e) {
+						return null;
 					}
-				} catch (UrlConversionException e) {
-					// pass
-				}
+				});
 
 				if (codeSource == null) {
 					codeSource = new CodeSource(codeSourceURL, (CodeSigner[]) null);
@@ -124,6 +140,11 @@ class KnotClassDelegate {
 	}
 
 	public byte[] loadClassData(String name, boolean resolve) {
+		// TODO remove before release
+		if (name.startsWith("org.sat4j.")) {
+			return EntrypointTransformer.INSTANCE.transform(name);
+		}
+
 		if (!"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && !name.startsWith("org.apache.logging.log4j")) {
 			byte[] input = EntrypointTransformer.INSTANCE.transform(name);
 			if (input == null) {

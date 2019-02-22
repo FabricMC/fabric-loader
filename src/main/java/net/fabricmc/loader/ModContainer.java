@@ -16,33 +16,75 @@
 
 package net.fabricmc.loader;
 
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.language.LanguageAdapter;
+import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.metadata.ModMetadataV0;
+import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
-import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModContainer {
+public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private static final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 
-	private ModInfo info;
-	private File originFile;
+	private final LoaderModMetadata info;
+	private final URL originUrl;
+	private Path root;
 	private LanguageAdapter adapter;
 
-	public ModContainer(ModInfo info, File originFile, boolean instantiate) {
+	public ModContainer(LoaderModMetadata info, URL originUrl) {
 		this.info = info;
-		this.originFile = originFile;
-		if (instantiate) {
-			this.adapter = createAdapter();
+		this.originUrl = originUrl;
+	}
+
+	void instantiate() {
+		this.adapter = createAdapter();
+
+		try {
+			Path holder = UrlUtil.asPath(originUrl).toAbsolutePath();
+			if (Files.isDirectory(holder)) {
+				root = holder.toAbsolutePath();
+			} else /* JAR */ {
+				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(holder, false);
+				if (delegate.get() == null) {
+					throw new RuntimeException("Could not open JAR file " + holder.getFileName() + " for NIO reading!");
+				}
+
+				root = delegate.get().getRootDirectories().iterator().next();
+
+				// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
+			}
+		} catch (IOException | UrlConversionException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
-	public ModInfo getInfo() {
+	@Override
+	public ModMetadata getMetadata() {
 		return info;
 	}
 
-	public File getOriginFile() {
-		return originFile;
+	@Override
+	public Path getRoot() {
+		if (root == null) {
+			throw new RuntimeException("Accessed mod root before primary loader!");
+		}
+		return root;
+	}
+
+	public LoaderModMetadata getInfo() {
+		return info;
+	}
+
+	public URL getOriginUrl() {
+		return originUrl;
 	}
 
 	public LanguageAdapter getAdapter() {

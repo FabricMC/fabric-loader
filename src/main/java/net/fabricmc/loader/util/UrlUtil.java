@@ -19,6 +19,7 @@ package net.fabricmc.loader.util;
 import java.io.File;
 import java.net.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 
@@ -34,11 +35,13 @@ public final class UrlUtil {
 			URLConnection connection = resourceURL.openConnection();
 			if (connection instanceof JarURLConnection) {
 				codeSourceURL = ((JarURLConnection) connection).getJarFileURL();
-			} else {
+			} else if (resourceURL.getProtocol().equals("file")) {
 				// assume directory
 				String s = UrlUtil.asFile(resourceURL).getAbsolutePath();
 				s = s.replace(filename.replace('/', File.separatorChar), "");
 				codeSourceURL = UrlUtil.asUrl(new File(s));
+			} else {
+				throw new UrlConversionException("Unknown protocol: " + resourceURL.getProtocol());
 			}
 		} catch (Exception e) {
 			throw new UrlConversionException(e);
@@ -56,12 +59,29 @@ public final class UrlUtil {
 	}
 
 	public static Path asPath(URL url) throws UrlConversionException {
-		return asFile(url).toPath();
+		if (url.getProtocol().equals("file")) {
+			// TODO: Is this required?
+			return asFile(url).toPath();
+		} else {
+			try {
+				return Paths.get(url.toURI());
+			} catch (URISyntaxException e) {
+				throw new UrlConversionException(e);
+			}
+		}
 	}
 
 	public static URL asUrl(File file) throws UrlConversionException {
 		try {
 			return file.toURI().toURL();
+		} catch (MalformedURLException e) {
+			throw new UrlConversionException(e);
+		}
+	}
+
+	public static URL asUrl(Path path) throws UrlConversionException {
+		try {
+			return new URL(null, path.toUri().toString());
 		} catch (MalformedURLException e) {
 			throw new UrlConversionException(e);
 		}

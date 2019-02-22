@@ -17,10 +17,6 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.ModInfo;
-
-import java.io.File;
-import java.util.List;
 
 public final class FabricClientTweaker extends FabricTweaker {
 	@Override
