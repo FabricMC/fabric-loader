@@ -108,7 +108,6 @@ class KnotClassDelegate {
 								if (Files.exists(manifestPath)) {
 									try (InputStream stream = Files.newInputStream(manifestPath)) {
 										return new Manifest(stream);
-
 										// TODO
 								/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
 								if (codeEntry != null) {

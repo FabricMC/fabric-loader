@@ -53,6 +53,10 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 				root = holder.toAbsolutePath();
 			} else /* JAR */ {
 				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(holder, false);
+				if (delegate.get() == null) {
+					throw new RuntimeException("Could not open JAR file " + holder.getFileName() + " for NIO reading!");
+				}
+
 				root = delegate.get().getRootDirectories().iterator().next();
 
 				// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
