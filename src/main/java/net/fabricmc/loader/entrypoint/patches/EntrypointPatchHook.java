@@ -120,72 +120,137 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				throw new RuntimeException("Could not load game class " + gameEntrypoint + "!");
 			}
 
-			boolean patched = false;
-			for (MethodNode gameMethod : gameClass.methods) {
-				if (gameMethod.name.equals("<init>")) {
-					debug("Patching game constructor " + gameMethod.desc);
+			MethodNode gameMethod = null;
+			MethodNode gameConstructor = null;
+			int gameMethodQuality = 0;
 
-					ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
-					if (type == EnvType.SERVER) {
-						// Server-side: first argument (or null!) is runDirectory, run at end of init
-						moveBefore(it, Opcodes.RETURN);
-						// runDirectory
-						if (serverHasFile) {
-							it.add(new VarInsnNode(Opcodes.ALOAD, 1));
-						} else {
-							it.add(new InsnNode(Opcodes.ACONST_NULL));
-						}
-						finishEntrypoint(type, it);
-						patched = true;
-					} else if (type == EnvType.CLIENT && isApplet) {
-						// Applet-side: field is private static File, run at end
-						// At the beginning, set file field (hook)
-						FieldNode runDirectory = findField(gameClass, (f) -> isStatic(f.access) && f.desc.equals("Ljava/io/File;"));
-						if (runDirectory == null) {
-							// TODO: Handle pre-indev versions.
-							//
-							// Classic has no agreed-upon run directory.
-							// - level.dat is always stored in CWD. We can assume CWD is set, launchers generally adhere to that.
-							// - options.txt in newer Classic versions is stored in user.home/.minecraft/. This is not currently handled,
-							// but as these versions are relatively low on options this is not a huge concern.
-							warn("Could not find applet run directory! (If you're running pre-late-indev versions, this is fine.)");
+			for (MethodNode gmCandidate : gameClass.methods) {
+				if (gmCandidate.name.equals("<init>")) {
+					gameConstructor = gmCandidate;
+					if (gameMethodQuality < 1) {
+						gameMethod = gmCandidate;
+						gameMethodQuality = 1;
+					}
+				} else if (type == EnvType.CLIENT && !isApplet && gameMethodQuality < 2) {
+					// Try to find a non-constructor with an LDC string "LWJGL Version: ".
+					// This is the "init()" method, or called somewhere in that vicinity,
+					// and is by far superior in hooking into for a well-off mod start.
 
-							moveBefore(it, Opcodes.RETURN);
-/*							it.add(new TypeInsnNode(Opcodes.NEW, "java/io/File"));
-							it.add(new InsnNode(Opcodes.DUP));
-							it.add(new LdcInsnNode("."));
-							it.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/io/File", "<init>", "(Ljava/lang/String;)V", false)); */
-							it.add(new InsnNode(Opcodes.ACONST_NULL));
-							it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/applet/AppletMain", "hookGameDir", "(Ljava/io/File;)Ljava/io/File;", false));
-							finishEntrypoint(type, it);
-						} else {
-							// Indev and above.
-							moveAfter(it, Opcodes.INVOKESPECIAL); /* Object.init */
-							it.add(new FieldInsnNode(Opcodes.GETSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
-							it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/applet/AppletMain", "hookGameDir", "(Ljava/io/File;)Ljava/io/File;", false));
-							it.add(new FieldInsnNode(Opcodes.PUTSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
-
-							moveBefore(it, Opcodes.RETURN);
-							it.add(new FieldInsnNode(Opcodes.GETSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
-							finishEntrypoint(type, it);
-						}
-						patched = true;
-					} else {
-						// Client-side: identify runDirectory field + location, run immediately after
-						while (it.hasNext()) {
-							AbstractInsnNode insn = it.next();
-							if (insn.getOpcode() == Opcodes.PUTFIELD
-								&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
-								debug("Run directory field is thought to be " + ((FieldInsnNode) insn).owner + "/" + ((FieldInsnNode) insn).name);
-
-								it.add(new VarInsnNode(Opcodes.ALOAD, 0));
-								it.add(new FieldInsnNode(Opcodes.GETFIELD, ((FieldInsnNode) insn).owner, ((FieldInsnNode) insn).name, ((FieldInsnNode) insn).desc));
-								finishEntrypoint(type, it);
-
-								patched = true;
-								break;
+					int qual = 2;
+					boolean hasLwjglLog = false;
+					ListIterator<AbstractInsnNode> it = gmCandidate.instructions.iterator();
+					while (it.hasNext()) {
+						AbstractInsnNode insn = it.next();
+						if (insn instanceof LdcInsnNode) {
+							Object cst = ((LdcInsnNode) insn).cst;
+							if (cst instanceof String) {
+								String s = (String) cst;
+								if (s.startsWith("LWJGL Version: ")) {
+									hasLwjglLog = true;
+									if ("LWJGL Version: ".equals(s) || "LWJGL Version: {}".equals(s)) {
+										qual = 3;
+									}
+									break;
+								}
 							}
 						}
+					}
+
+					if (hasLwjglLog) {
+						gameMethod = gmCandidate;
+						gameMethodQuality = qual;
+					}
+				}
+			}
+
+			if (gameMethod == null) {
+				throw new RuntimeException("Could not find game constructor method in " + gameClass.name + "!");
+			}
+
+			boolean patched = false;
+			debug("Patching game constructor " + gameMethod.name + gameMethod.desc);
+
+			if (type == EnvType.SERVER) {
+				ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
+				// Server-side: first argument (or null!) is runDirectory, run at end of init
+				moveBefore(it, Opcodes.RETURN);
+				// runDirectory
+				if (serverHasFile) {
+					it.add(new VarInsnNode(Opcodes.ALOAD, 1));
+				} else {
+					it.add(new InsnNode(Opcodes.ACONST_NULL));
+				}
+				finishEntrypoint(type, it);
+				patched = true;
+			} else if (type == EnvType.CLIENT && isApplet) {
+				// Applet-side: field is private static File, run at end
+				// At the beginning, set file field (hook)
+				FieldNode runDirectory = findField(gameClass, (f) -> isStatic(f.access) && f.desc.equals("Ljava/io/File;"));
+				if (runDirectory == null) {
+					// TODO: Handle pre-indev versions.
+					//
+					// Classic has no agreed-upon run directory.
+					// - level.dat is always stored in CWD. We can assume CWD is set, launchers generally adhere to that.
+					// - options.txt in newer Classic versions is stored in user.home/.minecraft/. This is not currently handled,
+					// but as these versions are relatively low on options this is not a huge concern.
+					warn("Could not find applet run directory! (If you're running pre-late-indev versions, this is fine.)");
+
+					ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
+					if (gameConstructor == gameMethod) {
+						moveBefore(it, Opcodes.RETURN);
+					}
+
+/*							it.add(new TypeInsnNode(Opcodes.NEW, "java/io/File"));
+					it.add(new InsnNode(Opcodes.DUP));
+					it.add(new LdcInsnNode("."));
+					it.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/io/File", "<init>", "(Ljava/lang/String;)V", false)); */
+					it.add(new InsnNode(Opcodes.ACONST_NULL));
+					it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/applet/AppletMain", "hookGameDir", "(Ljava/io/File;)Ljava/io/File;", false));
+					finishEntrypoint(type, it);
+				} else {
+					// Indev and above.
+					ListIterator<AbstractInsnNode> it = gameConstructor.instructions.iterator();
+					moveAfter(it, Opcodes.INVOKESPECIAL); /* Object.init */
+					it.add(new FieldInsnNode(Opcodes.GETSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
+					it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/applet/AppletMain", "hookGameDir", "(Ljava/io/File;)Ljava/io/File;", false));
+					it.add(new FieldInsnNode(Opcodes.PUTSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
+
+					it = gameMethod.instructions.iterator();
+					if (gameConstructor == gameMethod) {
+						moveBefore(it, Opcodes.RETURN);
+					}
+					it.add(new FieldInsnNode(Opcodes.GETSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
+					finishEntrypoint(type, it);
+				}
+				patched = true;
+			} else {
+				// Client-side:
+				// - if constructor, identify runDirectory field + location, run immediately after
+				// - if non-constructor (init method), head
+
+				if (gameConstructor == null) {
+					throw new RuntimeException("Non-applet client-side, but could not find constructor?");
+				}
+
+				ListIterator<AbstractInsnNode> consIt = gameConstructor.instructions.iterator();
+				while (consIt.hasNext()) {
+					AbstractInsnNode insn = consIt.next();
+					if (insn.getOpcode() == Opcodes.PUTFIELD
+						&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
+						debug("Run directory field is thought to be " + ((FieldInsnNode) insn).owner + "/" + ((FieldInsnNode) insn).name);
+
+						ListIterator<AbstractInsnNode> it;
+						if (gameMethod == gameConstructor) {
+							it = consIt;
+						} else {
+							it = gameMethod.instructions.iterator();
+						}
+						it.add(new VarInsnNode(Opcodes.ALOAD, 0));
+						it.add(new FieldInsnNode(Opcodes.GETFIELD, ((FieldInsnNode) insn).owner, ((FieldInsnNode) insn).name, ((FieldInsnNode) insn).desc));
+						finishEntrypoint(type, it);
+
+						patched = true;
+						break;
 					}
 				}
 			}

@@ -36,7 +36,7 @@ archivesBaseName = "fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-version = version + "." + (ENV.BUILD_NUMBER ?: "local")
+version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
 
 repositories {
 	mavenCentral()
@@ -84,6 +84,19 @@ dependencies {
 		transitive = false
 	}
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+}
+
+processResources {
+	inputs.property "version", version
+
+	from(sourceSets.main.resources.srcDirs) {
+		include 'fabric.mod.json'
+		expand 'version':version
+	}
+
+	from(sourceSets.main.resources.srcDirs) {
+		exclude 'fabric.mod.json'
+	}
 }
 
 jar {
