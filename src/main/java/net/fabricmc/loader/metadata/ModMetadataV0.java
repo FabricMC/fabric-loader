@@ -276,6 +276,18 @@ public class ModMetadataV0 implements LoaderModMetadata {
 						public boolean matches(Version version) {
 							return DependencyMap.this.get(s).satisfiedBy(version);
 						}
+
+						@Override
+						public String toString() {
+							String[] matchers = DependencyMap.this.get(s).versionMatchers;
+							if (matchers.length == 0) {
+								return getModId();
+							} else if (matchers.length == 1) {
+								return getModId() + " @ " + matchers[0];
+							} else {
+								return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+							}
+						}
 					});
 				}
 				modDepList = Collections.unmodifiableList(list);
@@ -347,7 +359,6 @@ public class ModMetadataV0 implements LoaderModMetadata {
 					JsonObject object = element.getAsJsonObject();
 
 					String[] versionMatchers;
-					boolean required = true;
 					Side side = Side.UNIVERSAL;
 
 					if (object.has("side")) {

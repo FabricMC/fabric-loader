@@ -48,6 +48,8 @@ import java.util.jar.Manifest;
 
 class KnotClassDelegate {
 	static class Metadata {
+		static final Metadata EMPTY = new Metadata(null, null);
+
 		final Manifest manifest;
 		final CodeSource codeSource;
 
@@ -57,7 +59,7 @@ class KnotClassDelegate {
 		}
 	}
 
-	private final Map<URL, Manifest> manifestCache = new HashMap<>();
+	private final Map<URL, Metadata> metadataCache = new HashMap<>();
 	private final KnotClassLoaderInterface itf;
 	private final boolean isDevelopment;
 	private final EnvType envType;
@@ -84,9 +86,6 @@ class KnotClassDelegate {
 	}
 
 	Metadata getMetadata(String name, URL resourceURL) {
-		Manifest manifest = null;
-		CodeSource codeSource = null;
-
 		if (resourceURL != null) {
 			URL codeSourceURL = null;
 			String filename = name.replace('.', '/') + ".class";
@@ -98,39 +97,43 @@ class KnotClassDelegate {
 			}
 
 			if (codeSourceURL != null) {
-				manifest = manifestCache.computeIfAbsent(codeSourceURL, (url) -> {
+				return metadataCache.computeIfAbsent(codeSourceURL, (fCodeSourceURL) -> {
+					Manifest manifest = null;
+					CodeSource codeSource = null;
+
 					try {
-						Path path = UrlUtil.asPath(url);
+						Path path = UrlUtil.asPath(fCodeSourceURL);
 
 						if (Files.isRegularFile(path)) {
 							try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
 								Path manifestPath = jarFs.get().getPath("META-INF/MANIFEST.MF");
 								if (Files.exists(manifestPath)) {
 									try (InputStream stream = Files.newInputStream(manifestPath)) {
-										return new Manifest(stream);
+										manifest = new Manifest(stream);
+
 										// TODO
-								/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
-								if (codeEntry != null) {
-									codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
-								} */
+										/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
+										if (codeEntry != null) {
+											codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
+										} */
 									}
 								}
 							}
 						}
-
-						return null;
 					} catch (IOException | FileSystemNotFoundException | UrlConversionException e) {
-						return null;
+						// pass
 					}
-				});
 
-				if (codeSource == null) {
-					codeSource = new CodeSource(codeSourceURL, (CodeSigner[]) null);
-				}
+					if (codeSource == null) {
+						codeSource = new CodeSource(fCodeSourceURL, (CodeSigner[]) null);
+					}
+
+					return new Metadata(manifest, codeSource);
+				});
 			}
 		}
 
-		return new Metadata(manifest, codeSource);
+		return Metadata.EMPTY;
 	}
 
 	public byte[] transform(String name, byte[] data) {

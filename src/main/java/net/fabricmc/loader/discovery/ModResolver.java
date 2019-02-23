@@ -23,7 +23,6 @@ import com.google.common.jimfs.PathType;
 import com.google.gson.*;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataV0;
@@ -90,19 +89,6 @@ public class ModResolver {
 		candidateFinders.add(f);
 	}
 
-	private static Set<ModCandidate> createNewestVersionSet() {
-		return new TreeSet<>((a, b) -> {
-			Version av = a.getInfo().getVersion();
-			Version bv = b.getInfo().getVersion();
-
-			if (av instanceof SemanticVersion && bv instanceof SemanticVersion) {
-				return ((SemanticVersion) bv).compareTo((SemanticVersion) av);
-			} else {
-				return 0;
-			}
-		});
-	}
-
 	protected static LoaderModMetadata[] getMods(InputStream in) {
 		JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
 		if (el.isJsonObject()) {
@@ -123,175 +109,238 @@ public class ModResolver {
 		return new VecInt(stream.toArray());
 	}
 
+	private boolean matches(ModDependency dependency, Map<String, ModCandidate> result) {
+		if (!result.containsKey(dependency.getModId())) {
+			return false;
+		}
+
+		return dependency.matches(result.get(dependency.getModId()).getInfo().getVersion());
+	}
+
+	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
+		if (matches(dependency, result) != cond) {
+			errors.append("\n - Mod ").append(candidate.getInfo().getId()).append(" ").append(errorType).append(" mod ").append(dependency).append(", which is missing!");
+		}
+	}
+
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
-	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, Set<ModCandidate>> modCandidateMap) throws ModResolutionException {
-		// Inspired by http://0install.net/solver.html
-		// probably also horrendously slow, for now
+	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
+		// First, map all ModCandidateSets to Set<ModCandidate>s.
+		boolean isAdvanced = false;
+		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();
+		Set<String> mandatoryMods = new HashSet<>();
 
-		// Step 1: Create a Set of all mandatory mods. For now, this is all mods present.
-		Set<String> mandatoryMods = modCandidateMap.keySet();
+		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
+			Collection<ModCandidate> s = mcs.toSortedSet();
+			modCandidateMap.put(mcs.getModId(), s);
+			isAdvanced |= (s.size() > 1) || (s.iterator().next().getDepth() > 0);
 
-		// Step 2: Map all the ModCandidates to DIMACS-format positive integers.
-		int varCount = 1;
-		Map<ModCandidate, Integer> candidateIntMap = new HashMap<>();
-		List<ModCandidate> intCandidateMap = new ArrayList<>(modCandidateMap.size() * 2);
-		intCandidateMap.add(null);
-		for (Set<ModCandidate> m : modCandidateMap.values()) {
-			for (ModCandidate candidate : m) {
-				candidateIntMap.put(candidate, varCount++);
-				intCandidateMap.add(candidate);
+			if (mcs.isUserProvided()) {
+				mandatoryMods.add(mcs.getModId());
 			}
 		}
 
-		// Step 3:
-		ISolver solver = SolverFactory.newLight();
-		solver.newVar(varCount);
+		Map<String, ModCandidate> result;
 
-		try {
-			// Each mod needs to have at most one version.
-			for (String id : modCandidateMap.keySet()) {
-				IVecInt versionVec = toVecInt(modCandidateMap.get(id).stream().mapToInt(candidateIntMap::get));
+		if (!isAdvanced) {
+			result = new HashMap<>();
+			for (String s : modCandidateMap.keySet()) {
+				result.put(s, modCandidateMap.get(s).iterator().next());
+			}
+		} else {
+			// Inspired by http://0install.net/solver.html
+			// probably also horrendously slow, for now
 
-				try {
-					if (mandatoryMods.contains(id)) {
-						solver.addExactly(versionVec, 1);
-					} else {
-						solver.addAtMost(versionVec, 1);
-					}
-				} catch (ContradictionException e) {
-					throw new ModResolutionException("Could not resolve valid mod collection (at: adding mod " + id + ")", e);
+			// Map all the ModCandidates to DIMACS-format positive integers.
+			int varCount = 1;
+			Map<ModCandidate, Integer> candidateIntMap = new HashMap<>();
+			List<ModCandidate> intCandidateMap = new ArrayList<>(modCandidateMap.size() * 2);
+			intCandidateMap.add(null);
+			for (Collection<ModCandidate> m : modCandidateMap.values()) {
+				for (ModCandidate candidate : m) {
+					candidateIntMap.put(candidate, varCount++);
+					intCandidateMap.add(candidate);
 				}
 			}
 
-			for (ModCandidate mod : candidateIntMap.keySet()) {
-				int modClauseId = candidateIntMap.get(mod);
+			ISolver solver = SolverFactory.newLight();
+			solver.newVar(varCount);
 
-				// Each mod's requirements must be satisfied, if it is to be present.
-				// mod => ((a or b) AND (d or e))
-				// \> not mod OR ((a or b) AND (d or e))
-				// \> ((not mod OR a OR b) AND (not mod OR d OR e))
-
-				for (ModDependency dep : mod.getInfo().getDepends()) {
-					if (!modCandidateMap.containsKey(dep.getModId())) {
-						// bail early
-						throw new RuntimeException("Mod " + mod.getInfo().getId() + " depends on mod " + dep.getModId() + ", which is missing!");
-					}
-
-					int[] matchingCandidates = modCandidateMap.get(dep.getModId())
-						.stream()
-						.filter((c) -> dep.matches(c.getInfo().getVersion()))
-						.mapToInt(candidateIntMap::get)
-						.toArray();
-
-					int[] clause = new int[matchingCandidates.length + 1];
-					System.arraycopy(matchingCandidates, 0, clause, 0, matchingCandidates.length);
-					clause[matchingCandidates.length] = -modClauseId;
+			try {
+				// Each mod needs to have at most one version.
+				for (String id : modCandidateMap.keySet()) {
+					IVecInt versionVec = toVecInt(modCandidateMap.get(id).stream().mapToInt(candidateIntMap::get));
 
 					try {
-						solver.addClause(new VecInt(clause));
-					} catch (ContradictionException e) {
-						throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " requires " + dep.getModId() + ")", e);
-					}
-				}
-
-				// Each mod's breaks must be NOT satisfied, if it is to be present.
-				// mod => (not a AND not b AND not d AND not e))
-				// \> not mod OR (not a AND not b AND not d AND not e)
-				// \> (not mod OR not a) AND (not mod OR not b) ...
-
-				for (ModDependency dep : mod.getInfo().getBreaks()) {
-					int[] matchingCandidates = modCandidateMap.get(dep.getModId())
-						.stream()
-						.filter((c) -> dep.matches(c.getInfo().getVersion()))
-						.mapToInt(candidateIntMap::get)
-						.toArray();
-
-					try {
-						for (int m : matchingCandidates) {
-							solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
+						if (mandatoryMods.contains(id)) {
+							solver.addExactly(versionVec, 1);
+						} else {
+							solver.addAtMost(versionVec, 1);
 						}
 					} catch (ContradictionException e) {
-						throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " breaks " + dep.getModId() + ")", e);
-					}
-				}
-			}
-
-			//noinspection UnnecessaryLocalVariable
-			IProblem problem = solver;
-			IVecInt assumptions = new VecInt(modCandidateMap.size());
-
-			for (String mod : modCandidateMap.keySet()) {
-				int pos = assumptions.size();
-				assumptions = assumptions.push(0);
-				Set<ModCandidate> candidates = createNewestVersionSet();
-				candidates.addAll(modCandidateMap.get(mod));
-				boolean satisfied = false;
-
-				for (ModCandidate candidate : candidates) {
-					assumptions.set(pos, candidateIntMap.get(candidate));
-					if (problem.isSatisfiable(assumptions)) {
-						satisfied = true;
-						break;
+						throw new ModResolutionException("Could not resolve valid mod collection (at: adding mod " + id + ")", e);
 					}
 				}
 
-				if (!satisfied) {
-					if (mandatoryMods.contains(mod)) {
-						throw new ModResolutionException("Could not resolve mod collection including mandatory mod '" + mod + "'");
+				for (ModCandidate mod : candidateIntMap.keySet()) {
+					int modClauseId = candidateIntMap.get(mod);
+
+					// Each mod's requirements must be satisfied, if it is to be present.
+					// mod => ((a or b) AND (d or e))
+					// \> not mod OR ((a or b) AND (d or e))
+					// \> ((not mod OR a OR b) AND (not mod OR d OR e))
+
+					for (ModDependency dep : mod.getInfo().getDepends()) {
+						int[] matchingCandidates = modCandidateMap.get(dep.getModId())
+							.stream()
+							.filter((c) -> dep.matches(c.getInfo().getVersion()))
+							.mapToInt(candidateIntMap::get)
+							.toArray();
+
+						int[] clause = new int[matchingCandidates.length + 1];
+						System.arraycopy(matchingCandidates, 0, clause, 0, matchingCandidates.length);
+						clause[matchingCandidates.length] = -modClauseId;
+
+						try {
+							solver.addClause(new VecInt(clause));
+						} catch (ContradictionException e) {
+							throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " requires " + dep + ")", e);
+						}
+					}
+
+					// Each mod's breaks must be NOT satisfied, if it is to be present.
+					// mod => (not a AND not b AND not d AND not e))
+					// \> not mod OR (not a AND not b AND not d AND not e)
+					// \> (not mod OR not a) AND (not mod OR not b) ...
+
+					for (ModDependency dep : mod.getInfo().getBreaks()) {
+						int[] matchingCandidates = modCandidateMap.get(dep.getModId())
+							.stream()
+							.filter((c) -> dep.matches(c.getInfo().getVersion()))
+							.mapToInt(candidateIntMap::get)
+							.toArray();
+
+						try {
+							for (int m : matchingCandidates) {
+								solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
+							}
+						} catch (ContradictionException e) {
+							throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " breaks " + dep + ")", e);
+						}
+					}
+				}
+
+				//noinspection UnnecessaryLocalVariable
+				IProblem problem = solver;
+				IVecInt assumptions = new VecInt(modCandidateMap.size());
+
+				for (String mod : modCandidateMap.keySet()) {
+					int pos = assumptions.size();
+					assumptions = assumptions.push(0);
+					Collection<ModCandidate> candidates = modCandidateMap.get(mod);
+					boolean satisfied = false;
+
+					for (ModCandidate candidate : candidates) {
+						assumptions.set(pos, candidateIntMap.get(candidate));
+						if (problem.isSatisfiable(assumptions)) {
+							satisfied = true;
+							break;
+						}
+					}
+
+					if (!satisfied) {
+						if (mandatoryMods.contains(mod)) {
+							throw new ModResolutionException("Could not resolve mod collection including mandatory mod '" + mod + "'");
+						} else {
+							assumptions = assumptions.pop();
+						}
+					}
+				}
+
+				// assume satisfied
+				int[] model = problem.model();
+				result = new HashMap<>();
+
+				for (int i : model) {
+					if (i <= 0) {
+						continue;
+					}
+
+					ModCandidate candidate = intCandidateMap.get(i);
+					if (result.containsKey(candidate.getInfo().getId())) {
+						throw new ModResolutionException("Duplicate ID '" + candidate.getInfo().getId() + "' after solving - wrong constraints?");
 					} else {
-						assumptions = assumptions.pop();
+						result.put(candidate.getInfo().getId(), candidate);
 					}
 				}
+			} catch (TimeoutException e) {
+				throw new ModResolutionException("Mod collection took too long to be resolved", e);
 			}
-
-			// assume satisfied
-			int[] model = problem.model();
-			Map<String, ModCandidate> result = new HashMap<>();
-			for (int i : model) {
-				if (i <= 0) {
-					continue;
-				}
-
-				ModCandidate candidate = intCandidateMap.get(i);
-				if (result.containsKey(candidate.getInfo().getId())) {
-					throw new ModResolutionException("Duplicate ID '" + candidate.getInfo().getId() + "' after solving - wrong constraints?");
-				} else {
-					result.put(candidate.getInfo().getId(), candidate);
-				}
-			}
-
-			Set<String> missingMods = new HashSet<>();
-			for (String m : mandatoryMods) {
-				if (!result.keySet().contains(m)) {
-					missingMods.add(m);
-				}
-			}
-
-			if (!missingMods.isEmpty()) {
-				throw new ModResolutionException("Missing mods! Wrong constraints? " + Joiner.on(", ").join(missingMods));
-			}
-
-			return result;
-		} catch (TimeoutException e) {
-			throw new ModResolutionException("Mod collection took too long to be resolved", e);
 		}
+
+		// verify result: all mandatory mods
+		Set<String> missingMods = new HashSet<>();
+		for (String m : mandatoryMods) {
+			if (!result.keySet().contains(m)) {
+				missingMods.add(m);
+			}
+		}
+
+		if (!missingMods.isEmpty()) {
+			throw new ModResolutionException("Missing mods: " + Joiner.on(", ").join(missingMods));
+		}
+
+		// verify result: dependencies
+		StringBuilder errorsHard = new StringBuilder();
+		StringBuilder errorsSoft = new StringBuilder();
+
+		for (ModCandidate candidate : result.values()) {
+			for (ModDependency dependency : candidate.getInfo().getDepends()) {
+				addErrorToList(candidate, dependency, result, errorsHard, "depends on", true);
+			}
+
+			for (ModDependency dependency : candidate.getInfo().getRecommends()) {
+				addErrorToList(candidate, dependency, result, errorsSoft, "recommends", true);
+			}
+
+			for (ModDependency dependency : candidate.getInfo().getBreaks()) {
+				addErrorToList(candidate, dependency, result, errorsHard, "breaks", false);
+			}
+
+			for (ModDependency dependency : candidate.getInfo().getConflicts()) {
+				addErrorToList(candidate, dependency, result, errorsSoft, "conflicts with", false);
+			}
+		}
+
+		String errHardStr = errorsHard.toString();
+		String errSoftStr = errorsSoft.toString();
+
+		if (!errHardStr.isEmpty()) {
+			throw new ModResolutionException("Unsatisfied dependencies!" + errHardStr + errSoftStr);
+		} else if (!errSoftStr.isEmpty()) {
+			logger.warn("Non-mandatory unsatisfied dependencies! " + errSoftStr);
+		}
+
+		return result;
 	}
 
 	static class UrlProcessAction extends RecursiveAction {
 		private final FabricLoader loader;
-		private final Map<String, Set<ModCandidate>> candidatesById;
+		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
+		private final int depth;
 
-		public UrlProcessAction(FabricLoader loader, Map<String, Set<ModCandidate>> candidatesById, URL url) {
+		public UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
 			this.loader = loader;
 			this.candidatesById = candidatesById;
 			this.url = url;
+			this.depth = depth;
 		}
 
 		@Override
 		protected void compute() {
 			try {
-				FileSystemUtil.FileSystemDelegate jarFs = null;
+				FileSystemUtil.FileSystemDelegate jarFs;
 				Path path = UrlUtil.asPath(url).normalize();
 				Path modJson;
 				Path jarsDir;
@@ -321,7 +370,7 @@ public class ModResolver {
 				}
 
 				for (LoaderModMetadata i : info) {
-					ModCandidate candidate = new ModCandidate(i, normalizedUrl);
+					ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
 					boolean added;
 
 					if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
@@ -333,7 +382,7 @@ public class ModResolver {
 					}
 
 					synchronized (candidatesById) {
-						Set<ModCandidate> candidateSet = candidatesById.computeIfAbsent(candidate.getInfo().getId(), (s) -> new HashSet<>() /* version sorting not necessary at this stage */);
+						ModCandidateSet candidateSet = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new);
 						added = candidateSet.add(candidate);
 					}
 
@@ -351,7 +400,6 @@ public class ModResolver {
 									Files.walk(jarsDir, 1).forEach((modPath) -> {
 										if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
 											// TODO: pre-check the JAR before loading it, if possible
-											// TODO
 											loader.getLogger().debug("Found nested JAR: " + modPath);
 											Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
 
@@ -375,7 +423,7 @@ public class ModResolver {
 								jarInJars.stream()
 									.map((p) -> {
 										try {
-											return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()));
+											return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
 										} catch (UrlConversionException e) {
 											throw new RuntimeException(e);
 										}
@@ -395,13 +443,13 @@ public class ModResolver {
 	}
 
 	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
-		Map<String, Set<ModCandidate>> candidatesById = new HashMap<>();
+		Map<String, ModCandidateSet> candidatesById = new HashMap<>();
 
 		long time1 = System.currentTimeMillis();
 
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
 		for (ModCandidateFinder f : candidateFinders) {
-			f.findCandidates(loader, (u) -> pool.execute(new UrlProcessAction(loader, candidatesById, u)));
+			f.findCandidates(loader, (u) -> pool.execute(new UrlProcessAction(loader, candidatesById, u, 0)));
 		}
 
 		try {
