@@ -25,7 +25,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;

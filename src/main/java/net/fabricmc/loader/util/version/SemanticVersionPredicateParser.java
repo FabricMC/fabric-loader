@@ -60,34 +60,33 @@ public final class SemanticVersionPredicateParser {
 			predicateList.add(factory.apply(version));
 		}
 
-		switch (predicateList.size()) {
-			case 0:
-				return (s) -> true;
-			default:
-				return (s) -> {
-					if (s.isPrerelease()) {
-						boolean match = false;
-						for (SemanticVersionImpl version : prereleaseVersions) {
-							if (version.equalsComponentsExactly(s)) {
-								match = true;
-								break;
-							}
-						}
-
-						if (!match) {
-							return false;
-						}
-					}
-
-					for (Predicate<SemanticVersionImpl> p : predicateList) {
-						if (!p.test(s)) {
-							return false;
-						}
-					}
-
-					return true;
-				};
+		if (predicateList.isEmpty()) {
+			return (s) -> true;
 		}
+
+		return (s) -> {
+			if (s.isPrerelease()) {
+				boolean match = false;
+				for (SemanticVersionImpl version : prereleaseVersions) {
+					if (version.equalsComponentsExactly(s)) {
+						match = true;
+						break;
+					}
+				}
+
+				if (!match) {
+					return false;
+				}
+			}
+
+			for (Predicate<SemanticVersionImpl> p : predicateList) {
+				if (!p.test(s)) {
+					return false;
+				}
+			}
+
+			return true;
+		};
 	}
 
 	private static int length(SemanticVersionImpl a, SemanticVersionImpl b) {

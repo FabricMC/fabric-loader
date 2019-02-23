@@ -20,12 +20,12 @@ import net.fabricmc.api.EnvType;
 
 public final class FabricServerTweaker extends FabricTweaker {
 	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
+	public EnvType getEnvironmentType() {
+		return EnvType.SERVER;
 	}
 
 	@Override
-	public EnvType getEnvironmentType() {
-		return EnvType.SERVER;
+	public String getLaunchTarget() {
+		return "net.minecraft.server.MinecraftServer";
 	}
 }

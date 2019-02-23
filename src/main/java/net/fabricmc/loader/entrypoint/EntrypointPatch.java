@@ -16,10 +16,7 @@
 
 package net.fabricmc.loader.entrypoint;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.launch.common.FabricLauncher;
-import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 

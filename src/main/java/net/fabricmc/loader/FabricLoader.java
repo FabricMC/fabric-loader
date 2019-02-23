@@ -18,11 +18,9 @@ package net.fabricmc.loader;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.metadata.ModMetadataV0;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -235,12 +233,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	@Deprecated
 	public List<ModContainer> getMods() {
 		return Collections.unmodifiableList(mods);
-	}
-
-	protected List<ModCandidate> getClasspathMods(Stream<URL> urls) {
-		List<ModCandidate> mods = new ArrayList<>();
-
-		return mods;
 	}
 
 	protected boolean isPrimaryLoader() {

@@ -18,11 +18,6 @@ package net.fabricmc.loader.util.mappings;
 
 import net.fabricmc.mappings.*;
 import net.fabricmc.mappings.helpers.mixin.MixinMappingsRemapper;
-import org.objectweb.asm.commons.Remapper;
-import org.spongepowered.asm.mixin.extensibility.IRemapper;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MixinIntermediaryDevRemapper extends MixinMappingsRemapper {
 	public MixinIntermediaryDevRemapper(Mappings mappings, String from, String to) {

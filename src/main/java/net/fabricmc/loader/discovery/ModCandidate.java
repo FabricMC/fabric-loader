@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 
 import java.net.URL;

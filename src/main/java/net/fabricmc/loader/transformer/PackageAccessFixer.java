@@ -27,7 +27,7 @@ import org.objectweb.asm.Opcodes;
  * packages. The class verifier will complain unless we simply change package-private and protected to public.
  */
 public class PackageAccessFixer extends ClassVisitor {
-	private static final int modAccess(int access) {
+	private static int modAccess(int access) {
 		if ((access & 0x7) != Opcodes.ACC_PRIVATE) {
 			return (access & (~0x7)) | Opcodes.ACC_PUBLIC;
 		} else {

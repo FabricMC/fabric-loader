@@ -22,9 +22,7 @@ import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 
@@ -112,6 +110,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 		return id;
 	}
 
+	@Override
 	public String getName() {
 		if (name == null || name.isEmpty()) {
 			return id;

@@ -17,7 +17,6 @@
 package net.fabricmc.loader.util.version;
 
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
 
 import java.util.Arrays;
 import java.util.Objects;

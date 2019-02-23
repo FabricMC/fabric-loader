@@ -20,8 +20,6 @@ import java.io.File;
 import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.CodeSigner;
-import java.security.CodeSource;
 
 public final class UrlUtil {
 	private UrlUtil() {

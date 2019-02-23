@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 
 import java.util.Collection;

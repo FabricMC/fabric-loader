@@ -124,8 +124,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		return launchClassLoader.getSources();
 	}
 
-	public abstract EnvType getEnvironmentType();
-
 	@Override
 	public boolean isClassLoaded(String name) {
 		throw new RuntimeException("TODO isClassLoaded/launchwrapper");

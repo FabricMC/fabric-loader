@@ -16,13 +16,8 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.minecraft.launchwrapper.IClassTransformer;
-
-import java.util.List;
 
 public class FabricClassTransformer implements IClassTransformer {
 	@Override

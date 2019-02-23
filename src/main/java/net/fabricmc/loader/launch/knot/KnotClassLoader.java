@@ -28,10 +28,11 @@ import java.util.Objects;
 
 class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
 	private static class DynamicURLClassLoader extends URLClassLoader {
-		public DynamicURLClassLoader(URL[] urls) {
+		private DynamicURLClassLoader(URL[] urls) {
 			super(urls, new DummyClassLoader());
 		}
 
+		@Override
 		public void addURL(URL url) {
 			super.addURL(url);
 		}
