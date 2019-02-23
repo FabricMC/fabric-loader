@@ -140,7 +140,8 @@ class KnotClassDelegate {
 			return EntrypointTransformer.INSTANCE.transform(name);
 		}
 
-		if (!"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && !name.startsWith("org.apache.logging.log4j")) {
+		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
+		if (/* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j")) {
 			byte[] input = EntrypointTransformer.INSTANCE.transform(name);
 			if (input == null) {
 				try {

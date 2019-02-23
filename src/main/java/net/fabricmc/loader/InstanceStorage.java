@@ -17,18 +17,27 @@
 package net.fabricmc.loader;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import net.fabricmc.loader.language.LanguageAdapter;
 import net.fabricmc.loader.language.LanguageAdapterException;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 class InstanceStorage {
 	private static final LanguageAdapter.Options options = LanguageAdapter.Options.Builder.create()
 		.missingSuperclassBehaviour(LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
 		.build();
 
-	private final Multimap<Class, Object> instances = HashMultimap.create();
+	private final ClassValue<List<Object>> instances = new ClassValue<List<Object>>() {
+		@Override
+		protected List<Object> computeValue(Class<?> type) {
+			return new ArrayList<>();
+		}
+	};
 
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> getInitializers(Class<T> type) {
@@ -55,7 +64,7 @@ class InstanceStorage {
 			return;
 		}
 
-		instances.put(c, o);
+		instances.get(c).add(o);
 		add(o, c.getSuperclass());
 		for (Class ci : c.getInterfaces()) {
 			add(o, ci);

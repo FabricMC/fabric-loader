@@ -69,7 +69,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	public Collection<String> getInitializers() {
 		if (initializer != null) {
 			if (initializers != null) {
-				throw new RuntimeException("initializer and initializers should not be set at the same time! (mod " + id + ")");
+				throw new RuntimeException("initializer and initializers should not be set at the same time! (mod ID '" + id + "')");
 			}
 
 			return Collections.singletonList(initializer);

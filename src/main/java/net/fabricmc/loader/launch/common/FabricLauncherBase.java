@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.launch.common;
 
+import com.google.common.collect.ImmutableSet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
@@ -54,6 +55,10 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	protected static File getLaunchDirectory(Arguments argMap) {
 		return new File(argMap.getOrDefault("gameDir", "."));
+	}
+
+	public static Class<?> getClass(String className) throws ClassNotFoundException {
+		return Class.forName(className, true, getLauncher().getTargetClassLoader());
 	}
 
 	@Override

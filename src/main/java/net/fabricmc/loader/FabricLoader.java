@@ -83,6 +83,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		frozen = true;
+		finishModLoading();
 	}
 
 	/**
@@ -184,20 +185,20 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		for (ModCandidate candidate : candidateMap.values()) {
 			addMod(candidate, isPrimaryLoader());
 		}
-
-		onModsPopulated();
 	}
 
-	protected void onModsPopulated() {
+	protected void finishModLoading() {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainer mod : mods) {
-			FabricLauncherBase.getLauncher().propose(mod.getOriginUrl());
+			if (!mod.getInfo().getId().equals("fabricloader")) {
+				FabricLauncherBase.getLauncher().propose(mod.getOriginUrl());
+			}
 		}
 
 		if (isPrimaryLoader()) {
 			emitModFormatWarnings();
-			initializeMods();
+			instantiateMods();
 		}
 	}
 
@@ -298,7 +299,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		mods = sorted;
 	} */
 
-	private void initializeMods() {
+	private void instantiateMods() {
 		for (ModContainer mod : mods) {
 			try {
 				mod.instantiate();

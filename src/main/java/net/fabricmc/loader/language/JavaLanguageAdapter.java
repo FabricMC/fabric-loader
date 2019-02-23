@@ -60,11 +60,11 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 		return true;
 	}
 
-	public static Class<?> getClass(String classString, Options options) throws ClassNotFoundException, IOException {
-		String className = classString.replace('.', '/') + ".class";
-		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(className);
+	public static Class<?> getClass(String className, Options options) throws ClassNotFoundException, IOException {
+		String classFilename = className.replace('.', '/') + ".class";
+		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(classFilename);
 		if (stream == null) {
-			throw new ClassNotFoundException("Could not find or load class " + className);
+			throw new ClassNotFoundException("Could not find or load class " + classFilename);
 		}
 		ClassReader reader = new ClassReader(stream);
 		for (String s : reader.getInterfaces()) {
@@ -83,7 +83,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 		}
 
 		stream.close();
-		return Class.forName(classString, true, FabricLauncherBase.getLauncher().getTargetClassLoader());
+		return FabricLauncherBase.getClass(className);
 	}
 
 	@Override

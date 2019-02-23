@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.entrypoint.hooks;
 
-import com.google.common.base.Strings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +29,7 @@ public final class EntrypointBranding {
 	}
 
 	public static String brand(final String brand) {
-		if (Strings.isNullOrEmpty(brand)) {
+		if (brand == null || brand.isEmpty()) {
 			LOGGER.warn("Null or empty branding found!", new IllegalStateException());
 			return FABRIC;
 		}

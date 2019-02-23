@@ -18,6 +18,7 @@ package net.fabricmc.loader;
 
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.language.LanguageAdapter;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
@@ -93,7 +94,7 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private LanguageAdapter createAdapter() {
 		return adapterMap.computeIfAbsent(info.getLanguageAdapter(), (adapter) -> {
 			try {
-				return (LanguageAdapter) Class.forName(adapter).getDeclaredConstructor().newInstance();
+				return (LanguageAdapter) FabricLauncherBase.getClass(adapter).getDeclaredConstructor().newInstance();
 			} catch (Exception e) {
 				throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s", adapter, info.getId()), e);
 			}
