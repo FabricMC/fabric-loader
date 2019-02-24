@@ -21,9 +21,11 @@ import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Enumeration;
 
 /**
  * Wrapper class replacing pre-1.3 FML's ModClassLoader (which relies on
@@ -31,13 +33,36 @@ import java.net.URLClassLoader;
  * with an implementation effectively wrapping Knot.
  */
 public class ModClassLoader_125_FML extends URLClassLoader {
+	private URL[] localUrls;
+
 	public ModClassLoader_125_FML() {
 		super(new URL[0], FabricLauncherBase.getLauncher().getTargetClassLoader());
+		localUrls = new URL[0];
 	}
 
 	@Override
 	protected void addURL(URL url) {
 		FabricLauncherBase.getLauncher().propose(url);
+
+		URL[] newLocalUrls = new URL[localUrls.length + 1];
+		System.arraycopy(localUrls, 0, newLocalUrls, 0, localUrls.length);
+		newLocalUrls[localUrls.length] = url;
+		localUrls = newLocalUrls;
+	}
+
+	@Override
+	public URL[] getURLs() {
+		return localUrls;
+	}
+
+	@Override
+	public URL findResource(final String name) {
+		return getParent().getResource(name);
+	}
+
+	@Override
+	public Enumeration<URL> findResources(final String name) throws IOException {
+		return getParent().getResources(name);
 	}
 
 	/**
