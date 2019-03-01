@@ -31,7 +31,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 	public void findCandidates(FabricLoader loader, Consumer<URL> appender) {
 		Stream<URL> urls;
 
-		if (Boolean.parseBoolean(System.getProperty("fabric.development", "false"))) {
+		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			String javaHome = new File(System.getProperty("java.home")).getAbsolutePath();
 			String modsDir = loader.getModsDirectory().getAbsolutePath();
 			urls = FabricLauncherBase.getLauncher().getClasspathURLs().stream()

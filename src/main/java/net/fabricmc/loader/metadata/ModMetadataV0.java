@@ -61,6 +61,11 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	private String license = "";
 
 	@Override
+	public int getSchemaVersion() {
+		return 0;
+	}
+
+	@Override
 	public String getLanguageAdapter() {
 		return languageAdapter;
 	}

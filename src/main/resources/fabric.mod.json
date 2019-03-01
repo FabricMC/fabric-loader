@@ -1,8 +1,9 @@
 {
+  "schemaVersion": 1,
   "id": "fabricloader",
   "name": "Fabric Loader",
   "version": "${version}",
-  "side": "universal",
+  "environment": "*",
   "description": "The base mod loader.",
   "license": "Apache-2.0"
 }

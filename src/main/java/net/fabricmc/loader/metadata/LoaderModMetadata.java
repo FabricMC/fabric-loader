@@ -25,6 +25,7 @@ import java.util.Collection;
  * Internal variant of the ModMetadata interface.
  */
 public interface LoaderModMetadata extends ModMetadata {
+	int getSchemaVersion();
 	String getLanguageAdapter();
 	Collection<String> getInitializers();
 	Collection<String> getMixinConfigs(EnvType type);

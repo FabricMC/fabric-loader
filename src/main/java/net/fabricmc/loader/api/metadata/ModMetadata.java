@@ -19,6 +19,7 @@ package net.fabricmc.loader.api.metadata;
 import net.fabricmc.loader.api.Version;
 
 import java.util.Collection;
+import java.util.Map;
 
 public interface ModMetadata {
 	// When adding getters, follow the order as presented on the wiki.

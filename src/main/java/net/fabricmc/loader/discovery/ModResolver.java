@@ -24,7 +24,9 @@ import com.google.gson.*;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.ModMetadataV0;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
@@ -69,15 +71,6 @@ public class ModResolver {
 	);
 	private static final Map<URL, List<Path>> inMemoryCache = new HashMap<>();
 
-	private static final Gson GSON = new GsonBuilder()
-		.registerTypeAdapter(Version.class, new VersionDeserializer())
-		.registerTypeAdapter(ModMetadataV0.Side.class, new ModMetadataV0.Side.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Mixins.class, new ModMetadataV0.Mixins.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Links.class, new ModMetadataV0.Links.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Dependency.class, new ModMetadataV0.Dependency.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Person.class, new ModMetadataV0.Person.Deserializer())
-		.create();
-	private static final JsonParser JSON_PARSER = new JsonParser();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
@@ -87,22 +80,6 @@ public class ModResolver {
 
 	public void addCandidateFinder(ModCandidateFinder f) {
 		candidateFinders.add(f);
-	}
-
-	protected static LoaderModMetadata[] getMods(InputStream in) {
-		JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
-		if (el.isJsonObject()) {
-			return new LoaderModMetadata[] { GSON.fromJson(el, ModMetadataV0.class) };
-		} else if (el.isJsonArray()) {
-			JsonArray array = el.getAsJsonArray();
-			LoaderModMetadata[] mods = new LoaderModMetadata[array.size()];
-			for (int i = 0; i < array.size(); i++) {
-				mods[i] = GSON.fromJson(array.get(i), ModMetadataV0.class);
-			}
-			return mods;
-		}
-
-		return new LoaderModMetadata[0];
 	}
 
 	private static IVecInt toVecInt(IntStream stream) {
@@ -354,6 +331,11 @@ public class ModResolver {
 					// Directory
 					modJson = path.resolve("fabric.mod.json");
 					jarsDir = path.resolve("jars");
+
+					if (loader.isDevelopmentEnvironment() && !Files.exists(modJson)) {
+						loader.getLogger().warn("Adding directory " + path + " to mod classpath in development environment - workaround for Gradle splitting mods into two directories");
+						FabricLauncherBase.getLauncher().propose(url);
+					}
 				} else {
 					// JAR file
 					jarFs = FileSystemUtil.getJarFileSystem(path, false);
@@ -364,7 +346,7 @@ public class ModResolver {
 				LoaderModMetadata[] info;
 
 				try (InputStream stream = Files.newInputStream(modJson)) {
-					info = getMods(stream);
+					info = ModMetadataParser.getMods(loader, stream);
 				} catch (NoSuchFileException e) {
 					info = new LoaderModMetadata[0];
 				}
@@ -379,6 +361,10 @@ public class ModResolver {
 
 					if (!MOD_ID_PATTERN.matcher(candidate.getInfo().getId()).matches()) {
 						throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", candidate.getInfo().getId()));
+					}
+
+					if (candidate.getInfo().getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
+						loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
 					}
 
 					synchronized (candidatesById) {
