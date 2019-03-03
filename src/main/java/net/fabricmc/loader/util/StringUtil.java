@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api;
+package net.fabricmc.loader.util;
 
-import net.fabricmc.loader.api.metadata.ModMetadata;
+public final class StringUtil {
+	private StringUtil() {
 
-import java.nio.file.Path;
+	}
 
-public interface ModContainer {
-	ModMetadata getMetadata();
-	Path getRootPath();
-
-	/**
-	 * Get an NIO reference to a file inside the JAR.
-	 * Does not guarantee existence!
-	 *
-	 * @param file The location from root, using "/" as a separator.
-	 * @return The Path to a given file.
-	 */
-	default Path getPath(String file) {
-		Path root = getRootPath();
-		return root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
+	public static String[] splitNamespaced(String s, String defaultNamespace) {
+		int i = s.indexOf(':');
+		if (i >= 0) {
+			return new String[] { s.substring(0, i), s.substring(i + 1) };
+		} else {
+			return new String[] { defaultNamespace, s };
+		}
 	}
 }

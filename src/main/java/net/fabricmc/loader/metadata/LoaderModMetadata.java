@@ -36,5 +36,5 @@ public interface LoaderModMetadata extends ModMetadata {
 	Collection<NestedJarEntry> getJars();
 	Collection<String> getInitializers();
 	Collection<String> getMixinConfigs(EnvType type);
-	boolean matchesEnvironment(EnvType type);
+	boolean loadsInEnvironment(EnvType type);
 }

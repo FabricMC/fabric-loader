@@ -69,7 +69,7 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	}
 
 	@Override
-	public Path getRoot() {
+	public Path getRootPath() {
 		if (root == null) {
 			throw new RuntimeException("Accessed mod root before primary loader!");
 		}

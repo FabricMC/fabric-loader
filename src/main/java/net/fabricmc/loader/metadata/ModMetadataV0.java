@@ -107,7 +107,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
-	public boolean matchesEnvironment(EnvType type) {
+	public boolean loadsInEnvironment(EnvType type) {
 		switch (side) {
 			case UNIVERSAL:
 				return true;
@@ -118,6 +118,11 @@ public class ModMetadataV0 implements LoaderModMetadata {
 			default:
 				return false;
 		}
+	}
+
+	@Override
+	public String getType() {
+		return "fabric";
 	}
 
 	@Override

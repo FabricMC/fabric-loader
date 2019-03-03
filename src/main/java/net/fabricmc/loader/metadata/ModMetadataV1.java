@@ -69,6 +69,11 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	private Map<String, String> languageAdapters = new HashMap<>();
 
 	@Override
+	public String getType() {
+		return "fabric";
+	}
+
+	@Override
 	public int getSchemaVersion() {
 		return 1;
 	}
@@ -97,7 +102,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	@Override
-	public boolean matchesEnvironment(EnvType type) {
+	public boolean loadsInEnvironment(EnvType type) {
 		return environment.matches(type);
 	}
 

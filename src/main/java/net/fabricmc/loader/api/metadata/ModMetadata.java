@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface ModMetadata {
+	String getType();
+
 	// When adding getters, follow the order as presented on the wiki.
 	// No defaults.
 

@@ -21,6 +21,7 @@ import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.util.StringUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -249,7 +250,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
-		if (!info.matchesEnvironment(getEnvironmentType())) {
+		if (!info.loadsInEnvironment(getEnvironmentType())) {
 			return;
 		}
 
@@ -315,26 +316,19 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				mod.instantiate();
 
 				for (String in : mod.getInfo().getInitializers()) {
-					// get adapter namespace
-					String namespace = "";
-					int nOff;
-					if ((nOff = in.indexOf(':')) >= 0) {
-						namespace = in.substring(0, nOff);
-						in = in.substring(nOff + 1);
-					}
+					String[] inClass = StringUtil.splitNamespaced(in, "");
+					String namespace = inClass[0];
 
 					String adapter;
 					if (namespace.isEmpty()) {
 						adapter = mod.getInfo().getDefaultLanguageAdapter();
+					} else if (adapterClassMap.containsKey(namespace)) {
+						adapter = adapterClassMap.get(namespace);
 					} else {
-						if (adapterClassMap.containsKey(namespace)) {
-							adapter = adapterClassMap.get(namespace);
-						} else {
-							throw new RuntimeException("Could not find language adapter '" + namespace + "'!");
-						}
+						throw new RuntimeException("Could not find language adapter '" + namespace + "'!");
 					}
 
-					instanceStorage.instantiate(in, ModContainer.createDefaultAdapter(mod.getInfo(), adapter));
+					instanceStorage.instantiate(inClass[1], ModContainer.createDefaultAdapter(mod.getInfo(), adapter));
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);
