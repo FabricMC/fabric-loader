@@ -40,9 +40,6 @@ import java.util.stream.Collectors;
  * Definition class for "fabric.mod.json" files.
  */
 public class ModMetadataV1 implements LoaderModMetadata {
-	// Unassigned
-	private String languageAdapter = "net.fabricmc.loader.language.JavaLanguageAdapter";
-
 	// Required
 	private String id;
 	private Version version;
@@ -50,6 +47,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	// Optional (mod loading)
 	private Environment environment = Environment.UNIVERSAL;
 	private String[] initializers = new String[0];
+	private JarEntry[] jars = new JarEntry[0];
 	private MixinEntry[] mixins = new MixinEntry[0];
 
 	// Optional (dependency resolution)
@@ -67,14 +65,22 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	private Map<String, String> contact = new HashMap<>();
 	private LicenseEntry license = new LicenseEntry();
 
+	// Optional (language adapter providers)
+	private Map<String, String> languageAdapters = new HashMap<>();
+
 	@Override
 	public int getSchemaVersion() {
 		return 1;
 	}
 
 	@Override
-	public String getLanguageAdapter() {
-		return languageAdapter;
+	public Map<String, String> getLanguageAdapterDefinitions() {
+		return languageAdapters;
+	}
+
+	@Override
+	public Collection<NestedJarEntry> getJars() {
+		return Arrays.asList(jars);
 	}
 
 	@Override
@@ -345,6 +351,36 @@ public class ModMetadataV1 implements LoaderModMetadata {
 				}
 
 				return person;
+			}
+		}
+	}
+
+	public static class JarEntry implements NestedJarEntry {
+		private String file;
+
+		@Override
+		public String getFile() {
+			return file;
+		}
+
+		public static class Deserializer implements JsonDeserializer<JarEntry> {
+			@Override
+			public JarEntry deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				JarEntry entry = new JarEntry();
+				if (json.isJsonPrimitive()) {
+					entry.file = json.getAsString();
+				} else if (json.isJsonObject()) {
+					JsonObject obj = json.getAsJsonObject();
+					if (!obj.has("file")) {
+						throw new JsonParseException("Missing mandatory key 'file' in JAR entry!");
+					}
+
+					entry.file = obj.get("file").getAsString();
+				} else {
+					throw new JsonParseException("Invalid type for JAR entry!");
+				}
+
+				return entry;
 			}
 		}
 	}

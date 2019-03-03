@@ -18,15 +18,22 @@ package net.fabricmc.loader.metadata;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.language.JavaLanguageAdapter;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Internal variant of the ModMetadata interface.
  */
 public interface LoaderModMetadata extends ModMetadata {
 	int getSchemaVersion();
-	String getLanguageAdapter();
+	default String getDefaultLanguageAdapter() {
+		return "net.fabricmc.loader.language.JavaLanguageAdapter";
+	}
+	Map<String, String> getLanguageAdapterDefinitions();
+	Collection<NestedJarEntry> getJars();
 	Collection<String> getInitializers();
 	Collection<String> getMixinConfigs(EnvType type);
 	boolean matchesEnvironment(EnvType type);

@@ -320,7 +320,7 @@ public class ModResolver {
 				FileSystemUtil.FileSystemDelegate jarFs;
 				Path path = UrlUtil.asPath(url).normalize();
 				Path modJson;
-				Path jarsDir;
+				Path rootDir;
 
 				loader.getLogger().debug("Testing " + url);
 
@@ -330,7 +330,7 @@ public class ModResolver {
 				if (Files.isDirectory(path)) {
 					// Directory
 					modJson = path.resolve("fabric.mod.json");
-					jarsDir = path.resolve("jars");
+					rootDir = path;
 
 					if (loader.isDevelopmentEnvironment() && !Files.exists(modJson)) {
 						loader.getLogger().warn("Adding directory " + path + " to mod classpath in development environment - workaround for Gradle splitting mods into two directories");
@@ -340,7 +340,7 @@ public class ModResolver {
 					// JAR file
 					jarFs = FileSystemUtil.getJarFileSystem(path, false);
 					modJson = jarFs.get().getPath("fabric.mod.json");
-					jarsDir = jarFs.get().getPath("jars");
+					rootDir = jarFs.get().getRootDirectories().iterator().next();
 				}
 
 				LoaderModMetadata[] info;
@@ -377,34 +377,33 @@ public class ModResolver {
 					} else {
 						loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
 
-						if (Files.isDirectory(jarsDir)) {
-							List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
-								loader.getLogger().debug("Searching for nested JARs in " + candidate);
-								List<Path> list = new ArrayList<>();
+						List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+							loader.getLogger().debug("Searching for nested JARs in " + candidate);
+							List<Path> list = new ArrayList<>();
 
-								try {
-									Files.walk(jarsDir, 1).forEach((modPath) -> {
-										if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
-											// TODO: pre-check the JAR before loading it, if possible
-											loader.getLogger().debug("Found nested JAR: " + modPath);
-											Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
+							candidate.getInfo().getJars()
+								.stream()
+								.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
+								.forEach((modPath) -> {
+									if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
+										// TODO: pre-check the JAR before loading it, if possible
+										loader.getLogger().debug("Found nested JAR: " + modPath);
+										Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
 
-											try {
-												Files.copy(modPath, dest);
-											} catch (IOException e) {
-												throw new RuntimeException(e);
-											}
-
-											list.add(dest);
+										try {
+											Files.copy(modPath, dest);
+										} catch (IOException e) {
+											throw new RuntimeException(e);
 										}
-									});
-								} catch (IOException e) {
-									throw new RuntimeException(e);
-								}
 
-								return list;
-							});
+										list.add(dest);
+									}
+								});
 
+							return list;
+						});
+
+						if (!jarInJars.isEmpty()) {
 							invokeAll(
 								jarInJars.stream()
 									.map((p) -> {

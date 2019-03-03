@@ -66,8 +66,18 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
-	public String getLanguageAdapter() {
+	public String getDefaultLanguageAdapter() {
 		return languageAdapter;
+	}
+
+	@Override
+	public Map<String, String> getLanguageAdapterDefinitions() {
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public Collection<NestedJarEntry> getJars() {
+		return Collections.emptyList();
 	}
 
 	@Override

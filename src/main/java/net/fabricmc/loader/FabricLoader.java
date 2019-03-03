@@ -47,6 +47,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
 
+	private final Map<String, String> adapterClassMap = new HashMap<>();
 	private final InstanceStorage instanceStorage = new InstanceStorage();
 
 	private boolean frozen = false;
@@ -197,7 +198,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		if (isPrimaryLoader()) {
-			emitModFormatWarnings();
+			postprocessModMetadata();
 			instantiateMods();
 		}
 	}
@@ -257,12 +258,21 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		modMap.put(info.getId(), container);
 	}
 
-	protected void emitModFormatWarnings() {
+	protected void postprocessModMetadata() {
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
 				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` does not respect SemVer - comparison support is limited.");
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
 				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
+			}
+
+			// add language adapters
+			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
+				if (adapterClassMap.containsKey(laEntry.getKey())) {
+					throw new RuntimeException("Duplicate language adpater key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterClassMap.get(laEntry.getKey()) + ")");
+				}
+
+				adapterClassMap.put(laEntry.getKey(), laEntry.getValue());
 			}
 		}
 	}
@@ -305,7 +315,26 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				mod.instantiate();
 
 				for (String in : mod.getInfo().getInitializers()) {
-					instanceStorage.instantiate(in, mod.getAdapter());
+					// get adapter namespace
+					String namespace = "";
+					int nOff;
+					if ((nOff = in.indexOf(':')) >= 0) {
+						namespace = in.substring(0, nOff);
+						in = in.substring(nOff + 1);
+					}
+
+					String adapter;
+					if (namespace.isEmpty()) {
+						adapter = mod.getInfo().getDefaultLanguageAdapter();
+					} else {
+						if (adapterClassMap.containsKey(namespace)) {
+							adapter = adapterClassMap.get(namespace);
+						} else {
+							throw new RuntimeException("Could not find language adapter '" + namespace + "'!");
+						}
+					}
+
+					instanceStorage.instantiate(in, ModContainer.createDefaultAdapter(mod.getInfo(), adapter));
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);

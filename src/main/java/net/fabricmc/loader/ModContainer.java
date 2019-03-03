@@ -37,7 +37,6 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private final LoaderModMetadata info;
 	private final URL originUrl;
 	private Path root;
-	private LanguageAdapter adapter;
 
 	public ModContainer(LoaderModMetadata info, URL originUrl) {
 		this.info = info;
@@ -45,8 +44,6 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	}
 
 	void instantiate() {
-		this.adapter = createAdapter();
-
 		try {
 			Path holder = UrlUtil.asPath(originUrl).toAbsolutePath();
 			if (Files.isDirectory(holder)) {
@@ -87,12 +84,8 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 		return originUrl;
 	}
 
-	public LanguageAdapter getAdapter() {
-		return adapter;
-	}
-
-	private LanguageAdapter createAdapter() {
-		return adapterMap.computeIfAbsent(info.getLanguageAdapter(), (adapter) -> {
+	static LanguageAdapter createDefaultAdapter(ModMetadata info, String adapterClass) {
+		return adapterMap.computeIfAbsent(adapterClass, (adapter) -> {
 			try {
 				return (LanguageAdapter) FabricLauncherBase.getClass(adapter).getDeclaredConstructor().newInstance();
 			} catch (Exception e) {
