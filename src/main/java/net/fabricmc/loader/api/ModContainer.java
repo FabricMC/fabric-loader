@@ -27,7 +27,7 @@ public interface ModContainer {
 	default Path getRoot() {
 		return getRootPath();
 	}
-	
+
 	Path getRootPath();
 
 	/**

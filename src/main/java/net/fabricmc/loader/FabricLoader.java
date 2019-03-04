@@ -243,9 +243,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	protected void postprocessModMetadata() {
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` does not respect SemVer - comparison support is limited.");
+				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") does not respect SemVer - comparison support is limited.");
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
-				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
+				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
 			}
 
 			// add language adapters
@@ -298,8 +298,16 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		this.gameInstance = gameInstance;
 
-		if (!gameDir.getAbsoluteFile().equals(newRunDir.getAbsoluteFile())) {
-			getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath() + ", while initializer says " + gameDir.getAbsolutePath() + "...");
+		if (gameDir != null) {
+			try {
+				if (!gameDir.getCanonicalFile().equals(newRunDir.getCanonicalFile())) {
+					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath() + ", while initializer says " + gameDir.getAbsolutePath() + "...");
+					setGameDir(newRunDir);
+				}
+			} catch (IOException e) {
+				getLogger().warn("Exception while checking game execution directory consistency!", e);
+			}
+		} else {
 			setGameDir(newRunDir);
 		}
 
