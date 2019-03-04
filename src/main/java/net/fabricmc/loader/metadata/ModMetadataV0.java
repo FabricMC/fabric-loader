@@ -350,7 +350,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 		}
 
 		public boolean satisfiedBy(Version version) {
-			try {
+			/* try {
 				for (String s : versionMatchers) {
 					if (!VersionPredicateParser.matches(version, s)) {
 						return false;
@@ -361,7 +361,8 @@ public class ModMetadataV0 implements LoaderModMetadata {
 			} catch (VersionParsingException e) {
 				e.printStackTrace();
 				return false;
-			}
+			} */
+			return true;
 		}
 
 		@Override
