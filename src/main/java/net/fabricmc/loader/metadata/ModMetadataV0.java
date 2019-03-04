@@ -164,6 +164,22 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
+	public Optional<String> getIconPath(int size) {
+		// honor Mod Menu's de-facto standard
+		return Optional.of("assets/" + getId() + "/icon.png");
+	}
+
+	@Override
+	public boolean containsCustomElement(String key) {
+		return false;
+	}
+
+	@Override
+	public JsonElement getCustomElement(String key) {
+		return null;
+	}
+
+	@Override
 	public Version getVersion() {
 		return version;
 	}

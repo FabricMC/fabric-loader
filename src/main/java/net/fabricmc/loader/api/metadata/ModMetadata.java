@@ -16,10 +16,11 @@
 
 package net.fabricmc.loader.api.metadata;
 
+import com.google.gson.JsonElement;
 import net.fabricmc.loader.api.Version;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Optional;
 
 public interface ModMetadata {
 	String getType();
@@ -42,4 +43,24 @@ public interface ModMetadata {
 	Collection<Person> getContributors();
 	ContactInformation getContact();
 	Collection<String> getLicense();
+
+	/**
+	 * Get the path to an icon.
+	 *
+	 * The standard defines icons as square .PNG files, however their
+	 * dimensions are not defined - in particular, they are not
+	 * guaranteed to be a power of two.
+	 *
+	 * The preferred size is used in the following manner:
+	 * - the smallest image larger than or equal to the size
+	 *   is returned, if one is present;
+	 * - failing that, the largest image is returned.
+	 *
+	 * @param size The preferred size.
+	 * @return The icon path, if any.
+	 */
+	Optional<String> getIconPath(int size);
+
+	boolean containsCustomElement(String key);
+	JsonElement getCustomElement(String key);
 }

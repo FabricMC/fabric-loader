@@ -29,6 +29,7 @@ public class ModMetadataParser {
 
 	private static final Gson GSON_V1 = new GsonBuilder()
 		.registerTypeAdapter(Version.class, new VersionDeserializer())
+		.registerTypeAdapter(ModMetadataV1.IconEntry.class, new ModMetadataV1.IconEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.LicenseEntry.class, new ModMetadataV1.LicenseEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.Person.class, new ModMetadataV1.Person.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.Dependency.class, new ModMetadataV1.Dependency.Deserializer())

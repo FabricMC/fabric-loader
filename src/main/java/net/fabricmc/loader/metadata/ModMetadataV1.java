@@ -64,9 +64,13 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	private Person[] contributors = new Person[0];
 	private Map<String, String> contact = new HashMap<>();
 	private LicenseEntry license = new LicenseEntry();
+	private IconEntry icon = new IconEntry();
 
 	// Optional (language adapter providers)
 	private Map<String, String> languageAdapters = new HashMap<>();
+
+	// Optional (custom)
+	private Map<String, JsonElement> custom = new HashMap<>();
 
 	@Override
 	public String getType() {
@@ -142,6 +146,34 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	@Override
 	public Collection<String> getLicense() {
 		return license.entries;
+	}
+
+	@Override
+	public Optional<String> getIconPath(int size) {
+		if (icon.iconMap != null && !icon.iconMap.isEmpty()) {
+			int iconValue = -1;
+
+			for (int i : icon.iconMap.keySet()) {
+				iconValue = i;
+				if (iconValue >= size) {
+					break;
+				}
+			}
+
+			return Optional.of(icon.iconMap.get(iconValue));
+		} else {
+			return Optional.ofNullable(icon.icon);
+		}
+	}
+
+	@Override
+	public boolean containsCustomElement(String key) {
+		return custom.containsKey(key);
+	}
+
+	@Override
+	public JsonElement getCustomElement(String key) {
+		return custom.get(key);
 	}
 
 	@Override
@@ -383,6 +415,49 @@ public class ModMetadataV1 implements LoaderModMetadata {
 					entry.file = obj.get("file").getAsString();
 				} else {
 					throw new JsonParseException("Invalid type for JAR entry!");
+				}
+
+				return entry;
+			}
+		}
+	}
+
+	public static class IconEntry {
+		private String icon;
+		private SortedMap<Integer, String> iconMap;
+
+		public static class Deserializer implements JsonDeserializer<IconEntry> {
+			@Override
+			public IconEntry deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				IconEntry entry = new IconEntry();
+				if (json.isJsonPrimitive()) {
+					entry.icon = json.getAsString();
+				} else if (json.isJsonObject()) {
+					entry.iconMap = new TreeMap<>(Comparator.naturalOrder());
+
+					JsonObject obj = json.getAsJsonObject();
+					for (Map.Entry<String, JsonElement> e : obj.entrySet()) {
+						int size;
+						try {
+							size = Integer.parseInt(e.getKey());
+						} catch (NumberFormatException ex) {
+							throw new JsonParseException("Could not parse icon size '" + e.getKey() + "'!", ex);
+						}
+
+						if (size < 1) {
+							throw new JsonParseException("Size must be positive!");
+						} else if (!e.getValue().isJsonPrimitive()) {
+							throw new JsonParseException("Icon value must be a string!");
+						}
+
+						entry.iconMap.put(size, e.getValue().getAsString());
+					}
+
+					if (entry.iconMap.isEmpty()) {
+						throw new JsonParseException("Icon object must not be empty!");
+					}
+				} else {
+					throw new JsonParseException("Icon entry must be an object or string!");
 				}
 
 				return entry;
