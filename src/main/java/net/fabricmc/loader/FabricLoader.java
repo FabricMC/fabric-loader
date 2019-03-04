@@ -52,7 +52,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private final InstanceStorage instanceStorage = new InstanceStorage();
 
 	private boolean frozen = false;
-	private boolean gameInitialized = false;
 
 	private Object gameInstance;
 
@@ -88,17 +87,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		finishModLoading();
 	}
 
-	/**
-	 * DO NOT USE. It bites.
-	 */
-	public void initialize(File gameDir, Object gameInstance) {
-		if (gameInitialized) {
-			throw new RuntimeException("FabricLoader has already been game-initialized!");
-		}
-
+	public void setGameDir(File gameDir) {
 		this.gameDir = gameDir;
-		this.gameInstance = gameInstance;
-		gameInitialized = true;
+		this.configDir = new File(gameDir, "config");
 	}
 
 	@Override
@@ -124,11 +115,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 */
 	@Override
 	public File getConfigDirectory() {
-		if (configDir == null) {
-			configDir = new File(gameDir, "config");
-			if (!configDir.exists()) {
-				configDir.mkdirs();
-			}
+		if (!configDir.exists()) {
+			configDir.mkdirs();
 		}
 		return configDir;
 	}
@@ -185,7 +173,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			.collect(Collectors.joining(", ")));
 
 		for (ModCandidate candidate : candidateMap.values()) {
-			addMod(candidate, isPrimaryLoader());
+			addMod(candidate);
 		}
 	}
 
@@ -198,10 +186,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 		}
 
-		if (isPrimaryLoader()) {
-			postprocessModMetadata();
-			instantiateMods();
-		}
+		postprocessModMetadata();
 	}
 
 	@Override
@@ -238,11 +223,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected boolean isPrimaryLoader() {
-		return true;
-	}
-
-	protected void addMod(ModCandidate candidate, boolean initialize) {
+	protected void addMod(ModCandidate candidate) {
 		LoaderModMetadata info = candidate.getInfo();
 		URL originUrl = candidate.getOriginUrl();
 
@@ -310,7 +291,18 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		mods = sorted;
 	} */
 
-	private void instantiateMods() {
+	public void instantiateMods(File newRunDir, Object gameInstance) {
+		if (!frozen) {
+			throw new RuntimeException("Cannot instantiate mods when not frozen!");
+		}
+
+		this.gameInstance = gameInstance;
+
+		if (!gameDir.getAbsoluteFile().equals(newRunDir.getAbsoluteFile())) {
+			getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath() + ", while initializer says " + gameDir.getAbsolutePath() + "...");
+			setGameDir(newRunDir);
+		}
+
 		for (ModContainer mod : mods) {
 			try {
 				mod.instantiate();

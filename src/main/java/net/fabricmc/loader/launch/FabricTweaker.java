@@ -17,10 +17,10 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
-import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.Arguments;
@@ -40,7 +40,6 @@ import java.util.*;
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Arguments arguments = new Arguments();
-	protected MixinLoader mixinLoader;
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
 
@@ -73,13 +72,15 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		this.launchClassLoader = launchClassLoader;
 		launchClassLoader.addClassLoaderExclusion("org.objectweb.asm.");
 		launchClassLoader.addClassLoaderExclusion("org.spongepowered.asm.");
-		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.loader.");
 
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.Environment");
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
+
 		File gameDir = getLaunchDirectory(arguments);
-		mixinLoader = new MixinLoader();
-		mixinLoader.load();
-		mixinLoader.freeze();
+		FabricLoader.INSTANCE.setGameDir(gameDir);
+		FabricLoader.INSTANCE.load();
+		FabricLoader.INSTANCE.freeze();
 
 		launchClassLoader.registerTransformer("net.fabricmc.loader.launch.FabricClassTransformer");
 
@@ -105,7 +106,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), mixinLoader);
+		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 	}
 

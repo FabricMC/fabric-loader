@@ -44,6 +44,10 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	}
 
 	void instantiate() {
+		if (root != null) {
+			throw new RuntimeException("Not allowed to instantiate twice!");
+		}
+
 		try {
 			Path holder = UrlUtil.asPath(originUrl).toAbsolutePath();
 			if (Files.isDirectory(holder)) {

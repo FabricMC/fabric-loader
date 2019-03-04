@@ -22,6 +22,12 @@ import java.nio.file.Path;
 
 public interface ModContainer {
 	ModMetadata getMetadata();
+
+	@Deprecated
+	default Path getRoot() {
+		return getRootPath();
+	}
+	
 	Path getRootPath();
 
 	/**

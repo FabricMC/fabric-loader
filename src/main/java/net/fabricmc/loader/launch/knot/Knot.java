@@ -18,10 +18,10 @@ package net.fabricmc.loader.launch.knot;
 
 import com.google.common.collect.Lists;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
-import net.fabricmc.loader.launch.common.MixinLoader;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.Arguments;
@@ -116,13 +116,12 @@ public final class Knot extends FabricLauncherBase {
 
 		Thread.currentThread().setContextClassLoader((ClassLoader) loader);
 
-		// Setup Mixin environment
-		MixinLoader mixinLoader = new MixinLoader();
-		mixinLoader.load();
-		mixinLoader.freeze();
+		FabricLoader.INSTANCE.setGameDir(new File("."));
+		FabricLoader.INSTANCE.load();
+		FabricLoader.INSTANCE.freeze();
 
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), mixinLoader);
+		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(envType == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
 		FabricLauncherBase.pretendMixinPhases();
