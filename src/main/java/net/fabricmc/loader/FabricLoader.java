@@ -58,16 +58,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private File gameDir;
 	private File configDir;
 
-	/**
-	 * Initializers are a way to inject the initial code which runs on the
-	 * start of the game loading process without requiring a patch by each
-	 * mod in question.
-	 *
-	 * They are added to the fabric.mod.json file, in the "initializers" array.
-	 *
-	 * @param type The type of the initializer class being looked for.
-	 * @return The list of initialized objects for that specific class type.
-	 */
+	@Override
 	public <T> Collection<T> getInitializers(Class<T> type) {
 		return instanceStorage.getInitializers(type);
 	}

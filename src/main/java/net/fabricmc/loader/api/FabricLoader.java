@@ -49,6 +49,20 @@ public interface FabricLoader {
 	Collection<ModContainer> getAllMods();
 
 	/**
+	 * Initializers are a way to inject the initial code which runs on the
+	 * start of the game loading process without requiring a patch by each
+	 * mod in question.
+	 *
+	 * This method returns all initialized objects for a specific class
+	 * type T - as such, it will ignore ones which don't match the current
+	 * context (client-only, etc).
+	 *
+	 * @param type The type of the initializer class being looked for.
+	 * @return The list of initialized objects for that specific class type.
+	 */
+	<T> Collection<T> getInitializers(Class<T> type);
+
+	/**
 	 * Checks if a mod with a given ID is loaded.
 	 * @param id The ID of the mod, as defined in fabric.mod.json.
 	 * @return Whether or not the mod is present in this FabricLoader instance.

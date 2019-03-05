@@ -66,6 +66,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 		if (stream == null) {
 			throw new ClassNotFoundException("Could not find or load class " + classFilename);
 		}
+
 		ClassReader reader = new ClassReader(stream);
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
