@@ -3,24 +3,6 @@ plugins {
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import net.fabricmc.loom.LoomGradlePlugin
-
-//buildscript {
-//	repositories {
-//		mavenCentral()
-//		maven {
-//			name = 'Fabric'
-//			url = 'https://maven.fabricmc.net/'
-//		}
-//		maven {
-//			name = 'mojang'
-//			url = 'https://libraries.minecraft.net/'
-//		}
-//	}
-//	dependencies {
-//		classpath 'net.fabricmc:fabric-loom:0.2.0-SNAPSHOT'
-//	}
-//}
 
 plugins {
 	id 'java'
@@ -30,7 +12,6 @@ plugins {
 	id 'eclipse'
 	id("fabric-loom") version "0.2.0-SNAPSHOT"
 }
-//apply plugin: LoomGradlePlugin
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -160,11 +141,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-	classifier = 'javadoc'
-	from javadoc.destinationDir
-}
-
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
@@ -175,9 +151,6 @@ publishing {
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
-			// TODO: commented out because generating javadoc errors 
-			//   due to incorrect or missing documentation in the project
-//			artifact(javadocJar)
 		}
 	}
 
@@ -192,10 +165,7 @@ publishing {
 				}
 			}
 		}
-		// uncomment to publish to the local maven always
-		// mavenLocal()
 	}
 }
-//apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/maven.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
