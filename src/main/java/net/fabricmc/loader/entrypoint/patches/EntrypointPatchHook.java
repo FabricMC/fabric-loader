@@ -44,6 +44,10 @@ public class EntrypointPatchHook extends EntrypointPatch {
 		EnvType type = launcher.getEnvironmentType();
 		String entrypoint = launcher.getEntrypoint();
 
+		if (!entrypoint.startsWith("net.minecraft.") && !entrypoint.startsWith("com.mojang.")) {
+			return;
+		}
+
 		try {
 			String gameEntrypoint = null;
 			boolean serverHasFile = true;
