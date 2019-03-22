@@ -145,8 +145,8 @@ publishing {
 			artifact(sourcesJar) {
 				builtBy remapSourcesJar
 			}
-			artifact(file("$buildDir/libs/${archivesBaseName}-${version}.json")) {
-				builtBy copyJson
+			artifact(file('src/main/resources/fabric-installer.json')) {
+				builtBy remapJar
 			}
 		}
 	}
