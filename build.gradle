@@ -78,6 +78,8 @@ dependencies {
 		transitive = false
 	}
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+	
+	compile 'blue.endless:jankson:1.1.1'
 }
 
 jar {
