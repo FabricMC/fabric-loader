@@ -148,6 +148,10 @@ publishing {
 			artifact(file('src/main/resources/fabric-installer.json')) {
 				builtBy remapJar
 			}
+			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
+				builtBy remapJar
+				classifier = "launchwrapper"
+			}
 		}
 	}
 
