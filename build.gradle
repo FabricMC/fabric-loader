@@ -73,6 +73,8 @@ dependencies {
 	compile 'net.fabricmc:tiny-mappings-parser:0.1.0.6'
 	compile 'net.fabricmc:tiny-remapper:0.1.0.23'
 
+	compile 'blue.endless:jankson:1.1.1'
+
 	// Mojang
 	compile ('net.minecraft:launchwrapper:1.12') {
 		transitive = false
