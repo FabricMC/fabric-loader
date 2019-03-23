@@ -18,6 +18,7 @@ public class SettingBuilder<S, T> {
 	private String name;
 	private Converter<S, T> converter;
 	private Settings registry;
+	private boolean isFinal = false;
 
 	public SettingBuilder(Settings registry, Class<T> type) {
 		this.registry = registry;
@@ -71,6 +72,11 @@ public class SettingBuilder<S, T> {
 		return this;
 	}
 
+	public SettingBuilder<S, T> setFinal() {
+		this.isFinal = true;
+		return this;
+	}
+
 	public Setting<T> build() {
 		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), restriction(), value, type, converter == null ? registry.provideConverter(type) : converter));
 	}
@@ -83,6 +89,6 @@ public class SettingBuilder<S, T> {
 	}
 
 	protected Predicate<T> restriction() {
-		return restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t));
+		return isFinal ? t -> true : (restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t)));
 	}
 }

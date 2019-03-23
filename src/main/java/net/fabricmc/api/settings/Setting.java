@@ -33,7 +33,7 @@ public class Setting<T> {
 	}
 
 	public boolean setValue(T value) {
-		if (!restriction.test(value)) return false;
+		if (restriction.test(value)) return false;
 		this.value = value;
 		this.consumer.accept(value, this.value);
 		return true;
