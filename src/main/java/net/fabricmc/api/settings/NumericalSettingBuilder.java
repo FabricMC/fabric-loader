@@ -2,7 +2,7 @@ package net.fabricmc.api.settings;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class NumericalSettingBuilder<S, T extends Number> extends SettingBuilder<S, T> {
 
@@ -53,11 +53,11 @@ public class NumericalSettingBuilder<S, T extends Number> extends SettingBuilder
 	}
 
 	@Override
-	protected Function<T, Boolean> restriction() {
-		return t -> super.restriction().apply(t) || boundRestriction().apply(t);
+	protected Predicate<T> restriction() {
+		return t -> super.restriction().test(t) || boundRestriction().test(t);
 	}
 
-	private Function<T, Boolean> boundRestriction() {
+	private Predicate<T> boundRestriction() {
 		return t -> {
 			BigDecimal decimal = new BigDecimal(t.toString());
 			if (min != null) {

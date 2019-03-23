@@ -1,20 +1,20 @@
 package net.fabricmc.api.settings;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Setting<T> {
 
 	private final String comment;
 	private final String name;
 	private final BiConsumer<T, T> consumer;
-	private final Function<T, Boolean> restriction;
+	private final Predicate<T> restriction;
 	private T value;
 
 	private Class<T> type;
 	private Converter<?, T> converter;
 
-	public Setting(String comment, String name, BiConsumer<T, T> consumer, Function<T, Boolean> restriction, T value, Class<T> type, Converter<?, T> converter) {
+	public Setting(String comment, String name, BiConsumer<T, T> consumer, Predicate<T> restriction, T value, Class<T> type, Converter<?, T> converter) {
 		this.comment = comment;
 		this.name = name;
 		this.consumer = consumer;
@@ -33,7 +33,7 @@ public class Setting<T> {
 	}
 
 	public boolean setValue(T value) {
-		if (restriction.apply(value)) return false;
+		if (!restriction.test(value)) return false;
 		this.value = value;
 		this.consumer.accept(value, this.value);
 		return true;

@@ -3,8 +3,8 @@ package net.fabricmc.api.settings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SettingBuilder<S, T> {
@@ -82,7 +82,7 @@ public class SettingBuilder<S, T> {
 		return setting;
 	}
 
-	protected Function<T, Boolean> restriction() {
+	protected Predicate<T> restriction() {
 		return restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t));
 	}
 }
