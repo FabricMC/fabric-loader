@@ -1,7 +1,5 @@
 package net.fabricmc.api.settings;
 
-import blue.endless.jankson.impl.SyntaxError;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -108,16 +106,18 @@ public abstract class Settings<S> {
 	protected abstract Settings<S> createSub(String name);
 
 	/**
-	 * Writes this {@link Settings} object to the given {@link InputStream}
-	 * @param stream the stream to write to
+	 * Writes this {@link Settings} object to the given {@link OutputStream}
+	 * @param stream 		The stream to write to
+	 * @param compressed	Whether or not the output should be as small as possible
 	 */
-	public abstract void serialise(InputStream stream) throws IOException, SyntaxError;
+	public abstract void serialise(OutputStream stream, boolean compressed) throws IOException;
 
 	/**
-	 * Reads from the given {@link OutputStream} and mutatates this {@link Settings}.
-	 * @param stream the stream to write from
+	 * Reads from the given {@link InputStream} and mutatates this {@link Settings}.
+	 * @param stream	The stream to read from
+	 * @param compress	Whether or not the output has been compressed
 	 */
-    public abstract void deserialise(OutputStream stream);
+    public abstract void deserialise(InputStream stream, boolean compress) throws IOException;
 
 	/**
 	 * @return This {@link Settings}' name
@@ -125,5 +125,17 @@ public abstract class Settings<S> {
 	public String getName() {
         return name;
     }
+
+	protected HashMap<String, Setting> getSettingHashMap() {
+		return settingHashMap;
+	}
+
+	protected HashMap<String, Object> getCachedValueMap() {
+		return cachedValueMap;
+	}
+
+	protected HashMap<String, Settings> getSubSettingsHashMap() {
+		return subSettingsHashMap;
+	}
 
 }
