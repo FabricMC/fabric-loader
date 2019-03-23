@@ -100,7 +100,7 @@ public abstract class Settings<S> {
 		String name = setting.getName();
 		settingHashMap.put(name, setting);
 		if (cachedValueMap.containsKey(name)) {
-			attemptSet(name, setting.<S>getConverter().deserialise((S) cachedValueMap.get(name)));
+			attemptSet(name, setting.<S>getConverter().deserialize((S) cachedValueMap.get(name)));
 			cachedValueMap.remove(name);
 		}
 	}
@@ -125,15 +125,15 @@ public abstract class Settings<S> {
 	 * @param stream     The stream to write to
 	 * @param compressed Whether or not the output should be as small as possible
 	 */
-	public abstract void serialise(OutputStream stream, boolean compressed) throws IOException;
+	public abstract void serialize(OutputStream stream, boolean compressed) throws IOException;
 
 	/**
-	 * Reads from the given {@link InputStream} and mutatates this {@link Settings}.
+	 * Reads from the given {@link InputStream} and mutates this {@link Settings}.
 	 *
 	 * @param stream   The stream to read from
 	 * @param compress Whether or not the output has been compressed
 	 */
-	public abstract void deserialise(InputStream stream, boolean compress) throws IOException;
+	public abstract void deserialize(InputStream stream, boolean compress) throws IOException;
 
 	public abstract <T> Converter<S, T> provideConverter(Class<T> type);
 

@@ -24,17 +24,17 @@ public class JanksonSettings extends Settings<JsonElement> {
 	}
 
 	@Override
-	public void deserialise(InputStream stream, boolean compressed) throws IOException {
+	public void deserialize(InputStream stream, boolean compressed) throws IOException {
 		Jankson jankson = Jankson.builder().build();
 		try {
 			JsonElement element = jankson.load(stream);
-			this.deserialise(element);
+			this.deserialize(element);
 		} catch (SyntaxError syntaxError) {
 			syntaxError.printStackTrace();
 		}
 	}
 
-	private void deserialise(JsonElement element) {
+	private void deserialize(JsonElement element) {
 		if (!(element instanceof JsonObject)) {
 			throw new IllegalStateException("Root of configuration must be a jankson object");
 		}
@@ -45,7 +45,7 @@ public class JanksonSettings extends Settings<JsonElement> {
 			JsonElement child = entry.getValue();
 
 			if (child instanceof JsonObject) {
-				((JanksonSettings) sub(key)).deserialise(child);
+				((JanksonSettings) sub(key)).deserialize(child);
 			} else {
 				set(key, child);
 			}
@@ -53,38 +53,33 @@ public class JanksonSettings extends Settings<JsonElement> {
 	}
 
 	@Override
-	public void serialise(OutputStream stream, boolean compress) throws IOException {
-		JsonObject object = serialise();
+	public void serialize(OutputStream stream, boolean compress) throws IOException {
+		JsonObject object = serialize();
 		stream.write(object.toJson(!compress, !compress).getBytes());
 	}
 
-	private JsonObject serialise() {
+	private JsonObject serialize() {
 		JsonObject object = new JsonObject();
 		getCachedValueMap().forEach((s, value) -> object.put(s, ((JsonElement) value)));
 		getSettingHashMap().forEach((s, setting) -> {
-			object.put(s, (JsonElement) setting.getConverter().serialise(setting.getValue()));
+			object.put(s, (JsonElement) setting.getConverter().serialize(setting.getValue()));
 			if (setting.hasComment())
 				object.setComment(s, setting.getComment());
 		});
-		getSubSettingsHashMap().forEach((s, settings) -> object.put(s, ((JanksonSettings) settings).serialise()));
+		getSubSettingsHashMap().forEach((s, settings) -> object.put(s, ((JanksonSettings) settings).serialize()));
 		return object;
-	}
-
-	private JsonElement serialiseSingle(Object value) {
-		// TODO: Custom serialisers and more complex structures like identifiers
-		return new JsonPrimitive(value);
 	}
 
 	@Override
 	public <T> Converter<JsonElement, T> provideConverter(Class<T> type) {
 		return new Converter<JsonElement, T>() {
 			@Override
-			public T deserialise(JsonElement data) {
+			public T deserialize(JsonElement data) {
 				return (T) ((JsonPrimitive) data).getValue(); // this couldn't be more unsafe
 			}
 
 			@Override
-			public JsonElement serialise(T object) {
+			public JsonElement serialize(T object) {
 				return new JsonPrimitive(object);
 			}
 		};
