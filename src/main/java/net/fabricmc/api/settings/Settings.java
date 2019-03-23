@@ -1,5 +1,8 @@
 package net.fabricmc.api.settings;
 
+import blue.endless.jankson.impl.SyntaxError;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -41,7 +44,7 @@ public abstract class Settings<S> {
     }
 
 	/**
-	 * Creates a new {@link Settings} object and stores it in this objects subsettings map
+	 * Finds the sub settings object by name <code>name</code> or, if none found, creates a new {@link Settings} object and stores it in this objects subsettings map
 	 * @param name	The name of the new {@link Settings} object
 	 * @return		The created {@link Settings} object
 	 */
@@ -108,7 +111,7 @@ public abstract class Settings<S> {
 	 * Writes this {@link Settings} object to the given {@link InputStream}
 	 * @param stream the stream to write to
 	 */
-	public abstract void serialise(InputStream stream);
+	public abstract void serialise(InputStream stream) throws IOException, SyntaxError;
 
 	/**
 	 * Reads from the given {@link OutputStream} and mutatates this {@link Settings}.
