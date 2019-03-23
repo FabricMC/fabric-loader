@@ -28,8 +28,8 @@ public class Setting<T> {
 	}
 
 	public void setValue(T value) {
-		this.consumer.accept(this.value, value);
 		this.value = value;
+		this.consumer.accept(value, this.value);
 	}
 
 	public BiConsumer<T, T> getConsumer() {
