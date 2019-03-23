@@ -27,7 +27,7 @@ public class SettingBuilder<S, T> {
 	/**
 	 * Attempts to create a copy of given SettingBuilder. Will attempt to cast everything.
 	 */
-	private SettingBuilder(SettingBuilder<S, Object> copy, Class<T> type) {
+	protected SettingBuilder(SettingBuilder<S, Object> copy, Class<T> type) {
 		this(copy.registry, type);
 		this.value = (T) copy.value;
 		this.comment = copy.comment;
@@ -82,7 +82,7 @@ public class SettingBuilder<S, T> {
 		return setting;
 	}
 
-	private Function<T, Boolean> restriction() {
+	protected Function<T, Boolean> restriction() {
 		return restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t));
 	}
 }
