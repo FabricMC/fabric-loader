@@ -28,6 +28,7 @@ public class Setting<T> {
     }
 
     public void setValue(T value) {
+    	this.consumer.accept(this.value, value);
         this.value = value;
     }
 
