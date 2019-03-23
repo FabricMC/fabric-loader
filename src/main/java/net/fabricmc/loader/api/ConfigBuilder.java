@@ -61,11 +61,38 @@ public class ConfigBuilder {
 	/**
 	 *
 	 * Used to get a basic config file for a mod
+	 * @param clazz the config class
+	 * @param parentFolder the folder to search through for config
+	 *
+	 * @return the instance of the config
+	 */
+	public <T> T getConfig(Class<T> clazz, File parentFolder){
+		T config = getConfig(clazz, parentFolder, "config", false);
+		singleConfig = true;
+		return config;
+	}
+
+	/**
+	 *
+	 * Used to get a config file for a mod based on a subfolder
+	 *
+	 * @param clazz the config class
+	 * @param parentFolder the folder to search through for config
+	 * @param name the name of the specific config file to get from
+	 * @return the instance of the config
+	 */
+	public <T> T getConfig(Class<T> clazz, File parentFolder, String name){
+		return getConfig(clazz, parentFolder, name, true);
+	}
+
+	/**
+	 *
+	 * Used to get a basic config file for a mod
 	 *
 	 * @return the instance of the config
 	 */
 	public <T> T getConfig(Class<T> clazz){
-		T config = getConfig(clazz, "config", false);
+		T config = getConfig(clazz, FabricLoader.getInstance().getConfigDirectory(), "config", false);
 		singleConfig = true;
 		return config;
 	}
@@ -79,17 +106,16 @@ public class ConfigBuilder {
 	 * @return the instance of the config
 	 */
 	public <T> T getConfig(Class<T> clazz, String name){
-		return getConfig(clazz, name, true);
+		return getConfig(clazz, FabricLoader.getInstance().getConfigDirectory(), name, true);
 	}
 
-	private  <T> T getConfig(Class<T> clazz, String name, boolean subDir){
+	private  <T> T getConfig(Class<T> clazz, File parentFolder, String name, boolean subDir){
 		if(singleConfig){
 			//Crash if a mod tries to create a sub dir config after it already has done so
 			throw new UnsupportedOperationException("Config builder created a single config, cannot create more. Specify config name");
 		}
 		try {
-			File configFile = new File("config/" + (subDir ? modId : ""), name + CONFIG_SUFFIX);
-			//TODO: decide whether we want to require a constructor or not
+			File configFile = new File(parentFolder.getPath() + (subDir ? modId : ""), name + CONFIG_SUFFIX);
 			T config = clazz.newInstance();
 			if (!configFile.exists()) {
 				saveConfig(config, configFile);
