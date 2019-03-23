@@ -1,7 +1,13 @@
 package net.fabricmc.api.settings;
 
+import net.fabricmc.api.settings.schema.Constraint;
+import net.fabricmc.api.settings.schema.NumberConstraint;
+import net.fabricmc.api.settings.schema.Restrictions;
+
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class NumericalSettingBuilder<S, T extends Number> extends SettingBuilder<S, T> {
@@ -68,5 +74,17 @@ public class NumericalSettingBuilder<S, T extends Number> extends SettingBuilder
 			}
 			return false;
 		};
+	}
+
+	@Override
+	protected List<Constraint> constraints() {
+		List<Constraint> constraints = new ArrayList<>();
+		if (min != null) {
+			constraints.add(new NumberConstraint(Restrictions.NUMERICAL_LOWER_BOUND, min));
+		}
+		if (max != null) {
+			constraints.add(new NumberConstraint(Restrictions.NUMERICAL_UPPER_BOUND, max));
+		}
+		return constraints;
 	}
 }

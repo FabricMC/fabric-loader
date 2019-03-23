@@ -58,13 +58,13 @@ public class JanksonSettings extends Settings<JsonElement> {
 
 	private JsonObject serialize() {
 		JsonObject object = new JsonObject();
-		getCachedValueMap().forEach((s, value) -> object.put(s, ((JsonElement) value)));
-		getSettingHashMap().forEach((s, setting) -> {
+		getCachedValues().forEach((s, value) -> object.put(s, ((JsonElement) value)));
+		getSettings().forEach((s, setting) -> {
 			object.put(s, (JsonElement) setting.getConverter().serialize(setting.getValue()));
 			if (setting.hasComment())
 				object.setComment(s, setting.getComment());
 		});
-		getSubSettingsHashMap().forEach((s, settings) -> object.put(s, ((JanksonSettings) settings).serialize()));
+		getSubSettings().forEach((s, settings) -> object.put(s, ((JanksonSettings) settings).serialize()));
 		return object;
 	}
 

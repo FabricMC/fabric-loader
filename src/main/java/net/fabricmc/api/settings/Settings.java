@@ -1,5 +1,7 @@
 package net.fabricmc.api.settings;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -144,15 +146,28 @@ public abstract class Settings<S> {
 		return name;
 	}
 
-	protected HashMap<String, Setting> getSettingHashMap() {
+	protected HashMap<String, Setting> getSettings() {
 		return settingHashMap;
 	}
 
-	protected HashMap<String, Object> getCachedValueMap() {
+	protected HashMap<String, Object> getCachedValues() {
 		return cachedValueMap;
 	}
 
-	protected HashMap<String, Settings> getSubSettingsHashMap() {
+	protected HashMap<String, Settings> getSubSettings() {
 		return subSettingsHashMap;
 	}
+
+	public ImmutableMap<String, Settings> getSubSettingsImmutable() {
+		return new ImmutableMap.Builder<String, Settings>().putAll(getSubSettings()).build();
+	}
+
+	public ImmutableMap<String, Setting> getSettingsImmutable() {
+		return new ImmutableMap.Builder<String, Setting>().putAll(getSettings()).build();
+	}
+
+	public ImmutableMap<String, Object> getCachedValuesImmutable() {
+		return new ImmutableMap.Builder<String, Object>().putAll(getCachedValues()).build();
+	}
+
 }

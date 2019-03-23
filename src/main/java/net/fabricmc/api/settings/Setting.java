@@ -1,5 +1,8 @@
 package net.fabricmc.api.settings;
 
+import net.fabricmc.api.settings.schema.Constraint;
+
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -14,7 +17,10 @@ public class Setting<T> {
 	private Class<T> type;
 	private Converter<?, T> converter;
 
-	public Setting(String comment, String name, BiConsumer<T, T> consumer, Predicate<T> restriction, T value, Class<T> type, Converter<?, T> converter) {
+	// Only used when generating a schema
+	final List<Constraint> constraintList;
+
+	Setting(String comment, String name, BiConsumer<T, T> consumer, Predicate<T> restriction, T value, Class<T> type, Converter<?, T> converter, List<Constraint> constraintList) {
 		this.comment = comment;
 		this.name = name;
 		this.consumer = consumer;
@@ -22,6 +28,7 @@ public class Setting<T> {
 		this.value = value;
 		this.type = type;
 		this.converter = converter;
+		this.constraintList = constraintList;
 	}
 
 	public String getName() {
@@ -58,4 +65,9 @@ public class Setting<T> {
 	<S> Converter<S, T> getConverter() {
 		return (Converter<S, T>) converter;
 	}
+
+	public List<Constraint> getConstraintList() {
+		return constraintList;
+	}
+
 }

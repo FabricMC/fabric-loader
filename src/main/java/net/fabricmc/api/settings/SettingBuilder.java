@@ -1,6 +1,9 @@
 package net.fabricmc.api.settings;
 
+import net.fabricmc.api.settings.schema.Constraint;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -78,7 +81,11 @@ public class SettingBuilder<S, T> {
 	}
 
 	public Setting<T> build() {
-		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), restriction(), value, type, converter == null ? registry.provideConverter(type) : converter));
+		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), restriction(), value, type, converter == null ? registry.provideConverter(type) : converter, constraints()));
+	}
+
+	protected List<Constraint> constraints() {
+		return new ArrayList<>();
 	}
 
 	private Setting<T> registerAndSet(Setting<T> setting) {
