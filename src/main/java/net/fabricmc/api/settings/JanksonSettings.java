@@ -3,13 +3,13 @@ package net.fabricmc.api.settings;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class JacksonSettings extends Settings<Object> {
+public class JanksonSettings extends Settings<Object> {
 
-	public JacksonSettings(String name) {
+	public JanksonSettings(String name) {
 		super(name);
 	}
 
-	public JacksonSettings() {
+	public JanksonSettings() {
 		super();
 	}
 
@@ -25,7 +25,7 @@ public class JacksonSettings extends Settings<Object> {
 
     @Override
     protected Settings createSub(String name) {
-        return new JacksonSettings(name);
+        return new JanksonSettings(name);
     }
 
 }
