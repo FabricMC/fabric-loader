@@ -3,6 +3,8 @@ package net.fabricmc.api.settings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SettingBuilder<S, T> {
@@ -12,6 +14,7 @@ public class SettingBuilder<S, T> {
 	T value;
 	String comment = "";
 	private List<BiConsumer<T, T>> consumers = new ArrayList<>();
+	private List<Function<T, Boolean>> restrictions = new ArrayList<>();
 	private String name;
 	private Converter<S, T> converter;
 	private Settings registry;
@@ -63,8 +66,13 @@ public class SettingBuilder<S, T> {
 		return this;
 	}
 
+	public SettingBuilder<S, T> restrict(Function<T, Boolean> restriction) {
+		this.restrictions.add(restriction);
+		return this;
+	}
+
 	public Setting<T> build() {
-		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), value, type, converter == null ? registry.provideConverter(type) : converter));
+		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), restriction(), value, type, converter == null ? registry.provideConverter(type) : converter));
 	}
 
 	private Setting<T> registerAndSet(Setting<T> setting) {
@@ -72,5 +80,9 @@ public class SettingBuilder<S, T> {
 			registry.registerAndRecover(setting);
 		}
 		return setting;
+	}
+
+	private Function<T, Boolean> restriction() {
+		return restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t));
 	}
 }
