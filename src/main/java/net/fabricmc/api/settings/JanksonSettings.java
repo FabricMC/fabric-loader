@@ -78,7 +78,8 @@ public class JanksonSettings extends Settings<Object> {
 		JsonObject object = new JsonObject();
 		getSettingHashMap().forEach((s, setting) -> {
 			object.put(s, serialiseSingle(setting.getValue()));
-			object.setComment(s, setting.getComment());
+			if (setting.hasComment())
+				object.setComment(s, setting.getComment());
 		});
 		getCachedValueMap().forEach((s, value) -> object.put(s, serialiseSingle(value)));
 		getSubSettingsHashMap().forEach((s, settings) -> object.put(s, ((JanksonSettings) settings).serialise()));

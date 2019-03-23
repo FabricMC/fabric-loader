@@ -44,4 +44,8 @@ public class Setting<T> {
 		return type;
 	}
 
+	public boolean hasComment() {
+		return !comment.isEmpty();
+	}
+
 }
