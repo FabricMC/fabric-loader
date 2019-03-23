@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class JanksonSettings extends Settings<Object> {
@@ -31,8 +30,8 @@ public class JanksonSettings extends Settings<Object> {
 		super();
 	}
 
-    @Override
-    public void deserialise(InputStream stream, boolean compressed) throws IOException {
+	@Override
+	public void deserialise(InputStream stream, boolean compressed) throws IOException {
 		Jankson jankson = Jankson.builder().build();
 		try {
 			JsonElement element = jankson.load(stream);
@@ -70,7 +69,7 @@ public class JanksonSettings extends Settings<Object> {
 	}
 
 	@Override
-    public void serialise(OutputStream stream, boolean compress) throws IOException {
+	public void serialise(OutputStream stream, boolean compress) throws IOException {
 		JsonObject object = serialise();
 		stream.write(object.toJson(!compress, !compress).getBytes());
 	}
@@ -91,9 +90,9 @@ public class JanksonSettings extends Settings<Object> {
 		return new JsonPrimitive(value);
 	}
 
-    @Override
-    protected Settings createSub(String name) {
-        return new JanksonSettings(name);
-    }
+	@Override
+	protected Settings createSub(String name) {
+		return new JanksonSettings(name);
+	}
 
 }
