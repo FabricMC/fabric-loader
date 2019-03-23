@@ -92,7 +92,8 @@ public abstract class Settings<S> {
 		String name = setting.getName();
 		settingHashMap.put(name, setting);
 		if (cachedValueMap.containsKey(name)) {
-			attemptSet(name, cachedValueMap.get(name));
+			attemptSet(name, setting.<S>getConverter().deserialise((S) cachedValueMap.get(name)));
+			cachedValueMap.remove(name);
 		}
 	}
 
@@ -126,6 +127,8 @@ public abstract class Settings<S> {
 	 */
 	public abstract void deserialise(InputStream stream, boolean compress) throws IOException;
 
+	public abstract <T> Converter<S, T> provideConverter(Class<T> type);
+
 	/**
 	 * @return This {@link Settings}' name
 	 */
@@ -144,5 +147,4 @@ public abstract class Settings<S> {
 	protected HashMap<String, Settings> getSubSettingsHashMap() {
 		return subSettingsHashMap;
 	}
-
 }

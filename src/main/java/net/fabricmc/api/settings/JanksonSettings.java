@@ -13,14 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class JanksonSettings extends Settings<Object> {
-
-	private static final HashMap<Class, Function<Object, Object>> conversions = new HashMap<Class, Function<Object, Object>>() {{
-		put(JsonPrimitive.class, element -> {
-			JsonPrimitive primitive = (JsonPrimitive) element;
-			return primitive.getValue();
-		});
-	}};
+public class JanksonSettings extends Settings<JsonElement> {
 
 	public JanksonSettings(String name) {
 		super(name);
@@ -54,18 +47,9 @@ public class JanksonSettings extends Settings<Object> {
 			if (child instanceof JsonObject) {
 				((JanksonSettings) sub(key)).deserialise(child);
 			} else {
-				deserialiseSingle(key, child);
+				set(key, child);
 			}
 		}
-	}
-
-	private void deserialiseSingle(String key, JsonElement child) {
-		if (conversions.containsKey(child.getClass())) {
-			Object value = conversions.get(child.getClass()).apply(child);
-			set(key, value);
-			return;
-		}
-		throw new IllegalStateException("Attempted to serialise unsupported node " + child.getClass());
 	}
 
 	@Override
@@ -76,12 +60,12 @@ public class JanksonSettings extends Settings<Object> {
 
 	private JsonObject serialise() {
 		JsonObject object = new JsonObject();
+		getCachedValueMap().forEach((s, value) -> object.put(s, ((JsonElement) value)));
 		getSettingHashMap().forEach((s, setting) -> {
-			object.put(s, serialiseSingle(setting.getValue()));
+			object.put(s, (JsonElement) setting.getConverter().serialise(setting.getValue()));
 			if (setting.hasComment())
 				object.setComment(s, setting.getComment());
 		});
-		getCachedValueMap().forEach((s, value) -> object.put(s, serialiseSingle(value)));
 		getSubSettingsHashMap().forEach((s, settings) -> object.put(s, ((JanksonSettings) settings).serialise()));
 		return object;
 	}
@@ -89,6 +73,21 @@ public class JanksonSettings extends Settings<Object> {
 	private JsonElement serialiseSingle(Object value) {
 		// TODO: Custom serialisers and more complex structures like identifiers
 		return new JsonPrimitive(value);
+	}
+
+	@Override
+	public <T> Converter<JsonElement, T> provideConverter(Class<T> type) {
+		return new Converter<JsonElement, T>() {
+			@Override
+			public T deserialise(JsonElement data) {
+				return (T) ((JsonPrimitive) data).getValue(); // this couldn't be more unsafe
+			}
+
+			@Override
+			public JsonElement serialise(T object) {
+				return new JsonPrimitive(object);
+			}
+		};
 	}
 
 	@Override

@@ -10,13 +10,15 @@ public class Setting<T> {
 	private T value;
 
 	private Class<T> type;
+	private Converter<?, T> converter;
 
-	public Setting(String comment, String name, BiConsumer<T, T> consumer, T value, Class<T> type) {
+	public Setting(String comment, String name, BiConsumer<T, T> consumer, T value, Class<T> type, Converter<?, T> converter) {
 		this.comment = comment;
 		this.name = name;
 		this.consumer = consumer;
 		this.value = value;
 		this.type = type;
+		this.converter = converter;
 	}
 
 	public String getName() {
@@ -48,4 +50,7 @@ public class Setting<T> {
 		return !comment.isEmpty();
 	}
 
+	<S> Converter<S, T> getConverter() {
+		return (Converter<S, T>) converter;
+	}
 }

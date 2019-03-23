@@ -13,7 +13,7 @@ public class SettingBuilder<S, T> {
 	String comment = "";
 	private List<BiConsumer<T, T>> consumers = new ArrayList<>();
 	private String name;
-
+	private Converter<S, T> converter;
 	private Settings registry;
 
 	public SettingBuilder(Settings registry, Class<T> type) {
@@ -30,6 +30,7 @@ public class SettingBuilder<S, T> {
 		this.comment = copy.comment;
 		this.consumers = copy.consumers.stream().map(consumer -> (BiConsumer<T, T>) consumer::accept).collect(Collectors.toList());
 		this.name = copy.name;
+		this.converter = (Converter<S, T>) copy.converter;
 	}
 
 	public <A> SettingBuilder type(Class<? extends A> clazz) {
@@ -57,8 +58,13 @@ public class SettingBuilder<S, T> {
 		return this;
 	}
 
+	public SettingBuilder<S, T> converter(Converter<S, T> converter) {
+		this.converter = converter;
+		return this;
+	}
+
 	public Setting<T> build() {
-		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), value, type));
+		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), value, type, converter == null ? registry.provideConverter(type) : converter));
 	}
 
 	private Setting<T> registerAndSet(Setting<T> setting) {
