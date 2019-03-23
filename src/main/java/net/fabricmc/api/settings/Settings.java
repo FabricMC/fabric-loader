@@ -11,45 +11,79 @@ public abstract class Settings<S> {
     private HashMap<String, Setting> settingHashMap = new HashMap<>();
     private HashMap<String, Object> cachedValueMap = new HashMap<>();
 
-    public Settings(String name) {
+	public Settings(String name) {
         this.name = name;
     }
 
-    public Settings() {
+	/**
+	 * Creates a new settings object with no name. This should be used only for root settings.
+	 */
+	public Settings() {
         this(null);
     }
 
-    public SettingBuilder<S, Object> builder() {
+	/**
+	 * Creates a new {@link SettingBuilder} with type {@link Object}
+	 * @return the created {@link SettingBuilder}
+	 */
+	public SettingBuilder<S, Object> builder() {
         return builder(Object.class);
     }
 
-    public <T> SettingBuilder<S, T> builder(Class<T> clazz) {
+	/**
+	 * Creates a new {@link SettingBuilder}
+	 * @param clazz	The class of type of the to-be created {@link SettingBuilder}
+	 * @param <T>	The class of type of the to-be created {@link SettingBuilder}
+	 * @return		The created {@link SettingBuilder}
+	 */
+	public <T> SettingBuilder<S, T> builder(Class<T> clazz) {
         return new SettingBuilder<>(this, clazz);
     }
 
-    public Settings sub(String name) {
+	/**
+	 * Creates a new {@link Settings} object and stores it in this objects subsettings map
+	 * @param name	The name of the new {@link Settings} object
+	 * @return		The created {@link Settings} object
+	 */
+	public Settings sub(String name) {
         if (!subSettingsHashMap.containsKey(name)) {
             subSettingsHashMap.put(name, createSub(name));
         }
         return subSettingsHashMap.get(name);
     }
 
-    public void set(String name, Object value) {
+	/**
+	 * Finds the setting by the given name, and sets its value. If no setting is found, the value is cached for when said setting is registered.
+	 * @param name	The name of the setting
+	 * @param value	The new value of the setting
+	 */
+	public void set(String name, Object value) {
         if (hasSetting(name)) {
             if (attemptSet(name, value)) return;
         }
         cachedValueMap.put(name, value);
     }
 
-    public boolean hasSetting(String name) {
+	/**
+	 * @param name 	The name of the setting
+	 * @return		Whether or not this {@link Settings} object has a registered setting by name <code>name</code>.
+	 */
+	public boolean hasSetting(String name) {
         return settingHashMap.containsKey(name);
     }
 
-    public Setting getSetting(String name) {
+	/**
+	 * @param name	The name of the setting
+	 * @return		The setting by name <code>name</code> or <code>null</code> if none was found.
+	 */
+	public Setting getSetting(String name) {
         return settingHashMap.get(name);
     }
 
-    <T> void registerAndRecover(Setting<T> setting) {
+	/**
+	 * Registers a setting and sets its value if there was a value cached for its name.
+	 */
+	<T> void registerAndRecover(Setting<T> setting) {
         String name = setting.getName();
         settingHashMap.put(name, setting);
         if (cachedValueMap.containsKey(name)) {
@@ -63,12 +97,29 @@ public abstract class Settings<S> {
         return true;
     }
 
-    protected abstract Settings<S> createSub(String name);
+	/**
+	 * Creates a new {@link Settings} object
+	 * @param name the name for this settings object
+	 * @return A new {@link Settings} object
+	 */
+	protected abstract Settings<S> createSub(String name);
 
-    public abstract void serialise(InputStream stream);
+	/**
+	 * Writes this {@link Settings} object to the given {@link InputStream}
+	 * @param stream the stream to write to
+	 */
+	public abstract void serialise(InputStream stream);
+
+	/**
+	 * Reads from the given {@link OutputStream} and mutatates this {@link Settings}.
+	 * @param stream the stream to write from
+	 */
     public abstract void deserialise(OutputStream stream);
 
-    public String getName() {
+	/**
+	 * @return This {@link Settings}' name
+	 */
+	public String getName() {
         return name;
     }
 
