@@ -8,7 +8,7 @@ abstract class AbstractConstraintsBuilder<T> {
 	final List<Constraint> sourceConstraints;
 	protected final Class<T> type;
 
-	private final List<Constraint> newConstraints = new ArrayList<>();
+	final List<Constraint> newConstraints = new ArrayList<>();
 
 	AbstractConstraintsBuilder(List<Constraint> sourceConstraints, Class<T> type) {
 		this.sourceConstraints = sourceConstraints;

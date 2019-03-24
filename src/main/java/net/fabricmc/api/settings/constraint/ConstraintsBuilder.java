@@ -13,8 +13,8 @@ public class ConstraintsBuilder<S, T> extends AbstractConstraintsBuilder<T> {
 		this.source = source;
 	}
 
-	public CompositeConstraintBuilder<S, T> composite() {
-		return new CompositeConstraintBuilder<>(sourceConstraints, type, this);
+	public CompositeConstraintBuilder<S, T> composite(CompositeType type) {
+		return new CompositeConstraintBuilder<>(type, sourceConstraints, this.type, this);
 	}
 
 	public ConstraintsBuilder<S, T> min(T min) {
