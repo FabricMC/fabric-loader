@@ -45,14 +45,6 @@ public abstract class Settings<S> {
 		return new SettingBuilder<>(this, clazz);
 	}
 
-	public <T extends Number> NumericalSettingBuilder<S, T> numericalBuilder(Class<T> clazz) {
-		return new NumericalSettingBuilder<>(this, clazz);
-	}
-
-	public <T extends Number> NumericalSettingBuilder<S, T> builder(Class<T> clazz, T min, T max) {
-		return numericalBuilder(clazz).min(min).max(max);
-	}
-
 	/**
 	 * Finds the sub settings object by name <code>name</code> or, if none found, creates a new {@link Settings} object and stores it in this objects subsettings map
 	 *

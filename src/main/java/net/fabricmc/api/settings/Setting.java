@@ -1,6 +1,6 @@
 package net.fabricmc.api.settings;
 
-import net.fabricmc.api.settings.schema.Constraint;
+import net.fabricmc.api.settings.constraint.Constraint;
 
 import java.util.List;
 import java.util.function.BiConsumer;

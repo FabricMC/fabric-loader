@@ -1,12 +1,11 @@
 package net.fabricmc.api.settings;
 
-import net.fabricmc.api.settings.schema.Constraint;
+import net.fabricmc.api.settings.constraint.Constraint;
+import net.fabricmc.api.settings.constraint.ConstraintsBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,7 @@ public class SettingBuilder<S, T> {
 	T value;
 	String comment = "";
 	private List<BiConsumer<T, T>> consumers = new ArrayList<>();
-	private List<Function<T, Boolean>> restrictions = new ArrayList<>();
+	private List<Constraint> constraints = new ArrayList<>();
 	private String name;
 	private Converter<S, T> converter;
 	private Settings registry;
@@ -70,22 +69,17 @@ public class SettingBuilder<S, T> {
 		return this;
 	}
 
-	public SettingBuilder<S, T> restrict(Function<T, Boolean> restriction) {
-		this.restrictions.add(restriction);
-		return this;
-	}
-
 	public SettingBuilder<S, T> setFinal() {
 		this.isFinal = true;
 		return this;
 	}
 
-	public Setting<T> build() {
-		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), restriction(), value, type, converter == null ? registry.provideConverter(type) : converter, constraints()));
+	public ConstraintsBuilder<S, T> constraints() {
+		return new ConstraintsBuilder<>(constraints, type, this);
 	}
 
-	protected List<Constraint> constraints() {
-		return new ArrayList<>();
+	public Setting<T> build() {
+		return registerAndSet(new Setting<>(comment, name, (a, b) -> consumers.forEach(consumer -> consumer.accept(a, b)), buildRestriction(), value, type, converter == null ? registry.provideConverter(type) : converter, this.constraints));
 	}
 
 	private Setting<T> registerAndSet(Setting<T> setting) {
@@ -95,7 +89,8 @@ public class SettingBuilder<S, T> {
 		return setting;
 	}
 
-	protected Predicate<T> restriction() {
-		return isFinal ? t -> true : (restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t)));
+	protected Predicate<T> buildRestriction() {
+		return isFinal ? t -> true : t -> constraints.stream().anyMatch(constraint -> constraint.test(t));
+		//return isFinal ? t -> true : (restrictions.isEmpty() ? t -> false : t -> restrictions.stream().anyMatch(function -> !function.apply(t)));
 	}
 }
