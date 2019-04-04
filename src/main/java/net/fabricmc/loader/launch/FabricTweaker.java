@@ -121,6 +121,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
+	public void proposeJarClasspaths(File jarFile) {
+		// TODO: read manifest and propose classpaths from jarFile.
+	}
+
+	@Override
 	public Collection<URL> getClasspathURLs() {
 		return launchClassLoader.getSources();
 	}

@@ -34,7 +34,9 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
@@ -218,6 +220,25 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public void propose(URL url) {
 		loader.addURL(url);
+	}
+
+	@Override
+	public void proposeJarClasspaths(File jarFile) {
+		try (JarFile jf = new JarFile(jarFile)) {
+			ZipEntry manifestEntry = jf.getEntry("META-INF/MANIFEST.MF");
+			if (manifestEntry != null) {
+				Manifest manifest = new Manifest(jf.getInputStream(manifestEntry));
+				for(String cp : manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH).split(" ")) {
+					try {
+						propose(UrlUtil.asUrl(new File(cp)));
+					} catch (UrlConversionException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Override
