@@ -28,11 +28,11 @@ class InstanceStorage {
 		.missingSuperclassBehaviour(LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
 		.build();
 
-	private final Multimap<String, Object> instances = HashMultimap.create();
+	private final Multimap<Class, Object> instances = HashMultimap.create();
 
 	@SuppressWarnings("unchecked")
 	public <T> Collection<T> getInitializers(Class<T> type) {
-		return (Collection<T>) instances.get(type.getName());
+		return (Collection<T>) instances.get(type);
 	}
 
 	protected void instantiate(String name, LanguageAdapter adapter) {
@@ -55,7 +55,7 @@ class InstanceStorage {
 			return;
 		}
 
-		instances.put(c.getName(), o);
+		instances.put(c, o);
 		add(o, c.getSuperclass());
 		for (Class ci : c.getInterfaces()) {
 			add(o, ci);
