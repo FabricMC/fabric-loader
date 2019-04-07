@@ -348,7 +348,7 @@ public class ModResolver {
 				try (InputStream stream = Files.newInputStream(modJson)) {
 					info = ModMetadataParser.getMods(loader, stream);
 				} catch (JsonSyntaxException e) {
-				    throw new RuntimeException("Mod file '" + url.getFile() + "' has an invalid fabric.mod.json file!", e);
+					throw new RuntimeException("Mod file '" + url.getFile() + "' has an invalid fabric.mod.json file!", e);
 				} catch (NoSuchFileException e) {
 					info = new LoaderModMetadata[0];
 				}
@@ -438,10 +438,10 @@ public class ModResolver {
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
 		for (ModCandidateFinder f : candidateFinders) {
 			f.findCandidates(loader, (u) -> {
-                UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0);
-                allActions.add(action);
-                pool.execute(action);
-            });
+				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0);
+				allActions.add(action);
+				pool.execute(action);
+			});
 		}
 
 		boolean tookTooLong = false;
@@ -450,27 +450,27 @@ public class ModResolver {
 			pool.shutdown();
 			pool.awaitTermination(30, TimeUnit.SECONDS);
 			for (UrlProcessAction action : allActions) {
-			    if (!action.isDone()) {
-			        tookTooLong = true;
-			    } else {
-			        Throwable t = action.getException();
-			        if (t != null) {
-			            if (exception == null) {
-			                exception = t;
-			            } else {
-			                exception.addSuppressed(t);
-			            }
-			        }
-			    }
+				if (!action.isDone()) {
+					tookTooLong = true;
+				} else {
+					Throwable t = action.getException();
+					if (t != null) {
+						if (exception == null) {
+							exception = t;
+						} else {
+							exception.addSuppressed(t);
+						}
+					}
+				}
 			}
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Mod resolution took too long!", e);
 		}
 		if (tookTooLong) {
-            throw new RuntimeException("Mod resolution took too long!");
-        }
+			throw new RuntimeException("Mod resolution took too long!");
+		}
 		if (exception != null) {
-		    throw new RuntimeException("Mod resolution failed!", exception);
+			throw new RuntimeException("Mod resolution failed!", exception);
 		}
 
 		long time2 = System.currentTimeMillis();
