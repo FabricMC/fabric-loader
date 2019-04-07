@@ -60,7 +60,7 @@ class EntrypointStorage {
 				object = adapter.createInstance(value, options);
 			}
 
-			if (!type.isAssignableFrom(object.getClass())) {
+			if (object == null || !type.isAssignableFrom(object.getClass())) {
 				return null;
 			} else {
 				//noinspection unchecked
