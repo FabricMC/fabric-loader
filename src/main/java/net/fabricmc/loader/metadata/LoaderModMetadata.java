@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public interface LoaderModMetadata extends ModMetadata {
 	int getSchemaVersion();
-	default String getDefaultLanguageAdapter() {
+	default String getOldStyleLanguageAdapter() {
 		return "net.fabricmc.loader.language.JavaLanguageAdapter";
 	}
 	Map<String, String> getLanguageAdapterDefinitions();

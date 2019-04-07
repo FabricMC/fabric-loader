@@ -17,9 +17,7 @@
 package net.fabricmc.loader;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.EntrypointException;
 import net.fabricmc.loader.api.LanguageAdapter;
-import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -30,7 +28,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -319,7 +316,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				mod.instantiate();
 
 				for (String in : mod.getInfo().getOldInitializers()) {
-					String adapter = mod.getInfo().getDefaultLanguageAdapter();
+					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
 					entrypointStorage.addDeprecated(mod, adapter, in);
 				}
 

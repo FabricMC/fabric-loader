@@ -64,7 +64,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
-	public String getDefaultLanguageAdapter() {
+	public String getOldStyleLanguageAdapter() {
 		return languageAdapter;
 	}
 
