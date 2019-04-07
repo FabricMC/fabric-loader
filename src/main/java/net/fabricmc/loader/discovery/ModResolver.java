@@ -347,6 +347,8 @@ public class ModResolver {
 
 				try (InputStream stream = Files.newInputStream(modJson)) {
 					info = ModMetadataParser.getMods(loader, stream);
+				} catch (JsonSyntaxException e) {
+				    throw new RuntimeException("Mod file '" + url.getFile() + "' has an invalid fabric.mod.json file!", e);
 				} catch (NoSuchFileException e) {
 					info = new LoaderModMetadata[0];
 				}
