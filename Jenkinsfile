@@ -22,7 +22,7 @@ pipeline {
             branch 'master'
          }
          steps {
-            sh "./gradlew publish --refresh-dependencies --stacktrace"
+            sh "./gradlew publish --stacktrace"
          }
       }
    }
