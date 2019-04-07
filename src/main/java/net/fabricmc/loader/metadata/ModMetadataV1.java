@@ -409,9 +409,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 			@Override
 			public JarEntry deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 				JarEntry entry = new JarEntry();
-				if (json.isJsonPrimitive()) {
-					entry.file = json.getAsString();
-				} else if (json.isJsonObject()) {
+				if (json.isJsonObject()) {
 					JsonObject obj = json.getAsJsonObject();
 					if (!obj.has("file")) {
 						throw new JsonParseException("Missing mandatory key 'file' in JAR entry!");
@@ -473,6 +471,26 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	public static class EntrypointContainer {
 		private final Map<String, List<EntrypointMetadata>> metadataMap = new HashMap<>();
 
+		static class Metadata implements EntrypointMetadata {
+			private final String adapter;
+			private final String value;
+
+			Metadata(String adapter, String value) {
+				this.adapter = adapter;
+				this.value = value;
+			}
+
+			@Override
+			public String getAdapter() {
+				return adapter;
+			}
+
+			@Override
+			public String getValue() {
+				return value;
+			}
+		}
+
 		public static class Deserializer implements JsonDeserializer<EntrypointContainer> {
 			@Override
 			public EntrypointContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -484,33 +502,28 @@ public class ModMetadataV1 implements LoaderModMetadata {
 				EntrypointContainer ctr = new EntrypointContainer();
 
 				for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-					if (!entry.getValue().isJsonPrimitive()) {
-						throw new JsonParseException("Entrypoint values must be strings!");
+					String key = entry.getKey();
+					List<EntrypointMetadata> metadata = new ArrayList<>();
+
+					if (entry.getValue().isJsonArray()) {
+						for (JsonElement element : entry.getValue().getAsJsonArray()) {
+							if (!element.isJsonObject()) {
+								throw new JsonParseException("Entrypoint entry must be an object!");
+							}
+
+							JsonObject entObj = element.getAsJsonObject();
+							String adapter = entObj.has("adapter") ? entObj.get("adapter").getAsString() : "default";
+							String value = entObj.get("value").getAsString();
+
+							metadata.add(new Metadata(adapter, value));
+						}
+					} else {
+						throw new JsonParseException("Entrypoint list must be an array!");
 					}
 
-					String type = entry.getKey();
-					String adapter = "default";
-					String value = entry.getValue().getAsString();
-					if (type.indexOf(':') > 0) {
-						String[] t = type.split(":");
-						adapter = t[0];
-						type = t[1];
+					if (!metadata.isEmpty()) {
+						ctr.metadataMap.computeIfAbsent(key, (t) -> new ArrayList<>()).addAll(metadata);
 					}
-
-					final String _adapter = adapter;
-					final String _value = value;
-
-					ctr.metadataMap.computeIfAbsent(type, (t) -> new ArrayList<>()).add(new EntrypointMetadata() {
-						@Override
-						public String getAdapter() {
-							return _adapter;
-						}
-
-						@Override
-						public String getValue() {
-							return _value;
-						}
-					});
 				}
 
 				return ctr;
