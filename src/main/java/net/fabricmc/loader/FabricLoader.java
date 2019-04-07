@@ -25,6 +25,7 @@ import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -237,26 +238,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	protected void postprocessModMetadata() {
 		adapterMap.clear();
-		adapterMap.put("default", new LanguageAdapter() {
-			@Override
-			public <T> T create(net.fabricmc.loader.api.ModContainer mod, String value, Class<T> type) throws LanguageAdapterException {
-				if (value.contains("::")) {
-					throw new LanguageAdapterException("Field/method handles not yet supported!");
-				}
-
-				try {
-					Object o = Class.forName(value, true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getConstructor().newInstance();
-					if (type.isAssignableFrom(o.getClass())) {
-						//noinspection unchecked
-						return (T) o;
-					} else {
-						return null;
-					}
-				} catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-					throw new LanguageAdapterException(e);
-				}
-			}
-		});
+		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
 
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
