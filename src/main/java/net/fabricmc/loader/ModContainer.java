@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModContainer implements net.fabricmc.loader.api.ModContainer {
-	private static final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
-
 	private final LoaderModMetadata info;
 	private final URL originUrl;
 	private Path root;
@@ -86,15 +84,5 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 
 	public URL getOriginUrl() {
 		return originUrl;
-	}
-
-	static LanguageAdapter createDefaultAdapter(ModMetadata info, String adapterClass) {
-		return adapterMap.computeIfAbsent(adapterClass, (adapter) -> {
-			try {
-				return (LanguageAdapter) FabricLauncherBase.getClass(adapter).getDeclaredConstructor().newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException(String.format("Unable to create language adapter %s for mod %s", adapter, info.getId()), e);
-			}
-		});
 	}
 }

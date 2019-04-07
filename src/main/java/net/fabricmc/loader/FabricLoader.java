@@ -17,15 +17,19 @@
 package net.fabricmc.loader;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.EntrypointException;
+import net.fabricmc.loader.api.LanguageAdapter;
+import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.util.StringUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,8 +52,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
 
-	private final Map<String, String> adapterClassMap = new HashMap<>();
-	private final InstanceStorage instanceStorage = new InstanceStorage();
+	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
+	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
 
 	private boolean frozen = false;
 
@@ -57,11 +61,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private File gameDir;
 	private File configDir;
-
-	@Override
-	public <T> Collection<T> getInitializers(Class<T> type) {
-		return instanceStorage.getInitializers(type);
-	}
 
 	protected FabricLoader() {
 	}
@@ -181,6 +180,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	@Override
+	public <T> List<T> getEntrypoints(String key, Class<T> type) {
+		return entrypointStorage.getEntrypoints(key, type);
+	}
+
+	@Override
 	public Optional<net.fabricmc.loader.api.ModContainer> getModContainer(String id) {
 		return Optional.ofNullable(modMap.get(id));
 	}
@@ -232,6 +236,28 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	protected void postprocessModMetadata() {
+		adapterMap.clear();
+		adapterMap.put("default", new LanguageAdapter() {
+			@Override
+			public <T> T create(net.fabricmc.loader.api.ModContainer mod, String value, Class<T> type) throws LanguageAdapterException {
+				if (value.contains("::")) {
+					throw new LanguageAdapterException("Field/method handles not yet supported!");
+				}
+
+				try {
+					Object o = Class.forName(value, true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getConstructor().newInstance();
+					if (type.isAssignableFrom(o.getClass())) {
+						//noinspection unchecked
+						return (T) o;
+					} else {
+						return null;
+					}
+				} catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+					throw new LanguageAdapterException(e);
+				}
+			}
+		});
+
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
 				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") does not respect SemVer - comparison support is limited.");
@@ -241,11 +267,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 			// add language adapters
 			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
-				if (adapterClassMap.containsKey(laEntry.getKey())) {
-					throw new RuntimeException("Duplicate language adpater key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterClassMap.get(laEntry.getKey()) + ")");
+				if (adapterMap.containsKey(laEntry.getKey())) {
+					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
 				}
 
-				adapterClassMap.put(laEntry.getKey(), laEntry.getValue());
+				try {
+					adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getDeclaredConstructor().newInstance());
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
+				}
 			}
 		}
 	}
@@ -306,20 +336,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			try {
 				mod.instantiate();
 
-				for (String in : mod.getInfo().getInitializers()) {
-					String[] inClass = StringUtil.splitNamespaced(in, "");
-					String namespace = inClass[0];
+				for (String in : mod.getInfo().getOldInitializers()) {
+					String adapter = mod.getInfo().getDefaultLanguageAdapter();
+					entrypointStorage.addDeprecated(mod, adapter, in);
+				}
 
-					String adapter;
-					if (namespace.isEmpty()) {
-						adapter = mod.getInfo().getDefaultLanguageAdapter();
-					} else if (adapterClassMap.containsKey(namespace)) {
-						adapter = adapterClassMap.get(namespace);
-					} else {
-						throw new RuntimeException("Could not find language adapter '" + namespace + "'!");
+				for (String key : mod.getInfo().getEntrypointKeys()) {
+					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
+						entrypointStorage.add(mod, key, in, adapterMap);
 					}
-
-					instanceStorage.instantiate(inClass[1], ModContainer.createDefaultAdapter(mod.getInfo(), adapter));
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);

@@ -17,10 +17,7 @@
 package net.fabricmc.loader.metadata;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -29,11 +26,8 @@ import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 import org.apache.commons.lang3.reflect.TypeUtils;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +40,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 
 	// Optional (mod loading)
 	private Environment environment = Environment.UNIVERSAL;
-	private String[] initializers = new String[0];
+	private EntrypointContainer entrypoints = new EntrypointContainer();
 	private JarEntry[] jars = new JarEntry[0];
 	private MixinEntry[] mixins = new MixinEntry[0];
 
@@ -93,8 +87,19 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	@Override
-	public Collection<String> getInitializers() {
-		return Arrays.asList(initializers);
+	public Collection<String> getOldInitializers() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<EntrypointMetadata> getEntrypoints(String type) {
+		List<EntrypointMetadata> list = entrypoints.metadataMap.get(type);
+		return list != null ? list : Collections.emptyList();
+	}
+
+	@Override
+	public Collection<String> getEntrypointKeys() {
+		return entrypoints.metadataMap.keySet();
 	}
 
 	@Override
@@ -461,6 +466,54 @@ public class ModMetadataV1 implements LoaderModMetadata {
 				}
 
 				return entry;
+			}
+		}
+	}
+
+	public static class EntrypointContainer {
+		private final Map<String, List<EntrypointMetadata>> metadataMap = new HashMap<>();
+
+		public static class Deserializer implements JsonDeserializer<EntrypointContainer> {
+			@Override
+			public EntrypointContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				if (!json.isJsonObject()) {
+					throw new JsonParseException("Entrypoints must be an object!");
+				}
+
+				JsonObject obj = json.getAsJsonObject();
+				EntrypointContainer ctr = new EntrypointContainer();
+
+				for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
+					if (!entry.getValue().isJsonPrimitive()) {
+						throw new JsonParseException("Entrypoint values must be strings!");
+					}
+
+					String type = entry.getKey();
+					String adapter = "default";
+					String value = entry.getValue().getAsString();
+					if (type.indexOf(':') > 0) {
+						String[] t = type.split(":");
+						adapter = t[0];
+						type = t[1];
+					}
+
+					final String _adapter = adapter;
+					final String _value = value;
+
+					ctr.metadataMap.computeIfAbsent(type, (t) -> new ArrayList<>()).add(new EntrypointMetadata() {
+						@Override
+						public String getAdapter() {
+							return _adapter;
+						}
+
+						@Override
+						public String getValue() {
+							return _value;
+						}
+					});
+				}
+
+				return ctr;
 			}
 		}
 	}

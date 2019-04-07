@@ -17,8 +17,10 @@
 package net.fabricmc.loader.entrypoint.hooks;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.EntrypointException;
 
 import java.io.File;
 
@@ -29,7 +31,7 @@ public final class EntrypointClient {
 		}
 
 		FabricLoader.INSTANCE.instantiateMods(runDir, gameInstance);
-		FabricLoader.INSTANCE.getInitializers(ModInitializer.class).forEach(ModInitializer::onInitialize);
-		FabricLoader.INSTANCE.getInitializers(ClientModInitializer.class).forEach(ClientModInitializer::onInitializeClient);
+		FabricLoader.INSTANCE.getEntrypoints("main", ModInitializer.class).forEach(ModInitializer::onInitialize);
+		FabricLoader.INSTANCE.getEntrypoints("client", ClientModInitializer.class).forEach(ClientModInitializer::onInitializeClient);
 	}
 }

@@ -23,8 +23,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.util.version.VersionParsingException;
-import net.fabricmc.loader.util.version.VersionPredicateParser;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -81,7 +79,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
-	public Collection<String> getInitializers() {
+	public Collection<String> getOldInitializers() {
 		if (initializer != null) {
 			if (initializers != null) {
 				throw new RuntimeException("initializer and initializers should not be set at the same time! (mod ID '" + id + "')");
@@ -93,6 +91,16 @@ public class ModMetadataV0 implements LoaderModMetadata {
 		} else {
 			return Collections.emptyList();
 		}
+	}
+
+	@Override
+	public List<EntrypointMetadata> getEntrypoints(String type) {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public Collection<String> getEntrypointKeys() {
+		return Collections.emptyList();
 	}
 
 	@Override

@@ -18,10 +18,10 @@ package net.fabricmc.loader.metadata;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.language.JavaLanguageAdapter;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,7 +34,10 @@ public interface LoaderModMetadata extends ModMetadata {
 	}
 	Map<String, String> getLanguageAdapterDefinitions();
 	Collection<NestedJarEntry> getJars();
-	Collection<String> getInitializers();
 	Collection<String> getMixinConfigs(EnvType type);
 	boolean loadsInEnvironment(EnvType type);
+
+	Collection<String> getOldInitializers();
+	List<EntrypointMetadata> getEntrypoints(String type);
+	Collection<String> getEntrypointKeys();
 }

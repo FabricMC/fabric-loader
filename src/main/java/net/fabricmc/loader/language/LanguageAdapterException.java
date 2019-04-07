@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.language;
 
+@Deprecated
 public class LanguageAdapterException extends Exception {
 	public LanguageAdapterException(String s) {
 		super(s);

@@ -16,7 +16,7 @@
 
 package net.fabricmc.api;
 
-@Environment(EnvType.SERVER)
+@FunctionalInterface
 public interface DedicatedServerModInitializer {
 	void onInitializeServer();
 }

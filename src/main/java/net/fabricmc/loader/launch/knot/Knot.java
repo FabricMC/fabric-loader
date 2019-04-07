@@ -122,8 +122,6 @@ public final class Knot extends FabricLauncherBase {
 
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
-		MixinEnvironment.getDefaultEnvironment().setSide(envType == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
-
 		FabricLauncherBase.pretendMixinPhases();
 
 		try {

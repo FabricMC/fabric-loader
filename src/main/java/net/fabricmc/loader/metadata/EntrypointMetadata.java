@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.api;
+package net.fabricmc.loader.metadata;
 
-@FunctionalInterface
-public interface ClientModInitializer {
-	void onInitializeClient();
+public interface EntrypointMetadata {
+	String getAdapter();
+	String getValue();
 }

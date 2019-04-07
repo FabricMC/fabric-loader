@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package net.fabricmc.api;
+package net.fabricmc.loader.api;
 
-@FunctionalInterface
-public interface ClientModInitializer {
-	void onInitializeClient();
+public class EntrypointException extends RuntimeException {
+	public EntrypointException(Throwable t) {
+		super(t);
+	}
+
+	public EntrypointException(String s) {
+		super(s);
+	}
+
+	public EntrypointException(String s, Throwable t) {
+		super(s, t);
+	}
 }

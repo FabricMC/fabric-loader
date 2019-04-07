@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package net.fabricmc.api;
+package net.fabricmc.loader.api;
 
-@FunctionalInterface
-public interface ClientModInitializer {
-	void onInitializeClient();
+public class LanguageAdapterException extends Exception {
+	public LanguageAdapterException(String s) {
+		super(s);
+	}
+
+	public LanguageAdapterException(Throwable t) {
+		super(t);
+	}
+
+	public LanguageAdapterException(String s, Throwable t) {
+		super(s, t);
+	}
 }

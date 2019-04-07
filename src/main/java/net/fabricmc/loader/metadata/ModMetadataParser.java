@@ -35,6 +35,7 @@ public class ModMetadataParser {
 		.registerTypeAdapter(ModMetadataV1.Dependency.class, new ModMetadataV1.Dependency.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.DependencyContainer.class, new ModMetadataV1.DependencyContainer.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.MixinEntry.class, new ModMetadataV1.MixinEntry.Deserializer())
+		.registerTypeAdapter(ModMetadataV1.EntrypointContainer.class, new ModMetadataV1.EntrypointContainer.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.Environment.class, new ModMetadataV1.Environment.Deserializer())
 		.create();
 

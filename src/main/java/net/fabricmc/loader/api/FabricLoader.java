@@ -20,6 +20,7 @@ import net.fabricmc.api.EnvType;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -35,6 +36,8 @@ public interface FabricLoader {
 		return net.fabricmc.loader.FabricLoader.INSTANCE;
 	}
 
+	<T> List<T> getEntrypoints(String key, Class<T> type);
+
 	/**
 	 * Gets the container for a given mod.
 	 * @param id The ID of the mod.
@@ -47,20 +50,6 @@ public interface FabricLoader {
 	 * @return A collection of all loaded mod containers.
 	 */
 	Collection<ModContainer> getAllMods();
-
-	/**
-	 * Initializers are a way to inject the initial code which runs on the
-	 * start of the game loading process without requiring a patch by each
-	 * mod in question.
-	 *
-	 * This method returns all initialized objects for a specific class
-	 * type T - as such, it will ignore ones which don't match the current
-	 * context (client-only, etc).
-	 *
-	 * @param type The type of the initializer class being looked for.
-	 * @return The list of initialized objects for that specific class type.
-	 */
-	<T> Collection<T> getInitializers(Class<T> type);
 
 	/**
 	 * Checks if a mod with a given ID is loaded.
