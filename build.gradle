@@ -38,25 +38,25 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:19w05a"
-	mappings "net.fabricmc:yarn:19w05a.6"
+	minecraft "com.mojang:minecraft:19w14b"
+	mappings "net.fabricmc:yarn:19w14b.4"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:7.0'
-	compile 'org.ow2.asm:asm-analysis:7.0'
-	compile 'org.ow2.asm:asm-commons:7.0'
-	compile 'org.ow2.asm:asm-tree:7.0'
-	compile 'org.ow2.asm:asm-util:7.0'
+	compile 'org.ow2.asm:asm:7.1'
+	compile 'org.ow2.asm:asm-analysis:7.1'
+	compile 'org.ow2.asm:asm-commons:7.1'
+	compile 'org.ow2.asm:asm-tree:7.1'
+	compile 'org.ow2.asm:asm-util:7.1'
 
-	compile('net.fabricmc:sponge-mixin:0.7.11.16') {
+	compile('net.fabricmc:sponge-mixin:0.7.11.17') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-mappings-parser:0.1.0.6'
-	compile 'net.fabricmc:tiny-remapper:0.1.0.23'
+	compile 'net.fabricmc:tiny-mappings-parser:0.1.1.8'
+	compile 'net.fabricmc:tiny-remapper:0.1.0.29'
 
 	compile 'com.google.jimfs:jimfs:1.1'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
@@ -107,7 +107,7 @@ tasks.build.dependsOn "copyJson"
 tasks.build.dependsOn "copyJsonLw"
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '4.10.2'
+	gradleVersion = '4.10.3'
 }
 
 String getClasspathEntries(){

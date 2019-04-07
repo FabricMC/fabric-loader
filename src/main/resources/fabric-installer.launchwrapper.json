@@ -9,15 +9,15 @@
         "name": "net.minecraft:launchwrapper:1.12"
       },
       {
-        "name": "net.fabricmc:tiny-mappings-parser:0.1.0.6",
+        "name": "net.fabricmc:tiny-mappings-parser:0.1.1.8",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:sponge-mixin:0.7.11.16",
+        "name": "net.fabricmc:sponge-mixin:0.7.11.17",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:tiny-remapper:0.1.0.23",
+        "name": "net.fabricmc:tiny-remapper:0.1.0.29",
         "url": "https://maven.fabricmc.net/"
       },
       {
@@ -29,23 +29,23 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm:7.0",
+        "name": "org.ow2.asm:asm:7.1",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-analysis:7.0",
+        "name": "org.ow2.asm:asm-analysis:7.1",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-commons:7.0",
+        "name": "org.ow2.asm:asm-commons:7.1",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-tree:7.0",
+        "name": "org.ow2.asm:asm-tree:7.1",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-util:7.0",
+        "name": "org.ow2.asm:asm-util:7.1",
         "url": "https://maven.fabricmc.net/"
       }
     ],

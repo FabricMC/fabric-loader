@@ -68,7 +68,9 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 			if (mappingStream != null) {
 				try {
+					long time = System.currentTimeMillis();
 					mappings = MappingsProvider.readTinyMappings(mappingStream);
+					LOGGER.debug("Loading mappings took " + (System.currentTimeMillis() - time) + " ms");
 				} catch (IOException ee) {
 					ee.printStackTrace();
 				}
