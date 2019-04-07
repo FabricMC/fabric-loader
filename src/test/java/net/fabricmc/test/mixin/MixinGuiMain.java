@@ -31,8 +31,8 @@ public abstract class MixinGuiMain extends Screen {
 		super(textComponent_1);
 	}
 
-	@Inject(method = "draw(IIF)V", at = @At("RETURN"))
-	public void draw(int mouseX, int mouseY, float delta, CallbackInfo info) {
+	@Inject(method = "render(IIF)V", at = @At("RETURN"))
+	public void render(int mouseX, int mouseY, float delta, CallbackInfo info) {
 		this.font.draw("Fabric Test Mod", 2, this.height - 30, -1);
 	}
 

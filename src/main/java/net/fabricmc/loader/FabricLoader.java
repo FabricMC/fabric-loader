@@ -234,27 +234,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	protected void postprocessModMetadata() {
-		adapterMap.clear();
-		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
-
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
 				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") does not respect SemVer - comparison support is limited.");
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
 				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
-			}
-
-			// add language adapters
-			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
-				if (adapterMap.containsKey(laEntry.getKey())) {
-					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
-				}
-
-				try {
-					adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getDeclaredConstructor().newInstance());
-				} catch (Exception e) {
-					throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
-				}
 			}
 		}
 	}
@@ -309,6 +293,23 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 		} else {
 			setGameDir(newRunDir);
+		}
+
+		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
+		
+		for (ModContainer mod : mods) {
+			// add language adapters
+			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
+				if (adapterMap.containsKey(laEntry.getKey())) {
+					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
+				}
+
+				try {
+					adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getDeclaredConstructor().newInstance());
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
+				}
+			}
 		}
 
 		for (ModContainer mod : mods) {
