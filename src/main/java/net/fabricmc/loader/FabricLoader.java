@@ -296,7 +296,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
-		
+
 		for (ModContainer mod : mods) {
 			// add language adapters
 			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {

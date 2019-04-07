@@ -507,15 +507,15 @@ public class ModMetadataV1 implements LoaderModMetadata {
 
 					if (entry.getValue().isJsonArray()) {
 						for (JsonElement element : entry.getValue().getAsJsonArray()) {
-							if (!element.isJsonObject()) {
-								throw new JsonParseException("Entrypoint entry must be an object!");
+							if (element.isJsonObject()) {
+								JsonObject entObj = element.getAsJsonObject();
+								String adapter = entObj.has("adapter") ? entObj.get("adapter").getAsString() : "default";
+								String value = entObj.get("value").getAsString();
+
+								metadata.add(new Metadata(adapter, value));
+							} else {
+								metadata.add(new Metadata("default", element.getAsString()));
 							}
-
-							JsonObject entObj = element.getAsJsonObject();
-							String adapter = entObj.has("adapter") ? entObj.get("adapter").getAsString() : "default";
-							String value = entObj.get("value").getAsString();
-
-							metadata.add(new Metadata(adapter, value));
 						}
 					} else {
 						throw new JsonParseException("Entrypoint list must be an array!");
