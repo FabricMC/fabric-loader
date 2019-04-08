@@ -239,6 +239,23 @@ public class ModMetadataV1 implements LoaderModMetadata {
 
 					String id = entry.getKey();
 					ctr.matcherStrings.put(id, matcherStringList);
+
+					String depAsStr;
+					{
+						StringBuilder builder = new StringBuilder("{");
+						builder.append(id);
+						builder.append(" @ [");
+						for (int i = 0; i < matcherStringList.size(); i++) {
+							if (i > 0) {
+								builder.append(" && ");
+							}
+							builder.append(matcherStringList.get(i));
+						}
+						builder.append("]}");
+
+						depAsStr = builder.toString();
+					}
+
 					ctr.dependencies.add(new ModDependency() {
 						@Override
 						public String getModId() {
@@ -260,97 +277,15 @@ public class ModMetadataV1 implements LoaderModMetadata {
 
 							return true;
 						}
+
+						@Override
+						public String toString() {
+							return depAsStr;
+						}
 					});
 				}
 
 				return ctr;
-			}
-		}
-	}
-
-	public static class Dependency {
-		private String[] versionMatchers;
-		private Environment side;
-
-		public Dependency(String[] versionMatchers, Environment side) {
-			this.versionMatchers = versionMatchers;
-			this.side = side;
-		}
-
-		public String[] getVersionMatchers() {
-			return versionMatchers;
-		}
-
-		public Environment getSide() {
-			return side;
-		}
-
-		public boolean satisfiedBy(Version version) {
-			try {
-				for (String s : versionMatchers) {
-					if (!VersionPredicateParser.matches(version, s)) {
-						return false;
-					}
-				}
-
-				return true;
-			} catch (VersionParsingException e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-
-		@Override
-		public String toString() {
-			return "[" + Joiner.on(", ").join(versionMatchers) + "]";
-		}
-
-		public static class Deserializer implements JsonDeserializer<Dependency> {
-			private String[] deserializeVersionMatchers(JsonElement versionEl) {
-				String[] versionMatchers;
-
-				if (versionEl.isJsonPrimitive()) {
-					versionMatchers = new String[] { versionEl.getAsString() };
-				} else if (versionEl.isJsonArray()) {
-					JsonArray array = versionEl.getAsJsonArray();
-					versionMatchers = new String[array.size()];
-					for (int i = 0; i < array.size(); i++) {
-						versionMatchers[i] = array.get(i).getAsString();
-					}
-				} else {
-					throw new JsonParseException("Expected version to be a string or array");
-				}
-
-				return versionMatchers;
-			}
-
-			@Override
-			public Dependency deserialize(JsonElement element, Type resultType, JsonDeserializationContext context) throws JsonParseException {
-				if (element.isJsonObject()) {
-					JsonObject object = element.getAsJsonObject();
-
-					String[] versionMatchers;
-					Environment side = Environment.UNIVERSAL;
-
-					if (object.has("side")) {
-						JsonElement sideEl = object.get("side");
-						side = context.deserialize(sideEl, Environment.class);
-					}
-
-					if (object.has("version")) {
-						JsonElement versionEl = object.get("version");
-						versionMatchers = deserializeVersionMatchers(versionEl);
-					} else {
-						throw new JsonParseException("Missing version element");
-					}
-
-					return new Dependency(versionMatchers, side);
-				} else if (element.isJsonPrimitive() || element.isJsonArray()) {
-					String[] versionMatchers = deserializeVersionMatchers(element);
-					return new Dependency(versionMatchers, Environment.UNIVERSAL);
-				}
-
-				throw new JsonParseException("Expected dependency to be an object");
 			}
 		}
 	}

@@ -32,7 +32,6 @@ public class ModMetadataParser {
 		.registerTypeAdapter(ModMetadataV1.IconEntry.class, new ModMetadataV1.IconEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.LicenseEntry.class, new ModMetadataV1.LicenseEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.Person.class, new ModMetadataV1.Person.Deserializer())
-		.registerTypeAdapter(ModMetadataV1.Dependency.class, new ModMetadataV1.Dependency.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.DependencyContainer.class, new ModMetadataV1.DependencyContainer.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.MixinEntry.class, new ModMetadataV1.MixinEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.EntrypointContainer.class, new ModMetadataV1.EntrypointContainer.Deserializer())
