@@ -53,7 +53,7 @@ public class FabricServerLauncherStageTwo {
 	private static final JsonParser JSON_PARSER = new JsonParser();
 	private static final File LIBRARIES = new File(".fabric/libraries");
 	private static final String MAPPINGS_NAME = "net.fabricmc:yarn";
-	private static final String MAPPINGS_MAVEN_META = "https://maven.modmuss50.me/net/fabricmc/yarn/maven-metadata.xml";
+	private static final String MAPPINGS_MAVEN_META = "https://maven.fabricmc.net/net/fabricmc/yarn/maven-metadata.xml";
 
 	// The default main class, fabric-installer.json can override this
 	private static List<URL> libraries = new ArrayList<>();
@@ -160,7 +160,7 @@ public class FabricServerLauncherStageTwo {
 		}
 
 		if (mappingsName != null) {
-			setupLibrary(new Library(mappingsName, "https://maven.modmuss50.me/"));
+			setupLibrary(new Library(mappingsName, "https://maven.fabricmc.net/"));
 		}
 	}
 
@@ -171,7 +171,7 @@ public class FabricServerLauncherStageTwo {
 		while (reader.hasNext()) {
 			if (reader.next() == XMLStreamConstants.START_ELEMENT && reader.getLocalName().equals("version")) {
 				String text = reader.getElementText();
-				if (text.startsWith(mcVersion + ".")) {
+				if (text.startsWith(mcVersion + ".") || text.startsWith(mcVersion + "+build.")) {
 					versions.add(text);
 				}
 			}
