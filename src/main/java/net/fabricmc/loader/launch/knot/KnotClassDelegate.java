@@ -17,7 +17,9 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
@@ -28,14 +30,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSigner;
 import java.security.CodeSource;
+import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 class KnotClassDelegate {
@@ -92,32 +98,44 @@ class KnotClassDelegate {
 				return metadataCache.computeIfAbsent(codeSourceURL, (fCodeSourceURL) -> {
 					Manifest manifest = null;
 					CodeSource codeSource = null;
+					Certificate[] certificates = null;
 
 					try {
 						Path path = UrlUtil.asPath(fCodeSourceURL);
 
 						if (Files.isRegularFile(path)) {
-							try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
-								Path manifestPath = jarFs.get().getPath("META-INF/MANIFEST.MF");
-								if (Files.exists(manifestPath)) {
-									try (InputStream stream = Files.newInputStream(manifestPath)) {
-										manifest = new Manifest(stream);
+							URLConnection connection = new URL("jar:" + fCodeSourceURL + "!/").openConnection();
+							if (connection instanceof JarURLConnection) {
+								manifest = ((JarURLConnection) connection).getManifest();
+								certificates = ((JarURLConnection) connection).getCertificates();
+							}
 
-										// TODO
-										/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
-										if (codeEntry != null) {
-											codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
-										} */
+							if (manifest == null) {
+								try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
+									Path manifestPath = jarFs.get().getPath("META-INF/MANIFEST.MF");
+									if (Files.exists(manifestPath)) {
+										try (InputStream stream = Files.newInputStream(manifestPath)) {
+											manifest = new Manifest(stream);
+
+											// TODO
+											/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
+											if (codeEntry != null) {
+												codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
+											} */
+										}
 									}
 								}
 							}
 						}
 					} catch (IOException | FileSystemNotFoundException | UrlConversionException e) {
-						// pass
+						if (FabricLauncherBase.getLauncher().isDevelopment()) {
+							System.err.println("Failed to load manifest: " + e);
+							e.printStackTrace();
+						}
 					}
 
 					if (codeSource == null) {
-						codeSource = new CodeSource(fCodeSourceURL, (CodeSigner[]) null);
+						codeSource = new CodeSource(fCodeSourceURL, certificates);
 					}
 
 					return new Metadata(manifest, codeSource);
