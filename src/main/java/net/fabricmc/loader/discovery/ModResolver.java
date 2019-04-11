@@ -168,7 +168,7 @@ public class ModResolver {
 					// \> ((not mod OR a OR b) AND (not mod OR d OR e))
 
 					for (ModDependency dep : mod.getInfo().getDepends()) {
-						int[] matchingCandidates = modCandidateMap.get(dep.getModId())
+						int[] matchingCandidates = modCandidateMap.getOrDefault(dep.getModId(), Collections.emptyList())
 							.stream()
 							.filter((c) -> dep.matches(c.getInfo().getVersion()))
 							.mapToInt(candidateIntMap::get)
@@ -191,7 +191,7 @@ public class ModResolver {
 					// \> (not mod OR not a) AND (not mod OR not b) ...
 
 					for (ModDependency dep : mod.getInfo().getBreaks()) {
-						int[] matchingCandidates = modCandidateMap.get(dep.getModId())
+						int[] matchingCandidates = modCandidateMap.getOrDefault(dep.getModId(), Collections.emptyList())
 							.stream()
 							.filter((c) -> dep.matches(c.getInfo().getVersion()))
 							.mapToInt(candidateIntMap::get)
