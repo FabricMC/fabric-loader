@@ -49,6 +49,12 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
+	public String getTargetNamespace() {
+		// TODO: Won't work outside of Yarn
+		return isDevelopment ? "named" : "intermediary";
+	}
+
+	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
 		arguments.parse(localArgs);
 

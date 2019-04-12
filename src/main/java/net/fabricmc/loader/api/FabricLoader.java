@@ -25,6 +25,7 @@ import java.util.Optional;
 
 /**
  * The public-facing FabricLoader instance.
+ * @since 0.4.0
  */
 public interface FabricLoader {
 	@SuppressWarnings("deprecation")
@@ -37,6 +38,13 @@ public interface FabricLoader {
 	}
 
 	<T> List<T> getEntrypoints(String key, Class<T> type);
+
+	/**
+	 * Get the current mapping resolver.
+	 * @return The current mapping resolver instance.
+	 * @since 0.4.1
+	 */
+	MappingResolver getMappingResolver();
 
 	/**
 	 * Gets the container for a given mod.
@@ -74,7 +82,7 @@ public interface FabricLoader {
 	EnvType getEnvironmentType();
 
 	/**
-	 * Get the current game instance. Can represent a Minecraft client or
+	 * Get the current game instance. Can represent a game client or
 	 * server object. As such, the exact return is dependent on the
 	 * current environment type.
 	 * @return A client or server instance object.

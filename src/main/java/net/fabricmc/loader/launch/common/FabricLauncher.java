@@ -44,4 +44,6 @@ public interface FabricLauncher {
 	boolean isDevelopment();
 
 	String getEntrypoint();
+
+	String getTargetNamespace();
 }

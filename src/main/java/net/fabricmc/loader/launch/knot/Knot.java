@@ -133,6 +133,12 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
+	@Override
+	public String getTargetNamespace() {
+		// TODO: Won't work outside of Yarn
+		return isDevelopment ? "named" : "intermediary";
+	}
+
 	private int findEntrypoint(List<String> entrypointClasses, List<String> entrypointFilenames, File file) {
 		for (int i = 0; i < entrypointClasses.size(); i++) {
 			String entryPointFilename = entrypointFilenames.get(i);
