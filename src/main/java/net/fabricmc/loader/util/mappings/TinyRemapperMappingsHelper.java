@@ -18,22 +18,11 @@ package net.fabricmc.loader.util.mappings;
 
 import net.fabricmc.mappings.*;
 import net.fabricmc.tinyremapper.IMappingProvider;
+import net.fabricmc.tinyremapper.MemberInstance;
 
 public class TinyRemapperMappingsHelper {
 	private TinyRemapperMappingsHelper() {
 
-	}
-
-	private static String entryToValueString(EntryTriple triple) {
-		return triple.getOwner() + "/" + triple.getName();
-	}
-
-	private static String fieldToString(EntryTriple triple) {
-		return triple.getOwner() + "/" + triple.getName() + ";;" + triple.getDesc();
-	}
-
-	private static String methodToString(EntryTriple triple) {
-		return triple.getOwner() + "/" + triple.getName() + triple.getDesc();
 	}
 
 	public static IMappingProvider create(Mappings mappings, String from, String to) {
@@ -43,11 +32,13 @@ public class TinyRemapperMappingsHelper {
 			}
 
 			for (FieldEntry entry : mappings.getFieldEntries()) {
-				fieldMap.put(fieldToString(entry.get(from)), entryToValueString(entry.get(to)));
+				EntryTriple fromTriple = entry.get(from);
+				fieldMap.put(fromTriple.getOwner() + "/" + MemberInstance.getFieldId(fromTriple.getName(), fromTriple.getDesc()), entry.get(to).getName());
 			}
 
 			for (MethodEntry entry : mappings.getMethodEntries()) {
-				methodMap.put(methodToString(entry.get(from)), entryToValueString(entry.get(to)));
+				EntryTriple fromTriple = entry.get(from);
+				methodMap.put(fromTriple.getOwner() + "/" + MemberInstance.getMethodId(fromTriple.getName(), fromTriple.getDesc()), entry.get(to).getName());
 			}
 		};
 	}
