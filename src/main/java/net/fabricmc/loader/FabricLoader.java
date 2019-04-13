@@ -189,7 +189,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
 			mappingResolver = new FabricMappingResolver(
-				FabricLauncherBase.getLauncher()::getMappings,
+				FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings,
 				FabricLauncherBase.getLauncher().getTargetNamespace()
 			);
 		}
