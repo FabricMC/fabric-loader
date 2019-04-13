@@ -44,7 +44,7 @@ class FabricMappingResolver implements MappingResolver {
 	protected final NamespaceData getNamespaceData(String namespace) {
 		return namespaceDataMap.computeIfAbsent(namespace, (ns) -> {
 			if (!namespaces.contains(namespace)) {
-				throw new RuntimeException("Unknown namespace: " + namespace);
+				throw new IllegalArgumentException("Unknown namespace: " + namespace);
 			}
 
 			NamespaceData data = new NamespaceData();
@@ -80,7 +80,7 @@ class FabricMappingResolver implements MappingResolver {
 	@Override
 	public String mapClassName(String namespace, String className) {
 		if (className.indexOf('/') >= 0) {
-			throw new RuntimeException("Class names must be provided in dot format: " + className);
+			throw new IllegalArgumentException("Class names must be provided in dot format: " + className);
 		}
 
 		return getNamespaceData(namespace).classNames.getOrDefault(className, className);
@@ -89,7 +89,7 @@ class FabricMappingResolver implements MappingResolver {
 	@Override
 	public String unmapClassName(String namespace, String className) {
 		if (className.indexOf('/') >= 0) {
-			throw new RuntimeException("Class names must be provided in dot format: " + className);
+			throw new IllegalArgumentException("Class names must be provided in dot format: " + className);
 		}
 
 		return getNamespaceData(namespace).classNamesInverse.getOrDefault(className, className);
@@ -98,7 +98,7 @@ class FabricMappingResolver implements MappingResolver {
 	@Override
 	public String mapFieldName(String namespace, String owner, String name, String descriptor) {
 		if (owner.indexOf('/') >= 0) {
-			throw new RuntimeException("Class names must be provided in dot format: " + owner);
+			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
 		}
 
 		return getNamespaceData(namespace).fieldNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
@@ -107,7 +107,7 @@ class FabricMappingResolver implements MappingResolver {
 	@Override
 	public String mapMethodName(String namespace, String owner, String name, String descriptor) {
 		if (owner.indexOf('/') >= 0) {
-			throw new RuntimeException("Class names must be provided in dot format: " + owner);
+			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
 		}
 
 		return getNamespaceData(namespace).methodNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
