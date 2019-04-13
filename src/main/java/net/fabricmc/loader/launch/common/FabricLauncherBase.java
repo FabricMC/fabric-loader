@@ -110,9 +110,15 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 				}
 
 				File deobfJarFile = new File(deobfJarDir, jarFile.getName());
+				File deobfJarFileTmp = new File(deobfJarDir, jarFile.getName() + ".tmp");
 
 				Path jarPath = jarFile.toPath();
 				Path deobfJarPath = deobfJarFile.toPath();
+
+				if (deobfJarFileTmp.exists()) {
+					LOGGER.warn("Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
+					deobfJarFileTmp.delete();
+				}
 
 				if (!deobfJarFile.exists()) {
 					boolean found = false;
@@ -123,8 +129,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 							.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", "intermediary"))
 							.rebuildSourceFilenames(true)
 							.build();
+
 						Set<Path> depPaths = new HashSet<>();
-						depPaths.add(jarPath);
 
 						for (URL url : launcher.getClasspathURLs()) {
 							try {
@@ -144,9 +150,10 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 						try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
 							for (Path path : depPaths) {
 								LOGGER.debug("Appending '" + path + "' to remapper classpath");
-								remapper.read(path);
+								remapper.readClassPath(path);
 							}
-							remapper.apply(jarPath, outputConsumer);
+							remapper.readInputs(jarPath);
+							remapper.apply(outputConsumer);
 						} catch (IOException e) {
 							throw new RuntimeException(e);
 						} finally {
@@ -171,14 +178,20 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 							}
 						}
 
+						deobfJarFileTmp.renameTo(deobfJarFile);
+
 						JarFile jar = new JarFile(deobfJarFile);
 						if (jar.stream().noneMatch((e) -> e.getName().endsWith(".class"))) {
 							LOGGER.error("Generated deobfuscated JAR contains no classes! Trying again...");
-							Files.delete(deobfJarPath);
+							deobfJarFile.delete();
 						} else {
 							found = true;
 						}
 					}
+				}
+
+				if (!deobfJarFile.exists()) {
+					throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
 				}
 
 				launcher.propose(UrlUtil.asUrl(deobfJarFile));
