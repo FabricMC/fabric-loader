@@ -149,7 +149,7 @@ public final class Knot extends FabricLauncherBase {
 					URL url = manifests.nextElement();
 					URL sourceUrl = UrlUtil.getSource("META-INF/MANIFEST.MF", url);
 					if (sourceUrl != null && sourceUrl.getProtocol().equals("file")) {
-						list.add(sourceUrl.getFile());
+						list.add(UrlUtil.asFile(sourceUrl).getAbsolutePath());
 					}
 				} catch (UrlConversionException e) {
 					// pass
