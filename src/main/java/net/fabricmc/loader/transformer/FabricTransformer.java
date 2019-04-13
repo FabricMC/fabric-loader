@@ -41,8 +41,9 @@ public final class FabricTransformer {
 
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
-		boolean transformAccess = isDevelopment && isMinecraftClass;
+		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
+
 		if (!transformAccess && !environmentStrip) {
 			return bytes;
 		}
