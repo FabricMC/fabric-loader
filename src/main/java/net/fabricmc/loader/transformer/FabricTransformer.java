@@ -41,8 +41,9 @@ public final class FabricTransformer {
 
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
-		boolean transformAccess = isDevelopment && isMinecraftClass;
+		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
+
 		if (!transformAccess && !environmentStrip) {
 			return bytes;
 		}
@@ -50,9 +51,13 @@ public final class FabricTransformer {
 		ClassReader classReader = new ClassReader(bytes);
 		ClassWriter classWriter = new ClassWriter(0);
 		ClassVisitor visitor = classWriter;
+		int visitorCount = 0;
+
 		if (transformAccess) {
 			visitor = new PackageAccessFixer(Opcodes.ASM7, visitor);
+			visitorCount++;
 		}
+
 		//noinspection ConstantConditions
 		if (environmentStrip) {
 			EnvironmentStrippingData stripData = new EnvironmentStrippingData(Opcodes.ASM7, envType.toString());
@@ -62,8 +67,14 @@ public final class FabricTransformer {
 			}
 			if (!stripData.isEmpty()) {
 				visitor = new ClassStripper(Opcodes.ASM7, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
+				visitorCount++;
 			}
 		}
+
+		if (visitorCount <= 0) {
+			return bytes;
+		}
+
 		classReader.accept(visitor, 0);
 		return classWriter.toByteArray();
 	}

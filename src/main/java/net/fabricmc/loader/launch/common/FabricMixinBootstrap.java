@@ -58,12 +58,14 @@ public final class FabricMixinBootstrap {
 		}
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
-			Mappings mappings = FabricLauncherBase.getLauncher().getMappings();
-			if (mappings != null && mappings.getNamespaces().contains("intermediary") && mappings.getNamespaces().contains("named")) {
+			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
+			Mappings mappings = mappingConfiguration.getMappings();
+
+			if (mappings != null && mappings.getNamespaces().contains("intermediary") && mappings.getNamespaces().contains(mappingConfiguration.getTargetNamespace())) {
 				System.setProperty("mixin.env.remapRefMap", "true");
 
 				try {
-					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", "named");
+					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 					LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
 				} catch (Exception e) {

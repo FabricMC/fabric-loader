@@ -25,7 +25,7 @@ import java.net.URL;
 import java.util.Collection;
 
 public interface FabricLauncher {
-	Mappings getMappings();
+	MappingConfiguration getMappingConfiguration();
 
 	void propose(URL url);
 
