@@ -16,10 +16,8 @@
 
 package net.fabricmc.loader.util.mappings;
 
-import javafx.beans.binding.StringBinding;
 import net.fabricmc.mappings.*;
 import net.fabricmc.mappings.helpers.mixin.MixinMappingsRemapper;
-import org.spongepowered.asm.mixin.injection.struct.MemberInfo;
 import org.spongepowered.asm.mixin.transformer.ClassInfo;
 
 import java.util.*;
