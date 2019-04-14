@@ -369,10 +369,7 @@ public class ModResolver {
 						loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
 					}
 
-					synchronized (candidatesById) {
-						ModCandidateSet candidateSet = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new);
-						added = candidateSet.add(candidate);
-					}
+					added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
 
 					if (!added) {
 						loader.getLogger().debug(candidate.getOriginUrl() + " already present as " + candidate);
@@ -430,7 +427,7 @@ public class ModResolver {
 	}
 
 	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
-		Map<String, ModCandidateSet> candidatesById = new HashMap<>();
+		Map<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
 
