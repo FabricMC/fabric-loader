@@ -28,6 +28,7 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.ModMetadataV0;
+import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -69,9 +70,9 @@ public class ModResolver {
 			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
 			.build()
 	);
-	private static final Map<URL, List<Path>> inMemoryCache = new HashMap<>();
-
+	private static final Map<URL, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
+	private static final Object launcherSyncObject = new Object();
 
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
 
@@ -334,7 +335,9 @@ public class ModResolver {
 
 					if (loader.isDevelopmentEnvironment() && !Files.exists(modJson)) {
 						loader.getLogger().warn("Adding directory " + path + " to mod classpath in development environment - workaround for Gradle splitting mods into two directories");
-						FabricLauncherBase.getLauncher().propose(url);
+						synchronized (launcherSyncObject) {
+							FabricLauncherBase.getLauncher().propose(url);
+						}
 					}
 				} else {
 					// JAR file
@@ -378,10 +381,10 @@ public class ModResolver {
 
 						List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
 							loader.getLogger().debug("Searching for nested JARs in " + candidate);
-							List<Path> list = new ArrayList<>();
+							Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
+							List<Path> list = new ArrayList<>(jars.size());
 
-							candidate.getInfo().getJars()
-								.stream()
+							jars.stream()
 								.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
 								.forEach((modPath) -> {
 									if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
