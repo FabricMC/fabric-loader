@@ -69,7 +69,7 @@ public class ModResolver {
 			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
 			.build()
 	);
-	private static final Map<URL, List<Path>> inMemoryCache = new HashMap<>();
+	private static final Map<URL, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
 
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 
