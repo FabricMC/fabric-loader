@@ -29,8 +29,6 @@ public interface FabricLauncher {
 
 	void propose(URL url);
 
-	Collection<URL> getClasspathURLs();
-
 	EnvType getEnvironmentType();
 
 	boolean isClassLoaded(String name);
@@ -46,4 +44,6 @@ public interface FabricLauncher {
 	String getEntrypoint();
 
 	String getTargetNamespace();
+
+	Collection<URL> getLoadTimeDependencies();
 }

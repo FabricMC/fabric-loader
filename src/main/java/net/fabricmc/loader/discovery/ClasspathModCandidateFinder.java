@@ -22,7 +22,11 @@ import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -32,21 +36,26 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 		Stream<URL> urls;
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
-			String javaHome = new File(System.getProperty("java.home")).getAbsolutePath();
-			String modsDir = loader.getModsDirectory().getAbsolutePath();
-			urls = FabricLauncherBase.getLauncher().getClasspathURLs().stream()
-				.filter((url) -> {
+			try {
+				Enumeration<URL> mods = FabricLauncherBase.getLauncher().getTargetClassLoader().getResources("fabric.mod.json");
+				List<URL> modsList = new ArrayList<>();
+				while (mods.hasMoreElements()) {
 					try {
-						String absPath = UrlUtil.asFile(url).getAbsolutePath();
-						return !absPath.startsWith(javaHome) && !absPath.startsWith(modsDir);
+						modsList.add(UrlUtil.getSource("fabric.mod.json", mods.nextElement()));
 					} catch (UrlConversionException e) {
-						return true;
+						loader.getLogger().debug(e);
 					}
-				});
+				}
+
+				urls = modsList.stream();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		} else {
 			try {
 				urls = Stream.of(FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation());
 			} catch (Throwable t) {
+				loader.getLogger().debug("Could not fallback to itself for mod candidate lookup!", t);
 				urls = Stream.empty();
 			}
 		}
