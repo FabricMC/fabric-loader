@@ -91,7 +91,8 @@ public final class Knot extends FabricLauncherBase {
 			proposedEntrypoint != null ? Collections.singletonList(proposedEntrypoint)
 			: (envType == EnvType.CLIENT
 			? Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet")
-			: Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer")));
+			: Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer")),
+			Lists.newArrayList("realmsVersion"));
 
 		// Locate entrypoints before switching class loaders
 		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
@@ -175,7 +176,7 @@ public final class Knot extends FabricLauncherBase {
 		return -1;
 	}
 
-	private void prepareGameJar(Arguments argMap, List<String> entrypointClasses) {
+	private void prepareGameJar(Arguments argMap, List<String> entrypointClasses, List<String> filenamesToDetectGameEnvJars) {
 		List<String> entrypointFilenames = entrypointClasses.stream()
 			.map((ep) -> ep.replace('.', '/') + ".class")
 			.collect(Collectors.toList());
@@ -206,6 +207,23 @@ public final class Knot extends FabricLauncherBase {
 						LOGGER.debug(e);
 					}
 				}
+			}
+		}
+
+		for (String s : filenamesToDetectGameEnvJars) {
+			try {
+				Enumeration<URL> urls = parentClassLoader.getResources(s);
+				while (urls.hasMoreElements()) {
+					try {
+						URL url = UrlUtil.getSource(s, urls.nextElement());
+						LOGGER.debug("Detected game-environment-requiring JAR " + url);
+						propose(url);
+					} catch (UrlConversionException e) {
+						LOGGER.debug(e);
+					}
+				}
+			} catch (IOException e) {
+				// pass
 			}
 		}
 
