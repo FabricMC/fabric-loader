@@ -152,30 +152,6 @@ public final class Knot extends FabricLauncherBase {
 		}).filter(Objects::nonNull).collect(Collectors.toSet());
 	}
 
-	private int findEntrypoint(List<String> entrypointClasses, List<String> entrypointFilenames, File file) {
-		for (int i = 0; i < entrypointClasses.size(); i++) {
-			String entryPointFilename = entrypointFilenames.get(i);
-
-			if (file.isDirectory()) {
-				if (new File(file, entryPointFilename).exists()) {
-					return i;
-				}
-			} else if (file.isFile()) {
-				try {
-					JarFile jf = new JarFile(file);
-					ZipEntry entry = jf.getEntry(entryPointFilename);
-					if (entry != null) {
-						return i;
-					}
-				} catch (IOException e) {
-					// pass
-				}
-			}
-		}
-
-		return -1;
-	}
-
 	private void prepareGameJar(Arguments argMap, List<String> entrypointClasses, List<String> filenamesToDetectGameEnvJars) {
 		List<String> entrypointFilenames = entrypointClasses.stream()
 			.map((ep) -> ep.replace('.', '/') + ".class")

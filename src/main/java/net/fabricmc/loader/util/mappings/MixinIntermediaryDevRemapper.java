@@ -122,7 +122,7 @@ public class MixinIntermediaryDevRemapper extends MixinMappingsRemapper {
 			}
 		}
 
-		LinkedList<ClassInfo> classInfos = new LinkedList<ClassInfo>();
+		LinkedList<ClassInfo> classInfos = new LinkedList<>();
 		classInfos.add(ClassInfo.forName(owner));
 
 		while (!classInfos.isEmpty()) {
