@@ -65,7 +65,9 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public URL[] getClassPath() {
-		return FabricLauncherBase.getLauncher().getClasspathURLs().toArray(new URL[0]);
+		// Mixin 0.7.x only uses getClassPath() to find itself; we implement CodeSource correctly,
+		// so this is unnecessary.
+		return new URL[0];
 	}
 
 	@Override

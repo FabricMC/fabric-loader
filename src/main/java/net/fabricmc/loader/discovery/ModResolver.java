@@ -308,7 +308,7 @@ public class ModResolver {
 		private final URL url;
 		private final int depth;
 
-		public UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
+		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
 			this.loader = loader;
 			this.candidatesById = candidatesById;
 			this.url = url;

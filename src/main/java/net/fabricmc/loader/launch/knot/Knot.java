@@ -26,7 +26,6 @@ import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.Arguments;
 import org.spongepowered.asm.launch.MixinBootstrap;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +45,6 @@ public final class Knot extends FabricLauncherBase {
 	private EnvType envType;
 	private String entryPoint;
 	private File gameJarFile;
-	private List<URL> classpath;
 
 	protected Knot(EnvType type, File gameJarFile) {
 		this.envType = type;
@@ -88,24 +86,13 @@ public final class Knot extends FabricLauncherBase {
 		boolean useCompatibility = Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
 		loader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType) : new KnotClassLoader(isDevelopment(), envType);
 
-		String[] classpathStringsIn = findClasspathCandidates();
-		List<String> classpathStrings = new ArrayList<>(classpathStringsIn.length);
-
-		for (String s : classpathStringsIn) {
-			if (s.equals("*") || s.endsWith(File.separator + "*")) {
-				System.err.println("WARNING: Knot does not support wildcard classpath entries: " + s + " - the game may not load properly!");
-			} else {
-				classpathStrings.add(s);
-			}
-		}
-
-		classpath = new ArrayList<>(classpathStrings.size() - 1);
-		populateClasspath(arguments, classpathStrings,
+		prepareGameJar(arguments,
 			/* order by most to least important */
 			proposedEntrypoint != null ? Collections.singletonList(proposedEntrypoint)
 			: (envType == EnvType.CLIENT
 			? Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet")
-			: Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer")));
+			: Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer")),
+			Lists.newArrayList("realmsVersion"));
 
 		// Locate entrypoints before switching class loaders
 		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
@@ -133,109 +120,86 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
-	private String[] findClasspathCandidates() {
-		Set<String> list = new HashSet<>();
-
-		// TODO: Is this still necessary?
-		String cmdLineClasspath = System.getProperty("java.class.path");
-		if (cmdLineClasspath != null) {
-			list.addAll(Arrays.asList(cmdLineClasspath.split(File.pathSeparator)));
-		}
-
-		try {
-			Enumeration<URL> manifests = this.getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
-			while (manifests.hasMoreElements()) {
-				try {
-					URL url = manifests.nextElement();
-					URL sourceUrl = UrlUtil.getSource("META-INF/MANIFEST.MF", url);
-					if (sourceUrl != null && sourceUrl.getProtocol().equals("file")) {
-						list.add(UrlUtil.asFile(sourceUrl).getAbsolutePath());
-					}
-				} catch (UrlConversionException e) {
-					// pass
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return list.toArray(new String[0]);
-	}
-
 	@Override
 	public String getTargetNamespace() {
 		// TODO: Won't work outside of Yarn
 		return isDevelopment ? "named" : "intermediary";
 	}
 
-	private int findEntrypoint(List<String> entrypointClasses, List<String> entrypointFilenames, File file) {
-		for (int i = 0; i < entrypointClasses.size(); i++) {
-			String entryPointFilename = entrypointFilenames.get(i);
+	@Override
+	public Collection<URL> getLoadTimeDependencies() {
+		String cmdLineClasspath = System.getProperty("java.class.path");
 
-			if (file.isDirectory()) {
-				if (new File(file, entryPointFilename).exists()) {
-					return i;
-				}
-			} else if (file.isFile()) {
+		return Arrays.stream(cmdLineClasspath.split(File.pathSeparator)).filter((s) -> {
+			if (s.equals("*") || s.endsWith(File.separator + "*")) {
+				System.err.println("WARNING: Knot does not support wildcard classpath entries: " + s + " - the game may not load properly!");
+				return false;
+			} else {
+				return true;
+			}
+		}).map((s) -> {
+			File file = new File(s);
+			if (!file.equals(gameJarFile)) {
 				try {
-					JarFile jf = new JarFile(file);
-					ZipEntry entry = jf.getEntry(entryPointFilename);
-					if (entry != null) {
-						return i;
+					return (UrlUtil.asUrl(file));
+				} catch (UrlConversionException e) {
+					LOGGER.debug(e);
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}).filter(Objects::nonNull).collect(Collectors.toSet());
+	}
+
+	private void prepareGameJar(Arguments argMap, List<String> entrypointClasses, List<String> filenamesToDetectGameEnvJars) {
+		List<String> entrypointFilenames = entrypointClasses.stream()
+			.map((ep) -> ep.replace('.', '/') + ".class")
+			.collect(Collectors.toList());
+
+		File gameFile = this.gameJarFile;
+		ClassLoader parentClassLoader = Knot.class.getClassLoader();
+
+		if (gameFile == null || entryPoint == null) {
+			for (int i = 0; i < entrypointFilenames.size(); i++) {
+				String className = entrypointClasses.get(i);
+				String classFilename = entrypointFilenames.get(i);
+				URL url;
+
+				if ((url = parentClassLoader.getResource(classFilename)) != null) {
+					try {
+						URL urlSource = UrlUtil.getSource(classFilename, url);
+						File classSourceFile = UrlUtil.asFile(urlSource);
+
+						if (gameFile != null && !gameFile.equals(classSourceFile)) {
+							throw new RuntimeException("Found duplicate game instances: [" + gameFile + ", " + classSourceFile + "]");
+						}
+
+						LOGGER.debug("Found proposed entrypoint: " + className + " @ " + classSourceFile.getAbsolutePath());
+
+						entryPoint = className;
+						gameFile = classSourceFile;
+					} catch (UrlConversionException e) {
+						LOGGER.debug(e);
 					}
-				} catch (IOException e) {
-					// pass
 				}
 			}
 		}
 
-		return -1;
-	}
-
-	private void populateClasspath(Arguments argMap, Collection<String> classpathStrings, List<String> entrypointClasses) {
-		List<String> entrypointFilenames = entrypointClasses.stream()
-			.map((ep) -> ep.replace('.', '/') + ".class")
-			.collect(Collectors.toList());
-		File gameFile = this.gameJarFile;
-
-		if (gameFile == null) {
-			for (String filename : classpathStrings) {
-				File file = new File(filename);
-				int i = findEntrypoint(entrypointClasses, entrypointFilenames, file);
-
-				if (i >= 0) {
-					if (gameFile != null && !gameFile.equals(file)) {
-						throw new RuntimeException("Found duplicate game instances: [" + gameFile + ", " + file + "]");
-					}
-
-					entryPoint = entrypointClasses.get(i);
-					gameFile = file;
-				} else {
+		for (String s : filenamesToDetectGameEnvJars) {
+			try {
+				Enumeration<URL> urls = parentClassLoader.getResources(s);
+				while (urls.hasMoreElements()) {
 					try {
-						classpath.add(UrlUtil.asUrl(file));
+						URL url = UrlUtil.getSource(s, urls.nextElement());
+						LOGGER.debug("Detected game-environment-requiring JAR " + url);
+						propose(url);
 					} catch (UrlConversionException e) {
-						e.printStackTrace();
+						LOGGER.debug(e);
 					}
 				}
-			}
-		} else {
-			for (String filename : classpathStrings) {
-				File file = new File(filename);
-				if (!file.equals(gameFile)) {
-					try {
-						classpath.add(UrlUtil.asUrl(file));
-					} catch (UrlConversionException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-
-			int i = findEntrypoint(entrypointClasses, entrypointFilenames, gameFile);
-
-			if (i >= 0) {
-				entryPoint = entrypointClasses.get(i);
+			} catch (IOException e) {
+				// pass
 			}
 		}
 
@@ -253,11 +217,6 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public void propose(URL url) {
 		loader.addURL(url);
-	}
-
-	@Override
-	public Collection<URL> getClasspathURLs() {
-		return Collections.unmodifiableList(classpath);
 	}
 
 	@Override

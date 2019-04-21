@@ -16,14 +16,12 @@
 
 package net.fabricmc.loader.launch.common;
 
-import com.google.common.collect.ImmutableSet;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.mappings.Mappings;
-import net.fabricmc.mappings.MappingsProvider;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 import org.apache.logging.log4j.LogManager;
@@ -109,7 +107,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 						Set<Path> depPaths = new HashSet<>();
 
-						for (URL url : launcher.getClasspathURLs()) {
+						for (URL url : launcher.getLoadTimeDependencies()) {
 							try {
 								Path path = UrlUtil.asPath(url);
 								if (!Files.exists(path)) {

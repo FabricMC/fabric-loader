@@ -104,7 +104,7 @@ class EntrypointStorage {
 
 	private final Map<String, List<Entry>> entryMap = new HashMap<>();
 
-	private final List<Entry> getOrCreateEntries(String key) {
+	private List<Entry> getOrCreateEntries(String key) {
 		return entryMap.computeIfAbsent(key, (z) -> new ArrayList<>());
 	}
 

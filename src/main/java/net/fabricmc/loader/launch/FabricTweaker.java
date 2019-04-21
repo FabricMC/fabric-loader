@@ -127,7 +127,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
-	public Collection<URL> getClasspathURLs() {
+	public Collection<URL> getLoadTimeDependencies() {
 		return launchClassLoader.getSources();
 	}
 
