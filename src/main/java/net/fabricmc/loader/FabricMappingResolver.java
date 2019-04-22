@@ -20,6 +20,7 @@ import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.mappings.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 class FabricMappingResolver implements MappingResolver {
@@ -49,18 +50,24 @@ class FabricMappingResolver implements MappingResolver {
 
 			NamespaceData data = new NamespaceData();
 			Mappings mappings = mappingsSupplier.get();
+			Map<String, String> classNameMap = new HashMap<>();
+			Function<String, String> classMapper = (s) -> classNameMap.computeIfAbsent(s, (cname) -> cname.replace('/', '.'));
+			Function<EntryTriple, EntryTriple> tripletMapper = (s) -> new EntryTriple(classMapper.apply(s.getOwner()), s.getName(), s.getDesc());
 
 			for (ClassEntry classEntry : mappings.getClassEntries()) {
-				data.classNames.put(classEntry.get(ns), classEntry.get(targetNamespace));
-				data.classNamesInverse.put(classEntry.get(targetNamespace), classEntry.get(ns));
+				String fromClass = classMapper.apply(classEntry.get(ns));
+				String toClass = classMapper.apply(classEntry.get(targetNamespace));
+
+				data.classNames.put(fromClass, toClass);
+				data.classNamesInverse.put(toClass, fromClass);
 			}
 
 			for (FieldEntry fieldEntry : mappings.getFieldEntries()) {
-				data.fieldNames.put(fieldEntry.get(ns), fieldEntry.get(targetNamespace).getName());
+				data.fieldNames.put(tripletMapper.apply(fieldEntry.get(ns)), fieldEntry.get(targetNamespace).getName());
 			}
 
 			for (MethodEntry methodEntry : mappings.getMethodEntries()) {
-				data.methodNames.put(methodEntry.get(ns), methodEntry.get(targetNamespace).getName());
+				data.methodNames.put(tripletMapper.apply(methodEntry.get(ns)), methodEntry.get(targetNamespace).getName());
 			}
 
 			return data;
