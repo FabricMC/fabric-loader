@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.entrypoint.hooks;
 
+import net.fabricmc.loader.FabricLoader;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,6 +30,8 @@ final class EntrypointUtils {
 
 	static <T> void logErrors(String name, Collection<T> entrypoints, Consumer<T> entrypointConsumer) {
 		List<Throwable> errors = new ArrayList<>();
+
+		FabricLoader.INSTANCE.getLogger().debug("Iterating over entrypoint '" + name + "'");
 
 		entrypoints.forEach((e) -> {
 			try {

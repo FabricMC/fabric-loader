@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.jar.JarFile;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
-	public static File minecraftJar;
+	public static Path minecraftJar;
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 	private static Map<String, Object> properties;
@@ -50,7 +50,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		setLauncher(this);
 	}
 
-	protected static File getLaunchDirectory(Arguments argMap) {
+	public static File getLaunchDirectory(Arguments argMap) {
 		return new File(argMap.getOrDefault("gameDir", "."));
 	}
 
@@ -63,8 +63,12 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		return mappingConfiguration;
 	}
 
-	protected static void deobfuscate(File gameDir, File jarFile, FabricLauncher launcher) {
-		minecraftJar = jarFile;
+	private static boolean emittedInfo = false;
+
+	protected static void deobfuscate(String gameId, Path gameDir, Path jarFile, FabricLauncher launcher) {
+		Path resultJarFile = jarFile;
+
+		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
 
 		Mappings mappings = launcher.isDevelopment() ? null : mappingConfiguration.getMappings();
 		String targetNamespace = mappingConfiguration.getTargetNamespace();
@@ -73,32 +77,37 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			LOGGER.debug("Fabric mapping file detected, applying...");
 
 			try {
-				if (!jarFile.exists()) {
-					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
+				if (!Files.exists(jarFile)) {
+					throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
 				}
 
-				File deobfJarDir = new File(gameDir, ".fabric" + File.separator + "remappedJars");
+				// TODO: migrate to Path
+				File deobfJarDir = new File(gameDir.toFile(), ".fabric" + File.separator + "remappedJars" + (gameId.isEmpty() ? "" : File.separator + gameId));
 				if (!deobfJarDir.exists()) {
 					deobfJarDir.mkdirs();
 				}
 
 				// TODO: allow versioning mappings?
-				String deobfJarFilename = mappingConfiguration.getTargetNamespace() + "-" + jarFile.getName();
+				String deobfJarFilename = mappingConfiguration.getTargetNamespace() + "-" + jarFile.getFileName();
 				File deobfJarFile = new File(deobfJarDir, deobfJarFilename);
 				File deobfJarFileTmp = new File(deobfJarDir, deobfJarFilename + ".tmp");
 
-				Path jarPath = jarFile.toPath();
 				Path deobfJarPath = deobfJarFile.toPath();
+				Path deobfJarPathTmp = deobfJarFileTmp.toPath();
 
-				if (deobfJarFileTmp.exists()) {
+				if (Files.exists(deobfJarPathTmp)) {
 					LOGGER.warn("Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
+					Files.deleteIfExists(deobfJarPathTmp);
 					deobfJarFileTmp.delete();
 				}
 
-				if (!deobfJarFile.exists()) {
+				if (!Files.exists(deobfJarPath)) {
 					boolean found = false;
 					while (!found) {
-						LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
+						if (!emittedInfo) {
+							LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
+							emittedInfo = true;
+						}
 
 						TinyRemapper remapper = TinyRemapper.newRemapper()
 							.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
@@ -114,7 +123,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 									throw new RuntimeException("Path does not exist: " + path);
 								}
 
-								if (!path.equals(jarPath)) {
+								if (!path.equals(jarFile)) {
 									depPaths.add(path);
 								}
 							} catch (UrlConversionException e) {
@@ -127,7 +136,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 								LOGGER.debug("Appending '" + path + "' to remapper classpath");
 								remapper.readClassPath(path);
 							}
-							remapper.readInputs(jarPath);
+							remapper.readInputs(jarFile);
 							remapper.apply(outputConsumer);
 						} catch (IOException e) {
 							throw new RuntimeException(e);
@@ -169,22 +178,24 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 					throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
 				}
 
-				launcher.propose(UrlUtil.asUrl(deobfJarFile));
-				minecraftJar = deobfJarFile;
-			} catch (IOException | UrlConversionException e) {
-				throw new RuntimeException(e);
-			}
-		} else {
-			try {
-				launcher.propose(UrlUtil.asUrl(jarFile));
-				minecraftJar = jarFile;
-			} catch (UrlConversionException e) {
+				resultJarFile = deobfJarPath;
+			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		}
+
+		try {
+			launcher.propose(UrlUtil.asUrl(resultJarFile));
+		} catch (UrlConversionException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (minecraftJar == null) {
+			minecraftJar = resultJarFile;
+		}
 	}
 
-	protected static void processArgumentMap(Arguments argMap, EnvType envType) {
+	public static void processArgumentMap(Arguments argMap, EnvType envType) {
 		switch (envType) {
 			case CLIENT:
 				if (!argMap.containsKey("accessToken")) {

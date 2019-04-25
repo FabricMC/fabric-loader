@@ -84,7 +84,11 @@ public class ModClassLoader_125_FML extends URLClassLoader {
 	 * @return The "parent source" file.
 	 */
 	public File getParentSource() {
-		return FabricLauncherBase.minecraftJar;
+		try {
+			return UrlUtil.asFile(UrlUtil.asUrl(FabricLauncherBase.minecraftJar));
+		} catch (UrlConversionException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
