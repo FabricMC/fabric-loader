@@ -50,7 +50,11 @@
       }
     ],
     "server": [
-
+      {
+        "_comment": "jimfs in fabric-server-launch requires guava on the system classloader",
+        "name": "com.google.guava:guava:21.0",
+        "url": "https://maven.fabricmc.net/"
+      }
     ]
   },
   "mainClass": "net.minecraft.launchwrapper.Launch",
