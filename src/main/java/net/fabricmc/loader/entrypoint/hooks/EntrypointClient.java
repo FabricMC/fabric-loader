@@ -21,7 +21,6 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.EntrypointException;
-import net.minecraft.client.MinecraftClient;
 
 import java.io.File;
 

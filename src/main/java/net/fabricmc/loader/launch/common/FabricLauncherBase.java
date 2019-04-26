@@ -178,12 +178,6 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 					throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
 				}
 
-				try {
-					launcher.propose(UrlUtil.asUrl(resultJarFile));
-				} catch (UrlConversionException e) {
-					throw new RuntimeException(e);
-				}
-
 				resultJarFile = deobfJarPath;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
