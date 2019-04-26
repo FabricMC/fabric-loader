@@ -165,7 +165,7 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		try {
-			Class<?> c = ((ClassLoader) loader).loadClass(targetClass);
+			Class<?> c = Class.forName(targetClass, true, loader);
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) arguments.toArray());
 		} catch (Exception e) {
