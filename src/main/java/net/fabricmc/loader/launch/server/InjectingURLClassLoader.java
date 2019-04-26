@@ -18,10 +18,15 @@ package net.fabricmc.loader.launch.server;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
+import java.util.List;
 
 class InjectingURLClassLoader extends URLClassLoader {
-	InjectingURLClassLoader(URL[] urls, ClassLoader classLoader) {
+	private final List<String> exclusions;
+
+	InjectingURLClassLoader(URL[] urls, ClassLoader classLoader, String... exclusions) {
 		super(urls, classLoader);
+		this.exclusions  = Arrays.asList(exclusions);
 	}
 
 	@Override
@@ -30,10 +35,20 @@ class InjectingURLClassLoader extends URLClassLoader {
 			Class c = findLoadedClass(name);
 
 			if (c == null) {
-				try {
-					c = findClass(name);
-				} catch (ClassNotFoundException e) {
-					// pass
+				boolean excluded = false;
+				for (String s : exclusions) {
+					if (name.startsWith(s)) {
+						excluded = true;
+						break;
+					}
+				}
+
+				if (!excluded) {
+					try {
+						c = findClass(name);
+					} catch (ClassNotFoundException e) {
+						// pass
+					}
 				}
 			}
 

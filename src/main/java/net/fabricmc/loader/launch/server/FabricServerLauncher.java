@@ -42,7 +42,7 @@ public class FabricServerLauncher {
 
 	private static void launch(String mainClass, ClassLoader loader, String[] args) {
 		try {
-			Class<?> c = Class.forName(mainClass, true, loader);
+			Class<?> c = loader.loadClass(mainClass);
 			c.getMethod("main", String[].class).invoke(null, (Object) args);
 		} catch (Exception e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
@@ -85,7 +85,7 @@ public class FabricServerLauncher {
 
 		System.setProperty("fabric.gameJarPath", serverJar.getAbsolutePath());
 		try {
-			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, FabricServerLauncher.class.getClassLoader());
+			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, FabricServerLauncher.class.getClassLoader(), "com.google.common.jimfs.");
 			Thread.currentThread().setContextClassLoader(newClassLoader);
 			launch(mainClass, newClassLoader, runArguments);
 		} catch (Exception ex) {
