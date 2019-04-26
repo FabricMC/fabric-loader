@@ -24,9 +24,24 @@ import java.net.URLClassLoader;
 import java.util.*;
 
 public class FabricServerLauncher {
+	private static final ClassLoader parentLoader = FabricServerLauncher.class.getClassLoader();
 	private static String mainClass = "net.fabricmc.loader.launch.knot.KnotServer";
 
 	public static void main(String[] args) {
+		URL propUrl = parentLoader.getResource("fabric-server-launch.properties");
+		if (propUrl != null) {
+			Properties properties = new Properties();
+			try (InputStream is = propUrl.openStream()) {
+				properties.load(is);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			if (properties.containsKey("launch.mainClass")) {
+				mainClass = properties.getProperty("launch.mainClass");
+			}
+		}
+
 		boolean dev = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
 
 		if (!dev) {
@@ -85,7 +100,7 @@ public class FabricServerLauncher {
 
 		System.setProperty("fabric.gameJarPath", serverJar.getAbsolutePath());
 		try {
-			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, FabricServerLauncher.class.getClassLoader(), "com.google.common.jimfs.");
+			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, parentLoader, "com.google.common.jimfs.");
 			Thread.currentThread().setContextClassLoader(newClassLoader);
 			launch(mainClass, newClassLoader, runArguments);
 		} catch (Exception ex) {
