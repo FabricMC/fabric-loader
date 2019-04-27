@@ -326,7 +326,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				}
 			}
 		}
-		
+
 		for (ModContainer mod : mods) {
 			try {
 				mod.instantiate();

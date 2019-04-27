@@ -247,7 +247,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 						builder.append(" @ [");
 						for (int i = 0; i < matcherStringList.size(); i++) {
 							if (i > 0) {
-								builder.append(" && ");
+								builder.append(" || ");
 							}
 							builder.append(matcherStringList.get(i));
 						}
@@ -266,8 +266,8 @@ public class ModMetadataV1 implements LoaderModMetadata {
 						public boolean matches(Version version) {
 							for (String s : matcherStringList) {
 								try {
-									if (!VersionPredicateParser.matches(version, s)) {
-										return false;
+									if (VersionPredicateParser.matches(version, s)) {
+										return true;
 									}
 								} catch (VersionParsingException e) {
 									e.printStackTrace();
@@ -275,7 +275,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 								}
 							}
 
-							return true;
+							return false;
 						}
 
 						@Override
