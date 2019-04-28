@@ -146,18 +146,7 @@ class KnotClassDelegate {
 		return Metadata.EMPTY;
 	}
 
-	public byte[] transform(String name, byte[] data) {
-		byte[] b = FabricTransformer.transform(isDevelopment, envType, name, data);
-		b = getMixinTransformer().transformClassBytes(name, name, b);
-		return b;
-	}
-
 	public byte[] loadClassData(String name, boolean resolve) {
-		// TODO remove before release
-		if (name.startsWith("org.sat4j.")) {
-			return EntrypointTransformer.INSTANCE.transform(name);
-		}
-
 		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
 		if (/* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j")) {
 			byte[] input = EntrypointTransformer.INSTANCE.transform(name);
@@ -170,14 +159,14 @@ class KnotClassDelegate {
 			}
 
 			if (input != null) {
-				return transform(name, input);
-			} else {
-				return null;
+				byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
+				b = getMixinTransformer().transformClassBytes(name, name, b);
+				return b;
 			}
-		} else {
-			// Allow injecting fake loader classes.
-			return EntrypointTransformer.INSTANCE.transform(name);
 		}
+
+		// We haven't found a class by now, but it could be injected by Mixin
+		return getMixinTransformer().transformClassBytes(name, name, null);
 	}
 
 	String getClassFileName(String name) {
