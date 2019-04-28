@@ -519,7 +519,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 		public static class Deserializer implements JsonDeserializer<Side> {
 			@Override
 			public Side deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-				return valueOf(element.getAsString().toUpperCase());
+				return valueOf(element.getAsString().toUpperCase(Locale.ROOT));
 			}
 		}
 	}

@@ -59,13 +59,14 @@ public final class Knot extends FabricLauncherBase {
 				throw new RuntimeException("Please specify side or use a dedicated Knot!");
 			}
 
-			side = side.toLowerCase();
-			if ("client".equals(side)) {
-				envType = EnvType.CLIENT;
-			} else if ("server".equals(side)) {
-				envType = EnvType.SERVER;
-			} else {
-				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
+			switch (side.toLowerCase(Locale.ROOT)) {
+				case "client": {
+					envType = EnvType.CLIENT;
+				} break;
+				case "server": {
+					envType = EnvType.SERVER;
+				} break;
+				default: throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
 			}
 		}
 
