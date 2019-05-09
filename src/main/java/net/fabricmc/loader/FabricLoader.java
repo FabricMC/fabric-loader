@@ -23,6 +23,7 @@ import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
@@ -293,6 +294,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public void instantiateMods(File newRunDir, Object gameInstance) {
 		if (!frozen) {
 			throw new RuntimeException("Cannot instantiate mods when not frozen!");
+		}
+
+		if (gameInstance != null && FabricLauncherBase.getLauncher() instanceof Knot) {
+			ClassLoader gameClassLoader = gameInstance.getClass().getClassLoader();
+			if (gameClassLoader != FabricLauncherBase.getLauncher().getTargetClassLoader()) {
+				getLogger().warn("\n\n* CLASS LOADER MISMATCH! THIS IS VERY BAD AND WILL PROBABLY CAUSE WEIRD ISSUES! *\n"
+					+ " - Expected game class loader: " + FabricLauncherBase.getLauncher().getTargetClassLoader() + "\n"
+				    + " - Actual game class loader: " + gameClassLoader + "\n");
+			}
 		}
 
 		this.gameInstance = gameInstance;
