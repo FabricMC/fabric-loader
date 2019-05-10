@@ -18,13 +18,13 @@ package net.fabricmc.loader.metadata;
 
 import com.google.common.base.Joiner;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
-import org.apache.commons.lang3.reflect.TypeUtils;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -318,7 +318,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 					person.name = obj.get("name").getAsString();
 					if (obj.has("contact")) {
 						person.contact = new MapBackedContactInformation(
-							context.deserialize(obj.get("contact"), TypeUtils.parameterize(HashMap.class, String.class, String.class))
+							context.deserialize(obj.get("contact"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType())
 						);
 					}
 				} else if (json.isJsonPrimitive()) {
