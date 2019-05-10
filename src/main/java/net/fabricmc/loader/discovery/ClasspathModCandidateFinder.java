@@ -40,10 +40,11 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 				Enumeration<URL> mods = FabricLauncherBase.getLauncher().getTargetClassLoader().getResources("fabric.mod.json");
 				List<URL> modsList = new ArrayList<>();
 				while (mods.hasMoreElements()) {
+					URL modJsonUrl =mods.nextElement();
 					try {
-						modsList.add(UrlUtil.getSource("fabric.mod.json", mods.nextElement()));
+						modsList.add(UrlUtil.getSource("fabric.mod.json", modJsonUrl));
 					} catch (UrlConversionException e) {
-						loader.getLogger().debug(e);
+						loader.getLogger().debug("Could not find mod source for classpath mod " + modJsonUrl, e);
 					}
 				}
 

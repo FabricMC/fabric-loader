@@ -19,11 +19,11 @@ package net.fabricmc.loader.launch.common;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.logging.FabricLogger;
+import net.fabricmc.loader.logging.FabricLoggerFactory;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
 import net.fabricmc.mappings.Mappings;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
@@ -36,7 +36,7 @@ public final class FabricMixinBootstrap {
 
 	}
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|MixinBootstrap");
+	private static final FabricLogger LOGGER = FabricLoggerFactory.create("Fabric Loader");
 	private static boolean initialized = false;
 
 	static void addConfiguration(String configuration) {

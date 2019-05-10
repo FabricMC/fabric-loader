@@ -25,6 +25,7 @@ import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.logging.FabricLogger;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.ModMetadataV0;
@@ -39,12 +40,9 @@ import net.fabricmc.loader.util.sat4j.specs.IProblem;
 import net.fabricmc.loader.util.sat4j.specs.ISolver;
 import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
-import net.fabricmc.loader.util.version.VersionDeserializer;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -102,7 +100,7 @@ public class ModResolver {
 	}
 
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
-	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
+	public Map<String, ModCandidate> findCompatibleSet(FabricLogger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
 		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();

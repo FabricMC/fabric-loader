@@ -17,6 +17,8 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.logging.FabricLogger;
+import net.fabricmc.loader.logging.FabricLoggerFactory;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -24,8 +26,6 @@ import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import java.io.*;
@@ -41,7 +41,7 @@ import java.util.jar.JarFile;
 public abstract class FabricLauncherBase implements FabricLauncher {
 	public static Path minecraftJar;
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
+	protected static final FabricLogger LOGGER = FabricLoggerFactory.create("Fabric Loader");
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
 	private static MappingConfiguration mappingConfiguration = new MappingConfiguration();

@@ -16,14 +16,14 @@
 
 package net.fabricmc.loader.entrypoint.hooks;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.fabricmc.loader.logging.FabricLogger;
+import net.fabricmc.loader.logging.FabricLoggerFactory;
 
 public final class EntrypointBranding {
 	public static final String FABRIC = "fabric";
 	public static final String VANILLA = "vanilla";
 
-	private static final Logger LOGGER = LogManager.getLogger("Fabric|Branding");
+	private static final FabricLogger LOGGER = FabricLoggerFactory.create("Fabric Loader");
 
 	private EntrypointBranding() {
 	}

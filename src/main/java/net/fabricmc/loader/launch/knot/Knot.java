@@ -150,7 +150,7 @@ public final class Knot extends FabricLauncherBase {
 				try {
 					return (UrlUtil.asUrl(file));
 				} catch (UrlConversionException e) {
-					LOGGER.debug(e);
+					LOGGER.debug("Could not convert " + file + " to URL!", e);
 					return null;
 				}
 			} else {

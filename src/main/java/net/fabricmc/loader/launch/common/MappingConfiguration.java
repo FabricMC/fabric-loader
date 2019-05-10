@@ -16,16 +16,16 @@
 
 package net.fabricmc.loader.launch.common;
 
+import net.fabricmc.loader.logging.FabricLogger;
+import net.fabricmc.loader.logging.FabricLoggerFactory;
 import net.fabricmc.mappings.Mappings;
 import net.fabricmc.mappings.MappingsProvider;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class MappingConfiguration {
-	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
+	protected static FabricLogger LOGGER = FabricLoggerFactory.create("Fabric Loader");
 
 	private static Mappings mappings;
 	private static boolean checkedMappings;

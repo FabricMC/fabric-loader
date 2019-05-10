@@ -21,8 +21,8 @@ import net.fabricmc.loader.entrypoint.patches.EntrypointPatchBranding;
 import net.fabricmc.loader.entrypoint.patches.EntrypointPatchFML125;
 import net.fabricmc.loader.entrypoint.patches.EntrypointPatchHook;
 import net.fabricmc.loader.launch.common.FabricLauncher;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.fabricmc.loader.logging.FabricLogger;
+import net.fabricmc.loader.logging.FabricLoggerFactory;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
@@ -34,7 +34,7 @@ public class EntrypointTransformer {
 	public static final EntrypointTransformer INSTANCE = new EntrypointTransformer();
 	public static String appletMainClass;
 
-	public final Logger logger = LogManager.getFormatterLogger("FabricLoader|EntrypointTransformer");
+	public final FabricLogger logger = FabricLoggerFactory.create("Fabric Loader");
 	private final List<EntrypointPatch> patches;
 	private Map<String, byte[]> patchedClasses;
 	private boolean entrypointsLocated = false;

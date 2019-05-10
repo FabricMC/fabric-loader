@@ -24,11 +24,11 @@ import net.fabricmc.loader.discovery.*;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
+import net.fabricmc.loader.logging.FabricLogger;
+import net.fabricmc.loader.logging.FabricLoggerFactory;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
@@ -48,7 +48,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	@Deprecated
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
+	protected static FabricLogger LOGGER = FabricLoggerFactory.create("Fabric Loader");
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
@@ -378,7 +378,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 	}
 
-	public Logger getLogger() {
+	public FabricLogger getLogger() {
 		return LOGGER;
 	}
 }
