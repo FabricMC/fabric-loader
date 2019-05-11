@@ -161,6 +161,7 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public void propose(URL url) {
+		FabricLauncherBase.LOGGER.debug("[Knot] Proposed " + url + " to classpath.");
 		loader.addURL(url);
 	}
 

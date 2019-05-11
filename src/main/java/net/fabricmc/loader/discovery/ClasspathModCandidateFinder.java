@@ -24,9 +24,7 @@ import net.fabricmc.loader.util.UrlUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -36,14 +34,36 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 		Stream<URL> urls;
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+			// Search for URLs which point to 'fabric.mod.json' entries, to be considered as mods.
 			try {
 				Enumeration<URL> mods = FabricLauncherBase.getLauncher().getTargetClassLoader().getResources("fabric.mod.json");
-				List<URL> modsList = new ArrayList<>();
+				Set<URL> modsList = new HashSet<>();
 				while (mods.hasMoreElements()) {
 					try {
 						modsList.add(UrlUtil.getSource("fabric.mod.json", mods.nextElement()));
 					} catch (UrlConversionException e) {
 						loader.getLogger().debug(e);
+					}
+				}
+
+				// Many development environments will provide classes and resources as separate directories to the classpath.
+				// As such, we're adding them to the classpath here and now.
+				// To avoid tripping loader-side checks, we also don't add URLs already in modsList.
+				// TODO: Perhaps a better solution would be to add the Sources of all parsed entrypoints. But this will do, for now.
+				loader.getLogger().debug("[ClasspathModCandidateFinder] Adding dev classpath directories to classpath.");
+				String[] classpathPropertyInput = System.getProperty("java.class.path", "").split(File.pathSeparator);
+				for (String s : classpathPropertyInput) {
+					if (s.isEmpty() || s.equals("*") || s.endsWith(File.separator + "*")) continue;
+					File file = new File(s);
+					if (file.exists() && file.isDirectory()) {
+						try {
+							URL url = UrlUtil.asUrl(file);
+							if (!modsList.contains(url)) {
+								FabricLauncherBase.getLauncher().propose(url);
+							}
+						} catch (UrlConversionException e) {
+							loader.getLogger().warn("[ClasspathModCandidateFinder] Failed to add dev directory " + file.getAbsolutePath() + " to classpath!", e);
+						}
 					}
 				}
 

@@ -60,7 +60,7 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 
 		for (MethodNode node : classNode.methods) {
 			if (node.name.equals("getClientModName") || node.name.equals("getServerModName") && node.desc.endsWith(")Ljava/lang/String;")) {
-				debug("Applying brand name hook to " + classNode.name + " " + node.name);
+				debug("Applying brand name hook to " + classNode.name + "::" + node.name);
 
 				ListIterator<AbstractInsnNode> it = node.instructions.iterator();
 				while (it.hasNext()) {
