@@ -131,7 +131,21 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 							}
 						}
 
-						try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath)) {
+						try (OutputConsumerPath outputConsumer = new OutputConsumerPath(deobfJarPath) {
+							@Override
+							public void accept(String clsName, byte[] data) {
+								// don't accept class names from a blacklist of dependencies that Fabric itself utilizes
+								// TODO: really could use a better solution, as always...
+								if (clsName.startsWith("com/google/common/")
+									|| clsName.startsWith("com/google/gson/")
+									|| clsName.startsWith("com/google/thirdparty/")
+									|| clsName.startsWith("org/apache/logging/log4j/")) {
+									return;
+								}
+
+								super.accept(clsName, data);
+							}
+						}) {
 							for (Path path : depPaths) {
 								LOGGER.debug("Appending '" + path + "' to remapper classpath");
 								remapper.readClassPath(path);
