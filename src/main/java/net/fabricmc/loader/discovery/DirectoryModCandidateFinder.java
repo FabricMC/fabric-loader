@@ -53,12 +53,12 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 					try {
 						urlProposer.accept(UrlUtil.asUrl(modPath));
 					} catch (UrlConversionException e) {
-						throw new RuntimeException(e);
+						throw new RuntimeException("Failed to convert URL for mod '" + modPath + "'!", e);
 					}
 				}
 			});
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Exception while searching for mods in '" + path + "'!", e);
 		}
 	}
 }

@@ -104,7 +104,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 				FabricLauncherBase.deobfuscate("", gameDir.toPath(), jarFile.toPath(), this);
 			} catch (IOException | UrlConversionException e) {
-				throw new RuntimeException(e);
+				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);
 			}
 		}
 

@@ -180,7 +180,7 @@ public final class Knot extends FabricLauncherBase {
 		try {
 			return loader.getResourceAsStream(name, false);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Failed to read file '" + name + "'!", e);
 		}
 	}
 

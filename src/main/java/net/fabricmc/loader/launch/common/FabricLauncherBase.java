@@ -127,7 +127,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 									depPaths.add(path);
 								}
 							} catch (UrlConversionException e) {
-								throw new RuntimeException(e);
+								throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
 							}
 						}
 
@@ -153,7 +153,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 							remapper.readInputs(jarFile);
 							remapper.apply(outputConsumer);
 						} catch (IOException e) {
-							throw new RuntimeException(e);
+							throw new RuntimeException("Failed to remap '" + jarFile + "'!", e);
 						} finally {
 							remapper.finish();
 						}

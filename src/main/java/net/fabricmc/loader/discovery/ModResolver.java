@@ -317,115 +317,121 @@ public class ModResolver {
 
 		@Override
 		protected void compute() {
+			FileSystemUtil.FileSystemDelegate jarFs;
+			Path path, modJson, rootDir;
+			URL normalizedUrl;
+
+			loader.getLogger().debug("Testing " + url);
+
 			try {
-				FileSystemUtil.FileSystemDelegate jarFs;
-				Path path = UrlUtil.asPath(url).normalize();
-				Path modJson;
-				Path rootDir;
-
-				loader.getLogger().debug("Testing " + url);
-
+				path = UrlUtil.asPath(url).normalize();
 				// normalize URL (used as key for nested JAR lookup)
-				URL normalizedUrl = UrlUtil.asUrl(path);
+				normalizedUrl = UrlUtil.asUrl(path);
+			} catch (UrlConversionException e) {
+				throw new RuntimeException("Failed to convert URL " + url + "!", e);
+			}
 
-				if (Files.isDirectory(path)) {
-					// Directory
-					modJson = path.resolve("fabric.mod.json");
-					rootDir = path;
+			if (Files.isDirectory(path)) {
+				// Directory
+				modJson = path.resolve("fabric.mod.json");
+				rootDir = path;
 
-					if (loader.isDevelopmentEnvironment() && !Files.exists(modJson)) {
-						loader.getLogger().warn("Adding directory " + path + " to mod classpath in development environment - workaround for Gradle splitting mods into two directories");
-						synchronized (launcherSyncObject) {
-							FabricLauncherBase.getLauncher().propose(url);
-						}
+				if (loader.isDevelopmentEnvironment() && !Files.exists(modJson)) {
+					loader.getLogger().warn("Adding directory " + path + " to mod classpath in development environment - workaround for Gradle splitting mods into two directories");
+					synchronized (launcherSyncObject) {
+						FabricLauncherBase.getLauncher().propose(url);
 					}
-				} else {
-					// JAR file
+				}
+			} else {
+				// JAR file
+				try {
 					jarFs = FileSystemUtil.getJarFileSystem(path, false);
 					modJson = jarFs.get().getPath("fabric.mod.json");
 					rootDir = jarFs.get().getRootDirectories().iterator().next();
+				} catch (IOException e) {
+					throw new RuntimeException("Failed to open mod JAR at " + path + "!");
 				}
-
-				LoaderModMetadata[] info;
-
-				try (InputStream stream = Files.newInputStream(modJson)) {
-					info = ModMetadataParser.getMods(loader, stream);
-				} catch (JsonSyntaxException e) {
-					throw new RuntimeException("Mod file '" + url.getFile() + "' has an invalid fabric.mod.json file!", e);
-				} catch (NoSuchFileException e) {
-					info = new LoaderModMetadata[0];
-				}
-
-				for (LoaderModMetadata i : info) {
-					ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
-					boolean added;
-
-					if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
-						throw new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile()));
-					}
-
-					if (!MOD_ID_PATTERN.matcher(candidate.getInfo().getId()).matches()) {
-						throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", candidate.getInfo().getId()));
-					}
-
-					if (candidate.getInfo().getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
-						loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
-					}
-
-					added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
-
-					if (!added) {
-						loader.getLogger().debug(candidate.getOriginUrl() + " already present as " + candidate);
-					} else {
-						loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
-
-						List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
-							loader.getLogger().debug("Searching for nested JARs in " + candidate);
-							Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
-							List<Path> list = new ArrayList<>(jars.size());
-
-							jars.stream()
-								.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
-								.forEach((modPath) -> {
-									if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
-										// TODO: pre-check the JAR before loading it, if possible
-										loader.getLogger().debug("Found nested JAR: " + modPath);
-										Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
-
-										try {
-											Files.copy(modPath, dest);
-										} catch (IOException e) {
-											throw new RuntimeException(e);
-										}
-
-										list.add(dest);
-									}
-								});
-
-							return list;
-						});
-
-						if (!jarInJars.isEmpty()) {
-							invokeAll(
-								jarInJars.stream()
-									.map((p) -> {
-										try {
-											return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
-										} catch (UrlConversionException e) {
-											throw new RuntimeException(e);
-										}
-									}).collect(Collectors.toList())
-							);
-						}
-					}
-				}
-
-				/* if (jarFs != null) {
-					jarFs.close();
-				} */
-			} catch (UrlConversionException | IOException e) {
-				throw new RuntimeException(url.toString(), e);
 			}
+
+			LoaderModMetadata[] info;
+
+			try (InputStream stream = Files.newInputStream(modJson)) {
+				info = ModMetadataParser.getMods(loader, stream);
+			} catch (JsonSyntaxException e) {
+				throw new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e);
+			} catch (NoSuchFileException e) {
+				info = new LoaderModMetadata[0];
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e);
+			}
+
+			for (LoaderModMetadata i : info) {
+				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
+				boolean added;
+
+				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
+					throw new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile()));
+				}
+
+				if (!MOD_ID_PATTERN.matcher(candidate.getInfo().getId()).matches()) {
+					throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", candidate.getInfo().getId()));
+				}
+
+				if (candidate.getInfo().getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
+					loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
+				}
+
+				added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
+
+				if (!added) {
+					loader.getLogger().debug(candidate.getOriginUrl() + " already present as " + candidate);
+				} else {
+					loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
+
+					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+						loader.getLogger().debug("Searching for nested JARs in " + candidate);
+						Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
+						List<Path> list = new ArrayList<>(jars.size());
+
+						jars.stream()
+							.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
+							.forEach((modPath) -> {
+								if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
+									// TODO: pre-check the JAR before loading it, if possible
+									loader.getLogger().debug("Found nested JAR: " + modPath);
+									Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
+
+									try {
+										Files.copy(modPath, dest);
+									} catch (IOException e) {
+										throw new RuntimeException("Failed to load nested JAR " + modPath + " into memory (" + dest + ")!", e);
+									}
+
+									list.add(dest);
+								}
+							});
+
+						return list;
+					});
+
+					if (!jarInJars.isEmpty()) {
+						invokeAll(
+							jarInJars.stream()
+								.map((p) -> {
+									try {
+										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+									} catch (UrlConversionException e) {
+										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
+									}
+								}).collect(Collectors.toList())
+						);
+					}
+				}
+			}
+
+			/* if (jarFs != null) {
+				jarFs.close();
+			} */
 		}
 	}
 
