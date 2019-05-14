@@ -62,6 +62,7 @@ class KnotClassDelegate {
 	private final boolean isDevelopment;
 	private final EnvType envType;
 	private MixinTransformer mixinTransformer;
+	private volatile boolean isLoadingMixinTransformer;
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf) {
 		this.isDevelopment = isDevelopment;
@@ -72,11 +73,14 @@ class KnotClassDelegate {
 	private MixinTransformer getMixinTransformer() {
 		if (mixinTransformer == null) {
 			try {
+			    isLoadingMixinTransformer = true;
 				Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
 				constructor.setAccessible(true);
 				mixinTransformer = constructor.newInstance();
 			} catch (Exception e) {
 				throw new RuntimeException(e);
+			} finally {
+			    isLoadingMixinTransformer = false;
 			}
 		}
 
@@ -163,6 +167,10 @@ class KnotClassDelegate {
 				b = getMixinTransformer().transformClassBytes(name, name, b);
 				return b;
 			}
+		}
+
+		if (isLoadingMixinTransformer) {
+		    return null;
 		}
 
 		// We haven't found a class by now, but it could be injected by Mixin
