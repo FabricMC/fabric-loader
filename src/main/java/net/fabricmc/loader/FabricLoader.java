@@ -17,6 +17,7 @@
 package net.fabricmc.loader;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.EntrypointContainer;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -183,6 +184,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	@Override
 	public <T> List<T> getEntrypoints(String key, Class<T> type) {
+		return entrypointStorage.getEntrypoints(key, type).stream().map(EntrypointContainer::get).collect(Collectors.toList());
+	}
+
+	@Override
+	public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		return entrypointStorage.getEntrypoints(key, type);
 	}
 
