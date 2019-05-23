@@ -62,7 +62,7 @@ class KnotClassDelegate {
 	private final boolean isDevelopment;
 	private final EnvType envType;
 	private MixinTransformer mixinTransformer;
-	private volatile boolean isLoadingMixinTransformer;
+	private boolean isLoadingMixinTransformer;
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf) {
 		this.isDevelopment = isDevelopment;
