@@ -71,6 +71,10 @@ class KnotClassDelegate {
 
 	private MixinTransformer getMixinTransformer() {
 		if (mixinTransformer == null) {
+			if (!FabricLauncherBase.isMixinReady()) {
+				throw new RuntimeException("Tried to acquire MixinTransformer before Mixin was ready!");
+			}
+
 			try {
 				Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
 				constructor.setAccessible(true);
@@ -160,13 +164,19 @@ class KnotClassDelegate {
 
 			if (input != null) {
 				byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
-				b = getMixinTransformer().transformClassBytes(name, name, b);
+				if (FabricLauncherBase.isMixinReady()) {
+					b = getMixinTransformer().transformClassBytes(name, name, b);
+				}
 				return b;
 			}
 		}
 
 		// We haven't found a class by now, but it could be injected by Mixin
-		return getMixinTransformer().transformClassBytes(name, name, null);
+		if (FabricLauncherBase.isMixinReady()) {
+			return getMixinTransformer().transformClassBytes(name, name, null);
+		} else {
+			return null;
+		}
 	}
 
 	String getClassFileName(String name) {

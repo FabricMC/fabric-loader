@@ -122,7 +122,7 @@ public final class Knot extends FabricLauncherBase {
 
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
-		FabricLauncherBase.pretendMixinPhases();
+		FabricLauncherBase.finishMixinBootstrapping();
 
 		provider.launch((ClassLoader) loader);
 	}

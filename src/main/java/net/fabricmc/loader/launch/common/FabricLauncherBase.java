@@ -42,6 +42,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	public static Path minecraftJar;
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
+	private static boolean mixinReady;
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
 	private static MappingConfiguration mappingConfiguration = new MappingConfiguration();
@@ -262,7 +263,11 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		return properties;
 	}
 
-	protected static void pretendMixinPhases() {
+	protected static void finishMixinBootstrapping() {
+		if (mixinReady) {
+			throw new RuntimeException("Must not call FabricLauncherBase.finishMixinBootstrapping() twice!");
+		}
+
 		try {
 			Method m = MixinEnvironment.class.getDeclaredMethod("gotoPhase", MixinEnvironment.Phase.class);
 			m.setAccessible(true);
@@ -271,5 +276,11 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+
+		mixinReady = true;
+	}
+
+	public static boolean isMixinReady() {
+		return mixinReady;
 	}
 }
