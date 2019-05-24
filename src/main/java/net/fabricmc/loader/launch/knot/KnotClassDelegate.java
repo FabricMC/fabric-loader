@@ -57,7 +57,7 @@ class KnotClassDelegate {
 		}
 	}
 
-	private final Map<URL, Metadata> metadataCache = new HashMap<>();
+	private final Map<String, Metadata> metadataCache = new HashMap<>();
 	private final KnotClassLoaderInterface itf;
 	private final boolean isDevelopment;
 	private final EnvType envType;
@@ -99,16 +99,17 @@ class KnotClassDelegate {
 			}
 
 			if (codeSourceURL != null) {
-				return metadataCache.computeIfAbsent(codeSourceURL, (fCodeSourceURL) -> {
+				return metadataCache.computeIfAbsent(codeSourceURL.toString(), (codeSourceStr) -> {
 					Manifest manifest = null;
 					CodeSource codeSource = null;
 					Certificate[] certificates = null;
 
 					try {
-						Path path = UrlUtil.asPath(fCodeSourceURL);
+						URL fCodeSourceUrl = new URL(codeSourceStr);
+						Path path = UrlUtil.asPath(fCodeSourceUrl);
 
 						if (Files.isRegularFile(path)) {
-							URLConnection connection = new URL("jar:" + fCodeSourceURL + "!/").openConnection();
+							URLConnection connection = new URL("jar:" + codeSourceStr + "!/").openConnection();
 							if (connection instanceof JarURLConnection) {
 								manifest = ((JarURLConnection) connection).getManifest();
 								certificates = ((JarURLConnection) connection).getCertificates();
