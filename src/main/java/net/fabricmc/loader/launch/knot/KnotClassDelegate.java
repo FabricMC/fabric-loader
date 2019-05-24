@@ -17,7 +17,6 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
@@ -36,12 +35,11 @@ import java.net.URLConnection;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.Attributes;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.Manifest;
 
 class KnotClassDelegate {
@@ -62,6 +60,7 @@ class KnotClassDelegate {
 	private final boolean isDevelopment;
 	private final EnvType envType;
 	private MixinTransformer mixinTransformer;
+	private boolean transformInitialized = false;
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf) {
 		this.isDevelopment = isDevelopment;
@@ -69,21 +68,24 @@ class KnotClassDelegate {
 		this.itf = itf;
 	}
 
-	private MixinTransformer getMixinTransformer() {
-		if (mixinTransformer == null) {
-			if (!FabricLauncherBase.isMixinReady()) {
-				throw new RuntimeException("Tried to acquire MixinTransformer before Mixin was ready!");
-			}
-
-			try {
-				Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
-				constructor.setAccessible(true);
-				mixinTransformer = constructor.newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+	public void initializeTransformers() {
+		if (transformInitialized) {
+			throw new RuntimeException("Cannot initialize KnotClassDelegate twice!");
 		}
 
+		try {
+			Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			mixinTransformer = constructor.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		transformInitialized = true;
+	}
+
+	private MixinTransformer getMixinTransformer() {
+		assert mixinTransformer != null;
 		return mixinTransformer;
 	}
 
@@ -153,6 +155,14 @@ class KnotClassDelegate {
 	}
 
 	public byte[] loadClassData(String name, boolean resolve) {
+		if (!transformInitialized) {
+			try {
+				return getClassByteArray(name, true);
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
+			}
+		}
+
 		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
 		if (/* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j")) {
 			byte[] input = EntrypointTransformer.INSTANCE.transform(name);
@@ -166,19 +176,13 @@ class KnotClassDelegate {
 
 			if (input != null) {
 				byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
-				if (FabricLauncherBase.isMixinReady()) {
-					b = getMixinTransformer().transformClassBytes(name, name, b);
-				}
+				b = getMixinTransformer().transformClassBytes(name, name, b);
 				return b;
 			}
 		}
 
 		// We haven't found a class by now, but it could be injected by Mixin
-		if (FabricLauncherBase.isMixinReady()) {
-			return getMixinTransformer().transformClassBytes(name, name, null);
-		} else {
-			return null;
-		}
+		return getMixinTransformer().transformClassBytes(name, name, null);
 	}
 
 	String getClassFileName(String name) {
