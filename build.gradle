@@ -8,7 +8,7 @@ plugins {
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.2-SNAPSHOT"
+	id("fabric-loom") version "0.2.3-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -51,7 +51,7 @@ dependencies {
 	compile 'org.ow2.asm:asm-tree:7.1'
 	compile 'org.ow2.asm:asm-util:7.1'
 
-	compile('net.fabricmc:sponge-mixin:0.7.11.30') {
+	compile('net.fabricmc:sponge-mixin:0.7.11.36') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
