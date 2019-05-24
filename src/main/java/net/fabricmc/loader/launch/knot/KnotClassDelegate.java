@@ -103,9 +103,10 @@ class KnotClassDelegate {
 					Manifest manifest = null;
 					CodeSource codeSource = null;
 					Certificate[] certificates = null;
+					URL fCodeSourceUrl = null;
 
 					try {
-						URL fCodeSourceUrl = new URL(codeSourceStr);
+						fCodeSourceUrl = new URL(codeSourceStr);
 						Path path = UrlUtil.asPath(fCodeSourceUrl);
 
 						if (Files.isRegularFile(path)) {
@@ -140,7 +141,7 @@ class KnotClassDelegate {
 					}
 
 					if (codeSource == null) {
-						codeSource = new CodeSource(fCodeSourceURL, certificates);
+						codeSource = new CodeSource(fCodeSourceUrl, certificates);
 					}
 
 					return new Metadata(manifest, codeSource);
