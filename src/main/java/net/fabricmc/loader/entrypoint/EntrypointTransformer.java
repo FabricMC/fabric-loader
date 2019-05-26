@@ -61,9 +61,9 @@ public class EntrypointTransformer {
 
 	private void addPatchedClass(ClassNode node) {
 		String key = node.name.replace('/', '.');
-		if (patchedClasses.containsKey(key)) {
+		/* if (patchedClasses.containsKey(key)) {
 			throw new RuntimeException("Duplicate addPatchedClasses call: " + key);
-		}
+		} */
 
 		ClassWriter writer = new ClassWriter(0);
 		node.accept(writer);

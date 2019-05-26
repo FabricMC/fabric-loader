@@ -16,22 +16,24 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.mappings.Mappings;
-import net.fabricmc.mappings.MappingsProvider;
+import net.fabricmc.mappings.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MappingConfiguration {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 
 	private static Mappings mappings;
-	private static boolean checkedMappings;
 
 	public Mappings getMappings() {
-		if (!checkedMappings) {
+		if (mappings == null) {
 			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
 
 			if (mappingStream != null) {
@@ -53,19 +55,14 @@ public class MappingConfiguration {
 			if (mappings == null) {
 				mappings = MappingsProvider.createEmptyMappings();
 			}
-
-			checkedMappings = true;
 		}
 
 		return mappings;
 	}
 
-	public String getTargetNamespace() {
-		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
-	}
-
 	public boolean requiresPackageAccessHack() {
 		// TODO
-		return getTargetNamespace().equals("named");
+		return true;
+		//return getTargetNamespace().equals("named");
 	}
 }

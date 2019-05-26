@@ -17,7 +17,7 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
@@ -52,7 +52,7 @@ public final class FabricMixinBootstrap {
 			.collect(Collectors.toSet());
 	}
 
-	public static void init(EnvType side, FabricLoader loader) {
+	public static void init(EnvType side, FabricLoader loader, String devNamespace) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -61,11 +61,11 @@ public final class FabricMixinBootstrap {
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 			Mappings mappings = mappingConfiguration.getMappings();
 
-			if (mappings != null && mappings.getNamespaces().contains("intermediary") && mappings.getNamespaces().contains(mappingConfiguration.getTargetNamespace())) {
+			if (mappings != null && mappings.getNamespaces().contains("intermediary") && mappings.getNamespaces().contains(devNamespace)) {
 				System.setProperty("mixin.env.remapRefMap", "true");
 
 				try {
-					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", devNamespace);
 					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 					LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
 				} catch (Exception e) {

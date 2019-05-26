@@ -21,16 +21,20 @@ import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
+import net.fabricmc.loader.game.MappingStep;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.mappings.Mappings;
+import net.fabricmc.mappings.MappingsProvider;
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,6 +47,7 @@ public final class Knot extends FabricLauncherBase {
 	private EnvType envType;
 	private File gameJarFile;
 	private GameProvider provider;
+	private String targetNamespace = "unknown";
 
 	protected Knot(EnvType type, File gameJarFile) {
 		this.envType = type;
@@ -102,13 +107,61 @@ public final class Knot extends FabricLauncherBase {
 		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
 		loader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType) : new KnotClassLoader(isDevelopment(), envType);
 
+		List<MappingStep> mappingSteps = new ArrayList<>();
+		provider.gatherGameContextMappingSteps(mappingSteps);
+		Map<MappingStep, Mappings> stepMappingsMap = new HashMap<>();
+
+		targetNamespace = provider.getSourceMappingNamespace();
+
 		for (Path path : provider.getGameContextJars()) {
-			FabricLauncherBase.deobfuscate(
-				provider.getGameId(),
-				provider.getLaunchDirectory(),
-				path,
-				this
-			);
+			Path inPath = path;
+			String mapping;
+
+			if (!isDevelopment) {
+				LOGGER.debug("Requesting deobfuscation of " + path.getFileName());
+
+				mapping = provider.getSourceMappingNamespace();
+
+				for (MappingStep step : mappingSteps) {
+					if (!mapping.equals(step.getFrom())) {
+						throw new RuntimeException("Mapping change error: " + mapping + " != " + step.getFrom() + "!");
+					}
+
+					Mappings mappings;
+					if (step.usesClasspathMappings()) {
+						mappings = getMappingConfiguration().getMappings();
+					} else {
+						mappings = stepMappingsMap.computeIfAbsent(step, (s) -> {
+							try (InputStream is = Files.newInputStream(s.getPath())) {
+								return MappingsProvider.readTinyMappings(is, false);
+							} catch (IOException e) {
+								throw new RuntimeException(e);
+							}
+						});
+					}
+
+					inPath = FabricLauncherBase.deobfuscate(
+						inPath, provider.getLaunchDirectory(), provider.getGameId(),
+						mappings, step.getFrom(), step.getTo()
+					);
+
+					mapping = step.getTo();
+				}
+			} else {
+				mapping = provider.getDevMappingNamespace();
+			}
+
+			targetNamespace = mapping;
+
+			try {
+				propose(UrlUtil.asUrl(inPath));
+			} catch (UrlConversionException e) {
+				throw new RuntimeException(e);
+			}
+
+			if (FabricLauncherBase.minecraftJar == null) {
+				FabricLauncherBase.minecraftJar = inPath;
+			}
 		}
 
 		// Locate entrypoints before switching class loaders
@@ -121,7 +174,7 @@ public final class Knot extends FabricLauncherBase {
 		FabricLoader.INSTANCE.freeze();
 
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
+		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE, provider.getDevMappingNamespace());
 		FabricLauncherBase.finishMixinBootstrapping();
 
 		loader.getDelegate().initializeTransformers();
@@ -131,8 +184,7 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public String getTargetNamespace() {
-		// TODO: Won't work outside of Yarn
-		return isDevelopment ? "named" : "intermediary";
+		return targetNamespace;
 	}
 
 	@Override

@@ -16,18 +16,42 @@
 
 package net.fabricmc.loader.game;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
 
-public final class GameProviders {
-	private GameProviders() {
+public class MappingStep {
+	private final String from, to;
+	private final Path path;
 
+	MappingStep(String from, String to) {
+		this.from = from;
+		this.to = to;
+		this.path = null;
 	}
 
-	public static List<GameProvider> create() {
-		List<GameProvider> providers = new ArrayList<>();
-		providers.add(new MinecraftGameProvider());
-		providers.add(new BukkitMinecraftGameProvider());
-		return providers;
+	MappingStep(String from, String to, Path path) {
+		this.from = from;
+		this.to = to;
+		this.path = path;
+	}
+
+	public String getFrom() {
+		return from;
+	}
+
+	public String getTo() {
+		return to;
+	}
+
+	public boolean usesClasspathMappings() {
+		return path == null;
+	}
+
+	public Path getPath() {
+		return path;
+	}
+
+	@Override
+	public String toString() {
+		return "MappingStep{" + from + " -> " + to + "}";
 	}
 }

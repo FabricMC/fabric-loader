@@ -19,7 +19,6 @@ package net.fabricmc.loader.game;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.FileSystemUtil;
@@ -31,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,14 +46,14 @@ public class MinecraftGameProvider implements GameProvider {
 		public boolean stable;
 	}
 
-	private static final Gson GSON = new Gson();
+	protected static final Gson GSON = new Gson();
 
-	private EnvType envType;
-	private String entrypoint;
-	private Arguments arguments;
-	private Path gameJar, realmsJar;
-	private VersionData versionData;
-	private boolean hasModLoader = false;
+	protected EnvType envType;
+	protected String entrypoint;
+	protected Arguments arguments;
+	protected Path gameJar, realmsJar;
+	protected VersionData versionData;
+	protected boolean hasModLoader = false;
 
 	@Override
 	public String getGameId() {
@@ -79,9 +79,9 @@ public class MinecraftGameProvider implements GameProvider {
 	@Override
 	public String getGameName() {
 		if (versionData != null && versionData.name != null) {
-			return "Minecraft " + versionData.name;
+			return "Minecraft " + versionData.name + " (" + versionData.id + "; " + versionData.build_time + ")";
 		}
-		
+
 		return "Minecraft";
 	}
 
@@ -110,6 +110,11 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
+	public void gatherGameContextMappingSteps(List<MappingStep> steps) {
+		steps.add(new MappingStep("official", "intermediary"));
+	}
+
+	@Override
 	public List<Path> getGameContextJars() {
 		List<Path> list = new ArrayList<>();
 		list.add(gameJar);
@@ -119,21 +124,26 @@ public class MinecraftGameProvider implements GameProvider {
 		return list;
 	}
 
+	protected Optional<GameProviderHelper.EntrypointResult> findEntrypoint(ClassLoader loader) {
+		List<String> entrypointClasses = (envType == EnvType.CLIENT
+		                                  ? Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet")
+		                                  : Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer"));
+
+		return GameProviderHelper.findFirstClass(loader, entrypointClasses);
+	}
+
 	@Override
 	public boolean locateGame(EnvType envType, ClassLoader loader) {
 		this.envType = envType;
-		List<String> entrypointClasses = (envType == EnvType.CLIENT
-			   ? Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet")
-			   : Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer"));
 
-		Optional<GameProviderHelper.EntrypointResult> entrypointResult = GameProviderHelper.findFirstClass(loader, entrypointClasses);
+		Optional<GameProviderHelper.EntrypointResult> entrypointResult = findEntrypoint(loader);
 		if (!entrypointResult.isPresent()) {
 			return false;
 		}
 
 		entrypoint = entrypointResult.get().entrypointName;
 		gameJar = entrypointResult.get().entrypointPath;
-		realmsJar = GameProviderHelper.getSource(loader, "realmsVersion").orElse(null);
+		realmsJar = envType != EnvType.CLIENT ? null : GameProviderHelper.getSource(loader, "realmsVersion").orElse(null);
 		hasModLoader = GameProviderHelper.getSource(loader, "ModLoader.class").isPresent();
 
 		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
@@ -171,5 +181,15 @@ public class MinecraftGameProvider implements GameProvider {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public String getSourceMappingNamespace() {
+		return "official";
+	}
+
+	@Override
+	public String getDevMappingNamespace() {
+		return "named";
 	}
 }

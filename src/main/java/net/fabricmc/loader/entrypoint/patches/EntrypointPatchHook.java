@@ -19,12 +19,18 @@ package net.fabricmc.loader.entrypoint.patches;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.game.GameProviderHelper;
 import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.launch.knot.Knot;
+import net.fabricmc.loader.util.FileSystemUtil;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
@@ -43,6 +49,49 @@ public class EntrypointPatchHook extends EntrypointPatch {
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
 		EnvType type = launcher.getEnvironmentType();
 		String entrypoint = launcher.getEntrypoint();
+		boolean isGameEntrypoint = false;
+		boolean isBukkit = false;
+
+		if (entrypoint.startsWith("org.bukkit.")) {
+			// TODO: i'm a terrible hack. please find me a new home.
+			try {
+				Path path = GameProviderHelper.getSource(launcher.getTargetClassLoader(), entrypoint.replace('.', '/') + ".class").orElse(null);
+				if (path == null) {
+					throw new RuntimeException("Could not find Bukkit entrypoint class " + entrypoint + "!");
+				}
+
+				boolean found = false;
+				try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
+					if (Files.exists(jarFs.get().getPath("net/minecraft/server/MinecraftServer.class"))) {
+						// oh, cool, post-remap?
+						found = true;
+						isBukkit = true;
+						isGameEntrypoint = true;
+						entrypoint = "net.minecraft.server.MinecraftServer";
+					}
+
+					if (!found) {
+						try (DirectoryStream<Path> subPaths = Files.newDirectoryStream(jarFs.get().getPath("net/minecraft/server"))) {
+							for (Path subPath : subPaths) {
+								String name = subPath.getFileName().toString().split(jarFs.get().getSeparator())[0];
+								if (Files.exists(subPath.resolve("MinecraftServer.class"))) {
+									found = true;
+									isBukkit = true;
+									isGameEntrypoint = true;
+									entrypoint = "net.minecraft.server." + name + ".MinecraftServer";
+								}
+							}
+						}
+					}
+				}
+
+				if (!found) {
+					throw new RuntimeException("Could not recognize Bukkit class structure for locating Minecraft server class!");
+				}
+			} catch (IOException e) {
+				throw new RuntimeException("Could not set up Bukkit hook!", e);
+			}
+		}
 
 		if (!entrypoint.startsWith("net.minecraft.") && !entrypoint.startsWith("com.mojang.")) {
 			return;
@@ -50,7 +99,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 
 		try {
 			String gameEntrypoint = null;
-			boolean serverHasFile = true;
+			boolean serverHasFile = !isBukkit;
 			boolean isApplet = entrypoint.contains("Applet");
 			ClassNode mainClass = loadClass(launcher, entrypoint);
 
@@ -58,58 +107,62 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				throw new RuntimeException("Could not load main class " + entrypoint + "!");
 			}
 
-			// Main -> Game entrypoint search
-			//
-			// -- CLIENT --
-			// pre-1.6 (seems to hold to 0.0.11!): find the only non-static non-java-packaged Object field
-			// 1.6.1+: [client].start() [INVOKEVIRTUAL]
-			// 19w04a: [client].<init> [INVOKESPECIAL] -> Thread.start()
-			// -- SERVER --
-			// (1.5-1.7?)-: Just find it instantiating itself.
-			// (1.6-1.8?)+: an <init> starting with java.io.File can be assumed to be definite
+			if (isGameEntrypoint) {
+				gameEntrypoint = entrypoint;
+			} else {
+				// Main -> Game entrypoint search
+				//
+				// -- CLIENT --
+				// pre-1.6 (seems to hold to 0.0.11!): find the only non-static non-java-packaged Object field
+				// 1.6.1+: [client].start() [INVOKEVIRTUAL]
+				// 19w04a: [client].<init> [INVOKESPECIAL] -> Thread.start()
+				// -- SERVER --
+				// (1.5-1.7?)-: Just find it instantiating itself.
+				// (1.6-1.8?)+: an <init> starting with java.io.File can be assumed to be definite
 
-			if (type == EnvType.CLIENT) {
-				// pre-1.6 route
-				List<FieldNode> newGameFields = findFields(mainClass,
-					(f) -> !isStatic(f.access) && f.desc.startsWith("L") && !f.desc.startsWith("Ljava/")
-				);
-
-				if (newGameFields.size() == 1) {
-					gameEntrypoint = Type.getType(newGameFields.get(0).desc).getClassName();
-				}
-			}
-
-			if (gameEntrypoint == null) {
-				// main method searches
-				MethodNode mainMethod = findMethod(mainClass, (method) -> method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V") && isPublicStatic(method.access));
-				if (mainMethod == null) {
-					throw new RuntimeException("Could not find main method in " + entrypoint + "!");
-				}
-
-				if (type == EnvType.SERVER) {
-					// pre-1.6 method search route
-					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
-						(insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).owner.equals(mainClass.name),
-						false
+				if (type == EnvType.CLIENT) {
+					// pre-1.6 route
+					List<FieldNode> newGameFields = findFields(mainClass,
+						(f) -> !isStatic(f.access) && f.desc.startsWith("L") && !f.desc.startsWith("Ljava/")
 					);
 
-					if (newGameInsn != null) {
-						gameEntrypoint = newGameInsn.owner.replace('/', '.');
-						serverHasFile = newGameInsn.desc.startsWith("(Ljava/io/File;");
+					if (newGameFields.size() == 1) {
+						gameEntrypoint = Type.getType(newGameFields.get(0).desc).getClassName();
 					}
 				}
 
 				if (gameEntrypoint == null) {
-					// modern method search routes
-					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
-						type == EnvType.CLIENT
-						? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
-						: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).desc.startsWith("(Ljava/io/File;"),
-						true
-					);
+					// main method searches
+					MethodNode mainMethod = findMethod(mainClass, (method) -> method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V") && isPublicStatic(method.access));
+					if (mainMethod == null) {
+						throw new RuntimeException("Could not find main method in " + entrypoint + "!");
+					}
 
-					if (newGameInsn != null) {
-						gameEntrypoint = newGameInsn.owner.replace('/', '.');
+					if (type == EnvType.SERVER) {
+						// pre-1.6 method search route
+						MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
+							(insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).owner.equals(mainClass.name),
+							false
+						);
+
+						if (newGameInsn != null) {
+							gameEntrypoint = newGameInsn.owner.replace('/', '.');
+							serverHasFile = newGameInsn.desc.startsWith("(Ljava/io/File;");
+						}
+					}
+
+					if (gameEntrypoint == null) {
+						// modern method search routes
+						MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
+							type == EnvType.CLIENT
+							? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
+							: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).desc.startsWith("(Ljava/io/File;"),
+							true
+						);
+
+						if (newGameInsn != null) {
+							gameEntrypoint = newGameInsn.owner.replace('/', '.');
+						}
 					}
 				}
 			}

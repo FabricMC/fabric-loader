@@ -26,7 +26,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-final class GameProviderHelper {
+// TODO: once EntrypointPatchHook is refactored, drop public
+public final class GameProviderHelper {
 	public static class EntrypointResult {
 		public final String entrypointName;
 		public final Path entrypointPath;
@@ -41,7 +42,7 @@ final class GameProviderHelper {
 
 	}
 
-	static Optional<Path> getSource(ClassLoader loader, String filename) {
+	public static Optional<Path> getSource(ClassLoader loader, String filename) {
 		URL url;
 		if ((url = loader.getResource(filename)) != null) {
 			try {

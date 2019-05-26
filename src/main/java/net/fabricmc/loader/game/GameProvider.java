@@ -28,8 +28,11 @@ public interface GameProvider {
 	Path getLaunchDirectory();
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
+	void gatherGameContextMappingSteps(List<MappingStep> steps);
 	List<Path> getGameContextJars();
 	boolean locateGame(EnvType envType, ClassLoader loader);
 	void acceptArguments(String... arguments);
 	void launch(ClassLoader loader);
+	String getSourceMappingNamespace();
+	String getDevMappingNamespace();
 }

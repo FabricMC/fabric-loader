@@ -102,7 +102,10 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
 
-				FabricLauncherBase.deobfuscate("", gameDir.toPath(), jarFile.toPath(), this);
+				propose(UrlUtil.asUrl(FabricLauncherBase.deobfuscate(
+					jarFile.toPath(), gameDir.toPath(), "minecraft-launchwrapper",
+					getMappingConfiguration().getMappings(), "official", "intermediary"
+				)));
 			} catch (IOException | UrlConversionException e) {
 				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);
 			}
@@ -112,7 +115,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
+		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE, "named");
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 	}
 
