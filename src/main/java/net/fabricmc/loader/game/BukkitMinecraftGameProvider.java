@@ -50,12 +50,6 @@ public class BukkitMinecraftGameProvider extends MinecraftGameProvider {
 	}
 
 	@Override
-	public void acceptArguments(String... argStrs) {
-		super.acceptArguments(argStrs);
-		arguments.addExtraArg("--nojline");
-	}
-
-	@Override
 	protected Optional<GameProviderHelper.EntrypointResult> findEntrypoint(ClassLoader loader) {
 		if (envType != EnvType.SERVER) {
 			return Optional.empty();

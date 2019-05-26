@@ -235,8 +235,11 @@ public class ModResolver {
 					}
 				}
 
-				// assume satisfied
 				int[] model = problem.model();
+				if (model == null) {
+					throw new ModResolutionException("Could not resolve mod collection - unknown error!");
+				}
+
 				result = new HashMap<>();
 
 				for (int i : model) {
