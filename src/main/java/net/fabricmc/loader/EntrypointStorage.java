@@ -16,8 +16,7 @@
 
 package net.fabricmc.loader;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModContainer;
+import net.fabricmc.loader.api.EntrypointContainer;
 import net.fabricmc.loader.api.EntrypointException;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
@@ -25,11 +24,10 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 class EntrypointStorage {
 	static interface Entry {
-		<T> T getOrCreate(Class<T> type) throws Exception;
+		<T> ModEntrypointContainer<T> getOrCreate(Class<T> type) throws Throwable;
 	}
 
 	private static class OldEntry implements Entry {
@@ -40,7 +38,8 @@ class EntrypointStorage {
 		private final ModContainer mod;
 		private final String languageAdapter;
 		private final String value;
-		private Object object;
+		private ModEntrypointContainer object;
+		private boolean attemptedCreate;
 
 		private OldEntry(ModContainer mod, String languageAdapter, String value) {
 			this.mod = mod;
@@ -50,21 +49,27 @@ class EntrypointStorage {
 
 		@Override
 		public String toString() {
-			return mod.getInfo().getId() + "->" + value;
+			return mod.getInfo().getId() + "->(0.3.x)" + value;
 		}
 
 		@Override
-		public <T> T getOrCreate(Class<T> type) throws Exception {
-			if (object == null) {
+		public <T> ModEntrypointContainer<T> getOrCreate(Class<T> type) throws Throwable {
+			if (!attemptedCreate) {
+				attemptedCreate = true;
+
 				net.fabricmc.loader.language.LanguageAdapter adapter = (net.fabricmc.loader.language.LanguageAdapter) Class.forName(languageAdapter, true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getConstructor().newInstance();
-				object = adapter.createInstance(value, options);
+				Object instance = adapter.createInstance(value, options);
+				if (instance != null) {
+					//noinspection unchecked
+					object = new ModEntrypointContainer(instance, mod, "(0.3.x)" + value);
+				}
 			}
 
-			if (object == null || !type.isAssignableFrom(object.getClass())) {
+			if (object == null || !type.isAssignableFrom(object.get().getClass())) {
 				return null;
 			} else {
 				//noinspection unchecked
-				return (T) object;
+				return (ModEntrypointContainer<T>) object;
 			}
 		}
 	}
@@ -73,7 +78,7 @@ class EntrypointStorage {
 		private final ModContainer mod;
 		private final LanguageAdapter adapter;
 		private final String value;
-		private final Map<Class<?>, Object> instanceMap = new IdentityHashMap<>();
+		private final Map<Class<?>, ModEntrypointContainer<?>> instanceMap = new IdentityHashMap<>();
 
 		private NewEntry(ModContainer mod, LanguageAdapter adapter, String value) {
 			this.mod = mod;
@@ -83,21 +88,26 @@ class EntrypointStorage {
 
 		@Override
 		public String toString() {
-			return mod.getInfo().getId() + "->(0.3.x)" + value;
+			return mod.getInfo().getId() + "->" + value;
 		}
 
 		@Override
-		public <T> T getOrCreate(Class<T> type) throws Exception {
-			Object o = instanceMap.get(type);
-			if (o == null) {
-				o = create(type);
-				instanceMap.put(type, o);
+		public <T> ModEntrypointContainer<T> getOrCreate(Class<T> type) throws Throwable {
+			if (instanceMap.containsKey(type)) {
+				//noinspection unchecked
+				return (ModEntrypointContainer<T>) instanceMap.get(type);
+			} else {
+				ModEntrypointContainer<T> container = null;
+				T instance = create(type);
+				if (instance != null) {
+					container = new ModEntrypointContainer<>(instance, mod, value);
+				}
+				instanceMap.put(type, container);
+				return container;
 			}
-			//noinspection unchecked
-			return (T) o;
 		}
 
-		private <T> T create(Class<T> type) throws Exception {
+		private <T> T create(Class<T> type) throws Throwable {
 			return adapter.create(mod, value, type);
 		}
 	}
@@ -127,28 +137,30 @@ class EntrypointStorage {
 		));
 	}
 
-	protected <T> List<T> getEntrypoints(String key, Class<T> type) {
+	protected <T> List<EntrypointContainer<T>> getEntrypoints(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
 		if (entries == null) {
 			return Collections.emptyList();
 		}
 
-		boolean hadException = false;
-		List<T> results = new ArrayList<>(entries.size());
+		List<Throwable> errors = new ArrayList<>();
+		List<EntrypointContainer<T>> results = new ArrayList<>(entries.size());
+
 		for (Entry entry : entries) {
 			try {
-				T result = entry.getOrCreate(type);
+				ModEntrypointContainer<T> result = entry.getOrCreate(type);
 				if (result != null) {
 					results.add(result);
 				}
-			} catch (Exception e) {
-				hadException = true;
-				FabricLoader.INSTANCE.getLogger().error("Exception occured while getting '" + key + "' entrypoints @ " + entry, e);
+			} catch (Throwable e) {
+				errors.add(new EntrypointException(key + ": " + entry, e));
 			}
 		}
 
-		if (hadException) {
-			throw new EntrypointException("Could not look up entries for entrypoint " + key + "!");
+		if (!errors.isEmpty()) {
+			Exception e = new EntrypointException("Could not look up entries for entrypoint " + key + "!");
+			errors.forEach(e::addSuppressed);
+			throw new RuntimeException(e);
 		} else {
 			return results;
 		}

@@ -17,6 +17,9 @@
 package net.fabricmc.loader.entrypoint.hooks;
 
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.EntrypointContainer;
+import net.fabricmc.loader.api.EntrypointException;
+import net.fabricmc.loader.api.ModContainer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,16 +31,21 @@ final class EntrypointUtils {
 
 	}
 
-	static <T> void logErrors(String name, Collection<T> entrypoints, Consumer<T> entrypointConsumer) {
+	static <T> void logErrors(String name, Collection<EntrypointContainer<T>> entrypoints, Consumer<T> entrypointConsumer) {
 		List<Throwable> errors = new ArrayList<>();
 
 		FabricLoader.INSTANCE.getLogger().debug("Iterating over entrypoint '" + name + "'");
 
 		entrypoints.forEach((e) -> {
 			try {
-				entrypointConsumer.accept(e);
+				entrypointConsumer.accept(e.get());
 			} catch (Throwable t) {
-				errors.add(t);
+				ModContainer container = e.getProvidingMod().orElse(null);
+				if (container != null) {
+					errors.add(new EntrypointException("Thrown while executing entrypoint from " + container.getMetadata().getId() + "; " + e.getName(), t));
+				} else {
+					errors.add(new EntrypointException("Thrown while executing entrypoint; " + e.getName(), t));
+				}
 			}
 		});
 

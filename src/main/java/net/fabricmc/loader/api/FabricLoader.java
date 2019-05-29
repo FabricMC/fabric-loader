@@ -37,7 +37,10 @@ public interface FabricLoader {
 		return net.fabricmc.loader.FabricLoader.INSTANCE;
 	}
 
+	@Deprecated
 	<T> List<T> getEntrypoints(String key, Class<T> type);
+
+	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
 
 	/**
 	 * Get the current mapping resolver.
