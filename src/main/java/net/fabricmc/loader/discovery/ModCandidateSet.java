@@ -81,7 +81,11 @@ public class ModCandidateSet {
 
 	public Collection<ModCandidate> toSortedSet() throws ModResolutionException {
 		if (depthZeroCandidates.size() > 1) {
-			throw new ModResolutionException("Duplicate versions for mod ID '" + modId + "': " + Joiner.on(", ").join(depthZeroCandidates.stream().map(ModCandidate::getInfo).map(ModMetadata::getVersion).map(Object::toString).collect(Collectors.toSet())));
+			Set<String> modVersionStrings = depthZeroCandidates.stream()
+				.map((c) -> "[" + c.getInfo().getVersion() + " at " + c.getOriginUrl().getFile() + "]")
+				.collect(Collectors.toSet());
+
+			throw new ModResolutionException("Duplicate versions for mod ID '" + modId + "': " + Joiner.on(", ").join(modVersionStrings));
 		} else if (depthZeroCandidates.size() == 1) {
 			return depthZeroCandidates;
 		} else if (candidates.size() > 1) {
