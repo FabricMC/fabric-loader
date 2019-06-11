@@ -184,16 +184,16 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				modText = "Loading %d mods";
 				break;
 			case 1:
-				modText = "Loading %d mod: %s";
+				modText = "Loading %d mod:\n%s";
 				break;
 			default:
-				modText = "Loading %d mods: %s";
+				modText = "Loading %d mods:\n%s";
 				break;
 		}
 
 		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size(), candidateMap.values().stream()
-			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
-			.collect(Collectors.joining(", ")));
+			.map(info -> String.format("- %s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
+			.collect(Collectors.joining("\n")));
 
 		for (ModCandidate candidate : candidateMap.values()) {
 			addMod(candidate);
