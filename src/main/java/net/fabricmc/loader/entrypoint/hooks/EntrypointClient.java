@@ -33,5 +33,10 @@ public final class EntrypointClient {
 		FabricLoader.INSTANCE.instantiateMods(runDir, gameInstance);
 		EntrypointUtils.logErrors("main", FabricLoader.INSTANCE.getEntrypoints("main", ModInitializer.class), ModInitializer::onInitialize);
 		EntrypointUtils.logErrors("client", FabricLoader.INSTANCE.getEntrypoints("client", ClientModInitializer.class), ClientModInitializer::onInitializeClient);
+
+		if(FabricLoader.INSTANCE.isDevelopmentEnvironment()) {
+			EntrypointUtils.logErrors("dev-main", FabricLoader.INSTANCE.getEntrypoints("dev-main", ModInitializer.class), ModInitializer::onInitialize);
+			EntrypointUtils.logErrors("dev-client", FabricLoader.INSTANCE.getEntrypoints("dev-client", ClientModInitializer.class), ClientModInitializer::onInitializeClient);
+		}
 	}
 }
