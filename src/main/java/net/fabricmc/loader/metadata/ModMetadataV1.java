@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
@@ -94,6 +95,8 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	@Override
 	public List<EntrypointMetadata> getEntrypoints(String type) {
 		List<EntrypointMetadata> list = entrypoints.metadataMap.get(type);
+		if(list != null && !FabricLoader.INSTANCE.isDevelopmentEnvironment())
+			list.removeIf(EntrypointMetadata::isDevelopment);
 		return list != null ? list : Collections.emptyList();
 	}
 
@@ -409,10 +412,12 @@ public class ModMetadataV1 implements LoaderModMetadata {
 		static class Metadata implements EntrypointMetadata {
 			private final String adapter;
 			private final String value;
+			private final boolean dev;
 
-			Metadata(String adapter, String value) {
+			Metadata(String adapter, String value, boolean dev) {
 				this.adapter = adapter;
 				this.value = value;
+				this.dev = dev;
 			}
 
 			@Override
@@ -423,6 +428,11 @@ public class ModMetadataV1 implements LoaderModMetadata {
 			@Override
 			public String getValue() {
 				return value;
+			}
+
+			@Override
+			public boolean isDevelopment() {
+				return dev;
 			}
 		}
 
@@ -446,10 +456,11 @@ public class ModMetadataV1 implements LoaderModMetadata {
 								JsonObject entObj = element.getAsJsonObject();
 								String adapter = entObj.has("adapter") ? entObj.get("adapter").getAsString() : "default";
 								String value = entObj.get("value").getAsString();
+								boolean dev = entObj.has("development") && entObj.get("development").getAsBoolean();
 
-								metadata.add(new Metadata(adapter, value));
+								metadata.add(new Metadata(adapter, value, dev));
 							} else {
-								metadata.add(new Metadata("default", element.getAsString()));
+								metadata.add(new Metadata("default", element.getAsString(), false));
 							}
 						}
 					} else {

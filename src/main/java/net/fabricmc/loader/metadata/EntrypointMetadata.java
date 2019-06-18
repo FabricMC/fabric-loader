@@ -19,4 +19,5 @@ package net.fabricmc.loader.metadata;
 public interface EntrypointMetadata {
 	String getAdapter();
 	String getValue();
+	boolean isDevelopment();
 }
