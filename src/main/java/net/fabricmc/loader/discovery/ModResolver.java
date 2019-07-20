@@ -334,13 +334,13 @@ public class ModResolver {
 		private final FabricLoader loader;
 		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
-		private final int depth;
+		private final ModCandidate parent;
 
-		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
+		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, ModCandidate parent) {
 			this.loader = loader;
 			this.candidatesById = candidatesById;
 			this.url = url;
-			this.depth = depth;
+			this.parent = parent;
 		}
 
 		@Override
@@ -394,7 +394,7 @@ public class ModResolver {
 			}
 
 			for (LoaderModMetadata i : info) {
-				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
+				ModCandidate candidate = new ModCandidate(i, normalizedUrl, parent);
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
@@ -447,7 +447,7 @@ public class ModResolver {
 							jarInJars.stream()
 								.map((p) -> {
 									try {
-										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), parent);
 									} catch (UrlConversionException e) {
 										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
 									}
@@ -472,7 +472,7 @@ public class ModResolver {
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
 		for (ModCandidateFinder f : candidateFinders) {
 			f.findCandidates(loader, (u) -> {
-				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0);
+				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, null);
 				allActions.add(action);
 				pool.execute(action);
 			});

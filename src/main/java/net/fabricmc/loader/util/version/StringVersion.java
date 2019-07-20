@@ -31,6 +31,20 @@ public class StringVersion implements Version {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof StringVersion)) {
+			return false;
+		} else {
+			return ((StringVersion) obj).version.equals(this.version);
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		return version.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return version;
 	}

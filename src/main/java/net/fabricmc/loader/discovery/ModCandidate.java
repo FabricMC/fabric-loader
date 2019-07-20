@@ -23,12 +23,14 @@ import java.net.URL;
 public class ModCandidate {
 	private final LoaderModMetadata info;
 	private final URL originUrl;
+	private final ModCandidate parent;
 	private final int depth;
 
-	public ModCandidate(LoaderModMetadata info, URL originUrl, int depth) {
+	public ModCandidate(LoaderModMetadata info, URL originUrl, ModCandidate parent) {
 		this.info = info;
 		this.originUrl = originUrl;
-		this.depth = depth;
+		this.parent = parent;
+		this.depth = parent != null ? parent.getDepth() + 1 : 0;
 	}
 
 	public URL getOriginUrl() {
@@ -37,6 +39,10 @@ public class ModCandidate {
 
 	public LoaderModMetadata getInfo() {
 		return info;
+	}
+
+	public ModCandidate getParent() {
+		return parent;
 	}
 
 	public int getDepth() {

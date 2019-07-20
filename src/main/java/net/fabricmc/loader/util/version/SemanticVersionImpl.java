@@ -88,7 +88,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 		}
 
 		if (storeX && components.length == 1 && components[0] == Integer.MIN_VALUE) {
-			throw new VersionParsingException("Versions of form 'x' or 'X' not allowed!");
+			throw new VersionParsingException("Versions of form 'x' or 'X' not allowed here!");
 		}
 
 		buildFriendlyName();

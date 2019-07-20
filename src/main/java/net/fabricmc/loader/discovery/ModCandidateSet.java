@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class ModCandidateSet {
 	private final String modId;
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
-	private final Map<String, ModCandidate> candidates = new HashMap<>();
+	private final Map<Version, ModCandidate> candidates = new HashMap<>();
 
 	private static int compare(ModCandidate a, ModCandidate b) {
 		Version av = a.getInfo().getVersion();
@@ -50,7 +50,7 @@ public class ModCandidateSet {
 	}
 
 	public boolean add(ModCandidate candidate) {
-		String version = candidate.getInfo().getVersion().getFriendlyString();
+		Version version = candidate.getInfo().getVersion();
 		ModCandidate oldCandidate = candidates.get(version);
 		if (oldCandidate != null) {
 			int oldDepth = oldCandidate.getDepth();
@@ -60,9 +60,7 @@ public class ModCandidateSet {
 				return false;
 			} else {
 				candidates.remove(version);
-				if (oldDepth > 0) {
-					depthZeroCandidates.remove(oldCandidate);
-				}
+				depthZeroCandidates.remove(oldCandidate);
 			}
 		}
 
