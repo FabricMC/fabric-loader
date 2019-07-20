@@ -267,39 +267,64 @@ public class ModResolver {
 			}
 		}
 
-		if (!missingMods.isEmpty()) {
-			throw new ModResolutionException("Missing mods: " + Joiner.on(", ").join(missingMods));
-		}
-
-		// verify result: dependencies
 		StringBuilder errorsHard = new StringBuilder();
 		StringBuilder errorsSoft = new StringBuilder();
 
-		for (ModCandidate candidate : result.values()) {
-			for (ModDependency dependency : candidate.getInfo().getDepends()) {
-				addErrorToList(candidate, dependency, result, errorsHard, "depends on", true);
-			}
+		if (!missingMods.isEmpty()) {
+			errorsHard.append("\n - Missing mods: ").append(Joiner.on(", ").join(missingMods));
+		} else {
+			// verify result: dependencies
+			for (ModCandidate candidate : result.values()) {
+				for (ModDependency dependency : candidate.getInfo().getDepends()) {
+					addErrorToList(candidate, dependency, result, errorsHard, "depends on", true);
+				}
 
-			for (ModDependency dependency : candidate.getInfo().getRecommends()) {
-				addErrorToList(candidate, dependency, result, errorsSoft, "recommends", true);
-			}
+				for (ModDependency dependency : candidate.getInfo().getRecommends()) {
+					addErrorToList(candidate, dependency, result, errorsSoft, "recommends", true);
+				}
 
-			for (ModDependency dependency : candidate.getInfo().getBreaks()) {
-				addErrorToList(candidate, dependency, result, errorsHard, "breaks", false);
-			}
+				for (ModDependency dependency : candidate.getInfo().getBreaks()) {
+					addErrorToList(candidate, dependency, result, errorsHard, "breaks", false);
+				}
 
-			for (ModDependency dependency : candidate.getInfo().getConflicts()) {
-				addErrorToList(candidate, dependency, result, errorsSoft, "conflicts with", false);
+				for (ModDependency dependency : candidate.getInfo().getConflicts()) {
+					addErrorToList(candidate, dependency, result, errorsSoft, "conflicts with", false);
+				}
+
+				Version version = candidate.getInfo().getVersion();
+				List<Version> suspiciousVersions = new ArrayList<>();
+
+				for (ModCandidate other : modCandidateMap.get(candidate.getInfo().getId())) {
+					Version otherVersion = other.getInfo().getVersion();
+					if (version instanceof Comparable && otherVersion instanceof Comparable && !version.equals(otherVersion)) {
+						//noinspection unchecked
+						if (((Comparable) version).compareTo(otherVersion) == 0) {
+							suspiciousVersions.add(otherVersion);
+						}
+					}
+				}
+
+				if (!suspiciousVersions.isEmpty()) {
+					errorsSoft.append("\n - Conflicting versions found for ")
+						.append(candidate.getInfo().getId())
+						.append(": used ")
+						.append(version.getFriendlyString())
+						.append(", also found ")
+						.append(suspiciousVersions.stream().map(Version::getFriendlyString).collect(Collectors.joining(", ")));
+				}
 			}
 		}
 
+		// print errors
 		String errHardStr = errorsHard.toString();
 		String errSoftStr = errorsSoft.toString();
 
+		if (!errSoftStr.isEmpty()) {
+			logger.warn("Warnings were found! " + errSoftStr);
+		}
+
 		if (!errHardStr.isEmpty()) {
-			throw new ModResolutionException("Unsatisfied dependencies!" + errHardStr + errSoftStr);
-		} else if (!errSoftStr.isEmpty()) {
-			logger.warn("Non-mandatory unsatisfied dependencies! " + errSoftStr);
+			throw new ModResolutionException("Errors were found!" + errHardStr + errSoftStr);
 		}
 
 		return result;

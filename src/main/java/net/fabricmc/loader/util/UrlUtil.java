@@ -33,13 +33,14 @@ public final class UrlUtil {
 			URLConnection connection = resourceURL.openConnection();
 			if (connection instanceof JarURLConnection) {
 				codeSourceURL = ((JarURLConnection) connection).getJarFileURL();
-			} else if (resourceURL.getProtocol().equals("file")) {
-				// assume directory
-				String s = UrlUtil.asFile(resourceURL).getAbsolutePath();
-				s = s.replace(filename.replace('/', File.separatorChar), "");
-				codeSourceURL = UrlUtil.asUrl(new File(s));
 			} else {
-				throw new UrlConversionException("Unknown protocol: " + resourceURL.getProtocol());
+				String path = resourceURL.getPath();
+
+				if (path.endsWith(filename)) {
+					codeSourceURL = new URL(resourceURL.getProtocol(), resourceURL.getHost(), resourceURL.getPort(), path.substring(0, path.length() - filename.length()));
+				} else {
+					throw new UrlConversionException("Could not figure out code source for file '" + filename + "' and URL '" + resourceURL + "'!");
+				}
 			}
 		} catch (Exception e) {
 			throw new UrlConversionException(e);
