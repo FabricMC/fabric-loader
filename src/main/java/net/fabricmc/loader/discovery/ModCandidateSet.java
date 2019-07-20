@@ -29,17 +29,16 @@ public class ModCandidateSet {
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
 	private final Map<String, ModCandidate> candidates = new HashMap<>();
 
-	private static Set<ModCandidate> createNewestVersionSet() {
-		return new TreeSet<>((a, b) -> {
-			Version av = a.getInfo().getVersion();
-			Version bv = b.getInfo().getVersion();
+	private static int compare(ModCandidate a, ModCandidate b) {
+		Version av = a.getInfo().getVersion();
+		Version bv = b.getInfo().getVersion();
 
-			if (av instanceof SemanticVersion && bv instanceof SemanticVersion) {
-				return ((SemanticVersion) bv).compareTo((SemanticVersion) av);
-			} else {
-				return 0;
-			}
-		});
+		if (av instanceof Comparable && bv instanceof Comparable) {
+			//noinspection unchecked
+			return ((Comparable) bv).compareTo(av);
+		} else {
+			return 0;
+		}
 	}
 
 	public ModCandidateSet(String modId) {
@@ -89,8 +88,8 @@ public class ModCandidateSet {
 		} else if (depthZeroCandidates.size() == 1) {
 			return depthZeroCandidates;
 		} else if (candidates.size() > 1) {
-			Set<ModCandidate> out = createNewestVersionSet();
-			out.addAll(candidates.values());
+			List<ModCandidate> out = new ArrayList<>(candidates.values());
+			out.sort(ModCandidateSet::compare);
 			return out;
 		} else {
 			return Collections.singleton(candidates.values().iterator().next());
