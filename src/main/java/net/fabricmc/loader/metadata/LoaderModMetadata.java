@@ -18,6 +18,7 @@ package net.fabricmc.loader.metadata;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,4 +41,6 @@ public interface LoaderModMetadata extends ModMetadata {
 	Collection<String> getOldInitializers();
 	List<EntrypointMetadata> getEntrypoints(String type);
 	Collection<String> getEntrypointKeys();
+
+	void emitFormatWarnings(Logger logger);
 }

@@ -25,6 +25,7 @@ import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -66,6 +67,10 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	// Optional (custom)
 	private Map<String, JsonElement> custom = new HashMap<>();
 
+	// Happy little accidents
+	@Deprecated
+	private DependencyContainer requires = new DependencyContainer();
+
 	@Override
 	public String getType() {
 		return "fabric";
@@ -100,6 +105,14 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	@Override
 	public Collection<String> getEntrypointKeys() {
 		return entrypoints.metadataMap.keySet();
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public void emitFormatWarnings(Logger logger) {
+		if (!requires.dependencies.isEmpty()) {
+			logger.warn("Mod `" + id + "` (" + version + ") uses 'requires' key in fabric.mod.json, which is not supported - use 'depends'");
+		}
 	}
 
 	@Override

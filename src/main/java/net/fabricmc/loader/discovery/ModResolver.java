@@ -402,10 +402,6 @@ public class ModResolver {
 					throw new RuntimeException(String.format("Mod id `%s` does not match the requirements", candidate.getInfo().getId()));
 				}
 
-				if (candidate.getInfo().getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
-					loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
-				}
-
 				added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
 
 				if (!added) {
@@ -510,6 +506,14 @@ public class ModResolver {
 		long time3 = System.currentTimeMillis();
 		loader.getLogger().debug("Mod resolution detection time: " + (time2 - time1) + "ms");
 		loader.getLogger().debug("Mod resolution time: " + (time3 - time2) + "ms");
+
+		for (ModCandidate candidate : result.values()) {
+			if (candidate.getInfo().getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
+				loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
+			}
+
+			candidate.getInfo().emitFormatWarnings(loader.getLogger());
+		}
 
 		return result;
 	}
