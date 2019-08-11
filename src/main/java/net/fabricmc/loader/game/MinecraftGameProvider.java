@@ -58,11 +58,14 @@ public class MinecraftGameProvider implements GameProvider {
 	private Path gameJar, realmsJar;
 	private VersionData versionData;
 	private boolean hasModLoader = false;
-	private EntrypointTransformer entrypointTransformer = new EntrypointTransformer(it -> Arrays.asList(
+
+	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
 		new EntrypointPatchHook(it),
 		new EntrypointPatchBranding(it),
 		new EntrypointPatchFML125(it)
 	));
+
+	MinecraftGameProvider() {}
 
 	@Override
 	public String getGameId() {
@@ -167,7 +170,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public EntrypointTransformer getEntrypointTransformer() {
-		return entrypointTransformer;
+		return TRANSFORMER;
 	}
 
 	@Override

@@ -17,12 +17,8 @@
 package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.game.MinecraftGameProvider;
 
 public final class FabricClientTweaker extends FabricTweaker {
-
-	private final EntrypointTransformer MINECRAFT = new MinecraftGameProvider().getEntrypointTransformer();
 
 	@Override
 	public EnvType getEnvironmentType() {
@@ -32,10 +28,5 @@ public final class FabricClientTweaker extends FabricTweaker {
 	@Override
 	public String getLaunchTarget() {
 		return "net.minecraft.client.main.Main";
-	}
-
-	@Override
-	protected EntrypointTransformer getEntrypointTransformer() {
-		return MINECRAFT;
 	}
 }

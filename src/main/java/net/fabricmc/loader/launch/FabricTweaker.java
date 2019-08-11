@@ -18,12 +18,12 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.Arguments;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
@@ -32,18 +32,19 @@ import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
 	protected Arguments arguments = new Arguments();
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
-
-	protected abstract EntrypointTransformer getEntrypointTransformer();
 
 	@Override
 	public String getEntrypoint() {
@@ -110,7 +111,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			}
 		}
 
-		getEntrypointTransformer().locateEntrypoints(this);
+		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
