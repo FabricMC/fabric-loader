@@ -17,7 +17,7 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.fabricmc.loader.util.FileSystemUtil;
@@ -39,7 +39,6 @@ import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.Manifest;
 
 class KnotClassDelegate {
@@ -57,15 +56,17 @@ class KnotClassDelegate {
 
 	private final Map<String, Metadata> metadataCache = new HashMap<>();
 	private final KnotClassLoaderInterface itf;
+	private final GameProvider provider;
 	private final boolean isDevelopment;
 	private final EnvType envType;
 	private MixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
 
-	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf) {
+	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
 		this.envType = envType;
 		this.itf = itf;
+		this.provider = provider;
 	}
 
 	public void initializeTransformers() {
@@ -165,7 +166,7 @@ class KnotClassDelegate {
 
 		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
 		if (/* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j")) {
-			byte[] input = EntrypointTransformer.INSTANCE.transform(name);
+			byte[] input = provider.getEntrypointTransformer().transform(name);
 			if (input == null) {
 				try {
 					input = getClassByteArray(name, true);

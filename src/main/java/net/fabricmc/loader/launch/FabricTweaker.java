@@ -43,6 +43,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
 
+	protected abstract EntrypointTransformer getEntrypointTransformer();
+
 	@Override
 	public String getEntrypoint() {
 		return getLaunchTarget();
@@ -108,7 +110,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			}
 		}
 
-		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
+		getEntrypointTransformer().locateEntrypoints(this);
 
 		// Setup Mixin environment
 		MixinBootstrap.init();

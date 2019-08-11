@@ -17,21 +17,21 @@
 package net.fabricmc.loader.entrypoint;
 
 import com.google.common.collect.ImmutableList;
-import net.fabricmc.loader.entrypoint.patches.EntrypointPatchBranding;
-import net.fabricmc.loader.entrypoint.patches.EntrypointPatchFML125;
-import net.fabricmc.loader.entrypoint.patches.EntrypointPatchHook;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public class EntrypointTransformer {
-	public static final EntrypointTransformer INSTANCE = new EntrypointTransformer();
+
 	public static String appletMainClass;
 
 	public final Logger logger = LogManager.getFormatterLogger("FabricLoader|EntrypointTransformer");
@@ -39,12 +39,8 @@ public class EntrypointTransformer {
 	private Map<String, byte[]> patchedClasses;
 	private boolean entrypointsLocated = false;
 
-	public EntrypointTransformer() {
-		patches = ImmutableList.of(
-			new EntrypointPatchHook(this),
-			new EntrypointPatchBranding(this),
-			new EntrypointPatchFML125(this)
-		);
+	public EntrypointTransformer(Function<EntrypointTransformer, List<EntrypointPatch>> patches) {
+		this.patches = ImmutableList.copyOf(patches.apply(this));
 	}
 
 	ClassNode loadClass(FabricLauncher launcher, String className) throws IOException {

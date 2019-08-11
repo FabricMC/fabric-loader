@@ -17,6 +17,7 @@
 package net.fabricmc.loader.game;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -31,5 +32,6 @@ public interface GameProvider {
 	List<Path> getGameContextJars();
 	boolean locateGame(EnvType envType, ClassLoader loader);
 	void acceptArguments(String... arguments);
+	EntrypointTransformer getEntrypointTransformer();
 	void launch(ClassLoader loader);
 }

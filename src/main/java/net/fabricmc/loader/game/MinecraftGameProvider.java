@@ -19,7 +19,10 @@ package net.fabricmc.loader.game;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.FileSystemUtil;
@@ -31,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,6 +58,11 @@ public class MinecraftGameProvider implements GameProvider {
 	private Path gameJar, realmsJar;
 	private VersionData versionData;
 	private boolean hasModLoader = false;
+	private EntrypointTransformer entrypointTransformer = new EntrypointTransformer(it -> Arrays.asList(
+		new EntrypointPatchHook(it),
+		new EntrypointPatchBranding(it),
+		new EntrypointPatchFML125(it)
+	));
 
 	@Override
 	public String getGameId() {
@@ -154,6 +163,11 @@ public class MinecraftGameProvider implements GameProvider {
 		arguments.parse(argStrs);
 
 		FabricLauncherBase.processArgumentMap(arguments, envType);
+	}
+
+	@Override
+	public EntrypointTransformer getEntrypointTransformer() {
+		return entrypointTransformer;
 	}
 
 	@Override

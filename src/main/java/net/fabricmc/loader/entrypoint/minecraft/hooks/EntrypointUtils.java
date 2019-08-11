@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint.hooks;
+package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
 import net.fabricmc.loader.FabricLoader;
 
