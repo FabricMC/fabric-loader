@@ -28,7 +28,6 @@ import java.util.Enumeration;
 import java.util.Objects;
 
 class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
-
 	private static class DynamicURLClassLoader extends URLClassLoader {
 		private DynamicURLClassLoader(URL[] urls) {
 			super(urls, new DummyClassLoader());

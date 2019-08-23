@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.function.Function;
 
 public class EntrypointTransformer {
-
 	public static String appletMainClass;
 
 	public final Logger logger = LogManager.getFormatterLogger("FabricLoader|EntrypointTransformer");

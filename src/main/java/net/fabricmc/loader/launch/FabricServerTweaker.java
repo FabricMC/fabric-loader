@@ -19,7 +19,6 @@ package net.fabricmc.loader.launch;
 import net.fabricmc.api.EnvType;
 
 public final class FabricServerTweaker extends FabricTweaker {
-
 	@Override
 	public EnvType getEnvironmentType() {
 		return EnvType.SERVER;

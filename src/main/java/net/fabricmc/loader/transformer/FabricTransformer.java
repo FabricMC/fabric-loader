@@ -25,7 +25,6 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 public final class FabricTransformer {
-
 	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
 		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
 		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
