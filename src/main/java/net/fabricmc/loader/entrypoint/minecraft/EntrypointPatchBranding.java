@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint.patches;
+package net.fabricmc.loader.entrypoint.minecraft;
 
 import com.google.common.collect.ImmutableList;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
@@ -66,7 +66,7 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 				while (it.hasNext()) {
 					if (it.next().getOpcode() == Opcodes.ARETURN) {
 						it.previous();
-						it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/hooks/EntrypointBranding", "brand", "(Ljava/lang/String;)Ljava/lang/String;", false));
+						it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/minecraft/hooks/EntrypointBranding", "brand", "(Ljava/lang/String;)Ljava/lang/String;", false));
 						it.next();
 					}
 				}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint.patches;
+package net.fabricmc.loader.entrypoint.minecraft;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
@@ -36,7 +36,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 
 	private void finishEntrypoint(EnvType type, ListIterator<AbstractInsnNode> it) {
 		it.add(new VarInsnNode(Opcodes.ALOAD, 0));
-		it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/hooks/Entrypoint" + (type == EnvType.CLIENT ? "Client" : "Server"), "start", "(Ljava/io/File;Ljava/lang/Object;)V", false));
+		it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/minecraft/hooks/Entrypoint" + (type == EnvType.CLIENT ? "Client" : "Server"), "start", "(Ljava/io/File;Ljava/lang/Object;)V", false));
 	}
 
 	@Override

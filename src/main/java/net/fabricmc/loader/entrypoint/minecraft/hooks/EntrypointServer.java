@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint.hooks;
+package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.EntrypointException;
 
 import java.io.File;
 
-public final class EntrypointClient {
+public final class EntrypointServer {
 	public static void start(File runDir, Object gameInstance) {
 		if (runDir == null) {
 			runDir = new File(".");
@@ -32,6 +30,6 @@ public final class EntrypointClient {
 
 		FabricLoader.INSTANCE.instantiateMods(runDir, gameInstance);
 		EntrypointUtils.logErrors("main", FabricLoader.INSTANCE.getEntrypoints("main", ModInitializer.class), ModInitializer::onInitialize);
-		EntrypointUtils.logErrors("client", FabricLoader.INSTANCE.getEntrypoints("client", ClientModInitializer.class), ClientModInitializer::onInitializeClient);
+		EntrypointUtils.logErrors("server", FabricLoader.INSTANCE.getEntrypoints("server", DedicatedServerModInitializer.class), DedicatedServerModInitializer::onInitializeServer);
 	}
 }

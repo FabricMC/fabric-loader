@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.entrypoint.patches;
+package net.fabricmc.loader.entrypoint.minecraft;
 
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 public class EntrypointPatchFML125 extends EntrypointPatch {
 	private static final String FROM = "net.fabricmc.loader.entrypoint.patches.ModClassLoader_125_FML";
 	private static final String TO = "cpw.mods.fml.common.ModClassLoader";
-	private static final String FROM_INTERNAL = "net/fabricmc/loader/entrypoint/patches/ModClassLoader_125_FML";
+	private static final String FROM_INTERNAL = "net/fabricmc/loader/entrypoint/minecraft/ModClassLoader_125_FML";
 	private static final String TO_INTERNAL = "cpw/mods/fml/common/ModClassLoader";
 
 	public EntrypointPatchFML125(EntrypointTransformer transformer) {

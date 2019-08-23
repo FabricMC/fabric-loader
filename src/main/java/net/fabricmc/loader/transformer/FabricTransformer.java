@@ -17,16 +17,19 @@
 package net.fabricmc.loader.transformer;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 
 public final class FabricTransformer {
 	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
 		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
 		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
 
-		byte[] input = EntrypointTransformer.INSTANCE.transform(name);
+		byte[] input = MinecraftGameProvider.TRANSFORMER.transform(name);
 		if (input != null) {
 			return FabricTransformer.transform(isDevelopment, envType, name, input);
 		} else {
@@ -58,7 +61,6 @@ public final class FabricTransformer {
 			visitorCount++;
 		}
 
-		//noinspection ConstantConditions
 		if (environmentStrip) {
 			EnvironmentStrippingData stripData = new EnvironmentStrippingData(Opcodes.ASM7, envType.toString());
 			classReader.accept(stripData, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);

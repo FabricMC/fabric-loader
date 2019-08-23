@@ -100,19 +100,21 @@ public final class Knot extends FabricLauncherBase {
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
 		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
-		loader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType) : new KnotClassLoader(isDevelopment(), envType);
+		loader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider) : new KnotClassLoader(isDevelopment(), envType, provider);
 
-		for (Path path : provider.getGameContextJars()) {
-			FabricLauncherBase.deobfuscate(
-				provider.getGameId(),
-				provider.getLaunchDirectory(),
-				path,
-				this
-			);
+		if(provider.isObfuscated()) {
+			for (Path path : provider.getGameContextJars()) {
+				FabricLauncherBase.deobfuscate(
+					provider.getGameId(),
+					provider.getLaunchDirectory(),
+					path,
+					this
+				);
+			}
 		}
 
 		// Locate entrypoints before switching class loaders
-		EntrypointTransformer.INSTANCE.locateEntrypoints(this);
+		provider.getEntrypointTransformer().locateEntrypoints(this);
 
 		Thread.currentThread().setContextClassLoader((ClassLoader) loader);
 
