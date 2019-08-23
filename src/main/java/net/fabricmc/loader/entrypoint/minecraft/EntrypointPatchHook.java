@@ -149,9 +149,10 @@ public class EntrypointPatchHook extends EntrypointPatch {
 							Object cst = ((LdcInsnNode) insn).cst;
 							if (cst instanceof String) {
 								String s = (String) cst;
-								if (s.startsWith("LWJGL Version: ")) {
+								//This log output was renamed to Backend library in 19w34a
+								if (s.startsWith("LWJGL Version: ") || s.startsWith("Backend library: ")) {
 									hasLwjglLog = true;
-									if ("LWJGL Version: ".equals(s) || "LWJGL Version: {}".equals(s)) {
+									if ("LWJGL Version: ".equals(s) || "LWJGL Version: {}".equals(s) || "Backend library: {}".equals(s)) {
 										qual = 3;
 									}
 									break;
