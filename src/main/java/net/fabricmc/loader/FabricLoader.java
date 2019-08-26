@@ -21,7 +21,7 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.discovery.*;
-import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
@@ -61,6 +61,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private Object gameInstance;
 
 	private MappingResolver mappingResolver;
+	private GameProvider provider;
 	private File gameDir;
 	private File configDir;
 
@@ -79,7 +80,19 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		finishModLoading();
 	}
 
-	public void setGameDir(File gameDir) {
+	public GameProvider getGameProvider() {
+		if (provider == null) throw new IllegalStateException("game provider not set (yet)");
+
+		return provider;
+	}
+
+	public void setGameProvider(GameProvider provider) {
+		this.provider = provider;
+
+		setGameDir(provider.getLaunchDirectory().toFile());
+	}
+
+	private void setGameDir(File gameDir) {
 		this.gameDir = gameDir;
 		this.configDir = new File(gameDir, "config");
 	}
@@ -133,9 +146,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	public void load() {
-		if (frozen) {
-			throw new RuntimeException("Frozen - cannot load additional mods!");
-		}
+		if (provider == null) throw new IllegalStateException("game provider not set");
+		if (frozen) throw new IllegalStateException("Frozen - cannot load additional mods!");
 
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
