@@ -18,7 +18,6 @@ package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -41,7 +40,7 @@ public final class Knot extends FabricLauncherBase {
 	private KnotClassLoaderInterface loader;
 	private boolean isDevelopment;
 	private EnvType envType;
-	private File gameJarFile;
+	private final File gameJarFile;
 	private GameProvider provider;
 
 	protected Knot(EnvType type, File gameJarFile) {
@@ -60,13 +59,14 @@ public final class Knot extends FabricLauncherBase {
 			}
 
 			switch (side.toLowerCase(Locale.ROOT)) {
-				case "client": {
+				case "client":
 					envType = EnvType.CLIENT;
-				} break;
-				case "server": {
+					break;
+				case "server":
 					envType = EnvType.SERVER;
-				} break;
-				default: throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
+					break;
+				default:
+					throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
 			}
 		}
 
@@ -84,11 +84,11 @@ public final class Knot extends FabricLauncherBase {
 		}
 
 		if (provider != null) {
-			LOGGER.info("Loading for game " + provider.getGameName());
+			LOGGER.info("Loading for game " + provider.getGameName() + " " + provider.getRawGameVersion());
 		} else {
 			LOGGER.error("Could not find valid game provider!");
 			for (GameProvider p : providers) {
-				LOGGER.error("- " + p.getGameName());
+				LOGGER.error("- " + p.getGameName()+ " " + p.getRawGameVersion());
 			}
 			throw new RuntimeException("Could not find valid game provider!");
 		}
@@ -105,7 +105,7 @@ public final class Knot extends FabricLauncherBase {
 		if(provider.isObfuscated()) {
 			for (Path path : provider.getGameContextJars()) {
 				FabricLauncherBase.deobfuscate(
-					provider.getGameId(),
+					provider.getGameId(), provider.getNormalizedGameVersion(),
 					provider.getLaunchDirectory(),
 					path,
 					this
@@ -118,7 +118,7 @@ public final class Knot extends FabricLauncherBase {
 
 		Thread.currentThread().setContextClassLoader((ClassLoader) loader);
 
-		FabricLoader.INSTANCE.setGameDir(new File("."));
+		FabricLoader.INSTANCE.setGameProvider(provider);
 		FabricLoader.INSTANCE.load();
 		FabricLoader.INSTANCE.freeze();
 

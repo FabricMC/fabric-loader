@@ -18,10 +18,10 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
-import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.minecraft.launchwrapper.ITweaker;
@@ -42,7 +42,7 @@ import java.util.List;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
-	protected Arguments arguments = new Arguments();
+	protected String[] arguments;
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
 
@@ -59,7 +59,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
-		arguments.parse(localArgs);
+		arguments = localArgs.toArray(new String[0]);
+		/*arguments.parse(localArgs);
 
 		if (!arguments.containsKey("gameDir") && gameDir != null) {
 			arguments.put("gameDir", gameDir.getAbsolutePath());
@@ -69,7 +70,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			arguments.put("assetsDir", assetsDir.getAbsolutePath());
 		}
 
-		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());
+		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());*/
 	}
 
 	@Override
@@ -86,8 +87,14 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.Environment");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
 
-		File gameDir = getLaunchDirectory(arguments);
-		FabricLoader.INSTANCE.setGameDir(gameDir);
+		GameProvider provider = new MinecraftGameProvider();
+		provider.acceptArguments(arguments);
+
+		if (!provider.locateGame(getEnvironmentType(), launchClassLoader)) {
+			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
+		}
+
+		FabricLoader.INSTANCE.setGameProvider(provider);
 		FabricLoader.INSTANCE.load();
 		FabricLoader.INSTANCE.freeze();
 
@@ -105,7 +112,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
 
-				FabricLauncherBase.deobfuscate("", gameDir.toPath(), jarFile.toPath(), this);
+				FabricLauncherBase.deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), jarFile.toPath(), this);
 			} catch (IOException | UrlConversionException e) {
 				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);
 			}
@@ -121,7 +128,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public String[] getLaunchArguments() {
-		return arguments.toArray();
+		return arguments;
 	}
 
 	@Override
