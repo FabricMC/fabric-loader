@@ -21,6 +21,7 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.discovery.*;
+import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
@@ -137,15 +138,24 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			throw new RuntimeException("Frozen - cannot load additional mods!");
 		}
 
+		try {
+		    setup();
+		} catch (ModResolutionException e) {
+		    RuntimeException ex = new RuntimeException("Failed to resolve mods!", e);
+		    // Always print immediately, just in case something goes wrong while showing the gui. 
+		    ex.printStackTrace();
+		    FabricGuiEntry.openWindow(/* Normal exception rather than the full one - the gui doesn't need it. */e);		    
+            throw ex;
+		}
+
+		FabricGuiEntry.openWindow(null);
+	}
+
+	private void setup() throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath()));
-		Map<String, ModCandidate> candidateMap;
-		try {
-			candidateMap = resolver.resolve(this);
-		} catch (ModResolutionException e) {
-			throw new RuntimeException("Failed to resolve mods!", e);
-		}
+		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
 		String modText;
 		switch (candidateMap.values().size()) {
@@ -232,12 +242,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected void addMod(ModCandidate candidate) {
+	protected void addMod(ModCandidate candidate) throws ModResolutionException {
 		LoaderModMetadata info = candidate.getInfo();
 		URL originUrl = candidate.getOriginUrl();
 
 		if (modMap.containsKey(info.getId())) {
-			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
 		if (!info.loadsInEnvironment(getEnvironmentType())) {
