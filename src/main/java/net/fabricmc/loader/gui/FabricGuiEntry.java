@@ -21,7 +21,7 @@ public final class FabricGuiEntry {
         // displayWindow(new String[] { "Separate launching not added yet!" });
         // throw new AbstractMethodError("Separate launching not added yet!");
 
-        openWindow(m9());
+        open(m9());
     }
 
     private static Exception m9() {
@@ -58,7 +58,7 @@ public final class FabricGuiEntry {
 
     /** @param loadingException if null (and if {@link #OPTION_FORCE_WINDOW} is not present) then this method will exit
      *            immediately. */
-    public static void openWindow(Exception loadingException) {
+    public static void open(Exception loadingException) {
         if (loadingException == null && !Boolean.getBoolean(OPTION_FORCE_WINDOW)) {
             return;
         }
@@ -81,10 +81,30 @@ public final class FabricGuiEntry {
             tree.fileSystemBasedNode.addChild("int " + i);
         }
 
-        displayWindow(tree);
+        if (/* loadingException == null && */!doesSystemSupportsLwjglPlusSwing()) {
+            fork(tree);
+        } else {
+            openWindow(tree);
+        }
     }
 
-    private static void displayWindow(StatusTree tree) {
+    private static boolean doesSystemSupportsLwjglPlusSwing() {
+        String osName = System.getProperty("os.name");
+        String osArch = System.getProperty("os.arch");
+
+        System.out.println(osName);
+        System.out.println(osArch);
+
+        return false;
+    }
+
+    private static void fork(StatusTree tree) {
+        // TODO: Fork!
+        // for now...
+        openWindow(tree);
+    }
+
+    private static void openWindow(StatusTree tree) {
         FabricMainWindow.open(tree);
     }
 }

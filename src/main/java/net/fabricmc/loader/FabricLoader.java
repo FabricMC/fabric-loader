@@ -144,11 +144,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		    RuntimeException ex = new RuntimeException("Failed to resolve mods!", e);
 		    // Always print immediately, just in case something goes wrong while showing the gui. 
 		    ex.printStackTrace();
-		    FabricGuiEntry.openWindow(/* Normal exception rather than the full one - the gui doesn't need it. */e);		    
+		    FabricGuiEntry.open(/* Normal exception rather than the full one - the gui doesn't need it. */e);		    
             throw ex;
 		}
 
-		FabricGuiEntry.openWindow(null);
+		FabricGuiEntry.open(null);
 	}
 
 	private void setup() throws ModResolutionException {
