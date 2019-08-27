@@ -5,5 +5,8 @@
   "version": "${version}",
   "environment": "*",
   "description": "The base mod loader.",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "custom": {
+    "fabric-networking.shouldHandshake": false
+  }
 }
