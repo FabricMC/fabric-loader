@@ -22,12 +22,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -123,51 +121,52 @@ class FabricMainWindow {
             icons[i] = new ImageIcon(img, desc[i]);
         }
 
-        tree.setCellRenderer(new DefaultTreeCellRenderer() {
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
-                boolean leaf, int row, boolean hasFocus) {
-
-                super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-
-                if (value instanceof CustomTreeNode) {
-                    CustomTreeNode c = (CustomTreeNode) value;
-                    setIcon(icons[c.node.getMaximumWarningLevel().ordinal()]);
-                }
-
-                return this;
-            }
-        });
+        ToolTipManager.sharedInstance().registerComponent(tree);
+        tree.setCellRenderer(new CustomTreeCellRenderer(icons));
 
         JScrollPane treeView = new JScrollPane(tree);
         panel.add(treeView);
 
-        JTextArea infoBox = new JTextArea();
-        infoBox.setEditable(false);
-        JScrollPane infoScrollPane = new JScrollPane(infoBox);
-
-        tree.addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                Object selection = tree.getLastSelectedPathComponent();
-                if (selection == null) {
-                    infoBox.setText("");
-                } else {
-                    infoBox.setText(((CustomTreeNode) selection).node.details);
-                }
-                infoScrollPane.getHorizontalScrollBar().setValue(0);
-                infoScrollPane.getVerticalScrollBar().setValue(0);
-            }
-        });
-        tree.setSelectionRow(0);
-
-        infoScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        infoScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        infoBox.setMinimumSize(new Dimension(40, 200));
-        infoScrollPane.setMinimumSize(new Dimension(40, 200));
-        panel.add(infoScrollPane);
-
         return panel;
+    }
+
+    private static final class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
+        private static final long serialVersionUID = -5621219150752332739L;
+
+        private final Icon[] icons;
+
+        private CustomTreeCellRenderer(Icon[] icons) {
+            this.icons = icons;
+        }
+
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
+            boolean leaf, int row, boolean hasFocus) {
+
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+            if (value instanceof CustomTreeNode) {
+                CustomTreeNode c = (CustomTreeNode) value;
+                setIcon(icons[c.node.getMaximumWarningLevel().ordinal()]);
+                if (c.node.details == null || c.node.details.isEmpty()) {
+                    setToolTipText(null);
+                } else {
+                    if (c.node.details.contains("\n")) {
+                        // It's a bit odd but it's easier than creating a custom tooltip
+                        String replaced = c.node.details//
+                            .replace("&", "&amp;")//
+                            .replace("<", "&lt;")//
+                            .replace(">", "&gt;")//
+                            .replace("\n", "<br>");
+                        setToolTipText("<html>" + replaced + "</html>");
+                    } else {
+                        setToolTipText(c.node.details);
+                    }
+                }
+            }
+
+            return this;
+        }
     }
 
     static class CustomTreeNode implements TreeNode {

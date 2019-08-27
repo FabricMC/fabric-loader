@@ -55,7 +55,21 @@ final class StatusTree {
     /** The text for the error tab. (Unlike the other tabs the error tab displays this text above the node tree). */
     public String mainErrorText = null;
 
-    final class Node {
+    public static StatusTree read(String from) {
+        StatusTree tree = new StatusTree();
+
+        tree.fileSystemBasedNode.addChild("Hi");
+
+        return tree;
+    }
+
+    public String write() {
+        StringBuilder sb = new StringBuilder();
+
+        return sb.toString();
+    }
+
+    public final class Node {
 
         private final Node parent;
 
