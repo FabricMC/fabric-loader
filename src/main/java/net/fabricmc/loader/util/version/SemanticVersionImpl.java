@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class SemanticVersionImpl implements SemanticVersion {
-	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("^[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*$");
+	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("|[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*");
 	private final int[] components;
 	private final String prerelease;
 	private final String build;
@@ -67,23 +67,34 @@ public class SemanticVersionImpl implements SemanticVersion {
 		}
 
 		components = new int[componentStrings.length];
+
 		for (int i = 0; i < componentStrings.length; i++) {
-			if (storeX && (componentStrings[i].equals("x") || componentStrings[i].equals("X") || componentStrings[i].equals("*"))) {
-				components[i] = Integer.MIN_VALUE;
-				continue;
+			String compStr = componentStrings[i];
+
+			if (storeX) {
+				if (compStr.equals("x") || compStr.equals("X") || compStr.equals("*")) {
+					if (prerelease != null) {
+						throw new VersionParsingException("Pre-release versions are not allowed to use X-ranges!");
+					}
+
+					components[i] = Integer.MIN_VALUE;
+					continue;
+				} else if (i > 0 && components[i - 1] == Integer.MIN_VALUE) {
+					throw new VersionParsingException("Interjacent wildcard (1.x.2) are disallowed!");
+				}
 			}
 
-			if (componentStrings[i].trim().isEmpty()) {
+			if (compStr.trim().isEmpty()) {
 				throw new VersionParsingException("Missing version number component!");
 			}
 
 			try {
-				components[i] = Integer.parseInt(componentStrings[i]);
+				components[i] = Integer.parseInt(compStr);
 				if (components[i] < 0) {
-					throw new VersionParsingException("Negative version number component '" + componentStrings[i] + "'!");
+					throw new VersionParsingException("Negative version number component '" + compStr + "'!");
 				}
 			} catch (NumberFormatException e) {
-				throw new VersionParsingException("Could not parse version number component '" + componentStrings[i] + "'!", e);
+				throw new VersionParsingException("Could not parse version number component '" + compStr + "'!", e);
 			}
 		}
 
@@ -179,7 +190,8 @@ public class SemanticVersionImpl implements SemanticVersion {
 		return getFriendlyString();
 	}
 
-	public boolean hasXRanges() {
+	@Override
+	public boolean hasWildcard() {
 		for (int i : components) {
 			if (i < 0) {
 				return true;

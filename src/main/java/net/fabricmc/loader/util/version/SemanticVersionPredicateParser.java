@@ -44,16 +44,12 @@ public final class SemanticVersionPredicateParser {
 
 			SemanticVersionImpl version = new SemanticVersionImpl(s, true);
 			if (version.isPrerelease()) {
-				if (version.hasXRanges()) {
-					throw new VersionParsingException("Pre-release versions are not allowed to use X-ranges!");
-				}
-
 				prereleaseVersions.add(version);
 			}
 
 			if (factory == null) {
 				factory = PREFIXES.get("=");
-			} else if (version.hasXRanges()) {
+			} else if (version.hasWildcard()) {
 				throw new VersionParsingException("Prefixed ranges are not allowed to use X-ranges!");
 			}
 
@@ -65,20 +61,6 @@ public final class SemanticVersionPredicateParser {
 		}
 
 		return (s) -> {
-			if (s.isPrerelease()) {
-				boolean match = false;
-				for (SemanticVersionImpl version : prereleaseVersions) {
-					if (version.equalsComponentsExactly(s)) {
-						match = true;
-						break;
-					}
-				}
-
-				if (!match) {
-					return false;
-				}
-			}
-
 			for (Predicate<SemanticVersionImpl> p : predicateList) {
 				if (!p.test(s)) {
 					return false;
@@ -89,10 +71,6 @@ public final class SemanticVersionPredicateParser {
 		};
 	}
 
-	private static int length(SemanticVersionImpl a, SemanticVersionImpl b) {
-		return Math.min(a.getVersionComponentCount(), b.getVersionComponentCount());
-	}
-
 	static {
 		// Make sure to keep this sorted in order of length!
 		PREFIXES = new LinkedHashMap<>();
@@ -101,31 +79,10 @@ public final class SemanticVersionPredicateParser {
 		PREFIXES.put(">", (target) -> (source) -> source.compareTo(target) > 0);
 		PREFIXES.put("<", (target) -> (source) -> source.compareTo(target) < 0);
 		PREFIXES.put("=", (target) -> (source) -> source.compareTo(target) == 0);
-		PREFIXES.put("~", (target) -> (source) -> {
-			if (target.getVersionComponentCount() == 1) {
-				if (target.isPrerelease()) {
-					throw new RuntimeException("Unsupported condition!");
-				}
-
-				return source.getVersionComponent(0) == target.getVersionComponent(0);
-			} else {
-				return source.compareTo(target) >= 0
-					&& source.getVersionComponent(0) == target.getVersionComponent(0)
-					&& source.getVersionComponent(1) == target.getVersionComponent(1);
-			}
-		});
-		PREFIXES.put("^", (target) -> (source) -> {
-			if (source.compareTo(target) < 0) {
-				return false;
-			}
-
-			for (int i = 0; i < target.getVersionComponentCount(); i++) {
-				if (target.getVersionComponent(i) != 0) {
-					return source.getVersionComponent(i) == target.getVersionComponent(i);
-				}
-			}
-
-			throw new RuntimeException("Unsupported condition!");
-		});
+		PREFIXES.put("~", (target) -> (source) -> source.compareTo(target) >= 0
+				&& source.getVersionComponent(0) == target.getVersionComponent(0)
+				&& source.getVersionComponent(1) == target.getVersionComponent(1));
+		PREFIXES.put("^", (target) -> (source) -> source.compareTo(target) >= 0
+				&& source.getVersionComponent(0) == target.getVersionComponent(0));
 	}
 }
