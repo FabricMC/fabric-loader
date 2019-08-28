@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.Version;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +34,7 @@ import java.util.regex.Pattern;
 /**
  * Definition class for "fabric.mod.json" files.
  */
-public class ModMetadataV0 implements LoaderModMetadata {
+public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetadata {
 	// Required
 	private String id;
 	private Version version;
@@ -184,12 +185,12 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
-	public boolean containsCustomElement(String key) {
+	public boolean containsCustomValue(String key) {
 		return false;
 	}
 
 	@Override
-	public JsonElement getCustomElement(String key) {
+	public CustomValue getCustomValue(String key) {
 		return null;
 	}
 

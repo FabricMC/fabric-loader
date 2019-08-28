@@ -25,17 +25,16 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
 
-import com.google.gson.JsonElement;
-
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.util.version.VersionDeserializer;
 import net.fabricmc.loader.util.version.VersionParsingException;
 
-public final class BuiltinModMetadata implements ModMetadata {
+public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final String id;
 	private final Version version;
 	private final String name;
@@ -130,10 +129,10 @@ public final class BuiltinModMetadata implements ModMetadata {
 	@Override
 	public Collection<ModDependency> getBreaks() { return Collections.emptyList(); }
 	@Override
-	public boolean containsCustomElement(String key) { return false; }
+	public boolean containsCustomValue(String key) { return false; }
 	@Override
-	public JsonElement getCustomElement(String key) { return null; }
-	
+	public CustomValue getCustomValue(String key) { return null; }
+
 	public static class Builder {
 		private final String id;
 		private final Version version;
