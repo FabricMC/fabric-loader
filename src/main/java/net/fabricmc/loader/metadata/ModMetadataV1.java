@@ -16,12 +16,12 @@
 
 package net.fabricmc.loader.metadata;
 
-import com.google.common.base.Joiner;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * Definition class for "fabric.mod.json" files.
  */
-public class ModMetadataV1 implements LoaderModMetadata {
+public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetadata {
 	// Required
 	private String id;
 	private Version version;
@@ -185,13 +185,16 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	@Override
-	public boolean containsCustomElement(String key) {
+	public boolean containsCustomValue(String key) {
 		return custom.containsKey(key);
 	}
 
 	@Override
-	public JsonElement getCustomElement(String key) {
-		return custom.get(key);
+	public CustomValue getCustomValue(String key) {
+		JsonElement e = custom.get(key);
+		if (e == null) return null;
+
+		return CustomValueImpl.fromJsonElement(e);
 	}
 
 	@Override

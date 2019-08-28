@@ -61,6 +61,18 @@ public interface ModMetadata {
 	 */
 	Optional<String> getIconPath(int size);
 
+	boolean containsCustomValue(String key);
+	CustomValue getCustomValue(String key);
+
+	/**
+	 * @deprecated Use {@link #containsCustomValue} instead, this will be removed (can't expose GSON types)!
+	 */
+	@Deprecated
 	boolean containsCustomElement(String key);
+
+	/**
+	 * @deprecated Use {@link #getCustomValue} instead, this will be removed (can't expose GSON types)!
+	 */
+	@Deprecated
 	JsonElement getCustomElement(String key);
 }

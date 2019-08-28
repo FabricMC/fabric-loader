@@ -24,19 +24,19 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.JsonElement;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.metadata.AbstractModMetadata;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.NestedJarEntry;
 
-class BuiltinMetadataWrapper implements LoaderModMetadata {
+class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMetadata {
 	private final ModMetadata parent;
 
 	public BuiltinMetadataWrapper(ModMetadata parent) {
@@ -74,9 +74,9 @@ class BuiltinMetadataWrapper implements LoaderModMetadata {
 	@Override
 	public Optional<String> getIconPath(int size) { return parent.getIconPath(size); }
 	@Override
-	public boolean containsCustomElement(String key) { return parent.containsCustomElement(key); }
+	public boolean containsCustomValue(String key) { return parent.containsCustomValue(key); }
 	@Override
-	public JsonElement getCustomElement(String key) { return parent.getCustomElement(key); }
+	public CustomValue getCustomValue(String key) { return parent.getCustomValue(key); }
 	@Override
 	public int getSchemaVersion() { return Integer.MAX_VALUE; }
 	@Override
