@@ -22,11 +22,13 @@ import com.google.gson.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.api.Version;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,6 +110,11 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	public void emitFormatWarnings(Logger logger) {
 
 	}
+
+    @Override
+    public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
+
+    }
 
 	@Override
 	public Collection<String> getMixinConfigs(EnvType type) {

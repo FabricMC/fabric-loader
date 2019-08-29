@@ -23,19 +23,26 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
  * Definition class for "fabric.mod.json" files.
  */
 public class ModMetadataV1 implements LoaderModMetadata {
-	// Required
+    public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        "id", "version", "environment", "entrypoints", "jars", "mixins", "depends", "recommends",
+        "suggests", "conflicts", "breaks", "name", "description", "authors", "contributors",
+        "contact", "license", "icon", "languageAdapters", "custom", "schemaVersion")));
+
+    // Required
 	private String id;
 	private Version version;
 
@@ -113,6 +120,18 @@ public class ModMetadataV1 implements LoaderModMetadata {
 		if (!requires.dependencies.isEmpty()) {
 			logger.warn("Mod `" + id + "` (" + version + ") uses 'requires' key in fabric.mod.json, which is not supported - use 'depends'");
 		}
+	}
+
+	@Override
+	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
+	    for (Entry<String, JsonElement> entry : src.entrySet()) {
+	        String key = entry.getKey();
+	        JsonElement value = entry.getValue();
+	        if (!KEYS.contains(key)) {
+	            node.addChild("Unknown entry in json: '" + key + "'").setWarning();
+	            continue;
+	        }
+	    }
 	}
 
 	@Override
@@ -304,7 +323,9 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	public static class Person implements net.fabricmc.loader.api.metadata.Person {
-		private String name;
+	    public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name", "contact")));
+
+	    private String name;
 		private MapBackedContactInformation contact = new MapBackedContactInformation(Collections.emptyMap());
 
 		@Override
@@ -346,7 +367,9 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	public static class JarEntry implements NestedJarEntry {
-		private String file;
+        public static final Set<String> KEYS = Collections.singleton("file");
+
+        private String file;
 
 		@Override
 		public String getFile() {
@@ -480,7 +503,9 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	public static class MixinEntry {
-		private String config;
+        public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("config", "environment")));
+
+        private String config;
 		private Environment environment = Environment.UNIVERSAL;
 
 		public static class Deserializer implements JsonDeserializer<MixinEntry> {

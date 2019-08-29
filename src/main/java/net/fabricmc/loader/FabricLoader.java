@@ -16,27 +16,45 @@
 
 package net.fabricmc.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.discovery.*;
+import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
+import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
+import net.fabricmc.loader.discovery.ModCandidate;
+import net.fabricmc.loader.discovery.ModResolutionException;
+import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.gui.FabricGuiEntry;
-import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.gui.FabricStatusTree;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.*;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The main class for mod loading operations.
@@ -138,24 +156,59 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			throw new RuntimeException("Frozen - cannot load additional mods!");
 		}
 
-		try {
-		    setup();
+        FabricStatusTree tree = new FabricStatusTree();
+        FabricStatusTab crashTab = tree.addTab("Crash");
+        FabricStatusTab fileSystemTab = tree.addTab("File System");
+
+        try {
+		    setup(fileSystemTab);
 		} catch (ModResolutionException e) {
 		    RuntimeException ex = new RuntimeException("Failed to resolve mods!", e);
 		    // Always print immediately, just in case something goes wrong while showing the gui. 
 		    ex.printStackTrace();
-		    FabricGuiEntry.open(/* Normal exception rather than the full one - the gui doesn't need it. */e);		    
+
+		    tree.mainErrorText = "Failed to launch!";
+		    addThrowable(crashTab.node, e, new HashSet<>());
+		    FabricGuiEntry.open(true, tree);
             throw ex;
 		}
+        tree.tabs.remove(crashTab);
 
-		FabricGuiEntry.open(null);
+		if (FabricGuiEntry.shouldShowInformationGui()) {
+            // Gather all relevant information
+		    FabricStatusTab modsTab = tree.addTab("Mods");
+
+		    FabricGuiEntry.open(false, tree);
+		}
 	}
 
-	private void setup() throws ModResolutionException {
+	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
+	    if (!seen.add(e)) {
+	        return;
+	    }
+
+	    // Remove some self-repeating exception traces from the tree
+	    // (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
+	    while (e.getCause() != null && (e.getMessage().equals(e.getCause().getMessage()) || e.getMessage().equals(e.getCause().toString()))) {
+	        e = e.getCause();
+	    }
+
+        FabricStatusNode sub = node.addException(e);
+
+        if (e.getCause() != null) {
+	        addThrowable(sub, e.getCause(), seen);
+	    }
+
+	    for (Throwable t : e.getSuppressed()) {
+	        addThrowable(sub, t, seen);
+	    }
+	}
+
+	private void setup(FabricStatusTab filesystemTab) throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath()));
-		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
+		Map<String, ModCandidate> candidateMap = resolver.resolve(this, filesystemTab);
 
 		String modText;
 		switch (candidateMap.values().size()) {

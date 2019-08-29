@@ -61,4 +61,9 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 			throw new RuntimeException("Exception while searching for mods in '" + path + "'!", e);
 		}
 	}
+
+    @Override
+    public String toString() {
+        return path.toString();
+    }
 }

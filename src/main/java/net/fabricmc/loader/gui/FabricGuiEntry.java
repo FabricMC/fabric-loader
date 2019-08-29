@@ -2,12 +2,12 @@ package net.fabricmc.loader.gui;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.fabricmc.loader.gui.StatusTree.Node;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.gui.FabricStatusTree.WarningLevel;
 
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
@@ -24,10 +24,10 @@ public final class FabricGuiEntry {
 
         if (args.length == 2 && "--from-tree".equals(args[0])) {
             // Forked opening
-            StatusTree tree = StatusTree.read(args[1]);
+            FabricStatusTree tree = FabricStatusTree.read(args[1]);
 
             // Perform basic validation
-            if (tree == null || tree.fileSystemBasedNode.children.isEmpty()) {
+            if (tree == null) {
                 System.out.println("Status: Invalid tree!");
                 System.out.println("Tree Text: " + args[1]);
                 System.exit(-1);
@@ -39,7 +39,40 @@ public final class FabricGuiEntry {
             return;
         } else if (args.length == 1 && "--test".equals(args[0])) {
             // Test code
-            open(m9());
+            FabricStatusTree tree = new FabricStatusTree();
+            tree.mainErrorText = "Failed to launch!";
+
+            FabricStatusTab except = tree.addTab("Errors");
+            FabricStatusNode exception = except.addChild("Crash");
+            exception.setError();
+            exception.expandByDefault = true;
+
+            FabricStatusNode node = exception.addChild("Test");
+            node.setWarning();
+            node.addChild("lols").setInfo();
+            node.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
+
+            FabricStatusNode jarRoot = exception.addChild("Jars");
+            jarRoot.iconType = FabricStatusTree.ICON_TYPE_FOLDER;
+
+            for (int i = 0; i < 8; i++) {
+                boolean isFabric = i >= 4;
+                FabricStatusNode jarNode = jarRoot.addChild("_" + i);
+                jarNode.setWarningLevel(WarningLevel.values()[i & 3]);
+                if (isFabric) {
+                    jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE + "+fabric";
+                } else {
+                    jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
+                }
+
+                jarNode.addChild("fabric.mod.json").iconType = FabricStatusTree.ICON_TYPE_JSON;
+                jarNode.addChild("fle").iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
+                jarNode.addChild("mod.class").iconType = FabricStatusTree.ICON_TYPE_JAVA_CLASS;
+                jarNode.addChild("net.com.pl.www").iconType = FabricStatusTree.ICON_TYPE_JAVA_PACKAGE;
+                jarNode.addChild("assets.lols.whatever").iconType = FabricStatusTree.ICON_TYPE_PACKAGE;
+            }
+
+            open(false, tree);
         } else {
             System.out.println("Expected 2 arguments: '--from-tree' followed by the tree, or '--test'");
             System.exit(-1);
@@ -66,29 +99,13 @@ public final class FabricGuiEntry {
         return new Exception("Test");
     }
 
-    /** @param loadingException if null (and if {@link #OPTION_FORCE_WINDOW} is not present) then this method will exit
-     *            immediately. */
-    public static void open(Exception loadingException) {
-        if (loadingException == null && !Boolean.getBoolean(OPTION_FORCE_WINDOW)) {
-            return;
-        }
-        StatusTree tree = new StatusTree();
-        if (loadingException == null) {
+    /** @return True if the user has specified the {@link #OPTION_FORCE_WINDOW} argument. */
+    public static boolean shouldShowInformationGui() {
+        return Boolean.getBoolean(OPTION_FORCE_WINDOW);
+    }
 
-        } else {
-            Node exception = tree.fileSystemBasedNode.addChild("Crash");
-            exception.setError();
-            exception.expandByDefault = true;
-
-            StringWriter sw = new StringWriter();
-            loadingException.printStackTrace(new PrintWriter(sw));
-            exception.details = sw.toString();
-
-            tree.mainErrorText = "Failed to launch!";
-        }
-
-        loadingException = null;// force fork
-        if (loadingException == null && shouldFork()) {
+    public static void open(boolean isCrashing, FabricStatusTree tree) {
+        if (!isCrashing && shouldFork()) {
             fork(tree);
         } else {
             openWindow(tree);
@@ -105,7 +122,7 @@ public final class FabricGuiEntry {
         return true;
     }
 
-    private static void fork(StatusTree tree) {
+    private static void fork(FabricStatusTree tree) {
 
         List<String> commands = new ArrayList<>();
         commands.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
@@ -135,7 +152,7 @@ public final class FabricGuiEntry {
         }
     }
 
-    private static void openWindow(StatusTree tree) {
+    private static void openWindow(FabricStatusTree tree) {
         FabricMainWindow.open(tree);
     }
 }
