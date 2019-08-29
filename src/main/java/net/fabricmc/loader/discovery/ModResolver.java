@@ -454,11 +454,13 @@ public class ModResolver {
 			try (InputStream stream = Files.newInputStream(modJson)) {
 				info = ModMetadataParser.getMods(loader, stream, modJsonNode);
 			} catch (JsonSyntaxException e) {
-				throw modJsonNode.addAndThrow(new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e));
+			    modJsonNode.addException(e);
+				throw new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e);
 			} catch (NoSuchFileException e) {
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
-				throw modJsonNode.addAndThrow(new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e));
+			    modJsonNode.addException(e);
+				throw new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e);
 			}
 
 			if (info.length > 0) {
@@ -471,7 +473,8 @@ public class ModResolver {
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
-					throw modJsonNode.addAndThrow(new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile())));
+				    // Don't add the exception to the modjson here because the Mod Metadata format will already have added it.
+					throw new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile()));
 				}
 
 				if (!MOD_ID_PATTERN.matcher(candidate.getInfo().getId()).matches()) {

@@ -113,7 +113,9 @@ public class ModMetadataV0 implements LoaderModMetadata {
 
     @Override
     public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
-
+        if (id == null || id.isEmpty()) {
+            node.addChild("Missing key: 'id'!").setError();
+        }
     }
 
 	@Override

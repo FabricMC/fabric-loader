@@ -203,7 +203,7 @@ public final class FabricStatusTree {
                 return;
             }
             FabricStatusNode child = children.remove(0);
-            this.name = name + join + child.name;
+            name += join + child.name;
             for (FabricStatusNode cc : child.children) {
                 cc.parent = this;
                 children.add(cc);
@@ -212,10 +212,10 @@ public final class FabricStatusTree {
         }
 
         public void mergeSingleChildFilePath(String folderType) {
-            if (iconType.equals(folderType)) {
+            if (!iconType.equals(folderType)) {
                 return;
             }
-            while (children.size() == 1 && this.children.get(0).iconType.equals(folderType)) {
+            while (children.size() == 1 && children.get(0).iconType.equals(folderType)) {
                 mergeWithSingleChild("/");
             }
             children.sort((a, b) -> a.name.compareTo(b.name));

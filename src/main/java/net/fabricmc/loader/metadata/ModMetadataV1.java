@@ -124,11 +124,19 @@ public class ModMetadataV1 implements LoaderModMetadata {
 
 	@Override
 	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
+	    if (id == null || id.isEmpty()) {
+	        node.addChild("Missing key: 'id'").setError();
+	    }
+	    if (version == null) {
+	        node.addChild("Missing key: 'version'").setError();
+	    }
 	    for (Entry<String, JsonElement> entry : src.entrySet()) {
 	        String key = entry.getKey();
-	        JsonElement value = entry.getValue();
 	        if (!KEYS.contains(key)) {
-	            node.addChild("Unknown entry in json: '" + key + "'").setWarning();
+	            FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
+	            if (!key.startsWith("__")) {
+	                keyNode.setWarning();
+	            }
 	            continue;
 	        }
 	    }
