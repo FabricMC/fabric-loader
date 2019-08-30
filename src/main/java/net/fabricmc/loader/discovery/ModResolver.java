@@ -484,6 +484,7 @@ public class ModResolver {
 					isModIdValid(candidate.getInfo().getId(), errorList);
 					StringBuilder fullError = new StringBuilder("Mod id `");
 					fullError.append(candidate.getInfo().getId()).append("` does not match the requirements because");
+
 					if (errorList.size() == 1) {
 						fullError.append(" it ").append(errorList.get(0));
 					} else {
@@ -492,6 +493,7 @@ public class ModResolver {
 							fullError.append("\n  - It ").append(error);
 						}
 					}
+
 					throw new RuntimeException(fullError.toString());
 				}
 
