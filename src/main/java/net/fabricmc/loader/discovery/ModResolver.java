@@ -87,83 +87,6 @@ public class ModResolver {
 		return new VecInt(stream.toArray());
 	}
 
-	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */
-	private static boolean isModIdValid(String modId, List<String> errorList) {
-		// A more useful error list for MOD_ID_PATTERN
-		if (modId.isEmpty()) {
-			errorList.add("is empty!");
-			return false;
-		}
-		if (modId.length() == 1) {
-			errorList.add("is only a single character! (It must be at least 2 characters long)!");
-		} else if (modId.length() > 64) {
-			errorList.add("has more than 64 characters!");
-		}
-		char first = modId.charAt(0);
-		if (first < 'a' || first > 'z') {
-			errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - upper case isn't allowed anywhere in the ID)");
-		}
-		Set<Character> invalidChars = null;
-		for (int i = 1; i < modId.length(); i++) {
-			char c = modId.charAt(i);
-			if (c == '-' || c == '_' || ('0' <= c && c <= '9') || ('a' <= c && c <= 'z')) {
-				continue;
-			}
-			if (invalidChars == null) {
-				invalidChars = new HashSet<>();
-			}
-			invalidChars.add(c);
-		}
-		if (invalidChars != null) {
-			StringBuilder error = new StringBuilder("contains invalid characters: '");
-			Character[] chars = invalidChars.toArray(new Character[0]);
-			Arrays.sort(chars);
-			for (Character c : chars) {
-				error.append(c.charValue());
-			}
-			errorList.add(error.append("'!").toString());
-		}
-		assert errorList.isEmpty() == MOD_ID_PATTERN.matcher(modId).matches() : "Errors list " + errorList + " didn't match the mod ID pattern!";
-		return errorList.isEmpty();
-	}
-
-	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
-		String depModId = dependency.getModId();
-
-		StringBuilder prefix = new StringBuilder("\n - Mod ").append(candidate.getInfo().getId());
-		prefix.append(" ").append(errorType).append(" mod ").append(depModId);
-
-		List<String> errorList = new ArrayList<>();
-		if (!isModIdValid(depModId, errorList)) {
-			if (errorList.size() == 1) {
-				errors.append(prefix).append(" which has an invalid mod id because it ").append(errorList.get(0));
-			} else {
-				errors.append(prefix).append(" which has an invalid mod because:");
-				for (String error : errorList) {
-					errors.append("\n	- It ").append(error);
-				}
-			}
-			return;
-		}
-
-		ModCandidate depCandidate = result.get(depModId);
-		boolean isPresent = depCandidate == null ? false : dependency.matches(depCandidate.getInfo().getVersion());
-		if (isPresent != cond) {
-			errors.append("\n - Mod ").append(candidate.getInfo().getId()).append(" ").append(errorType).append(" mod ").append(dependency).append(", ");
-			if (depCandidate == null) {
-				errors.append("which is missing");
-			} else if (cond) {
-				errors.append("but a different version is present: ").append(depCandidate.getInfo().getVersion());
-			} else if (errorType.contains("conf")) {
-				// CONFLICTS WITH
-				errors.append("but the conflicting version is present: ").append(depCandidate.getInfo().getVersion());
-			} else {
-				errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion());
-			}
-			errors.append("!");
-		}
-	}
-
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
 	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
@@ -389,6 +312,83 @@ public class ModResolver {
 
 		return result;
 	}
+
+    private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
+        String depModId = dependency.getModId();
+
+        StringBuilder prefix = new StringBuilder("\n - Mod ").append(candidate.getInfo().getId());
+        prefix.append(" ").append(errorType).append(" mod ").append(depModId);
+
+        List<String> errorList = new ArrayList<>();
+        if (!isModIdValid(depModId, errorList)) {
+            if (errorList.size() == 1) {
+                errors.append(prefix).append(" which has an invalid mod id because it ").append(errorList.get(0));
+            } else {
+                errors.append(prefix).append(" which has an invalid mod because:");
+                for (String error : errorList) {
+                    errors.append("\n   - It ").append(error);
+                }
+            }
+            return;
+        }
+
+        ModCandidate depCandidate = result.get(depModId);
+        boolean isPresent = depCandidate == null ? false : dependency.matches(depCandidate.getInfo().getVersion());
+        if (isPresent != cond) {
+            errors.append("\n - Mod ").append(candidate.getInfo().getId()).append(" ").append(errorType).append(" mod ").append(dependency).append(", ");
+            if (depCandidate == null) {
+                errors.append("which is missing");
+            } else if (cond) {
+                errors.append("but a different version is present: ").append(depCandidate.getInfo().getVersion());
+            } else if (errorType.contains("conf")) {
+                // CONFLICTS WITH
+                errors.append("but the conflicting version is present: ").append(depCandidate.getInfo().getVersion());
+            } else {
+                errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion());
+            }
+            errors.append("!");
+        }
+    }
+
+    /** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */
+    private static boolean isModIdValid(String modId, List<String> errorList) {
+        // A more useful error list for MOD_ID_PATTERN
+        if (modId.isEmpty()) {
+            errorList.add("is empty!");
+            return false;
+        }
+        if (modId.length() == 1) {
+            errorList.add("is only a single character! (It must be at least 2 characters long)!");
+        } else if (modId.length() > 64) {
+            errorList.add("has more than 64 characters!");
+        }
+        char first = modId.charAt(0);
+        if (first < 'a' || first > 'z') {
+            errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - upper case isn't allowed anywhere in the ID)");
+        }
+        Set<Character> invalidChars = null;
+        for (int i = 1; i < modId.length(); i++) {
+            char c = modId.charAt(i);
+            if (c == '-' || c == '_' || ('0' <= c && c <= '9') || ('a' <= c && c <= 'z')) {
+                continue;
+            }
+            if (invalidChars == null) {
+                invalidChars = new HashSet<>();
+            }
+            invalidChars.add(c);
+        }
+        if (invalidChars != null) {
+            StringBuilder error = new StringBuilder("contains invalid characters: '");
+            Character[] chars = invalidChars.toArray(new Character[0]);
+            Arrays.sort(chars);
+            for (Character c : chars) {
+                error.append(c.charValue());
+            }
+            errorList.add(error.append("'!").toString());
+        }
+        assert errorList.isEmpty() == MOD_ID_PATTERN.matcher(modId).matches() : "Errors list " + errorList + " didn't match the mod ID pattern!";
+        return errorList.isEmpty();
+    }
 
 	static class UrlProcessAction extends RecursiveAction {
 		private final FabricLoader loader;
