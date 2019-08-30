@@ -39,6 +39,7 @@ public final class FabricGuiEntry {
 					throw new RuntimeException(e);
 				}
 			}
+
 			return;
 		} else if (args.length == 1 && "--test".equals(args[0])) {
 			// Test code
@@ -62,8 +63,9 @@ public final class FabricGuiEntry {
 				boolean isFabric = i >= 4;
 				FabricStatusNode jarNode = jarRoot.addChild("_" + i);
 				jarNode.setWarningLevel(WarningLevel.values()[i & 3]);
+
 				if (isFabric) {
-					jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE + "+fabric";
+					jarNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
 				} else {
 					jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
 				}
@@ -130,10 +132,13 @@ public final class FabricGuiEntry {
 		if (Boolean.getBoolean(OPTION_ALWAYS_FORK)) {
 			return true;
 		}
+
 		String osName = System.getProperty("os.name");
+
 		if (osName.contains(/* Is this the full os name required? */"mac")) {
 			return true;
 		}
+
 		// TODO: Actually check this on a mac and other operating systems.
 		return false;
 	}
@@ -159,6 +164,7 @@ public final class FabricGuiEntry {
 			if (!shouldWait) {
 				return;
 			}
+
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
