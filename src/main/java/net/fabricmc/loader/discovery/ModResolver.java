@@ -412,7 +412,7 @@ public class ModResolver {
 
 	static class UrlProcessAction extends RecursiveAction {
 		private final FabricLoader loader;
-        private final FabricStatusNode fileNode;
+		private final FabricStatusNode fileNode;
 		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
 		private final int depth;
@@ -466,23 +466,23 @@ public class ModResolver {
 			LoaderModMetadata[] info;
 
 			FabricStatusNode modJsonNode = fileNode.addChild("fabric.mod.json");
-            modJsonNode.iconType = FabricStatusTree.ICON_TYPE_JSON;
+			modJsonNode.iconType = FabricStatusTree.ICON_TYPE_JSON;
 
 			try (InputStream stream = Files.newInputStream(modJson)) {
 				info = ModMetadataParser.getMods(loader, stream, modJsonNode);
 			} catch (JsonSyntaxException e) {
-			    modJsonNode.addException(e);
+				modJsonNode.addException(e);
 				throw new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e);
 			} catch (NoSuchFileException e) {
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
-			    modJsonNode.addException(e);
+				modJsonNode.addException(e);
 				throw new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e);
 			}
 
 			if (info.length > 0) {
-			    modJsonNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JSON;
-                fileNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
+				modJsonNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JSON;
+				fileNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
 			}
 
 			for (LoaderModMetadata i : info) {
@@ -490,7 +490,7 @@ public class ModResolver {
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
-				    // Don't add the exception to the modjson here because the Mod Metadata format will already have added it.
+					// Don't add the exception to the modjson here because the Mod Metadata format will already have added it.
 					throw new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile()));
 				}
 
@@ -546,18 +546,18 @@ public class ModResolver {
 
 					if (!jarInJars.isEmpty()) {
 						List<UrlProcessAction> actions = jarInJars.stream()
-                        	.map((jarInJarCandidate) -> {
-                        	    Path p = jarInJarCandidate.toLoadPath;
-                        		try {
-                        		    FabricStatusNode childNode = getFileNode(fileNode, jarInJarCandidate.fromPath.toString());
-                        		    childNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
-                        			return new UrlProcessAction(loader, childNode, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
-                        		} catch (UrlConversionException e) {
-                        			throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
-                        		}
-                        	}).collect(Collectors.toList());
+							.map((jarInJarCandidate) -> {
+								Path p = jarInJarCandidate.toLoadPath;
+								try {
+									FabricStatusNode childNode = getFileNode(fileNode, jarInJarCandidate.fromPath.toString());
+									childNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
+									return new UrlProcessAction(loader, childNode, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+								} catch (UrlConversionException e) {
+									throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
+								}
+							}).collect(Collectors.toList());
 						simplifyNode(fileNode);
-                        invokeAll(actions);
+						invokeAll(actions);
 					}
 				}
 			}
@@ -569,56 +569,56 @@ public class ModResolver {
 	}
 
 	static final class JarInJarCandidate {
-	    public final Path toLoadPath;
-	    public final Path fromPath;
+		public final Path toLoadPath;
+		public final Path fromPath;
 
-	    public JarInJarCandidate(Path toLoadPath, Path fromPath) {
-            this.toLoadPath = toLoadPath;
-            this.fromPath = fromPath;
-        }
+		public JarInJarCandidate(Path toLoadPath, Path fromPath) {
+			this.toLoadPath = toLoadPath;
+			this.fromPath = fromPath;
+		}
 	}
 
 	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
-        return resolve(loader, new FabricStatusTab("Nope"));
-    }
+		return resolve(loader, new FabricStatusTab("Nope"));
+	}
 
 	public Map<String, ModCandidate> resolve(FabricLoader loader, FabricStatusTab filesystemTab) throws ModResolutionException {
-	    ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
+		ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
 
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
 		List<UrlProcessAction> actions = new ArrayList<>();
 		for (ModCandidateFinder f : candidateFinders) {
-		    FabricStatusNode finderNode = filesystemTab.addChild(f.toString());
+			FabricStatusNode finderNode = filesystemTab.addChild(f.toString());
 			f.findCandidates(loader, (u) -> {
-			    String file = u.getFile();
-			    FabricStatusNode fileNode = getFileNode(finderNode, file);
+				String file = u.getFile();
+				FabricStatusNode fileNode = getFileNode(finderNode, file);
 				actions.add(new UrlProcessAction(loader, fileNode, candidatesById, u, 0));
 			});
 			finderNode.iconType = FabricStatusTree.ICON_TYPE_DEFAULT;
-	        simplifyNode(finderNode);
+			simplifyNode(finderNode);
 		}
 
 		Queue<UrlProcessAction> allActions = new ConcurrentLinkedQueue<>();
-        for (UrlProcessAction action : actions) {
-            allActions.add(action);
-            pool.execute(action);
-        }
+		for (UrlProcessAction action : actions) {
+			allActions.add(action);
+			pool.execute(action);
+		}
 
-        // add builtin mods
+		// add builtin mods
 		Collection<BuiltinMod> builtinMods = loader.getGameProvider().getBuiltinMods();
 		if (!builtinMods.isEmpty()) {
-		    FabricStatusNode builtinModsNode = filesystemTab.addChild("Game provided"); 
-		    filesystemTab.node.children.remove(builtinModsNode);
-		    filesystemTab.node.children.add(0, builtinModsNode);
-		    for (BuiltinMod mod : builtinMods) {
-			    FabricStatusNode builtinNode = builtinModsNode.addChild(mod.metadata.getId() + " (" + mod.metadata.getName() + ")");
-			    builtinNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
-			    builtinNode.addChild("Version: '" + mod.metadata.getVersion() + "'");
-                ModCandidate builtinCandidate = new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, builtinNode);
-                candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(builtinCandidate);
-		    }
+			FabricStatusNode builtinModsNode = filesystemTab.addChild("Game provided"); 
+			filesystemTab.node.children.remove(builtinModsNode);
+			filesystemTab.node.children.add(0, builtinModsNode);
+			for (BuiltinMod mod : builtinMods) {
+				FabricStatusNode builtinNode = builtinModsNode.addChild(mod.metadata.getId() + " (" + mod.metadata.getName() + ")");
+				builtinNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
+				builtinNode.addChild("Version: '" + mod.metadata.getVersion() + "'");
+				ModCandidate builtinCandidate = new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, builtinNode);
+				candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(builtinCandidate);
+			}
 		}
 
 		boolean tookTooLong = false;
@@ -668,11 +668,11 @@ public class ModResolver {
 		return result;
 	}
 
-    private static FabricStatusNode getFileNode(FabricStatusNode root, String file) {
-        return root.getFileNode(file, FabricStatusTree.ICON_TYPE_FOLDER, FabricStatusTree.ICON_TYPE_JAR_FILE);
-    }
+	private static FabricStatusNode getFileNode(FabricStatusNode root, String file) {
+		return root.getFileNode(file, FabricStatusTree.ICON_TYPE_FOLDER, FabricStatusTree.ICON_TYPE_JAR_FILE);
+	}
 
-    private static void simplifyNode(FabricStatusNode finderNode) {
-        finderNode.mergeChildFilePaths(FabricStatusTree.ICON_TYPE_FOLDER);
-    }
+	private static void simplifyNode(FabricStatusNode finderNode) {
+		finderNode.mergeChildFilePaths(FabricStatusTree.ICON_TYPE_FOLDER);
+	}
 }
