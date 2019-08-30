@@ -32,19 +32,19 @@ public final class FileSystemUtil {
 		private final boolean owner;
 
 		public FileSystemDelegate(FileSystem fileSystem, boolean owner) {
-		    this.fileSystem = fileSystem;
-		    this.owner = owner;
+			this.fileSystem = fileSystem;
+			this.owner = owner;
 		}
 
 		public FileSystem get() {
-		    return fileSystem;
+			return fileSystem;
 		}
 
 		@Override
 		public void close() throws IOException {
-		    if (owner) {
-		        fileSystem.close();
-		    }
+			if (owner) {
+			    fileSystem.close();
+			}
 		}
 	}
 
@@ -70,15 +70,15 @@ public final class FileSystemUtil {
 	public static FileSystemDelegate getJarFileSystem(URI uri, boolean create) throws IOException {
 		URI jarUri;
 		try {
-		    jarUri = new URI("jar:" + uri.getScheme(), uri.getHost(), uri.getPath(), uri.getFragment());
+			jarUri = new URI("jar:" + uri.getScheme(), uri.getHost(), uri.getPath(), uri.getFragment());
 		} catch (URISyntaxException e) {
-		    throw new IOException(e);
+			throw new IOException(e);
 		}
 
 		try {
-		    return new FileSystemDelegate(FileSystems.newFileSystem(jarUri, create ? jfsArgsCreate : jfsArgsEmpty), true);
+			return new FileSystemDelegate(FileSystems.newFileSystem(jarUri, create ? jfsArgsCreate : jfsArgsEmpty), true);
 		} catch (FileSystemAlreadyExistsException e) {
-		    return new FileSystemDelegate(FileSystems.getFileSystem(jarUri), false);
+			return new FileSystemDelegate(FileSystems.getFileSystem(jarUri), false);
 		}
 	}
 }

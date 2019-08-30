@@ -56,14 +56,14 @@ public class ModMetadataParser {
 			return GSON_V0.fromJson(object, ModMetadataV0.class);
 		} else {
 			int version = object.get("schemaVersion").getAsInt();
-		    //noinspection SwitchStatementWithTooFewBranches
-		    switch (version) {
+			//noinspection SwitchStatementWithTooFewBranches
+			switch (version) {
 				case 1:
 					return GSON_V1.fromJson(object, ModMetadataV1.class);
 				default:
 					loader.getLogger().warn("Mod ID " + (object.has("id") ? object.get("id").getAsString() : "<unknown>") + " has invalid schema version: " + version);
 					if (jsonNode != null) {
-		                jsonNode.addChild("Invalid/unknown 'schemaVersion': " + version).setWarning();
+			            jsonNode.addChild("Invalid/unknown 'schemaVersion': " + version).setWarning();
 					}
 					return null;
 			}
@@ -83,7 +83,7 @@ public class ModMetadataParser {
 				return new LoaderModMetadata[] { metadata };
 			}
 		} else if (jsonNode != null) {
-		    jsonNode.addChild("Expected an object, but got " + el).setWarning();
+			jsonNode.addChild("Expected an object, but got " + el).setWarning();
 		}
 
 		return new LoaderModMetadata[0];

@@ -56,10 +56,10 @@ class FabricMainWindow {
 	private static void open0(FabricStatusTree tree, boolean shouldWait) throws Exception {
 		CountDownLatch guiTerminatedLatch = new CountDownLatch(1);
 		SwingUtilities.invokeAndWait(() -> {
-		    createUi(guiTerminatedLatch, tree);
+			createUi(guiTerminatedLatch, tree);
 		});
 		if (shouldWait) {
-		    guiTerminatedLatch.await();
+			guiTerminatedLatch.await();
 		}
 	}
 
@@ -68,29 +68,29 @@ class FabricMainWindow {
 		window.setVisible(false);
 		window.setTitle("Fabric Loader");
 		try {
-		    window.setIconImage(loadImage("/ui/icon/fabric_x128.png"));
+			window.setIconImage(loadImage("/ui/icon/fabric_x128.png"));
 		} catch (IOException e) {
-		    e.printStackTrace();
+			e.printStackTrace();
 		}
 		window.setMinimumSize(new Dimension(640, 480));
 		window.setLocationByPlatform(true);
 		window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		window.addWindowListener(new WindowAdapter() {
-		    @Override
-		    public void windowClosed(WindowEvent e) {
-		        onCloseLatch.countDown();
-		    }
+			@Override
+			public void windowClosed(WindowEvent e) {
+			    onCloseLatch.countDown();
+			}
 		});
 		// window.setIconImage(BufferedImage.);
 
 		Container contentPane = window.getContentPane();
 
 		if (tree.mainErrorText != null && !tree.mainErrorText.isEmpty()) {
-		    JLabel errorLabel = new JLabel(tree.mainErrorText);
-		    errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		    Font font = errorLabel.getFont();
-		    errorLabel.setFont(font.deriveFont(font.getSize() * 2.0f));
-		    contentPane.add(errorLabel, BorderLayout.NORTH);
+			JLabel errorLabel = new JLabel(tree.mainErrorText);
+			errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+			Font font = errorLabel.getFont();
+			errorLabel.setFont(font.deriveFont(font.getSize() * 2.0f));
+			contentPane.add(errorLabel, BorderLayout.NORTH);
 		}
 
 		JTabbedPane tabs = new JTabbedPane();
@@ -99,7 +99,7 @@ class FabricMainWindow {
 		IconSet icons = new IconSet();
 
 		for (FabricStatusTab tab : tree.tabs) {
-		    tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
+			tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
 		}
 
 		window.setVisible(true);
@@ -116,13 +116,13 @@ class FabricMainWindow {
 		JTree tree = new JTree(model);
 		tree.setRootVisible(false);
 		for (int row = 0; row < tree.getRowCount(); row++) {
-		    if (!tree.isVisible(tree.getPathForRow(row))) {
-		        continue;
-		    }
-		    CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
-		    if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(WarningLevel.WARN)) {
-		        tree.expandRow(row);
-		    }
+			if (!tree.isVisible(tree.getPathForRow(row))) {
+			    continue;
+			}
+			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
+			if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(WarningLevel.WARN)) {
+			    tree.expandRow(row);
+			}
 		}
 
 		ToolTipManager.sharedInstance().registerComponent(tree);
@@ -141,7 +141,7 @@ class FabricMainWindow {
 	private static InputStream loadStream(String str) throws FileNotFoundException {
 		InputStream stream = FabricMainWindow.class.getResourceAsStream(str);
 		if (stream == null) {
-		    throw new FileNotFoundException(str);
+			throw new FileNotFoundException(str);
 		}
 		return stream;
 	}
@@ -151,50 +151,50 @@ class FabricMainWindow {
 		private final Map<IconInfo, Map<Integer, Icon>> icons = new HashMap<>();
 
 		public Icon get(IconInfo info) {
-		    // TODO: HDPI
+			// TODO: HDPI
 
-		    int scale = 16;
-		    Map<Integer, Icon> map = icons.get(info);
-		    if (map == null) {
-		        icons.put(info, map = new HashMap<>());
-		    }
-		    Icon icon = map.get(scale);
-		    if (icon == null) {
-		        try {
-		            icon = loadIcon(info, scale);
-		        } catch (IOException e) {
-		            e.printStackTrace();
-		            icon = missingIcon();
-		        }
-		        map.put(scale, icon);
-		    }
-		    return icon;
+			int scale = 16;
+			Map<Integer, Icon> map = icons.get(info);
+			if (map == null) {
+			    icons.put(info, map = new HashMap<>());
+			}
+			Icon icon = map.get(scale);
+			if (icon == null) {
+			    try {
+			        icon = loadIcon(info, scale);
+			    } catch (IOException e) {
+			        e.printStackTrace();
+			        icon = missingIcon();
+			    }
+			    map.put(scale, icon);
+			}
+			return icon;
 		}
 	}
 
 	private static Icon missingIcon() {
 		if (missingIcon == null) {
-		    BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+			BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
 
-		    for (int y = 0; y < 16; y++) {
-		        for (int x = 0; x < 16; x++) {
-		            img.setRGB(x, y, 0xff_ff_f2);
-		        }
-		    }
+			for (int y = 0; y < 16; y++) {
+			    for (int x = 0; x < 16; x++) {
+			        img.setRGB(x, y, 0xff_ff_f2);
+			    }
+			}
 
-		    for (int i = 0; i < 16; i++) {
-		        img.setRGB(0, i, 0x22_22_22);
-		        img.setRGB(15, i, 0x22_22_22);
-		        img.setRGB(i, 0, 0x22_22_22);
-		        img.setRGB(i, 15, 0x22_22_22);
-		    }
+			for (int i = 0; i < 16; i++) {
+			    img.setRGB(0, i, 0x22_22_22);
+			    img.setRGB(15, i, 0x22_22_22);
+			    img.setRGB(i, 0, 0x22_22_22);
+			    img.setRGB(i, 15, 0x22_22_22);
+			}
 
-		    for (int i = 3; i < 13; i++) {
-		        img.setRGB(i, i, 0x9b_00_00);
-		        img.setRGB(i, 16 - i, 0x9b_00_00);
-		    }
+			for (int i = 3; i < 13; i++) {
+			    img.setRGB(i, i, 0x9b_00_00);
+			    img.setRGB(i, 16 - i, 0x9b_00_00);
+			}
 
-		    missingIcon = new ImageIcon(img);
+			missingIcon = new ImageIcon(img);
 		}
 		return missingIcon;
 	}
@@ -211,15 +211,15 @@ class FabricMainWindow {
 		final int[][] coords = { { 0, 8 }, { 8, 8 }, { 8, 0 } };
 
 		for (int i = 0; i < info.decor.length; i++) {
-		    String decor = info.decor[i];
-		    if (decor == null) {
-		        continue;
-		    }
+			String decor = info.decor[i];
+			if (decor == null) {
+			    continue;
+			}
 
-		    BufferedImage decorImg = loadImage("/ui/icon/decoration/" + decor + "_x" + (scale / 2) + ".png");
-		    assert decorImg.getWidth() == scale / 2;
-		    assert decorImg.getHeight() == scale / 2;
-		    imgG2d.drawImage(decorImg, null, coords[i][0], coords[i][1]);
+			BufferedImage decorImg = loadImage("/ui/icon/decoration/" + decor + "_x" + (scale / 2) + ".png");
+			assert decorImg.getWidth() == scale / 2;
+			assert decorImg.getHeight() == scale / 2;
+			imgG2d.drawImage(decorImg, null, coords[i][0], coords[i][1]);
 		}
 		return new ImageIcon(img);
 	}
@@ -230,69 +230,69 @@ class FabricMainWindow {
 		private final int hash;
 
 		public IconInfo(String mainPath) {
-		    this.mainPath = mainPath;
-		    this.decor = new String[0];
-		    hash = mainPath.hashCode();
+			this.mainPath = mainPath;
+			this.decor = new String[0];
+			hash = mainPath.hashCode();
 		}
 
 		public IconInfo(String mainPath, String[] decor) {
-		    this.mainPath = mainPath;
-		    this.decor = decor;
-		    assert decor.length
-		        < 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
-		    if (decor.length == 0) {
-		        // To mirror the no-decor constructor
-		        hash = mainPath.hashCode();
-		    } else {
-		        hash = mainPath.hashCode() * 31 + Arrays.hashCode(decor);
-		    }
+			this.mainPath = mainPath;
+			this.decor = decor;
+			assert decor.length
+			    < 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
+			if (decor.length == 0) {
+			    // To mirror the no-decor constructor
+			    hash = mainPath.hashCode();
+			} else {
+			    hash = mainPath.hashCode() * 31 + Arrays.hashCode(decor);
+			}
 		}
 
 		public static IconInfo fromNode(FabricStatusNode node) {
-		    String[] split = node.iconType.split("\\+");
-		    if (split.length == 1 && split[0].isEmpty()) {
-		        split = new String[0];
-		    }
-		    String main;
-		    List<String> decors = new ArrayList<>();
-		    WarningLevel warnLevel = node.getMaximumWarningLevel();
-		    if (split.length == 0) {
-		        // Empty string, but we might replace it with a warning
-		        if (warnLevel == WarningLevel.NONE) {
-		            main = "missing";
-		        } else {
-		            main = "level_" + warnLevel.lowerCaseName;
-		        }
-		    } else {
-		        main = split[0];
-		        if (warnLevel == WarningLevel.NONE) {
-		            // Just to add a gap
-		            decors.add(null);
-		        } else {
-		            decors.add("level_" + warnLevel.lowerCaseName);
-		        }
-		        for (int i = 1; i < split.length && i < 3; i++) {
-		            decors.add(split[i]);
-		        }
-		    }
+			String[] split = node.iconType.split("\\+");
+			if (split.length == 1 && split[0].isEmpty()) {
+			    split = new String[0];
+			}
+			String main;
+			List<String> decors = new ArrayList<>();
+			WarningLevel warnLevel = node.getMaximumWarningLevel();
+			if (split.length == 0) {
+			    // Empty string, but we might replace it with a warning
+			    if (warnLevel == WarningLevel.NONE) {
+			        main = "missing";
+			    } else {
+			        main = "level_" + warnLevel.lowerCaseName;
+			    }
+			} else {
+			    main = split[0];
+			    if (warnLevel == WarningLevel.NONE) {
+			        // Just to add a gap
+			        decors.add(null);
+			    } else {
+			        decors.add("level_" + warnLevel.lowerCaseName);
+			    }
+			    for (int i = 1; i < split.length && i < 3; i++) {
+			        decors.add(split[i]);
+			    }
+			}
 
-		    return new IconInfo(main, decors.toArray(new String[0]));
+			return new IconInfo(main, decors.toArray(new String[0]));
 		}
 
 		@Override
 		public int hashCode() {
-		    return hash;
+			return hash;
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-		    if (obj == this) return true;
-		    if (obj == null) return false;
-		    if (obj.getClass() != getClass()) {
-		        return false;
-		    }
-		    IconInfo other = (IconInfo) obj;
-		    return mainPath.equals(other.mainPath) && Arrays.equals(decor, other.decor);
+			if (obj == this) return true;
+			if (obj == null) return false;
+			if (obj.getClass() != getClass()) {
+			    return false;
+			}
+			IconInfo other = (IconInfo) obj;
+			return mainPath.equals(other.mainPath) && Arrays.equals(decor, other.decor);
 		}
 	}
 
@@ -302,36 +302,36 @@ class FabricMainWindow {
 		private final IconSet iconSet;
 
 		private CustomTreeCellRenderer(IconSet icons) {
-		    this.iconSet = icons;
+			this.iconSet = icons;
 		}
 
 		@Override
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
-		    boolean leaf, int row, boolean hasFocus) {
+			boolean leaf, int row, boolean hasFocus) {
 
-		    super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
-		    if (value instanceof CustomTreeNode) {
-		        CustomTreeNode c = (CustomTreeNode) value;
-		        setIcon(iconSet.get(c.getIconInfo()));
-		        if (c.node.details == null || c.node.details.isEmpty()) {
-		            setToolTipText(null);
-		        } else {
-		            if (c.node.details.contains("\n")) {
-		                // It's a bit odd but it's easier than creating a custom tooltip
-		                String replaced = c.node.details//
-		                    .replace("&", "&amp;")//
-		                    .replace("<", "&lt;")//
-		                    .replace(">", "&gt;")//
-		                    .replace("\n", "<br>");
-		                setToolTipText("<html>" + replaced + "</html>");
-		            } else {
-		                setToolTipText(c.node.details);
-		            }
-		        }
-		    }
+			if (value instanceof CustomTreeNode) {
+			    CustomTreeNode c = (CustomTreeNode) value;
+			    setIcon(iconSet.get(c.getIconInfo()));
+			    if (c.node.details == null || c.node.details.isEmpty()) {
+			        setToolTipText(null);
+			    } else {
+			        if (c.node.details.contains("\n")) {
+			            // It's a bit odd but it's easier than creating a custom tooltip
+			            String replaced = c.node.details//
+			                .replace("&", "&amp;")//
+			                .replace("<", "&lt;")//
+			                .replace(">", "&gt;")//
+			                .replace("\n", "<br>");
+			            setToolTipText("<html>" + replaced + "</html>");
+			        } else {
+			            setToolTipText(c.node.details);
+			        }
+			    }
+			}
 
-		    return this;
+			return this;
 		}
 	}
 
@@ -342,73 +342,73 @@ class FabricMainWindow {
 		private IconInfo iconInfo;
 
 		public CustomTreeNode(TreeNode parent, FabricStatusNode node, WarningLevel minimumWarningLevel) {
-		    this.parent = parent;
-		    this.node = node;
-		    for (FabricStatusNode c : node.children) {
-		        if (minimumWarningLevel.isWorseThan(c.getMaximumWarningLevel())) {
-		            continue;
-		        }
-		        displayedChildren.add(new CustomTreeNode(this, c, minimumWarningLevel));
-		    }
+			this.parent = parent;
+			this.node = node;
+			for (FabricStatusNode c : node.children) {
+			    if (minimumWarningLevel.isWorseThan(c.getMaximumWarningLevel())) {
+			        continue;
+			    }
+			    displayedChildren.add(new CustomTreeNode(this, c, minimumWarningLevel));
+			}
 		}
 
 		public IconInfo getIconInfo() {
-		    if (iconInfo == null) {
-		        iconInfo = IconInfo.fromNode(node);
-		    }
-		    return iconInfo;
+			if (iconInfo == null) {
+			    iconInfo = IconInfo.fromNode(node);
+			}
+			return iconInfo;
 		}
 
 		@Override
 		public String toString() {
-		    return node.name;
+			return node.name;
 		}
 
 		@Override
 		public TreeNode getChildAt(int childIndex) {
-		    return displayedChildren.get(childIndex);
+			return displayedChildren.get(childIndex);
 		}
 
 		@Override
 		public int getChildCount() {
-		    return displayedChildren.size();
+			return displayedChildren.size();
 		}
 
 		@Override
 		public TreeNode getParent() {
-		    return parent;
+			return parent;
 		}
 
 		@Override
 		public int getIndex(TreeNode node) {
-		    return displayedChildren.indexOf(node);
+			return displayedChildren.indexOf(node);
 		}
 
 		@Override
 		public boolean getAllowsChildren() {
-		    return !isLeaf();
+			return !isLeaf();
 		}
 
 		@Override
 		public boolean isLeaf() {
-		    return displayedChildren.isEmpty();
+			return displayedChildren.isEmpty();
 		}
 
 		@Override
 		public Enumeration children() {
-		    return new Enumeration<CustomTreeNode>() {
-		        Iterator<CustomTreeNode> it = displayedChildren.iterator();
+			return new Enumeration<CustomTreeNode>() {
+			    Iterator<CustomTreeNode> it = displayedChildren.iterator();
 
-		        @Override
-		        public boolean hasMoreElements() {
-		            return it.hasNext();
-		        }
+			    @Override
+			    public boolean hasMoreElements() {
+			        return it.hasNext();
+			    }
 
-		        @Override
-		        public CustomTreeNode nextElement() {
-		            return it.next();
-		        }
-		    };
+			    @Override
+			    public CustomTreeNode nextElement() {
+			        return it.next();
+			    }
+			};
 		}
 	}
 }

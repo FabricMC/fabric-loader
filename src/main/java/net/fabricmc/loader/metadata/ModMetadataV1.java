@@ -125,22 +125,22 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	@Override
 	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
 		if (id == null || id.isEmpty()) {
-		    node.addChild("Missing key: 'id'").setError();
+			node.addChild("Missing key: 'id'").setError();
 		}
 		if (version == null) {
-		    node.addChild("Missing key: 'version'").setError();
+			node.addChild("Missing key: 'version'").setError();
 		}
 		for (Entry<String, JsonElement> entry : src.entrySet()) {
-		    String key = entry.getKey();
-		    if (!KEYS.contains(key)) {
-		        FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
-		        if (key.startsWith("__")) {
-		            keyNode.setInfo();
-		        } else {
-		            keyNode.setWarning();
-		        }
-		        continue;
-		    }
+			String key = entry.getKey();
+			if (!KEYS.contains(key)) {
+			    FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
+			    if (key.startsWith("__")) {
+			        keyNode.setInfo();
+			    } else {
+			        keyNode.setWarning();
+			    }
+			    continue;
+			}
 		}
 	}
 
@@ -265,7 +265,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		private final List<ModDependency> dependencies = new ArrayList<>();
 
 		public static class Deserializer implements JsonDeserializer<DependencyContainer> {
-		    @Override
+			@Override
 			public DependencyContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 				if (!json.isJsonObject()) {
 					throw new RuntimeException("Dependency container must be an object!");
@@ -319,39 +319,39 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		private final String id;
 
 		ModDependencyV1(List<String> matcherStringList, String depAsStr, String id) {
-		    this.matcherStringList = matcherStringList;
-		    this.depAsStr = depAsStr;
-		    this.id = id;
+			this.matcherStringList = matcherStringList;
+			this.depAsStr = depAsStr;
+			this.id = id;
 		}
 
 		public List<String> getMatcherStringList() {
-		    return matcherStringList;
+			return matcherStringList;
 		}
 
 		@Override
 		public String getModId() {
-		    return id;
+			return id;
 		}
 
 		@Override
 		public boolean matches(Version version) {
-		    for (String s : matcherStringList) {
-		        try {
-		            if (VersionPredicateParser.matches(version, s)) {
-		                return true;
-		            }
-		        } catch (VersionParsingException e) {
-		            e.printStackTrace();
-		            return false;
-		        }
-		    }
+			for (String s : matcherStringList) {
+			    try {
+			        if (VersionPredicateParser.matches(version, s)) {
+			            return true;
+			        }
+			    } catch (VersionParsingException e) {
+			        e.printStackTrace();
+			        return false;
+			    }
+			}
 
-		    return false;
+			return false;
 		}
 
 		@Override
 		public String toString() {
-		    return depAsStr;
+			return depAsStr;
 		}
 	}
 

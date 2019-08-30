@@ -115,7 +115,7 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	@Override
 	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
 		if (id == null || id.isEmpty()) {
-		    node.addChild("Missing key: 'id'!").setError();
+			node.addChild("Missing key: 'id'!").setError();
 		}
 	}
 
@@ -339,30 +339,30 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 		private final Dependency dependency;
 
 		private ModDependencyV0(String modId, Dependency dependency) {
-		    this.modId = modId;
-		    this.dependency = dependency;
+			this.modId = modId;
+			this.dependency = dependency;
 		}
 
 		@Override
 		public String getModId() {
-		    return modId;
+			return modId;
 		}
 
 		@Override
 		public boolean matches(Version version) {
-		    return dependency.satisfiedBy(version);
+			return dependency.satisfiedBy(version);
 		}
 
 		@Override
 		public String toString() {
-		    String[] matchers = dependency.versionMatchers;
-		    if (matchers.length == 0) {
-		        return getModId();
-		    } else if (matchers.length == 1) {
-		        return getModId() + " @ " + matchers[0];
-		    } else {
-		        return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
-		    }
+			String[] matchers = dependency.versionMatchers;
+			if (matchers.length == 0) {
+			    return getModId();
+			} else if (matchers.length == 1) {
+			    return getModId() + " @ " + matchers[0];
+			} else {
+			    return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+			}
 		}
 	}
 
