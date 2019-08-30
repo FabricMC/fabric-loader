@@ -595,6 +595,7 @@ public class ModResolver {
 		    filesystemTab.node.children.add(0, builtinModsNode);
 		    for (BuiltinMod mod : builtinMods) {
 			    FabricStatusNode builtinNode = builtinModsNode.addChild(mod.metadata.getId() + " (" + mod.metadata.getName() + ")");
+			    builtinNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
 			    builtinNode.addChild("Version: '" + mod.metadata.getVersion() + "'");
                 ModCandidate builtinCandidate = new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, builtinNode);
                 candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(builtinCandidate);

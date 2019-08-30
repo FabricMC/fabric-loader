@@ -241,7 +241,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
                 }
                 if (modmeta.getLicense().isEmpty()) {
                     // Note about this - licensing is *kinda* important?
-                    modNode.addChild("No license information found!").setInfo();
+                    modNode.addChild("No license information!").setInfo();
                 } else if (modmeta.getLicense().size() == 1) {
                     modNode.addChild("License: " + modmeta.getLicense().iterator().next());
                 } else {
@@ -251,11 +251,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
                     }
                 }
 
-                addRelatedInformation(modNode, "Dependants", modmeta.getDepends());
-                addRelatedInformation(modNode, "Recommends", modmeta.getRecommends());
-                addRelatedInformation(modNode, "Suggests", modmeta.getSuggests());
-                addRelatedInformation(modNode, "Breaks", modmeta.getBreaks());
-                addRelatedInformation(modNode, "Conflicts", modmeta.getConflicts());
+                addRelatedInformation(modNode, "Dependents", "Dependent", modmeta.getDepends());
+                addRelatedInformation(modNode, "Recommends", "Recommended", modmeta.getRecommends());
+                addRelatedInformation(modNode, "Suggests", "Suggested", modmeta.getSuggests());
+                addRelatedInformation(modNode, "Breaks", "Breaking", modmeta.getBreaks());
+                addRelatedInformation(modNode, "Conflicts", "Conflicting", modmeta.getConflicts());
 
                 // TODO: Should "getCustomKeys()" be part of the main API?
                 if (modmeta instanceof ModMetadataV1) {
@@ -377,7 +377,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	    }
 	}
 
-	private void addRelatedInformation(FabricStatusNode node, String section, Collection<ModDependency> mods) {
+	private void addRelatedInformation(FabricStatusNode node, String section, String prefix, Collection<ModDependency> mods) {
 	    if (mods.isEmpty()) {
 	        return;
 	    }
@@ -390,30 +390,33 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	        // Can/should this be a proper interface?
 	        if (dep instanceof ModDependencyV0) {
-	            submodNode.addChild("Version matcher: Anything (v0 doesn't provide exact version matching)");
+	            submodNode.addChild(prefix + " versions: Anything (v0 doesn't provide exact version matching)");
 	        } else if (dep instanceof ModDependencyV1) {
 	            ModDependencyV1 depv1 = (ModDependencyV1) dep;
                 List<String> versions = depv1.getMatcherStringList();
-	            if (versions.size() == 1) {
-	                FabricStatusNode matcher = submodNode.addChild("Version matcher: '" + versions.get(0) + "'");
+                if (versions.size() == 0) {
+                    FabricStatusNode matcher = submodNode.addChild(prefix + " versions: none!");
+                    matcher.setWarning();
+                } else if (versions.size() == 1) {
+	                FabricStatusNode matcher = submodNode.addChild(prefix + " versions: '" + versions.get(0) + "'");
 	                setVersionMatchStatusV1(mod, versions.get(0), matcher);
 	            } else {
-	                FabricStatusNode allVersionsNode = submodNode.addChild("Version matcher: any of these " + versions.size() + ":");
+	                FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
 	                for (String sub : versions) {
 	                    FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
 	                    setVersionMatchStatusV1(mod, sub, subVersion);
 	                }
 	            }
 	        } else {
-	            submodNode.addChild("Version matcher: unknown (" + dep.getClass() + ")");
+	            submodNode.addChild(prefix + " versions: unknown (" + dep.getClass() + ")");
 	        }
 
 	        if (mod == null) {
 	            FabricStatusNode loadStatus = submodNode.addChild("Not loaded");
-                loadStatus.iconType = FabricStatusTree.ICON_TYPE_DEFAULT;
+                loadStatus.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
                 submodNode.iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
 	        } else {
-                FabricStatusNode loadStatus = submodNode.addChild("Present: " + mod.getMetadata().getVersion().getFriendlyString());
+                FabricStatusNode loadStatus = submodNode.addChild("Loaded version: " + mod.getMetadata().getVersion().getFriendlyString());
                 loadStatus.iconType = FabricStatusTree.ICON_TYPE_TICK;
                 submodNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
 	        }
