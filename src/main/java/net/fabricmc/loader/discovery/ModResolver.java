@@ -469,7 +469,7 @@ public class ModResolver {
 			}
 
 			for (LoaderModMetadata i : info) {
-				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
+				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth, fileNode);
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {

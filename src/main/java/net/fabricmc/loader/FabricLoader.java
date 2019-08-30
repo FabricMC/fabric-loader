@@ -18,19 +18,21 @@ package net.fabricmc.loader;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +43,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
 import net.fabricmc.loader.discovery.ModCandidate;
@@ -54,7 +60,11 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.loader.metadata.ModMetadataV0.ModDependencyV0;
+import net.fabricmc.loader.metadata.ModMetadataV1.ModDependencyV1;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
+import net.fabricmc.loader.util.version.VersionParsingException;
+import net.fabricmc.loader.util.version.VersionPredicateParser;
 
 /**
  * The main class for mod loading operations.
@@ -162,15 +172,23 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
         try {
 		    setup(fileSystemTab);
-		} catch (ModResolutionException e) {
-		    RuntimeException ex = new RuntimeException("Failed to resolve mods!", e);
-		    // Always print immediately, just in case something goes wrong while showing the gui. 
-		    ex.printStackTrace();
+		} catch (ModResolutionException cause) {
+		    RuntimeException exitException = new RuntimeException("Failed to resolve mods!", cause);
 
 		    tree.mainErrorText = "Failed to launch!";
-		    addThrowable(crashTab.node, e, new HashSet<>());
-		    FabricGuiEntry.open(true, tree);
-            throw ex;
+		    addThrowable(crashTab.node, cause, new HashSet<>());
+		    try {
+		        FabricGuiEntry.open(true, tree, false);
+		    } catch (Exception guiOpeningException) {
+		        // If it doesn't open (for whatever reason) then the only thing we can do
+		        // is crash normally - as this might be a headless environment, or some
+		        // other strange thing happened.
+
+		        // Either way this exception isn't as important as the main exception.
+		        exitException.addSuppressed(guiOpeningException);
+		        throw exitException;
+		    }
+            throw exitException;
 		}
         tree.tabs.remove(crashTab);
 
@@ -178,19 +196,110 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
             // Gather all relevant information
 		    FabricStatusTab modsTab = tree.addTab("Mods");
 
-		    FabricGuiEntry.open(false, tree);
+		    List<String> modIds = new ArrayList<>(modMap.keySet());
+		    modIds.sort(Comparator.naturalOrder());
+		    List<FabricStatusNode> modNodes = new ArrayList<>();
+
+		    for (String modId : modIds) {
+		        ModContainer mod = modMap.get(modId);
+		        LoaderModMetadata modmeta = mod.getInfo();
+                FabricStatusNode modNode = modsTab.addChild(modId + " (" + modmeta.getName() + ")");
+                modNodes.add(modNode);
+                // TODO: Icon!
+		        modNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
+		        modNode.addChild("ID: '" + modId + "'");
+		        modNode.addChild("Name: '" + modmeta.getName() + "'");
+		        String desc = modmeta.getDescription();
+                if (desc != null && !desc.isEmpty()) {
+		            modNode.addChild("Description: " + desc);
+		        }
+		        modNode.addChild("Version: " + modmeta.getVersion().getFriendlyString());
+
+                addPersonBasedInformation(modNode, "Author", modmeta.getAuthors());
+                addPersonBasedInformation(modNode, "Contributor", modmeta.getContributors());
+                if (!modmeta.getContact().asMap().isEmpty()) {
+                    addContactInfo(modNode.addChild("Contact Information"), modmeta.getContact());
+                }
+                if (modmeta.getLicense().isEmpty()) {
+                    // Note about this - licensing is *kinda* important?
+                    modNode.addChild("No license information found!").setInfo();
+                } else if (modmeta.getLicense().size() == 1) {
+                    modNode.addChild("License: " + modmeta.getLicense().iterator().next());
+                } else {
+                    FabricStatusNode licenseNode = modNode.addChild("License:");
+                    for (String str : modmeta.getLicense()) {
+                        licenseNode.addChild(str);
+                    }
+                }
+
+                addRelatedInformation(modNode, "Dependants", modmeta.getDepends());
+                addRelatedInformation(modNode, "Recommends", modmeta.getRecommends());
+                addRelatedInformation(modNode, "Suggests", modmeta.getSuggests());
+                addRelatedInformation(modNode, "Breaks", modmeta.getBreaks());
+                addRelatedInformation(modNode, "Conflicts", modmeta.getConflicts());
+		    }
+
+		    // TODO: Class duplication detection!
+
+		    try {
+                FabricGuiEntry.open(false, tree);
+            } catch (Exception e) {
+                // The user must have explicitly asked for this to be shown, so they probably
+                // don't want to just continue loading the game even if it couldn't be shown.
+                String message = "Failed to open the information GUI!"
+                    + "\n(Note: You can remove the '-D" + FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO
+                    + "=true' argument to disable the information GUI)";
+                throw new RuntimeException(message, e);
+            }
 		}
 	}
 
-	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
+    private static void addPersonBasedInformation(FabricStatusNode modNode, String name, Collection<Person> people) {
+        switch (people.size()) {
+            case 0:
+                return;
+            case 1: {
+                Person person = people.iterator().next();
+                FabricStatusNode node = modNode.addChild(name + ": " + person.getName());
+                addContactInfo(node, person.getContact());
+                return;
+            }
+            default: {
+                FabricStatusNode peopleNode = modNode.addChild(name + "s:");
+                for (Person person : people) {
+                    FabricStatusNode node = peopleNode.addChild(person.getName());
+                    addContactInfo(node, person.getContact());
+                }
+                return;
+            }
+        }
+    }
+
+    private static void addContactInfo(FabricStatusNode node, ContactInformation contact) {
+        if (contact.asMap().isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, String> entry : new TreeMap<>(contact.asMap()).entrySet()) {
+            node.addChild(entry.getKey() + ": " + entry.getValue());
+        }
+    }
+
+    private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
 	    if (!seen.add(e)) {
 	        return;
 	    }
 
 	    // Remove some self-repeating exception traces from the tree
 	    // (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
-	    while (e.getCause() != null && (e.getMessage().equals(e.getCause().getMessage()) || e.getMessage().equals(e.getCause().toString()))) {
-	        e = e.getCause();
+	    Throwable cause;
+	    while ((cause = e.getCause()) != null) {
+	        if (e.getSuppressed().length > 0) {
+	            break;
+	        }
+            if (e.getMessage().equals(cause.getMessage()) || e.getMessage().equals(cause.toString())) {
+                break;
+            }
+	        e = cause;
 	    }
 
         FabricStatusNode sub = node.addException(e);
@@ -203,6 +312,66 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	        addThrowable(sub, t, seen);
 	    }
 	}
+
+	private void addRelatedInformation(FabricStatusNode node, String section, Collection<ModDependency> mods) {
+	    if (mods.isEmpty()) {
+	        return;
+	    }
+	    FabricStatusNode n = node.addChild(section);
+	    List<ModDependency> sorted = new ArrayList<>(mods);
+	    sorted.sort(Comparator.comparing(ModDependency::getModId));
+	    for (ModDependency dep : sorted) {
+	        FabricStatusNode submodNode = n.addChild(dep.getModId());
+            ModContainer mod = modMap.get(dep.getModId());
+
+	        // Can/should this be a proper interface?
+	        if (dep instanceof ModDependencyV0) {
+	            submodNode.addChild("Version matcher: Anything (v0 doesn't provide exact version matching)");
+	        } else if (dep instanceof ModDependencyV1) {
+	            ModDependencyV1 depv1 = (ModDependencyV1) dep;
+                List<String> versions = depv1.getMatcherStringList();
+	            if (versions.size() == 1) {
+	                FabricStatusNode matcher = submodNode.addChild("Version matcher: '" + versions.get(0) + "'");
+	                setVersionMatchStatusV1(mod, versions.get(0), matcher);
+	            } else {
+	                FabricStatusNode allVersionsNode = submodNode.addChild("Version matcher: any of these " + versions.size() + ":");
+	                for (String sub : versions) {
+	                    FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
+	                    setVersionMatchStatusV1(mod, sub, subVersion);
+	                }
+	            }
+	        } else {
+	            submodNode.addChild("Version matcher: unknown (" + dep.getClass() + ")");
+	        }
+
+	        if (mod == null) {
+	            FabricStatusNode loadStatus = submodNode.addChild("Not loaded");
+                loadStatus.iconType = FabricStatusTree.ICON_TYPE_DEFAULT;
+                submodNode.iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
+	        } else {
+                FabricStatusNode loadStatus = submodNode.addChild("Present: " + mod.getMetadata().getVersion().getFriendlyString());
+                loadStatus.iconType = FabricStatusTree.ICON_TYPE_TICK;
+                submodNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
+	        }
+	    }
+	}
+
+    private static void setVersionMatchStatusV1(ModContainer mod, String versionMatch, FabricStatusNode node) {
+        if (mod != null) {
+            boolean matches;
+            try {
+                matches = VersionPredicateParser.matches(mod.getInfo().getVersion(), versionMatch);
+            } catch (VersionParsingException e) {
+                matches = false;
+                node.addException(e);
+            }
+            if (matches) {
+                node.iconType = FabricStatusTree.ICON_TYPE_TICK;
+            } else {
+                node.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
+            }
+        }
+    }
 
 	private void setup(FabricStatusTab filesystemTab) throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
@@ -303,7 +472,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
-		if (!info.loadsInEnvironment(getEnvironmentType())) {
+		EnvType currentEnvironment = getEnvironmentType();
+        if (!info.loadsInEnvironment(currentEnvironment)) {
+		    candidate.getFileNode().addChild("Not for this environment: " + currentEnvironment.name().toLowerCase(Locale.ROOT));
 			return;
 		}
 

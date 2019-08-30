@@ -62,6 +62,13 @@ public final class FabricStatusTree {
     /** A folder that contains java class files. */
     public static final String ICON_TYPE_JAVA_PACKAGE = "java_package";
 
+    /** A tick symbol, used to indicate that something matched. */
+    public static final String ICON_TYPE_TICK = "tick";
+
+    /** A cross symbol, used to indicate that something didn't match. (Although it's not an error). Used as the opposite
+     * of {@link #ICON_TYPE_TICK} */
+    public static final String ICON_TYPE_LESSER_CROSS = "lesser_cross";
+
     /** Every node present in this list. */
     public final List<FabricStatusTab> tabs = new ArrayList<>();
 
@@ -183,7 +190,7 @@ public final class FabricStatusTree {
             String[] lines = msg.split("\n");
             if (lines.length == 0) {
                 // what
-                lines = new String[]{ msg };
+                lines = new String[] { msg };
             }
             sub.name = lines[0];
             for (int i = 1; i < lines.length; i++) {

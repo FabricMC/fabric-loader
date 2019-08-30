@@ -39,7 +39,6 @@ import javax.swing.WindowConstants;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
@@ -49,21 +48,19 @@ class FabricMainWindow {
 
     static Icon missingIcon = null;
 
-    static void open(FabricStatusTree tree) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            open0(tree);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    static void open(FabricStatusTree tree, boolean shouldWait) throws Exception {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        open0(tree, shouldWait);
     }
 
-    private static void open0(FabricStatusTree tree) throws Exception {
+    private static void open0(FabricStatusTree tree, boolean shouldWait) throws Exception {
         CountDownLatch guiTerminatedLatch = new CountDownLatch(1);
         SwingUtilities.invokeAndWait(() -> {
             createUi(guiTerminatedLatch, tree);
         });
-        guiTerminatedLatch.await();
+        if (shouldWait) {
+            guiTerminatedLatch.await();
+        }
     }
 
     private static void createUi(CountDownLatch onCloseLatch, FabricStatusTree tree) {

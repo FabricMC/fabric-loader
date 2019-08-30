@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.discovery;
 
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 
 import java.net.URL;
@@ -24,11 +25,13 @@ public class ModCandidate {
 	private final LoaderModMetadata info;
 	private final URL originUrl;
 	private final int depth;
+	private final FabricStatusNode fileNode;
 
-	public ModCandidate(LoaderModMetadata info, URL originUrl, int depth) {
+	public ModCandidate(LoaderModMetadata info, URL originUrl, int depth, FabricStatusNode fileNode) {
 		this.info = info;
 		this.originUrl = originUrl;
 		this.depth = depth;
+		this.fileNode = fileNode;
 	}
 
 	public URL getOriginUrl() {
@@ -42,6 +45,10 @@ public class ModCandidate {
 	public int getDepth() {
 		return depth;
 	}
+
+	public FabricStatusNode getFileNode() {
+        return fileNode;
+    }
 
 	@Override
 	public boolean equals(Object obj) {

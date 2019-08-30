@@ -12,14 +12,13 @@ import net.fabricmc.loader.gui.FabricStatusTree.WarningLevel;
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
 
-    /**
-     * 
-     */
-    public static final String OPTION_FORCE_WINDOW = "fabric_loader.always_show_info";
+    public static final String OPTION_ALWAYS_SHOW_INFO = "fabric_loader.info_gui.always_show";
+    public static final String OPTION_DISABLE_WAIT = "fabric_loader.info_gui.disable_wait";
+    public static final String OPTION_ALWAYS_FORK = "fabric_loader.info_gui.always_fork";
 
     /** The entry point for forking the main application over into a different process to get around incompatibilities
      * on OSX, and to separate the main launch from the swing runtime. (This is only used if no errors are present, but
-     * the user has specified the {@link #OPTION_FORCE_WINDOW} flag. */
+     * the user has specified the {@link #OPTION_ALWAYS_SHOW_INFO} flag. */
     public static void main(String[] args) {
 
         if (args.length == 2 && "--from-tree".equals(args[0])) {
@@ -34,7 +33,11 @@ public final class FabricGuiEntry {
             } else {
                 // Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
                 System.out.println("Status: Correct tree.");
-                openWindow(tree);
+                try {
+                    openWindow(tree, true);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
             return;
         } else if (args.length == 1 && "--test".equals(args[0])) {
@@ -72,7 +75,11 @@ public final class FabricGuiEntry {
                 jarNode.addChild("assets.lols.whatever").iconType = FabricStatusTree.ICON_TYPE_PACKAGE;
             }
 
-            open(false, tree);
+            try {
+                open(false, tree);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } else {
             System.out.println("Expected 2 arguments: '--from-tree' followed by the tree, or '--test'");
             System.exit(-1);
@@ -99,30 +106,39 @@ public final class FabricGuiEntry {
         return new Exception("Test");
     }
 
-    /** @return True if the user has specified the {@link #OPTION_FORCE_WINDOW} argument. */
+    /** @return True if the user has specified the {@link #OPTION_ALWAYS_SHOW_INFO} argument. */
     public static boolean shouldShowInformationGui() {
-        return Boolean.getBoolean(OPTION_FORCE_WINDOW);
+        // temp for testing
+        return true || Boolean.getBoolean(OPTION_ALWAYS_SHOW_INFO);
     }
 
-    public static void open(boolean isCrashing, FabricStatusTree tree) {
+    /** @throws Exception if something went wrong while opening the window. */
+    public static void open(boolean isCrashing, FabricStatusTree tree) throws Exception {
+        open(isCrashing, tree, !Boolean.getBoolean(OPTION_DISABLE_WAIT));
+    }
+
+    /** @throws Exception if something went wrong while opening the window. */
+    public static void open(boolean isCrashing, FabricStatusTree tree, boolean shouldWait) throws Exception {
         if (!isCrashing && shouldFork()) {
-            fork(tree);
+            fork(tree, shouldWait);
         } else {
-            openWindow(tree);
+            openWindow(tree, shouldWait);
         }
     }
 
     private static boolean shouldFork() {
+        if (Boolean.getBoolean(OPTION_ALWAYS_FORK)) {
+            return true;
+        }
         String osName = System.getProperty("os.name");
-        String osArch = System.getProperty("os.arch");
-
-        System.out.println(osName);
-        System.out.println(osArch);
-
-        return true;
+        if (osName.contains(/* Is this the full os name required? */"mac")) {
+            return true;
+        }
+        // TODO: Actually check this on a mac and other operating systems.
+        return false;
     }
 
-    private static void fork(FabricStatusTree tree) {
+    private static void fork(FabricStatusTree tree, boolean shouldWait) {
 
         List<String> commands = new ArrayList<>();
         commands.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
@@ -140,6 +156,9 @@ public final class FabricGuiEntry {
             // Always halt until it closes
             boolean hasStartedUp = false;
 
+            if (!shouldWait) {
+                return;
+            }
             try {
                 p.waitFor();
             } catch (InterruptedException e) {
@@ -152,7 +171,7 @@ public final class FabricGuiEntry {
         }
     }
 
-    private static void openWindow(FabricStatusTree tree) {
-        FabricMainWindow.open(tree);
+    private static void openWindow(FabricStatusTree tree, boolean shouldWait) throws Exception {
+        FabricMainWindow.open(tree, shouldWait);
     }
 }

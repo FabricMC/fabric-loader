@@ -318,35 +318,13 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	public static class DependencyMap extends HashMap<String, Dependency> {
-		private List<ModDependency> modDepList;
+        private List<ModDependency> modDepList;
 
 		Collection<ModDependency> toModDependencies() {
 			if (modDepList == null) {
 				List<ModDependency> list = new ArrayList<>(this.size());
-				for (String s : this.keySet()) {
-					list.add(new ModDependency() {
-						@Override
-						public String getModId() {
-							return s;
-						}
-
-						@Override
-						public boolean matches(Version version) {
-							return DependencyMap.this.get(s).satisfiedBy(version);
-						}
-
-						@Override
-						public String toString() {
-							String[] matchers = DependencyMap.this.get(s).versionMatchers;
-							if (matchers.length == 0) {
-								return getModId();
-							} else if (matchers.length == 1) {
-								return getModId() + " @ " + matchers[0];
-							} else {
-								return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
-							}
-						}
-					});
+				for (Entry<String, Dependency> entry : this.entrySet()) {
+					list.add(new ModDependencyV0(entry.getKey(), entry.getValue()));
 				}
 				modDepList = Collections.unmodifiableList(list);
 			}
@@ -354,6 +332,38 @@ public class ModMetadataV0 implements LoaderModMetadata {
 			return modDepList;
 		}
 	}
+
+    public static final class ModDependencyV0 implements ModDependency {
+        private final String modId;
+        private final Dependency dependency;
+
+        private ModDependencyV0(String modId, Dependency dependency) {
+            this.modId = modId;
+            this.dependency = dependency;
+        }
+
+        @Override
+        public String getModId() {
+            return modId;
+        }
+
+        @Override
+        public boolean matches(Version version) {
+            return dependency.satisfiedBy(version);
+        }
+
+        @Override
+        public String toString() {
+            String[] matchers = dependency.versionMatchers;
+            if (matchers.length == 0) {
+                return getModId();
+            } else if (matchers.length == 1) {
+                return getModId() + " @ " + matchers[0];
+            } else {
+                return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+            }
+        }
+    }
 
 	public static class Dependency {
 		private String[] versionMatchers;
