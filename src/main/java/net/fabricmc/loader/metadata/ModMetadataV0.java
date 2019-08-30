@@ -357,11 +357,11 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 		public String toString() {
 			String[] matchers = dependency.versionMatchers;
 			if (matchers.length == 0) {
-			    return getModId();
+				return getModId();
 			} else if (matchers.length == 1) {
-			    return getModId() + " @ " + matchers[0];
+				return getModId() + " @ " + matchers[0];
 			} else {
-			    return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+				return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
 			}
 		}
 	}

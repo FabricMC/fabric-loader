@@ -63,7 +63,7 @@ public class ModMetadataParser {
 				default:
 					loader.getLogger().warn("Mod ID " + (object.has("id") ? object.get("id").getAsString() : "<unknown>") + " has invalid schema version: " + version);
 					if (jsonNode != null) {
-			            jsonNode.addChild("Invalid/unknown 'schemaVersion': " + version).setWarning();
+				        jsonNode.addChild("Invalid/unknown 'schemaVersion': " + version).setWarning();
 					}
 					return null;
 			}
@@ -79,7 +79,7 @@ public class ModMetadataParser {
 		if (el.isJsonObject()) {
 			LoaderModMetadata metadata = getMod(loader, el.getAsJsonObject(), jsonNode);
 			if (metadata != null) {
-			    metadata.emitFormatWarnings(el.getAsJsonObject(), jsonNode);
+				metadata.emitFormatWarnings(el.getAsJsonObject(), jsonNode);
 				return new LoaderModMetadata[] { metadata };
 			}
 		} else if (jsonNode != null) {

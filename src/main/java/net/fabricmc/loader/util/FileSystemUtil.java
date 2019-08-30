@@ -43,7 +43,7 @@ public final class FileSystemUtil {
 		@Override
 		public void close() throws IOException {
 			if (owner) {
-			    fileSystem.close();
+				fileSystem.close();
 			}
 		}
 	}

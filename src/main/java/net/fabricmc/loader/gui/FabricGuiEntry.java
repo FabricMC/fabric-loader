@@ -27,17 +27,17 @@ public final class FabricGuiEntry {
 
 			// Perform basic validation
 			if (tree == null) {
-			    System.out.println("Status: Invalid tree!");
-			    System.out.println("Tree Text: " + args[1]);
-			    System.exit(-1);
+				System.out.println("Status: Invalid tree!");
+				System.out.println("Tree Text: " + args[1]);
+				System.exit(-1);
 			} else {
-			    // Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
-			    System.out.println("Status: Correct tree.");
-			    try {
-			        openWindow(tree, true);
-			    } catch (Exception e) {
-			        throw new RuntimeException(e);
-			    }
+				// Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
+				System.out.println("Status: Correct tree.");
+				try {
+				    openWindow(tree, true);
+				} catch (Exception e) {
+				    throw new RuntimeException(e);
+				}
 			}
 			return;
 		} else if (args.length == 1 && "--test".equals(args[0])) {
@@ -59,26 +59,26 @@ public final class FabricGuiEntry {
 			jarRoot.iconType = FabricStatusTree.ICON_TYPE_FOLDER;
 
 			for (int i = 0; i < 8; i++) {
-			    boolean isFabric = i >= 4;
-			    FabricStatusNode jarNode = jarRoot.addChild("_" + i);
-			    jarNode.setWarningLevel(WarningLevel.values()[i & 3]);
-			    if (isFabric) {
-			        jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE + "+fabric";
-			    } else {
-			        jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
-			    }
+				boolean isFabric = i >= 4;
+				FabricStatusNode jarNode = jarRoot.addChild("_" + i);
+				jarNode.setWarningLevel(WarningLevel.values()[i & 3]);
+				if (isFabric) {
+				    jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE + "+fabric";
+				} else {
+				    jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
+				}
 
-			    jarNode.addChild("fabric.mod.json").iconType = FabricStatusTree.ICON_TYPE_JSON;
-			    jarNode.addChild("fle").iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
-			    jarNode.addChild("mod.class").iconType = FabricStatusTree.ICON_TYPE_JAVA_CLASS;
-			    jarNode.addChild("net.com.pl.www").iconType = FabricStatusTree.ICON_TYPE_JAVA_PACKAGE;
-			    jarNode.addChild("assets.lols.whatever").iconType = FabricStatusTree.ICON_TYPE_PACKAGE;
+				jarNode.addChild("fabric.mod.json").iconType = FabricStatusTree.ICON_TYPE_JSON;
+				jarNode.addChild("fle").iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
+				jarNode.addChild("mod.class").iconType = FabricStatusTree.ICON_TYPE_JAVA_CLASS;
+				jarNode.addChild("net.com.pl.www").iconType = FabricStatusTree.ICON_TYPE_JAVA_PACKAGE;
+				jarNode.addChild("assets.lols.whatever").iconType = FabricStatusTree.ICON_TYPE_PACKAGE;
 			}
 
 			try {
-			    open(false, tree);
+				open(false, tree);
 			} catch (Exception e) {
-			    throw new RuntimeException(e);
+				throw new RuntimeException(e);
 			}
 		} else {
 			System.out.println("Expected 2 arguments: '--from-tree' followed by the tree, or '--test'");
@@ -157,12 +157,12 @@ public final class FabricGuiEntry {
 			boolean hasStartedUp = false;
 
 			if (!shouldWait) {
-			    return;
+				return;
 			}
 			try {
-			    p.waitFor();
+				p.waitFor();
 			} catch (InterruptedException e) {
-			    p.destroy();
+				p.destroy();
 			}
 
 		} catch (IOException e) {

@@ -197,15 +197,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			tree.mainErrorText = "Failed to launch!";
 			addThrowable(crashTab.node, cause, new HashSet<>());
 			try {
-			    FabricGuiEntry.open(true, tree, false);
+				FabricGuiEntry.open(true, tree, false);
 			} catch (Exception guiOpeningException) {
-			    // If it doesn't open (for whatever reason) then the only thing we can do
-			    // is crash normally - as this might be a headless environment, or some
-			    // other strange thing happened.
+				// If it doesn't open (for whatever reason) then the only thing we can do
+				// is crash normally - as this might be a headless environment, or some
+				// other strange thing happened.
 
-			    // Either way this exception isn't as important as the main exception.
-			    exitException.addSuppressed(guiOpeningException);
-			    throw exitException;
+				// Either way this exception isn't as important as the main exception.
+				exitException.addSuppressed(guiOpeningException);
+				throw exitException;
 			}
 			throw exitException;
 		}
@@ -220,66 +220,66 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			List<FabricStatusNode> modNodes = new ArrayList<>();
 
 			for (String modId : modIds) {
-			    ModContainer mod = modMap.get(modId);
-			    LoaderModMetadata modmeta = mod.getInfo();
-			    FabricStatusNode modNode = modsTab.addChild(modId + " (" + modmeta.getName() + ")");
-			    modNodes.add(modNode);
-			    // TODO: Icon!
-			    modNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
-			    modNode.addChild("ID: '" + modId + "'");
-			    modNode.addChild("Name: '" + modmeta.getName() + "'");
-			    String desc = modmeta.getDescription();
-			    if (desc != null && !desc.isEmpty()) {
-			        modNode.addChild("Description: " + desc);
-			    }
-			    modNode.addChild("Version: " + modmeta.getVersion().getFriendlyString());
+				ModContainer mod = modMap.get(modId);
+				LoaderModMetadata modmeta = mod.getInfo();
+				FabricStatusNode modNode = modsTab.addChild(modId + " (" + modmeta.getName() + ")");
+				modNodes.add(modNode);
+				// TODO: Icon!
+				modNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
+				modNode.addChild("ID: '" + modId + "'");
+				modNode.addChild("Name: '" + modmeta.getName() + "'");
+				String desc = modmeta.getDescription();
+				if (desc != null && !desc.isEmpty()) {
+				    modNode.addChild("Description: " + desc);
+				}
+				modNode.addChild("Version: " + modmeta.getVersion().getFriendlyString());
 
-			    addPersonBasedInformation(modNode, "Author", modmeta.getAuthors());
-			    addPersonBasedInformation(modNode, "Contributor", modmeta.getContributors());
-			    if (!modmeta.getContact().asMap().isEmpty()) {
-			        addContactInfo(modNode.addChild("Contact Information"), modmeta.getContact());
-			    }
-			    if (modmeta.getLicense().isEmpty()) {
-			        // Note about this - licensing is *kinda* important?
-			        modNode.addChild("No license information!").setInfo();
-			    } else if (modmeta.getLicense().size() == 1) {
-			        modNode.addChild("License: " + modmeta.getLicense().iterator().next());
-			    } else {
-			        FabricStatusNode licenseNode = modNode.addChild("License:");
-			        for (String str : modmeta.getLicense()) {
-			            licenseNode.addChild(str);
-			        }
-			    }
+				addPersonBasedInformation(modNode, "Author", modmeta.getAuthors());
+				addPersonBasedInformation(modNode, "Contributor", modmeta.getContributors());
+				if (!modmeta.getContact().asMap().isEmpty()) {
+				    addContactInfo(modNode.addChild("Contact Information"), modmeta.getContact());
+				}
+				if (modmeta.getLicense().isEmpty()) {
+				    // Note about this - licensing is *kinda* important?
+				    modNode.addChild("No license information!").setInfo();
+				} else if (modmeta.getLicense().size() == 1) {
+				    modNode.addChild("License: " + modmeta.getLicense().iterator().next());
+				} else {
+				    FabricStatusNode licenseNode = modNode.addChild("License:");
+				    for (String str : modmeta.getLicense()) {
+				        licenseNode.addChild(str);
+				    }
+				}
 
-			    addRelatedInformation(modNode, "Dependents", "Dependent", modmeta.getDepends());
-			    addRelatedInformation(modNode, "Recommends", "Recommended", modmeta.getRecommends());
-			    addRelatedInformation(modNode, "Suggests", "Suggested", modmeta.getSuggests());
-			    addRelatedInformation(modNode, "Breaks", "Breaking", modmeta.getBreaks());
-			    addRelatedInformation(modNode, "Conflicts", "Conflicting", modmeta.getConflicts());
+				addRelatedInformation(modNode, "Dependents", "Dependent", modmeta.getDepends());
+				addRelatedInformation(modNode, "Recommends", "Recommended", modmeta.getRecommends());
+				addRelatedInformation(modNode, "Suggests", "Suggested", modmeta.getSuggests());
+				addRelatedInformation(modNode, "Breaks", "Breaking", modmeta.getBreaks());
+				addRelatedInformation(modNode, "Conflicts", "Conflicting", modmeta.getConflicts());
 
-			    // TODO: Should "getCustomKeys()" be part of the main API?
-			    if (modmeta instanceof ModMetadataV1) {
-			        Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
-			        if (!keys.isEmpty()) {
-			            FabricStatusNode customNode = modNode.addChild("Custom:");
-			            for (String key : keys) {
-			                addCustomValue(customNode, key, modmeta.getCustomValue(key));
-			            }
-			        }
-			    }
+				// TODO: Should "getCustomKeys()" be part of the main API?
+				if (modmeta instanceof ModMetadataV1) {
+				    Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
+				    if (!keys.isEmpty()) {
+				        FabricStatusNode customNode = modNode.addChild("Custom:");
+				        for (String key : keys) {
+				            addCustomValue(customNode, key, modmeta.getCustomValue(key));
+				        }
+				    }
+				}
 			}
 
 			// TODO: Class duplication detection!
 
 			try {
-			    FabricGuiEntry.open(false, tree);
+				FabricGuiEntry.open(false, tree);
 			} catch (Exception e) {
-			    // The user must have explicitly asked for this to be shown, so they probably
-			    // don't want to just continue loading the game even if it couldn't be shown.
-			    String message = "Failed to open the information GUI!"
-			        + "\n(Note: You can remove the '-D" + FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO
-			        + "=true' argument to disable the information GUI)";
-			    throw new RuntimeException(message, e);
+				// The user must have explicitly asked for this to be shown, so they probably
+				// don't want to just continue loading the game even if it couldn't be shown.
+				String message = "Failed to open the information GUI!"
+				    + "\n(Note: You can remove the '-D" + FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO
+				    + "=true' argument to disable the information GUI)";
+				throw new RuntimeException(message, e);
 			}
 		}
 	}
@@ -287,54 +287,54 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private static void addCustomValue(FabricStatusNode node, String key, CustomValue value) {
 		switch (value.getType()) {
 			case ARRAY:
-			    CvArray array = value.getAsArray();
-			    FabricStatusNode arrayNode = node.addChild(key + " = array[" + array.size() + "]");
-			    for (int i = 0; i < array.size(); i++) {
-			        addCustomValue(arrayNode, "[" + i + "]", array.get(i));
-			    }
-			    break;
+				CvArray array = value.getAsArray();
+				FabricStatusNode arrayNode = node.addChild(key + " = array[" + array.size() + "]");
+				for (int i = 0; i < array.size(); i++) {
+				    addCustomValue(arrayNode, "[" + i + "]", array.get(i));
+				}
+				break;
 			case BOOLEAN:
-			    node.addChild(key + " = " + value.getAsBoolean());
-			    break;
+				node.addChild(key + " = " + value.getAsBoolean());
+				break;
 			case NULL:
-			    node.addChild(key + " = null");
-			    break;
+				node.addChild(key + " = null");
+				break;
 			case NUMBER:
-			    node.addChild(key + " = " + value.getAsNumber());
-			    break;
+				node.addChild(key + " = " + value.getAsNumber());
+				break;
 			case OBJECT:
-			    CvObject obj = value.getAsObject();
-			    FabricStatusNode objNode = node.addChild(key + " = object{" + obj.size() + "}");
-			    for (Entry<String, CustomValue> entry : obj) {
-			        addCustomValue(objNode, entry.getKey(), entry.getValue());
-			    }
-			    break;
+				CvObject obj = value.getAsObject();
+				FabricStatusNode objNode = node.addChild(key + " = object{" + obj.size() + "}");
+				for (Entry<String, CustomValue> entry : obj) {
+				    addCustomValue(objNode, entry.getKey(), entry.getValue());
+				}
+				break;
 			case STRING:
-			    node.addChild(key + " = '" + value.getAsString() + "'");
-			    break;
+				node.addChild(key + " = '" + value.getAsString() + "'");
+				break;
 			default:
-			    node.addChild(key + " = an unknwon custom type: " + value.getType());
-			    break;
+				node.addChild(key + " = an unknwon custom type: " + value.getType());
+				break;
 		}
 	}
 
 	private static void addPersonBasedInformation(FabricStatusNode modNode, String name, Collection<Person> people) {
 		switch (people.size()) {
 			case 0:
-			    return;
+				return;
 			case 1: {
-			    Person person = people.iterator().next();
-			    FabricStatusNode node = modNode.addChild(name + ": " + person.getName());
-			    addContactInfo(node, person.getContact());
-			    return;
+				Person person = people.iterator().next();
+				FabricStatusNode node = modNode.addChild(name + ": " + person.getName());
+				addContactInfo(node, person.getContact());
+				return;
 			}
 			default: {
-			    FabricStatusNode peopleNode = modNode.addChild(name + "s:");
-			    for (Person person : people) {
-			        FabricStatusNode node = peopleNode.addChild(person.getName());
-			        addContactInfo(node, person.getContact());
-			    }
-			    return;
+				FabricStatusNode peopleNode = modNode.addChild(name + "s:");
+				for (Person person : people) {
+				    FabricStatusNode node = peopleNode.addChild(person.getName());
+				    addContactInfo(node, person.getContact());
+				}
+				return;
 			}
 		}
 	}
@@ -358,10 +358,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		Throwable cause;
 		while ((cause = e.getCause()) != null) {
 			if (e.getSuppressed().length > 0) {
-			    break;
+				break;
 			}
 			if (!e.getMessage().equals(cause.getMessage()) && !e.getMessage().equals(cause.toString())) {
-			    break;
+				break;
 			}
 			e = cause;
 		}
@@ -390,35 +390,35 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 			// Can/should this be a proper interface?
 			if (dep instanceof ModDependencyV0) {
-			    submodNode.addChild(prefix + " versions: Anything (v0 doesn't provide exact version matching)");
+				submodNode.addChild(prefix + " versions: Anything (v0 doesn't provide exact version matching)");
 			} else if (dep instanceof ModDependencyV1) {
-			    ModDependencyV1 depv1 = (ModDependencyV1) dep;
-			    List<String> versions = depv1.getMatcherStringList();
-			    if (versions.size() == 0) {
-			        FabricStatusNode matcher = submodNode.addChild(prefix + " versions: none!");
-			        matcher.setWarning();
-			    } else if (versions.size() == 1) {
-			        FabricStatusNode matcher = submodNode.addChild(prefix + " versions: '" + versions.get(0) + "'");
-			        setVersionMatchStatusV1(mod, versions.get(0), matcher);
-			    } else {
-			        FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
-			        for (String sub : versions) {
-			            FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
-			            setVersionMatchStatusV1(mod, sub, subVersion);
-			        }
-			    }
+				ModDependencyV1 depv1 = (ModDependencyV1) dep;
+				List<String> versions = depv1.getMatcherStringList();
+				if (versions.size() == 0) {
+				    FabricStatusNode matcher = submodNode.addChild(prefix + " versions: none!");
+				    matcher.setWarning();
+				} else if (versions.size() == 1) {
+				    FabricStatusNode matcher = submodNode.addChild(prefix + " versions: '" + versions.get(0) + "'");
+				    setVersionMatchStatusV1(mod, versions.get(0), matcher);
+				} else {
+				    FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
+				    for (String sub : versions) {
+				        FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
+				        setVersionMatchStatusV1(mod, sub, subVersion);
+				    }
+				}
 			} else {
-			    submodNode.addChild(prefix + " versions: unknown (" + dep.getClass() + ")");
+				submodNode.addChild(prefix + " versions: unknown (" + dep.getClass() + ")");
 			}
 
 			if (mod == null) {
-			    FabricStatusNode loadStatus = submodNode.addChild("Not loaded");
-			    loadStatus.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
-			    submodNode.iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
+				FabricStatusNode loadStatus = submodNode.addChild("Not loaded");
+				loadStatus.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
+				submodNode.iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
 			} else {
-			    FabricStatusNode loadStatus = submodNode.addChild("Loaded version: " + mod.getMetadata().getVersion().getFriendlyString());
-			    loadStatus.iconType = FabricStatusTree.ICON_TYPE_TICK;
-			    submodNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
+				FabricStatusNode loadStatus = submodNode.addChild("Loaded version: " + mod.getMetadata().getVersion().getFriendlyString());
+				loadStatus.iconType = FabricStatusTree.ICON_TYPE_TICK;
+				submodNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
 			}
 		}
 	}
@@ -427,15 +427,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (mod != null) {
 			boolean matches;
 			try {
-			    matches = VersionPredicateParser.matches(mod.getInfo().getVersion(), versionMatch);
+				matches = VersionPredicateParser.matches(mod.getInfo().getVersion(), versionMatch);
 			} catch (VersionParsingException e) {
-			    matches = false;
-			    node.addException(e);
+				matches = false;
+				node.addException(e);
 			}
 			if (matches) {
-			    node.iconType = FabricStatusTree.ICON_TYPE_TICK;
+				node.iconType = FabricStatusTree.ICON_TYPE_TICK;
 			} else {
-			    node.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
+				node.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
 			}
 		}
 	}

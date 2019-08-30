@@ -78,7 +78,7 @@ class FabricMainWindow {
 		window.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {
-			    onCloseLatch.countDown();
+				onCloseLatch.countDown();
 			}
 		});
 		// window.setIconImage(BufferedImage.);
@@ -117,11 +117,11 @@ class FabricMainWindow {
 		tree.setRootVisible(false);
 		for (int row = 0; row < tree.getRowCount(); row++) {
 			if (!tree.isVisible(tree.getPathForRow(row))) {
-			    continue;
+				continue;
 			}
 			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
 			if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(WarningLevel.WARN)) {
-			    tree.expandRow(row);
+				tree.expandRow(row);
 			}
 		}
 
@@ -156,17 +156,17 @@ class FabricMainWindow {
 			int scale = 16;
 			Map<Integer, Icon> map = icons.get(info);
 			if (map == null) {
-			    icons.put(info, map = new HashMap<>());
+				icons.put(info, map = new HashMap<>());
 			}
 			Icon icon = map.get(scale);
 			if (icon == null) {
-			    try {
-			        icon = loadIcon(info, scale);
-			    } catch (IOException e) {
-			        e.printStackTrace();
-			        icon = missingIcon();
-			    }
-			    map.put(scale, icon);
+				try {
+				    icon = loadIcon(info, scale);
+				} catch (IOException e) {
+				    e.printStackTrace();
+				    icon = missingIcon();
+				}
+				map.put(scale, icon);
 			}
 			return icon;
 		}
@@ -177,21 +177,21 @@ class FabricMainWindow {
 			BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
 
 			for (int y = 0; y < 16; y++) {
-			    for (int x = 0; x < 16; x++) {
-			        img.setRGB(x, y, 0xff_ff_f2);
-			    }
+				for (int x = 0; x < 16; x++) {
+				    img.setRGB(x, y, 0xff_ff_f2);
+				}
 			}
 
 			for (int i = 0; i < 16; i++) {
-			    img.setRGB(0, i, 0x22_22_22);
-			    img.setRGB(15, i, 0x22_22_22);
-			    img.setRGB(i, 0, 0x22_22_22);
-			    img.setRGB(i, 15, 0x22_22_22);
+				img.setRGB(0, i, 0x22_22_22);
+				img.setRGB(15, i, 0x22_22_22);
+				img.setRGB(i, 0, 0x22_22_22);
+				img.setRGB(i, 15, 0x22_22_22);
 			}
 
 			for (int i = 3; i < 13; i++) {
-			    img.setRGB(i, i, 0x9b_00_00);
-			    img.setRGB(i, 16 - i, 0x9b_00_00);
+				img.setRGB(i, i, 0x9b_00_00);
+				img.setRGB(i, 16 - i, 0x9b_00_00);
 			}
 
 			missingIcon = new ImageIcon(img);
@@ -213,7 +213,7 @@ class FabricMainWindow {
 		for (int i = 0; i < info.decor.length; i++) {
 			String decor = info.decor[i];
 			if (decor == null) {
-			    continue;
+				continue;
 			}
 
 			BufferedImage decorImg = loadImage("/ui/icon/decoration/" + decor + "_x" + (scale / 2) + ".png");
@@ -239,41 +239,41 @@ class FabricMainWindow {
 			this.mainPath = mainPath;
 			this.decor = decor;
 			assert decor.length
-			    < 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
+				< 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
 			if (decor.length == 0) {
-			    // To mirror the no-decor constructor
-			    hash = mainPath.hashCode();
+				// To mirror the no-decor constructor
+				hash = mainPath.hashCode();
 			} else {
-			    hash = mainPath.hashCode() * 31 + Arrays.hashCode(decor);
+				hash = mainPath.hashCode() * 31 + Arrays.hashCode(decor);
 			}
 		}
 
 		public static IconInfo fromNode(FabricStatusNode node) {
 			String[] split = node.iconType.split("\\+");
 			if (split.length == 1 && split[0].isEmpty()) {
-			    split = new String[0];
+				split = new String[0];
 			}
 			String main;
 			List<String> decors = new ArrayList<>();
 			WarningLevel warnLevel = node.getMaximumWarningLevel();
 			if (split.length == 0) {
-			    // Empty string, but we might replace it with a warning
-			    if (warnLevel == WarningLevel.NONE) {
-			        main = "missing";
-			    } else {
-			        main = "level_" + warnLevel.lowerCaseName;
-			    }
+				// Empty string, but we might replace it with a warning
+				if (warnLevel == WarningLevel.NONE) {
+				    main = "missing";
+				} else {
+				    main = "level_" + warnLevel.lowerCaseName;
+				}
 			} else {
-			    main = split[0];
-			    if (warnLevel == WarningLevel.NONE) {
-			        // Just to add a gap
-			        decors.add(null);
-			    } else {
-			        decors.add("level_" + warnLevel.lowerCaseName);
-			    }
-			    for (int i = 1; i < split.length && i < 3; i++) {
-			        decors.add(split[i]);
-			    }
+				main = split[0];
+				if (warnLevel == WarningLevel.NONE) {
+				    // Just to add a gap
+				    decors.add(null);
+				} else {
+				    decors.add("level_" + warnLevel.lowerCaseName);
+				}
+				for (int i = 1; i < split.length && i < 3; i++) {
+				    decors.add(split[i]);
+				}
 			}
 
 			return new IconInfo(main, decors.toArray(new String[0]));
@@ -289,7 +289,7 @@ class FabricMainWindow {
 			if (obj == this) return true;
 			if (obj == null) return false;
 			if (obj.getClass() != getClass()) {
-			    return false;
+				return false;
 			}
 			IconInfo other = (IconInfo) obj;
 			return mainPath.equals(other.mainPath) && Arrays.equals(decor, other.decor);
@@ -312,23 +312,23 @@ class FabricMainWindow {
 			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
 			if (value instanceof CustomTreeNode) {
-			    CustomTreeNode c = (CustomTreeNode) value;
-			    setIcon(iconSet.get(c.getIconInfo()));
-			    if (c.node.details == null || c.node.details.isEmpty()) {
-			        setToolTipText(null);
-			    } else {
-			        if (c.node.details.contains("\n")) {
-			            // It's a bit odd but it's easier than creating a custom tooltip
-			            String replaced = c.node.details//
-			                .replace("&", "&amp;")//
-			                .replace("<", "&lt;")//
-			                .replace(">", "&gt;")//
-			                .replace("\n", "<br>");
-			            setToolTipText("<html>" + replaced + "</html>");
-			        } else {
-			            setToolTipText(c.node.details);
-			        }
-			    }
+				CustomTreeNode c = (CustomTreeNode) value;
+				setIcon(iconSet.get(c.getIconInfo()));
+				if (c.node.details == null || c.node.details.isEmpty()) {
+				    setToolTipText(null);
+				} else {
+				    if (c.node.details.contains("\n")) {
+				        // It's a bit odd but it's easier than creating a custom tooltip
+				        String replaced = c.node.details//
+				            .replace("&", "&amp;")//
+				            .replace("<", "&lt;")//
+				            .replace(">", "&gt;")//
+				            .replace("\n", "<br>");
+				        setToolTipText("<html>" + replaced + "</html>");
+				    } else {
+				        setToolTipText(c.node.details);
+				    }
+				}
 			}
 
 			return this;
@@ -345,16 +345,16 @@ class FabricMainWindow {
 			this.parent = parent;
 			this.node = node;
 			for (FabricStatusNode c : node.children) {
-			    if (minimumWarningLevel.isWorseThan(c.getMaximumWarningLevel())) {
-			        continue;
-			    }
-			    displayedChildren.add(new CustomTreeNode(this, c, minimumWarningLevel));
+				if (minimumWarningLevel.isWorseThan(c.getMaximumWarningLevel())) {
+				    continue;
+				}
+				displayedChildren.add(new CustomTreeNode(this, c, minimumWarningLevel));
 			}
 		}
 
 		public IconInfo getIconInfo() {
 			if (iconInfo == null) {
-			    iconInfo = IconInfo.fromNode(node);
+				iconInfo = IconInfo.fromNode(node);
 			}
 			return iconInfo;
 		}
@@ -397,17 +397,17 @@ class FabricMainWindow {
 		@Override
 		public Enumeration children() {
 			return new Enumeration<CustomTreeNode>() {
-			    Iterator<CustomTreeNode> it = displayedChildren.iterator();
+				Iterator<CustomTreeNode> it = displayedChildren.iterator();
 
-			    @Override
-			    public boolean hasMoreElements() {
-			        return it.hasNext();
-			    }
+				@Override
+				public boolean hasMoreElements() {
+				    return it.hasNext();
+				}
 
-			    @Override
-			    public CustomTreeNode nextElement() {
-			        return it.next();
-			    }
+				@Override
+				public CustomTreeNode nextElement() {
+				    return it.next();
+				}
 			};
 		}
 	}

@@ -144,16 +144,16 @@ public final class FabricStatusTree {
 
 		public void setWarningLevel(WarningLevel level) {
 			if (this.warningLevel == level) {
-			    return;
+				return;
 			}
 			if (warningLevel.isWorseThan(level)) {
-			    // Just because I haven't written the back-fill revalidation for this
-			    throw new Error("Why would you set the warning level multiple times?");
+				// Just because I haven't written the back-fill revalidation for this
+				throw new Error("Why would you set the warning level multiple times?");
 			} else {
-			    if (parent != null && level.isWorseThan(parent.warningLevel)) {
-			        parent.setWarningLevel(level);
-			    }
-			    this.warningLevel = level;
+				if (parent != null && level.isWorseThan(parent.warningLevel)) {
+				    parent.setWarningLevel(level);
+				}
+				this.warningLevel = level;
 			}
 		}
 
@@ -189,12 +189,12 @@ public final class FabricStatusTree {
 			String msg = exception.getMessage();
 			String[] lines = msg.split("\n");
 			if (lines.length == 0) {
-			    // what
-			    lines = new String[] { msg };
+				// what
+				lines = new String[] { msg };
 			}
 			sub.name = lines[0];
 			for (int i = 1; i < lines.length; i++) {
-			    sub.addChild(lines[i]);
+				sub.addChild(lines[i]);
 			}
 
 			StringWriter sw = new StringWriter();
@@ -207,23 +207,23 @@ public final class FabricStatusTree {
 		/** If this node has one child then it merges the child node into this one. */
 		public void mergeWithSingleChild(String join) {
 			if (children.size() != 1) {
-			    return;
+				return;
 			}
 			FabricStatusNode child = children.remove(0);
 			name += join + child.name;
 			for (FabricStatusNode cc : child.children) {
-			    cc.parent = this;
-			    children.add(cc);
+				cc.parent = this;
+				children.add(cc);
 			}
 			child.children.clear();
 		}
 
 		public void mergeSingleChildFilePath(String folderType) {
 			if (!iconType.equals(folderType)) {
-			    return;
+				return;
 			}
 			while (children.size() == 1 && children.get(0).iconType.equals(folderType)) {
-			    mergeWithSingleChild("/");
+				mergeWithSingleChild("/");
 			}
 			children.sort((a, b) -> a.name.compareTo(b.name));
 			mergeChildFilePaths(folderType);
@@ -231,26 +231,26 @@ public final class FabricStatusTree {
 
 		public void mergeChildFilePaths(String folderType) {
 			for (FabricStatusNode node : children) {
-			    node.mergeSingleChildFilePath(folderType);
+				node.mergeSingleChildFilePath(folderType);
 			}
 		}
 
 		public FabricStatusNode getFileNode(String file, String folderType, String fileType) {
 			FabricStatusNode fileNode = this;
 			pathIteration: for (String s : file.split("/")) {
-			    if (s.isEmpty()) {
-			        continue;
-			    }
-			    for (FabricStatusNode c : fileNode.children) {
-			        if (c.name.equals(s)) {
-			            fileNode = c;
-			            continue pathIteration;
-			        }
-			    }
-			    if (fileNode.iconType.equals(FabricStatusTree.ICON_TYPE_DEFAULT)) {
-			        fileNode.iconType = folderType;
-			    }
-			    fileNode = fileNode.addChild(s);
+				if (s.isEmpty()) {
+				    continue;
+				}
+				for (FabricStatusNode c : fileNode.children) {
+				    if (c.name.equals(s)) {
+				        fileNode = c;
+				        continue pathIteration;
+				    }
+				}
+				if (fileNode.iconType.equals(FabricStatusTree.ICON_TYPE_DEFAULT)) {
+				    fileNode.iconType = folderType;
+				}
+				fileNode = fileNode.addChild(s);
 			}
 			fileNode.iconType = fileType;
 			return fileNode;

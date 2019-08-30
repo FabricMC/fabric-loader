@@ -133,13 +133,13 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		for (Entry<String, JsonElement> entry : src.entrySet()) {
 			String key = entry.getKey();
 			if (!KEYS.contains(key)) {
-			    FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
-			    if (key.startsWith("__")) {
-			        keyNode.setInfo();
-			    } else {
-			        keyNode.setWarning();
-			    }
-			    continue;
+				FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
+				if (key.startsWith("__")) {
+				    keyNode.setInfo();
+				} else {
+				    keyNode.setWarning();
+				}
+				continue;
 			}
 		}
 	}
@@ -336,14 +336,14 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		@Override
 		public boolean matches(Version version) {
 			for (String s : matcherStringList) {
-			    try {
-			        if (VersionPredicateParser.matches(version, s)) {
-			            return true;
-			        }
-			    } catch (VersionParsingException e) {
-			        e.printStackTrace();
-			        return false;
-			    }
+				try {
+				    if (VersionPredicateParser.matches(version, s)) {
+				        return true;
+				    }
+				} catch (VersionParsingException e) {
+				    e.printStackTrace();
+				    return false;
+				}
 			}
 
 			return false;
