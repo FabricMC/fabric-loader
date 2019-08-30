@@ -320,22 +320,27 @@ public class ModResolver {
         prefix.append(" ").append(errorType).append(" mod ").append(depModId);
 
         List<String> errorList = new ArrayList<>();
+
         if (!isModIdValid(depModId, errorList)) {
             if (errorList.size() == 1) {
                 errors.append(prefix).append(" which has an invalid mod id because it ").append(errorList.get(0));
             } else {
                 errors.append(prefix).append(" which has an invalid mod because:");
+
                 for (String error : errorList) {
                     errors.append("\n   - It ").append(error);
                 }
             }
+
             return;
         }
 
         ModCandidate depCandidate = result.get(depModId);
         boolean isPresent = depCandidate == null ? false : dependency.matches(depCandidate.getInfo().getVersion());
+
         if (isPresent != cond) {
             errors.append("\n - Mod ").append(candidate.getInfo().getId()).append(" ").append(errorType).append(" mod ").append(dependency).append(", ");
+
             if (depCandidate == null) {
                 errors.append("which is missing");
             } else if (cond) {
@@ -346,6 +351,7 @@ public class ModResolver {
             } else {
                 errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion());
             }
+
             errors.append("!");
         }
     }
@@ -357,35 +363,47 @@ public class ModResolver {
             errorList.add("is empty!");
             return false;
         }
+
         if (modId.length() == 1) {
             errorList.add("is only a single character! (It must be at least 2 characters long)!");
         } else if (modId.length() > 64) {
             errorList.add("has more than 64 characters!");
         }
+
         char first = modId.charAt(0);
+
         if (first < 'a' || first > 'z') {
             errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - upper case isn't allowed anywhere in the ID)");
         }
+
         Set<Character> invalidChars = null;
+
         for (int i = 1; i < modId.length(); i++) {
             char c = modId.charAt(i);
+
             if (c == '-' || c == '_' || ('0' <= c && c <= '9') || ('a' <= c && c <= 'z')) {
                 continue;
             }
+
             if (invalidChars == null) {
                 invalidChars = new HashSet<>();
             }
+
             invalidChars.add(c);
         }
+
         if (invalidChars != null) {
             StringBuilder error = new StringBuilder("contains invalid characters: '");
             Character[] chars = invalidChars.toArray(new Character[0]);
             Arrays.sort(chars);
+
             for (Character c : chars) {
                 error.append(c.charValue());
             }
+
             errorList.add(error.append("'!").toString());
         }
+
         assert errorList.isEmpty() == MOD_ID_PATTERN.matcher(modId).matches() : "Errors list " + errorList + " didn't match the mod ID pattern!";
         return errorList.isEmpty();
     }
