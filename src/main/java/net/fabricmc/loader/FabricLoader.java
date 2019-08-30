@@ -247,7 +247,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				} else {
 					FabricStatusNode licenseNode = modNode.addChild("License:");
 					for (String str : modmeta.getLicense()) {
-					    licenseNode.addChild(str);
+						licenseNode.addChild(str);
 					}
 				}
 
@@ -261,10 +261,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				if (modmeta instanceof ModMetadataV1) {
 					Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
 					if (!keys.isEmpty()) {
-					    FabricStatusNode customNode = modNode.addChild("Custom:");
-					    for (String key : keys) {
-					        addCustomValue(customNode, key, modmeta.getCustomValue(key));
-					    }
+						FabricStatusNode customNode = modNode.addChild("Custom:");
+						for (String key : keys) {
+						    addCustomValue(customNode, key, modmeta.getCustomValue(key));
+						}
 					}
 				}
 			}
@@ -403,8 +403,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				} else {
 					FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
 					for (String sub : versions) {
-					    FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
-					    setVersionMatchStatusV1(mod, sub, subVersion);
+						FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
+						setVersionMatchStatusV1(mod, sub, subVersion);
 					}
 				}
 			} else {

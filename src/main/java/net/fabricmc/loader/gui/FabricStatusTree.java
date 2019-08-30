@@ -243,8 +243,8 @@ public final class FabricStatusTree {
 				}
 				for (FabricStatusNode c : fileNode.children) {
 					if (c.name.equals(s)) {
-					    fileNode = c;
-					    continue pathIteration;
+						fileNode = c;
+						continue pathIteration;
 					}
 				}
 				if (fileNode.iconType.equals(FabricStatusTree.ICON_TYPE_DEFAULT)) {

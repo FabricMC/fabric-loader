@@ -338,7 +338,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 			for (String s : matcherStringList) {
 				try {
 					if (VersionPredicateParser.matches(version, s)) {
-					    return true;
+						return true;
 					}
 				} catch (VersionParsingException e) {
 					e.printStackTrace();
