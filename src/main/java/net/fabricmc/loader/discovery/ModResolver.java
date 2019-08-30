@@ -101,7 +101,7 @@ public class ModResolver {
 		}
 		char first = modId.charAt(0);
 		if (first < 'a' || first > 'z') {
-			errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z)");
+			errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - upper case isn't allowed anywhere in the ID)");
 		}
 		Set<Character> invalidChars = null;
 		for (int i = 1; i < modId.length(); i++) {
