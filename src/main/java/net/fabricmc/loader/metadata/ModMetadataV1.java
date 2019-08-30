@@ -38,9 +38,9 @@ import java.util.stream.Collectors;
  */
 public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetadata {
 	public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-	    "id", "version", "environment", "entrypoints", "jars", "mixins", "depends", "recommends",
-	    "suggests", "conflicts", "breaks", "name", "description", "authors", "contributors",
-	    "contact", "license", "icon", "languageAdapters", "custom", "schemaVersion")));
+		"id", "version", "environment", "entrypoints", "jars", "mixins", "depends", "recommends",
+		"suggests", "conflicts", "breaks", "name", "description", "authors", "contributors",
+		"contact", "license", "icon", "languageAdapters", "custom", "schemaVersion")));
 
 	// Required
 	private String id;
@@ -124,24 +124,24 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 
 	@Override
 	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
-	    if (id == null || id.isEmpty()) {
-	        node.addChild("Missing key: 'id'").setError();
-	    }
-	    if (version == null) {
-	        node.addChild("Missing key: 'version'").setError();
-	    }
-	    for (Entry<String, JsonElement> entry : src.entrySet()) {
-	        String key = entry.getKey();
-	        if (!KEYS.contains(key)) {
-	            FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
-	            if (key.startsWith("__")) {
-	                keyNode.setInfo();
-	            } else {
-	                keyNode.setWarning();
-	            }
-	            continue;
-	        }
-	    }
+		if (id == null || id.isEmpty()) {
+		    node.addChild("Missing key: 'id'").setError();
+		}
+		if (version == null) {
+		    node.addChild("Missing key: 'version'").setError();
+		}
+		for (Entry<String, JsonElement> entry : src.entrySet()) {
+		    String key = entry.getKey();
+		    if (!KEYS.contains(key)) {
+		        FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
+		        if (key.startsWith("__")) {
+		            keyNode.setInfo();
+		        } else {
+		            keyNode.setWarning();
+		        }
+		        continue;
+		    }
+		}
 	}
 
 	@Override
@@ -214,7 +214,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public Set<String> getCustomKeys() {
-	    return Collections.unmodifiableSet(custom.keySet());
+		return Collections.unmodifiableSet(custom.keySet());
 	}
 
 	@Override
@@ -265,7 +265,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		private final List<ModDependency> dependencies = new ArrayList<>();
 
 		public static class Deserializer implements JsonDeserializer<DependencyContainer> {
-	        @Override
+		    @Override
 			public DependencyContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 				if (!json.isJsonObject()) {
 					throw new RuntimeException("Dependency container must be an object!");
@@ -314,51 +314,51 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static final class ModDependencyV1 implements ModDependency {
-	    private final List<String> matcherStringList;
-	    private final String depAsStr;
-	    private final String id;
+		private final List<String> matcherStringList;
+		private final String depAsStr;
+		private final String id;
 
-	    ModDependencyV1(List<String> matcherStringList, String depAsStr, String id) {
-	        this.matcherStringList = matcherStringList;
-	        this.depAsStr = depAsStr;
-	        this.id = id;
-	    }
+		ModDependencyV1(List<String> matcherStringList, String depAsStr, String id) {
+		    this.matcherStringList = matcherStringList;
+		    this.depAsStr = depAsStr;
+		    this.id = id;
+		}
 
-	    public List<String> getMatcherStringList() {
-	        return matcherStringList;
-	    }
+		public List<String> getMatcherStringList() {
+		    return matcherStringList;
+		}
 
-	    @Override
-	    public String getModId() {
-	        return id;
-	    }
+		@Override
+		public String getModId() {
+		    return id;
+		}
 
-	    @Override
-	    public boolean matches(Version version) {
-	        for (String s : matcherStringList) {
-	            try {
-	                if (VersionPredicateParser.matches(version, s)) {
-	                    return true;
-	                }
-	            } catch (VersionParsingException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-	        }
+		@Override
+		public boolean matches(Version version) {
+		    for (String s : matcherStringList) {
+		        try {
+		            if (VersionPredicateParser.matches(version, s)) {
+		                return true;
+		            }
+		        } catch (VersionParsingException e) {
+		            e.printStackTrace();
+		            return false;
+		        }
+		    }
 
-	        return false;
-	    }
+		    return false;
+		}
 
-	    @Override
-	    public String toString() {
-	        return depAsStr;
-	    }
+		@Override
+		public String toString() {
+		    return depAsStr;
+		}
 	}
 
 	public static class Person implements net.fabricmc.loader.api.metadata.Person {
-	    public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name", "contact")));
+		public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("name", "contact")));
 
-	    private String name;
+		private String name;
 		private MapBackedContactInformation contact = new MapBackedContactInformation(Collections.emptyMap());
 
 		@Override
@@ -400,9 +400,9 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static class JarEntry implements NestedJarEntry {
-	    public static final Set<String> KEYS = Collections.singleton("file");
+		public static final Set<String> KEYS = Collections.singleton("file");
 
-	    private String file;
+		private String file;
 
 		@Override
 		public String getFile() {
@@ -536,9 +536,9 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static class MixinEntry {
-	    public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("config", "environment")));
+		public static final Set<String> KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("config", "environment")));
 
-	    private String config;
+		private String config;
 		private Environment environment = Environment.UNIVERSAL;
 
 		public static class Deserializer implements JsonDeserializer<MixinEntry> {

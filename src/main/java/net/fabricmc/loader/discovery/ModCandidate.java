@@ -47,7 +47,7 @@ public class ModCandidate {
 	}
 
 	public FabricStatusNode getFileNode() {
-	    return fileNode;
+		return fileNode;
 	}
 
 	@Override

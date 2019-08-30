@@ -114,9 +114,9 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 
 	@Override
 	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
-	    if (id == null || id.isEmpty()) {
-	        node.addChild("Missing key: 'id'!").setError();
-	    }
+		if (id == null || id.isEmpty()) {
+		    node.addChild("Missing key: 'id'!").setError();
+		}
 	}
 
 	@Override
@@ -319,7 +319,7 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static class DependencyMap extends HashMap<String, Dependency> {
-	    private List<ModDependency> modDepList;
+		private List<ModDependency> modDepList;
 
 		Collection<ModDependency> toModDependencies() {
 			if (modDepList == null) {
@@ -335,35 +335,35 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static final class ModDependencyV0 implements ModDependency {
-	    private final String modId;
-	    private final Dependency dependency;
+		private final String modId;
+		private final Dependency dependency;
 
-	    private ModDependencyV0(String modId, Dependency dependency) {
-	        this.modId = modId;
-	        this.dependency = dependency;
-	    }
+		private ModDependencyV0(String modId, Dependency dependency) {
+		    this.modId = modId;
+		    this.dependency = dependency;
+		}
 
-	    @Override
-	    public String getModId() {
-	        return modId;
-	    }
+		@Override
+		public String getModId() {
+		    return modId;
+		}
 
-	    @Override
-	    public boolean matches(Version version) {
-	        return dependency.satisfiedBy(version);
-	    }
+		@Override
+		public boolean matches(Version version) {
+		    return dependency.satisfiedBy(version);
+		}
 
-	    @Override
-	    public String toString() {
-	        String[] matchers = dependency.versionMatchers;
-	        if (matchers.length == 0) {
-	            return getModId();
-	        } else if (matchers.length == 1) {
-	            return getModId() + " @ " + matchers[0];
-	        } else {
-	            return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
-	        }
-	    }
+		@Override
+		public String toString() {
+		    String[] matchers = dependency.versionMatchers;
+		    if (matchers.length == 0) {
+		        return getModId();
+		    } else if (matchers.length == 1) {
+		        return getModId() + " @ " + matchers[0];
+		    } else {
+		        return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+		    }
+		}
 	}
 
 	public static class Dependency {
