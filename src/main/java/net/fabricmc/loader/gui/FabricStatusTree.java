@@ -24,7 +24,7 @@ import java.util.Locale;
 
 public final class FabricStatusTree {
 
-	enum WarningLevel {
+	public enum WarningLevel {
 		ERROR,
 		WARN,
 		INFO,
@@ -162,6 +162,7 @@ public final class FabricStatusTree {
 			if (this.warningLevel == level) {
 				return;
 			}
+
 			if (warningLevel.isWorseThan(level)) {
 				// Just because I haven't written the back-fill revalidation for this
 				throw new Error("Why would you set the warning level multiple times?");
@@ -169,6 +170,7 @@ public final class FabricStatusTree {
 				if (parent != null && level.isWorseThan(parent.warningLevel)) {
 					parent.setWarningLevel(level);
 				}
+
 				this.warningLevel = level;
 			}
 		}
@@ -204,11 +206,14 @@ public final class FabricStatusTree {
 			sub.setError();
 			String msg = exception.getMessage();
 			String[] lines = msg.split("\n");
+
 			if (lines.length == 0) {
 				// what
 				lines = new String[] { msg };
 			}
+
 			sub.name = lines[0];
+
 			for (int i = 1; i < lines.length; i++) {
 				sub.addChild(lines[i]);
 			}
@@ -225,12 +230,15 @@ public final class FabricStatusTree {
 			if (children.size() != 1) {
 				return;
 			}
+
 			FabricStatusNode child = children.remove(0);
 			name += join + child.name;
+
 			for (FabricStatusNode cc : child.children) {
 				cc.parent = this;
 				children.add(cc);
 			}
+
 			child.children.clear();
 		}
 
@@ -238,9 +246,11 @@ public final class FabricStatusTree {
 			if (!iconType.equals(folderType)) {
 				return;
 			}
+
 			while (children.size() == 1 && children.get(0).iconType.equals(folderType)) {
 				mergeWithSingleChild("/");
 			}
+
 			children.sort((a, b) -> a.name.compareTo(b.name));
 			mergeChildFilePaths(folderType);
 		}
@@ -253,21 +263,27 @@ public final class FabricStatusTree {
 
 		public FabricStatusNode getFileNode(String file, String folderType, String fileType) {
 			FabricStatusNode fileNode = this;
+
 			pathIteration: for (String s : file.split("/")) {
+
 				if (s.isEmpty()) {
 					continue;
 				}
+
 				for (FabricStatusNode c : fileNode.children) {
 					if (c.name.equals(s)) {
 						fileNode = c;
 						continue pathIteration;
 					}
 				}
+
 				if (fileNode.iconType.equals(FabricStatusTree.ICON_TYPE_DEFAULT)) {
 					fileNode.iconType = folderType;
 				}
+
 				fileNode = fileNode.addChild(s);
 			}
+
 			fileNode.iconType = fileType;
 			return fileNode;
 		}

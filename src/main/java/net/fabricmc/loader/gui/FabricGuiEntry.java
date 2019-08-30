@@ -49,6 +49,7 @@ public final class FabricGuiEntry {
 			} else {
 				// Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
 				System.out.println("Status: Correct tree.");
+
 				try {
 					openWindow(tree, true);
 				} catch (Exception e) {
@@ -169,7 +170,6 @@ public final class FabricGuiEntry {
 		commands.add("--from-tree");
 		commands.add(tree.write());
 		ProcessBuilder pb = new ProcessBuilder(commands);
-
 		pb.inheritIO();
 
 		try {
@@ -184,6 +184,7 @@ public final class FabricGuiEntry {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
+				// Is this correct?
 				p.destroy();
 			}
 
