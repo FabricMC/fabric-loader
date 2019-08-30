@@ -1,0 +1,555 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.fabricmc.loader.minecraft;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+import com.google.gson.stream.JsonReader;
+
+import net.fabricmc.loader.util.FileSystemUtil;
+
+public final class McVersionLookup {
+	private static final Pattern VERSION_PATTERN = Pattern.compile(
+			"\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-Release \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
+			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
+			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
+			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
+			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
+			);
+	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
+	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-Release )(\\d+)");
+	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(\\d+)w(\\d+)([a-z])");
+	private static final String STRING_DESC = "Ljava/lang/String;";
+
+	public static McVersion getVersion(Path gameJar) {
+		McVersion ret;
+
+		// check various known files for version information
+
+		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
+			FileSystem fs = jarFs.get();
+			Path file;
+
+			// version.json - contains version and target release for 18w47b+
+			if (Files.isRegularFile(file = fs.getPath("version.json"))
+					&& (ret = fromVersionJson(Files.newInputStream(file))) != null) {
+				return ret;
+			}
+
+			// constant field RealmsSharedConstants.VERSION_STRING
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsSharedConstants.class"))
+					&& (ret = fromAnalyzer(Files.newInputStream(file), new FieldStringConstantVisitor("VERSION_STRING"))) != null) {
+				return ret;
+			}
+
+			// constant return value of RealmsBridge.getVersionString (presumably inlined+dead code eliminated VERSION_STRING)
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsBridge.class"))
+					&& (ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor("getVersionString"))) != null) {
+				return ret;
+			}
+
+			// version-like String constant used in MinecraftServer.run or another MinecraftServer method
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/server/MinecraftServer.class"))
+					&& (ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantVisitor("run"))) != null) {
+				return ret;
+			}
+
+			// version-like constant return value of a Minecraft method (obfuscated/unknown name)
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/client/Minecraft.class"))
+					&& (ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null))) != null) {
+				return ret;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return fromFileName(gameJar.getFileName().toString());
+	}
+
+	private static McVersion fromVersionJson(InputStream is) {
+		try (JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+			String name = null;
+			String release = null;
+
+			reader.beginObject();
+
+			while (reader.hasNext()) {
+				switch (reader.nextName()) {
+				case "name": name = reader.nextString(); break;
+				case "release_target": release = reader.nextString(); break;
+				default: reader.skipValue();
+				}
+			}
+
+			reader.endObject();
+
+			if (name != null && release != null) return new McVersion(name, release);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	private static <T extends ClassVisitor & Analyzer> McVersion fromAnalyzer(InputStream is, T analyzer) {
+		try {
+			ClassReader cr = new ClassReader(is);
+			cr.accept(analyzer, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+			String result = analyzer.getResult();
+
+			if (result != null) {
+				return new McVersion(result, getRelease(result));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) { }
+		}
+
+		return null;
+	}
+
+	private static McVersion fromFileName(String name) {
+		// strip extension
+		int pos = name.lastIndexOf('.');
+		if (pos > 0) name = name.substring(0, pos);
+
+		return new McVersion(name, getRelease(name));
+	}
+
+	private static String getRelease(String version) {
+		if (RELEASE_PATTERN.matcher(version).matches()) return version;
+
+		assert isProbableVersion(version);
+
+		int pos = version.indexOf("-pre");
+		if (pos >= 0) return version.substring(0, pos);
+
+		pos = version.indexOf(" Pre-Release ");
+		if (pos >= 0) return version.substring(0, pos);
+
+		Matcher matcher = SNAPSHOT_PATTERN.matcher(version);
+
+		if (matcher.matches()) {
+			int year = Integer.parseInt(matcher.group(1));
+			int week = Integer.parseInt(matcher.group(2));
+
+			if (year == 19 && week == 34) {
+				return "1.15";
+			} else if (year == 18 && week >= 43 || year == 19 && week <= 14) {
+				return "1.14";
+			} else if (year == 18 && week >= 30 && week <= 33) {
+				return "1.13.1";
+			} else if (year == 17 && week >= 43 || year == 18 && week <= 22) {
+				return "1.13";
+			} else if (year == 17 && week == 31) {
+				return "1.12.1";
+			} else if (year == 17 && week >= 6 && week <= 18) {
+				return "1.12";
+			} else if (year == 16 && week == 50) {
+				return "1.11.1";
+			} else if (year == 16 && week >= 32 && week <= 44) {
+				return "1.11";
+			} else if (year == 16 && week >= 20 && week <= 21) {
+				return "1.10";
+			} else if (year == 16 && week >= 14 && week <= 15) {
+				return "1.9.3";
+			} else if (year == 15 && week >= 31 || year == 16 && week <= 7) {
+				return "1.9";
+			} else if (year == 14 && week >= 2 && week <= 34) {
+				return "1.8";
+			} else if (year == 13 && week >= 47 && week <= 49) {
+				return "1.7.4";
+			} else if (year == 13 && week >= 36 && week <= 43) {
+				return "1.7.2";
+			} else if (year == 13 && week >= 16 && week <= 26) {
+				return "1.6";
+			} else if (year == 13 && week >= 11 && week <= 12) {
+				return "1.5.1";
+			} else if (year == 13 && week >= 1 && week <= 10) {
+				return "1.5";
+			} else if (year == 12 && week >= 49 && week <= 50) {
+				return "1.4.6";
+			} else if (year == 12 && week >= 32 && week <= 42) {
+				return "1.4.2";
+			} else if (year == 12 && week >= 15 && week <= 30) {
+				return "1.3.1";
+			} else if (year == 12 && week >= 3 && week <= 8) {
+				return "1.2.1";
+			} else if (year == 11 && week >= 47 || year == 12 && week <= 1) {
+				return "1.1";
+			}
+		}
+
+		return null;
+	}
+
+	private static boolean isProbableVersion(String str) {
+		return VERSION_PATTERN.matcher(str).matches();
+	}
+
+	/**
+	 * Convert an arbitrary MC version into semver-like release-preRelease form.
+	 *
+	 * <p>MC Snapshot -> alpha, MC Pre-Release -> rc.
+	 */
+	private static String normalizeVersion(String name, String release) {
+		if (release == null || name.equals(release)) {
+			return normalizeVersion(name);
+		}
+
+		Matcher matcher;
+
+		if (name.startsWith(release)) {
+			matcher = PRE_RELEASE_PATTERN.matcher(name);
+
+			if (matcher.matches()) {
+				name = String.format("rc.%s", matcher.group(1));
+			}
+		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {
+			name = String.format("alpha.%s.%s.%s", matcher.group(1), matcher.group(2), matcher.group(3));
+		} else {
+			name = normalizeVersion(name);
+		}
+
+		return String.format("%s-%s", release, name);
+	}
+
+	private static String normalizeVersion(String version) {
+		StringBuilder ret = new StringBuilder(version.length() + 5);
+		boolean lastIsDigit = false;
+		boolean lastIsLeadingZero = false;
+		boolean lastIsSeparator = false;
+
+		for (int i = 0, max = version.length(); i < max; i++) {
+			char c = version.charAt(i);
+
+			if (c >= '0' && c <= '9') {
+				if (i > 0 && !lastIsDigit && !lastIsSeparator) { // no separator between non-number and number, add one
+					ret.append('.');
+				} else if (lastIsDigit && lastIsLeadingZero) { // leading zero in output -> strip
+					ret.setLength(ret.length() - 1);
+				}
+
+				lastIsLeadingZero = c == '0' && (!lastIsDigit || lastIsLeadingZero); // leading or continued leading zero(es)
+				lastIsSeparator = false;
+				lastIsDigit = true;
+			} else if (c == '.' || c == '-') { // keep . and - separators
+				if (lastIsSeparator) continue;
+
+				lastIsSeparator = true;
+				lastIsDigit = false;
+			} else if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')) { // replace remaining non-alphanumeric with .
+				if (lastIsSeparator) continue;
+
+				c = '.';
+				lastIsSeparator = true;
+				lastIsDigit = false;
+			} else { // keep other characters (alpha)
+				if (lastIsDigit) ret.append('.'); // no separator between number and non-number, add one
+
+				lastIsSeparator = false;
+				lastIsDigit = false;
+			}
+
+			ret.append(c);
+		}
+
+		// strip leading and trailing .
+
+		int start = 0;
+		while (start < ret.length() && ret.charAt(start) == '.') start++;
+
+		int end = ret.length();
+		while (end > start && ret.charAt(end - 1) == '.') end--;
+
+		return ret.substring(start, end);
+	}
+
+	private interface Analyzer {
+		String getResult();
+	}
+
+	private static final class FieldStringConstantVisitor extends ClassVisitor implements Analyzer {
+		public FieldStringConstantVisitor(String fieldName) {
+			super(Opcodes.ASM7);
+
+			this.fieldName = fieldName;
+		}
+
+		@Override
+		public String getResult() {
+			return result;
+		}
+
+		@Override
+		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+			this.className = name;
+		}
+
+		@Override
+		public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+			if (result == null && name.equals(fieldName) && descriptor.equals(STRING_DESC) && value instanceof String) {
+				result = (String) value;
+			}
+
+			return null;
+		}
+
+		@Override
+		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+			if (result != null || !name.equals("<clinit>")) return null;
+
+			// capture LDC ".." followed by PUTSTATIC this.fieldName
+			return new InsnFwdMethodVisitor() {
+				@Override
+				public void visitLdcInsn(Object value) {
+					String str;
+
+					if (value instanceof String && isProbableVersion(str = (String) value)) {
+						lastLdc = str;
+					} else {
+						lastLdc = null;
+					}
+				}
+
+				@Override
+				public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+					if (result == null
+							&& lastLdc != null
+							&& opcode == Opcodes.PUTSTATIC
+							&& owner.equals(className)
+							&& name.equals(fieldName)
+							&& descriptor.equals(STRING_DESC)) {
+						result = lastLdc;
+					}
+
+					lastLdc = null;
+				}
+
+				@Override
+				protected void visitAnyInsn() {
+					lastLdc = null;
+				}
+
+				String lastLdc;
+			};
+		}
+
+		private final String fieldName;
+		private String className;
+		private String result;
+	}
+
+	private static final class MethodConstantRetVisitor extends ClassVisitor implements Analyzer {
+		public MethodConstantRetVisitor(String methodName) {
+			super(Opcodes.ASM7);
+
+			this.methodName = methodName;
+		}
+
+		@Override
+		public String getResult() {
+			return result;
+		}
+
+		@Override
+		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+			if (result != null
+					|| methodName != null && !name.equals(methodName)
+					|| !descriptor.endsWith(STRING_DESC)
+					|| descriptor.charAt(descriptor.length() - STRING_DESC.length() - 1) != ')') {
+				return null;
+			}
+
+			// capture LDC ".." followed by ARETURN
+			return new InsnFwdMethodVisitor() {
+				@Override
+				public void visitLdcInsn(Object value) {
+					String str;
+
+					if (value instanceof String && isProbableVersion(str = (String) value)) {
+						lastLdc = str;
+					} else {
+						lastLdc = null;
+					}
+				}
+
+				@Override
+				public void visitInsn(int opcode) {
+					if (result == null
+							&& lastLdc != null
+							&& opcode == Opcodes.ARETURN) {
+						result = lastLdc;
+					}
+
+					lastLdc = null;
+				}
+
+				@Override
+				protected void visitAnyInsn() {
+					lastLdc = null;
+				}
+
+				String lastLdc;
+			};
+		}
+
+		private final String methodName;
+		private String result;
+	}
+
+	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
+		public MethodConstantVisitor(String methodNameHint) {
+			super(Opcodes.ASM7);
+
+			this.methodNameHint = methodNameHint;
+		}
+
+		@Override
+		public String getResult() {
+			return result;
+		}
+
+		@Override
+		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+			final boolean isRequestedMethod = name.equals(methodNameHint);
+
+			if (result != null && !isRequestedMethod) {
+				return null;
+			}
+
+			return new MethodVisitor(Opcodes.ASM7) {
+				@Override
+				public void visitLdcInsn(Object value) {
+					String str;
+
+					if ((result == null || !foundInMethodHint && isRequestedMethod)
+							&& value instanceof String
+							&& isProbableVersion(str = (String) value)) {
+						result = str;
+						foundInMethodHint = isRequestedMethod;
+					}
+				}
+			};
+		}
+
+		private final String methodNameHint;
+		private String result;
+		private boolean foundInMethodHint;
+	}
+
+	private static abstract class InsnFwdMethodVisitor extends MethodVisitor {
+		public InsnFwdMethodVisitor() {
+			super(Opcodes.ASM7);
+		}
+
+		protected abstract void visitAnyInsn();
+
+		@Override
+		public void visitLdcInsn(Object value) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitInsn(int opcode) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitIntInsn(int opcode, int operand) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitVarInsn(int opcode, int var) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitTypeInsn(int opcode, java.lang.String type) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitMethodInsn(int opcode, java.lang.String owner, java.lang.String name, java.lang.String descriptor, boolean isInterface) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitInvokeDynamicInsn(java.lang.String name, java.lang.String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitJumpInsn(int opcode, Label label) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitIincInsn(int var, int increment) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
+			visitAnyInsn();
+		}
+
+		@Override
+		public void visitMultiANewArrayInsn(java.lang.String descriptor, int numDimensions) {
+			visitAnyInsn();
+		}
+	}
+
+	public static final class McVersion {
+		private McVersion(String name, String release) {
+			this.raw = name;
+			this.normalized = normalizeVersion(name, release);
+		}
+
+		public final String raw; // raw version, e.g. 18w12a
+		public final String normalized; // normalized version, usually Semver compliant version containing release and pre-release as applicable
+	}
+}

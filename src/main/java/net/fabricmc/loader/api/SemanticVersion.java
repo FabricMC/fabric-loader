@@ -22,13 +22,14 @@ import net.fabricmc.loader.util.version.VersionParsingException;
 import java.util.Optional;
 
 public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
-	static final int COMPONENT_WILDCARD = Integer.MIN_VALUE;
+	int COMPONENT_WILDCARD = Integer.MIN_VALUE;
 
 	int getVersionComponentCount();
 	int getVersionComponent(int pos);
 
 	Optional<String> getPrereleaseKey();
 	Optional<String> getBuildKey();
+	boolean hasWildcard();
 
 	@Override
 	default int compareTo(SemanticVersion o) {
@@ -51,8 +52,10 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 		if (prereleaseA.isPresent() || prereleaseB.isPresent()) {
 			if (prereleaseA.isPresent() && prereleaseB.isPresent()) {
 				return prereleaseA.get().compareTo(prereleaseB.get());
-			} else {
-				return prereleaseA.isPresent() ? -1 : 1;
+			} else if (prereleaseA.isPresent()) {
+				return o.hasWildcard() ? 0 : -1;
+			} else { // prereleaseB.isPresent()
+				return hasWildcard() ? 0 : 1;
 			}
 		} else {
 			return 0;

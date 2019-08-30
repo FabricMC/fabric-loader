@@ -14,16 +14,30 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.game;
+package net.fabricmc.loader.api.metadata;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Map;
 
-import java.util.List;
+public interface CustomValue {
+	CvType getType();
+	CvObject getAsObject();
+	CvArray getAsArray();
+	String getAsString();
+	Number getAsNumber();
+	boolean getAsBoolean();
 
-public final class GameProviders {
-	private GameProviders() { }
+	interface CvObject extends CustomValue, Iterable<Map.Entry<String, CustomValue>> {
+		int size();
+		boolean containsKey(String key);
+		CustomValue get(String key);
+	}
 
-	public static List<GameProvider> create() {
-		return ImmutableList.of(new MinecraftGameProvider());
+	interface CvArray extends CustomValue, Iterable<CustomValue> {
+		int size();
+		CustomValue get(int index);
+	}
+
+	enum CvType {
+		OBJECT, ARRAY, STRING, NUMBER, BOOLEAN, NULL;
 	}
 }

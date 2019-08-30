@@ -17,6 +17,7 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.game.GameProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,11 +47,11 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	private final ClassLoader originalLoader;
 	private final KnotClassDelegate delegate;
 
-	KnotClassLoader(boolean isDevelopment, EnvType envType) {
+	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
 		super(new DynamicURLClassLoader(new URL[0]));
 		this.originalLoader = getClass().getClassLoader();
 		this.urlLoader = (DynamicURLClassLoader) getParent();
-		this.delegate = new KnotClassDelegate(isDevelopment, envType, this);
+		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
 	}
 
 	@Override
@@ -138,7 +139,7 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 		synchronized (getClassLoadingLock(name)) {
 			Class<?> c = findLoadedClass(name);
 
-			if (c == null) {
+			if (c == null && !name.startsWith("com.google.gson.")) { // FIXME: remove the GSON exclusion once loader stops using it (or repackages it)
 				byte[] input = delegate.loadClassData(name, resolve);
 				if (input != null) {
 					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, urlLoader.getResource(delegate.getClassFileName(name)));

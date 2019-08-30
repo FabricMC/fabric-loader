@@ -56,6 +56,8 @@ import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.gui.FabricStatusTree;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.discovery.*;
+import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
@@ -90,6 +92,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private Object gameInstance;
 
 	private MappingResolver mappingResolver;
+	private GameProvider provider;
 	private File gameDir;
 	private File configDir;
 
@@ -108,7 +111,19 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		finishModLoading();
 	}
 
-	public void setGameDir(File gameDir) {
+	public GameProvider getGameProvider() {
+		if (provider == null) throw new IllegalStateException("game provider not set (yet)");
+
+		return provider;
+	}
+
+	public void setGameProvider(GameProvider provider) {
+		this.provider = provider;
+
+		setGameDir(provider.getLaunchDirectory().toFile());
+	}
+
+	private void setGameDir(File gameDir) {
 		this.gameDir = gameDir;
 		this.configDir = new File(gameDir, "config");
 	}
@@ -162,9 +177,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	public void load() {
-		if (frozen) {
-			throw new RuntimeException("Frozen - cannot load additional mods!");
-		}
+		if (provider == null) throw new IllegalStateException("game provider not set");
+		if (frozen) throw new IllegalStateException("Frozen - cannot load additional mods!");
 
         FabricStatusTree tree = new FabricStatusTree();
         FabricStatusTab crashTab = tree.addTab("Crash");

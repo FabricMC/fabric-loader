@@ -21,16 +21,17 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
 import com.google.gson.*;
+
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.gui.FabricStatusTree;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataParser;
-import net.fabricmc.loader.metadata.ModMetadataV0;
 import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
@@ -42,12 +43,10 @@ import net.fabricmc.loader.util.sat4j.specs.IProblem;
 import net.fabricmc.loader.util.sat4j.specs.ISolver;
 import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
-import net.fabricmc.loader.util.version.VersionDeserializer;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -565,7 +564,7 @@ public class ModResolver {
     }
 
 	public Map<String, ModCandidate> resolve(FabricLoader loader, FabricStatusTab filesystemTab) throws ModResolutionException {
-		Map<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
+	    ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
 
@@ -587,6 +586,20 @@ public class ModResolver {
             allActions.add(action);
             pool.execute(action);
         }
+
+        // add builtin mods
+		Collection<BuiltinMod> builtinMods = loader.getGameProvider().getBuiltinMods();
+		if (!builtinMods.isEmpty()) {
+		    FabricStatusNode builtinModsNode = filesystemTab.addChild("Game provided"); 
+		    filesystemTab.node.children.remove(builtinModsNode);
+		    filesystemTab.node.children.add(0, builtinModsNode);
+		    for (BuiltinMod mod : builtinMods) {
+			    FabricStatusNode builtinNode = builtinModsNode.addChild(mod.metadata.getId() + " (" + mod.metadata.getName() + ")");
+			    builtinNode.addChild("Version: '" + mod.metadata.getVersion() + "'");
+                ModCandidate builtinCandidate = new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, builtinNode);
+                candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(builtinCandidate);
+		    }
+		}
 
 		boolean tookTooLong = false;
 		Throwable exception = null;
