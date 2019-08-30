@@ -213,6 +213,10 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		}
 	}
 
+	public Set<String> getCustomKeys() {
+	    return Collections.unmodifiableSet(custom.keySet());
+	}
+
 	@Override
 	public boolean containsCustomValue(String key) {
 		return custom.containsKey(key);

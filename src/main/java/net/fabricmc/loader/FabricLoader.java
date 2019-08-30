@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
@@ -44,6 +45,9 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.api.metadata.CustomValue.CvArray;
+import net.fabricmc.loader.api.metadata.CustomValue.CvObject;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
@@ -63,6 +67,7 @@ import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataV0.ModDependencyV0;
+import net.fabricmc.loader.metadata.ModMetadataV1;
 import net.fabricmc.loader.metadata.ModMetadataV1.ModDependencyV1;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.util.version.VersionParsingException;
@@ -251,6 +256,17 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
                 addRelatedInformation(modNode, "Suggests", modmeta.getSuggests());
                 addRelatedInformation(modNode, "Breaks", modmeta.getBreaks());
                 addRelatedInformation(modNode, "Conflicts", modmeta.getConflicts());
+
+                // TODO: Should "getCustomKeys()" be part of the main API?
+                if (modmeta instanceof ModMetadataV1) {
+                    Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
+                    if (!keys.isEmpty()) {
+                        FabricStatusNode customNode = modNode.addChild("Custom:");
+                        for (String key : keys) {
+                            addCustomValue(customNode, key, modmeta.getCustomValue(key));
+                        }
+                    }
+                }
 		    }
 
 		    // TODO: Class duplication detection!
@@ -267,6 +283,40 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
             }
 		}
 	}
+
+    private static void addCustomValue(FabricStatusNode node, String key, CustomValue value) {
+        switch (value.getType()) {
+            case ARRAY:
+                CvArray array = value.getAsArray();
+                FabricStatusNode arrayNode = node.addChild(key + " = array[" + array.size() + "]");
+                for (int i = 0; i < array.size(); i++) {
+                    addCustomValue(arrayNode, "[" + i + "]", array.get(i));
+                }
+                break;
+            case BOOLEAN:
+                node.addChild(key + " = " + value.getAsBoolean());
+                break;
+            case NULL:
+                node.addChild(key + " = null");
+                break;
+            case NUMBER:
+                node.addChild(key + " = " + value.getAsNumber());
+                break;
+            case OBJECT:
+                CvObject obj = value.getAsObject();
+                FabricStatusNode objNode = node.addChild(key + " = object{" + obj.size() + "}");
+                for (Entry<String, CustomValue> entry : obj) {
+                    addCustomValue(objNode, entry.getKey(), entry.getValue());
+                }
+                break;
+            case STRING:
+                node.addChild(key + " = '" + value.getAsString() + "'");
+                break;
+            default:
+                node.addChild(key + " = an unknwon custom type: " + value.getType());
+                break;
+        }
+    }
 
     private static void addPersonBasedInformation(FabricStatusNode modNode, String name, Collection<Person> people) {
         switch (people.size()) {
@@ -310,7 +360,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	        if (e.getSuppressed().length > 0) {
 	            break;
 	        }
-            if (e.getMessage().equals(cause.getMessage()) || e.getMessage().equals(cause.toString())) {
+            if (!e.getMessage().equals(cause.getMessage()) && !e.getMessage().equals(cause.toString())) {
                 break;
             }
 	        e = cause;
