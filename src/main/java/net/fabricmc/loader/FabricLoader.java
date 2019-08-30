@@ -196,6 +196,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 			tree.mainErrorText = "Failed to launch!";
 			addThrowable(crashTab.node, cause, new HashSet<>());
+
 			try {
 				FabricGuiEntry.open(true, tree, false);
 			} catch (Exception guiOpeningException) {
@@ -207,6 +208,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				exitException.addSuppressed(guiOpeningException);
 				throw exitException;
 			}
+
 			throw exitException;
 		}
 		tree.tabs.remove(crashTab);
@@ -228,17 +230,22 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				modNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
 				modNode.addChild("ID: '" + modId + "'");
 				modNode.addChild("Name: '" + modmeta.getName() + "'");
+
 				String desc = modmeta.getDescription();
+
 				if (desc != null && !desc.isEmpty()) {
 					modNode.addChild("Description: " + desc);
 				}
+
 				modNode.addChild("Version: " + modmeta.getVersion().getFriendlyString());
 
 				addPersonBasedInformation(modNode, "Author", modmeta.getAuthors());
 				addPersonBasedInformation(modNode, "Contributor", modmeta.getContributors());
+
 				if (!modmeta.getContact().asMap().isEmpty()) {
 					addContactInfo(modNode.addChild("Contact Information"), modmeta.getContact());
 				}
+
 				if (modmeta.getLicense().isEmpty()) {
 					// Note about this - licensing is *kinda* important?
 					modNode.addChild("No license information!").setInfo();
@@ -246,6 +253,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					modNode.addChild("License: " + modmeta.getLicense().iterator().next());
 				} else {
 					FabricStatusNode licenseNode = modNode.addChild("License:");
+
 					for (String str : modmeta.getLicense()) {
 						licenseNode.addChild(str);
 					}
@@ -260,8 +268,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				// TODO: Should "getCustomKeys()" be part of the main API?
 				if (modmeta instanceof ModMetadataV1) {
 					Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
+
 					if (!keys.isEmpty()) {
 						FabricStatusNode customNode = modNode.addChild("Custom:");
+
 						for (String key : keys) {
 							addCustomValue(customNode, key, modmeta.getCustomValue(key));
 						}
@@ -289,9 +299,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			case ARRAY:
 				CvArray array = value.getAsArray();
 				FabricStatusNode arrayNode = node.addChild(key + " = array[" + array.size() + "]");
+
 				for (int i = 0; i < array.size(); i++) {
 					addCustomValue(arrayNode, "[" + i + "]", array.get(i));
 				}
+
 				break;
 			case BOOLEAN:
 				node.addChild(key + " = " + value.getAsBoolean());
@@ -305,9 +317,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			case OBJECT:
 				CvObject obj = value.getAsObject();
 				FabricStatusNode objNode = node.addChild(key + " = object{" + obj.size() + "}");
+
 				for (Entry<String, CustomValue> entry : obj) {
 					addCustomValue(objNode, entry.getKey(), entry.getValue());
 				}
+
 				break;
 			case STRING:
 				node.addChild(key + " = '" + value.getAsString() + "'");
@@ -330,10 +344,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 			default: {
 				FabricStatusNode peopleNode = modNode.addChild(name + "s:");
+
 				for (Person person : people) {
 					FabricStatusNode node = peopleNode.addChild(person.getName());
 					addContactInfo(node, person.getContact());
 				}
+
 				return;
 			}
 		}
@@ -343,6 +359,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (contact.asMap().isEmpty()) {
 			return;
 		}
+
 		for (Map.Entry<String, String> entry : new TreeMap<>(contact.asMap()).entrySet()) {
 			node.addChild(entry.getKey() + ": " + entry.getValue());
 		}
@@ -356,13 +373,16 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		// Remove some self-repeating exception traces from the tree
 		// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
 		Throwable cause;
+
 		while ((cause = e.getCause()) != null) {
 			if (e.getSuppressed().length > 0) {
 				break;
 			}
+
 			if (!e.getMessage().equals(cause.getMessage()) && !e.getMessage().equals(cause.toString())) {
 				break;
 			}
+
 			e = cause;
 		}
 
@@ -426,12 +446,14 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private static void setVersionMatchStatusV1(ModContainer mod, String versionMatch, FabricStatusNode node) {
 		if (mod != null) {
 			boolean matches;
+
 			try {
 				matches = VersionPredicateParser.matches(mod.getInfo().getVersion(), versionMatch);
 			} catch (VersionParsingException e) {
 				matches = false;
 				node.addException(e);
 			}
+
 			if (matches) {
 				node.iconType = FabricStatusTree.ICON_TYPE_TICK;
 			} else {
