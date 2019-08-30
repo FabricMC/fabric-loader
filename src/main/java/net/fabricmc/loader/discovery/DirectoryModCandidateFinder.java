@@ -62,8 +62,8 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 		}
 	}
 
-    @Override
-    public String toString() {
-        return path.toString();
-    }
+	@Override
+	public String toString() {
+	    return path.toString();
+	}
 }

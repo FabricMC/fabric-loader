@@ -41,7 +41,7 @@ public class ClassStripper extends ClassVisitor {
 
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        if (!this.stripInterfaces.isEmpty()) {
+	    if (!this.stripInterfaces.isEmpty()) {
 			List<String> interfacesList = new ArrayList<>();
 			for (String itf : interfaces) {
 				if (!this.stripInterfaces.contains(itf)) {
