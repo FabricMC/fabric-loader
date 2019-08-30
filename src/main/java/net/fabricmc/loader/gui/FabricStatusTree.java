@@ -151,7 +151,7 @@ public final class FabricStatusTree {
 				throw new Error("Why would you set the warning level multiple times?");
 			} else {
 				if (parent != null && level.isWorseThan(parent.warningLevel)) {
-				    parent.setWarningLevel(level);
+					parent.setWarningLevel(level);
 				}
 				this.warningLevel = level;
 			}
@@ -239,16 +239,16 @@ public final class FabricStatusTree {
 			FabricStatusNode fileNode = this;
 			pathIteration: for (String s : file.split("/")) {
 				if (s.isEmpty()) {
-				    continue;
+					continue;
 				}
 				for (FabricStatusNode c : fileNode.children) {
-				    if (c.name.equals(s)) {
-				        fileNode = c;
-				        continue pathIteration;
-				    }
+					if (c.name.equals(s)) {
+					    fileNode = c;
+					    continue pathIteration;
+					}
 				}
 				if (fileNode.iconType.equals(FabricStatusTree.ICON_TYPE_DEFAULT)) {
-				    fileNode.iconType = folderType;
+					fileNode.iconType = folderType;
 				}
 				fileNode = fileNode.addChild(s);
 			}

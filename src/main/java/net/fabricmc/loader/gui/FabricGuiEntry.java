@@ -34,9 +34,9 @@ public final class FabricGuiEntry {
 				// Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
 				System.out.println("Status: Correct tree.");
 				try {
-				    openWindow(tree, true);
+					openWindow(tree, true);
 				} catch (Exception e) {
-				    throw new RuntimeException(e);
+					throw new RuntimeException(e);
 				}
 			}
 			return;
@@ -63,9 +63,9 @@ public final class FabricGuiEntry {
 				FabricStatusNode jarNode = jarRoot.addChild("_" + i);
 				jarNode.setWarningLevel(WarningLevel.values()[i & 3]);
 				if (isFabric) {
-				    jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE + "+fabric";
+					jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE + "+fabric";
 				} else {
-				    jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
+					jarNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
 				}
 
 				jarNode.addChild("fabric.mod.json").iconType = FabricStatusTree.ICON_TYPE_JSON;

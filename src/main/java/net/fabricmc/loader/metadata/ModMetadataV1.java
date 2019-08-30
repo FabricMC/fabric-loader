@@ -135,9 +135,9 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 			if (!KEYS.contains(key)) {
 				FabricStatusNode keyNode = node.addChild("Unknown key: '" + key + "'");
 				if (key.startsWith("__")) {
-				    keyNode.setInfo();
+					keyNode.setInfo();
 				} else {
-				    keyNode.setWarning();
+					keyNode.setWarning();
 				}
 				continue;
 			}
@@ -337,12 +337,12 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 		public boolean matches(Version version) {
 			for (String s : matcherStringList) {
 				try {
-				    if (VersionPredicateParser.matches(version, s)) {
-				        return true;
-				    }
+					if (VersionPredicateParser.matches(version, s)) {
+					    return true;
+					}
 				} catch (VersionParsingException e) {
-				    e.printStackTrace();
-				    return false;
+					e.printStackTrace();
+					return false;
 				}
 			}
 

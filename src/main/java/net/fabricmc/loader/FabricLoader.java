@@ -230,25 +230,25 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				modNode.addChild("Name: '" + modmeta.getName() + "'");
 				String desc = modmeta.getDescription();
 				if (desc != null && !desc.isEmpty()) {
-				    modNode.addChild("Description: " + desc);
+					modNode.addChild("Description: " + desc);
 				}
 				modNode.addChild("Version: " + modmeta.getVersion().getFriendlyString());
 
 				addPersonBasedInformation(modNode, "Author", modmeta.getAuthors());
 				addPersonBasedInformation(modNode, "Contributor", modmeta.getContributors());
 				if (!modmeta.getContact().asMap().isEmpty()) {
-				    addContactInfo(modNode.addChild("Contact Information"), modmeta.getContact());
+					addContactInfo(modNode.addChild("Contact Information"), modmeta.getContact());
 				}
 				if (modmeta.getLicense().isEmpty()) {
-				    // Note about this - licensing is *kinda* important?
-				    modNode.addChild("No license information!").setInfo();
+					// Note about this - licensing is *kinda* important?
+					modNode.addChild("No license information!").setInfo();
 				} else if (modmeta.getLicense().size() == 1) {
-				    modNode.addChild("License: " + modmeta.getLicense().iterator().next());
+					modNode.addChild("License: " + modmeta.getLicense().iterator().next());
 				} else {
-				    FabricStatusNode licenseNode = modNode.addChild("License:");
-				    for (String str : modmeta.getLicense()) {
-				        licenseNode.addChild(str);
-				    }
+					FabricStatusNode licenseNode = modNode.addChild("License:");
+					for (String str : modmeta.getLicense()) {
+					    licenseNode.addChild(str);
+					}
 				}
 
 				addRelatedInformation(modNode, "Dependents", "Dependent", modmeta.getDepends());
@@ -259,13 +259,13 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 				// TODO: Should "getCustomKeys()" be part of the main API?
 				if (modmeta instanceof ModMetadataV1) {
-				    Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
-				    if (!keys.isEmpty()) {
-				        FabricStatusNode customNode = modNode.addChild("Custom:");
-				        for (String key : keys) {
-				            addCustomValue(customNode, key, modmeta.getCustomValue(key));
-				        }
-				    }
+					Set<String> keys = ((ModMetadataV1) modmeta).getCustomKeys();
+					if (!keys.isEmpty()) {
+					    FabricStatusNode customNode = modNode.addChild("Custom:");
+					    for (String key : keys) {
+					        addCustomValue(customNode, key, modmeta.getCustomValue(key));
+					    }
+					}
 				}
 			}
 
@@ -277,8 +277,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				// The user must have explicitly asked for this to be shown, so they probably
 				// don't want to just continue loading the game even if it couldn't be shown.
 				String message = "Failed to open the information GUI!"
-				    + "\n(Note: You can remove the '-D" + FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO
-				    + "=true' argument to disable the information GUI)";
+					+ "\n(Note: You can remove the '-D" + FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO
+					+ "=true' argument to disable the information GUI)";
 				throw new RuntimeException(message, e);
 			}
 		}
@@ -290,7 +290,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				CvArray array = value.getAsArray();
 				FabricStatusNode arrayNode = node.addChild(key + " = array[" + array.size() + "]");
 				for (int i = 0; i < array.size(); i++) {
-				    addCustomValue(arrayNode, "[" + i + "]", array.get(i));
+					addCustomValue(arrayNode, "[" + i + "]", array.get(i));
 				}
 				break;
 			case BOOLEAN:
@@ -306,7 +306,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				CvObject obj = value.getAsObject();
 				FabricStatusNode objNode = node.addChild(key + " = object{" + obj.size() + "}");
 				for (Entry<String, CustomValue> entry : obj) {
-				    addCustomValue(objNode, entry.getKey(), entry.getValue());
+					addCustomValue(objNode, entry.getKey(), entry.getValue());
 				}
 				break;
 			case STRING:
@@ -331,8 +331,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			default: {
 				FabricStatusNode peopleNode = modNode.addChild(name + "s:");
 				for (Person person : people) {
-				    FabricStatusNode node = peopleNode.addChild(person.getName());
-				    addContactInfo(node, person.getContact());
+					FabricStatusNode node = peopleNode.addChild(person.getName());
+					addContactInfo(node, person.getContact());
 				}
 				return;
 			}
@@ -395,17 +395,17 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				ModDependencyV1 depv1 = (ModDependencyV1) dep;
 				List<String> versions = depv1.getMatcherStringList();
 				if (versions.size() == 0) {
-				    FabricStatusNode matcher = submodNode.addChild(prefix + " versions: none!");
-				    matcher.setWarning();
+					FabricStatusNode matcher = submodNode.addChild(prefix + " versions: none!");
+					matcher.setWarning();
 				} else if (versions.size() == 1) {
-				    FabricStatusNode matcher = submodNode.addChild(prefix + " versions: '" + versions.get(0) + "'");
-				    setVersionMatchStatusV1(mod, versions.get(0), matcher);
+					FabricStatusNode matcher = submodNode.addChild(prefix + " versions: '" + versions.get(0) + "'");
+					setVersionMatchStatusV1(mod, versions.get(0), matcher);
 				} else {
-				    FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
-				    for (String sub : versions) {
-				        FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
-				        setVersionMatchStatusV1(mod, sub, subVersion);
-				    }
+					FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
+					for (String sub : versions) {
+					    FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
+					    setVersionMatchStatusV1(mod, sub, subVersion);
+					}
 				}
 			} else {
 				submodNode.addChild(prefix + " versions: unknown (" + dep.getClass() + ")");

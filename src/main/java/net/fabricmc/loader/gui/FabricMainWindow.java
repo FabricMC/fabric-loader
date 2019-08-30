@@ -161,10 +161,10 @@ class FabricMainWindow {
 			Icon icon = map.get(scale);
 			if (icon == null) {
 				try {
-				    icon = loadIcon(info, scale);
+					icon = loadIcon(info, scale);
 				} catch (IOException e) {
-				    e.printStackTrace();
-				    icon = missingIcon();
+					e.printStackTrace();
+					icon = missingIcon();
 				}
 				map.put(scale, icon);
 			}
@@ -178,7 +178,7 @@ class FabricMainWindow {
 
 			for (int y = 0; y < 16; y++) {
 				for (int x = 0; x < 16; x++) {
-				    img.setRGB(x, y, 0xff_ff_f2);
+					img.setRGB(x, y, 0xff_ff_f2);
 				}
 			}
 
@@ -259,20 +259,20 @@ class FabricMainWindow {
 			if (split.length == 0) {
 				// Empty string, but we might replace it with a warning
 				if (warnLevel == WarningLevel.NONE) {
-				    main = "missing";
+					main = "missing";
 				} else {
-				    main = "level_" + warnLevel.lowerCaseName;
+					main = "level_" + warnLevel.lowerCaseName;
 				}
 			} else {
 				main = split[0];
 				if (warnLevel == WarningLevel.NONE) {
-				    // Just to add a gap
-				    decors.add(null);
+					// Just to add a gap
+					decors.add(null);
 				} else {
-				    decors.add("level_" + warnLevel.lowerCaseName);
+					decors.add("level_" + warnLevel.lowerCaseName);
 				}
 				for (int i = 1; i < split.length && i < 3; i++) {
-				    decors.add(split[i]);
+					decors.add(split[i]);
 				}
 			}
 
@@ -315,19 +315,19 @@ class FabricMainWindow {
 				CustomTreeNode c = (CustomTreeNode) value;
 				setIcon(iconSet.get(c.getIconInfo()));
 				if (c.node.details == null || c.node.details.isEmpty()) {
-				    setToolTipText(null);
+					setToolTipText(null);
 				} else {
-				    if (c.node.details.contains("\n")) {
-				        // It's a bit odd but it's easier than creating a custom tooltip
-				        String replaced = c.node.details//
-				            .replace("&", "&amp;")//
-				            .replace("<", "&lt;")//
-				            .replace(">", "&gt;")//
-				            .replace("\n", "<br>");
-				        setToolTipText("<html>" + replaced + "</html>");
-				    } else {
-				        setToolTipText(c.node.details);
-				    }
+					if (c.node.details.contains("\n")) {
+					    // It's a bit odd but it's easier than creating a custom tooltip
+					    String replaced = c.node.details//
+					        .replace("&", "&amp;")//
+					        .replace("<", "&lt;")//
+					        .replace(">", "&gt;")//
+					        .replace("\n", "<br>");
+					    setToolTipText("<html>" + replaced + "</html>");
+					} else {
+					    setToolTipText(c.node.details);
+					}
 				}
 			}
 
@@ -346,7 +346,7 @@ class FabricMainWindow {
 			this.node = node;
 			for (FabricStatusNode c : node.children) {
 				if (minimumWarningLevel.isWorseThan(c.getMaximumWarningLevel())) {
-				    continue;
+					continue;
 				}
 				displayedChildren.add(new CustomTreeNode(this, c, minimumWarningLevel));
 			}
@@ -401,12 +401,12 @@ class FabricMainWindow {
 
 				@Override
 				public boolean hasMoreElements() {
-				    return it.hasNext();
+					return it.hasNext();
 				}
 
 				@Override
 				public CustomTreeNode nextElement() {
-				    return it.next();
+					return it.next();
 				}
 			};
 		}
