@@ -263,7 +263,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					if (!keys.isEmpty()) {
 						FabricStatusNode customNode = modNode.addChild("Custom:");
 						for (String key : keys) {
-						    addCustomValue(customNode, key, modmeta.getCustomValue(key));
+							addCustomValue(customNode, key, modmeta.getCustomValue(key));
 						}
 					}
 				}

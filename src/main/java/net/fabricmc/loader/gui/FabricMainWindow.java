@@ -320,10 +320,10 @@ class FabricMainWindow {
 					if (c.node.details.contains("\n")) {
 						// It's a bit odd but it's easier than creating a custom tooltip
 						String replaced = c.node.details//
-						    .replace("&", "&amp;")//
-						    .replace("<", "&lt;")//
-						    .replace(">", "&gt;")//
-						    .replace("\n", "<br>");
+							.replace("&", "&amp;")//
+							.replace("<", "&lt;")//
+							.replace(">", "&gt;")//
+							.replace("\n", "<br>");
 						setToolTipText("<html>" + replaced + "</html>");
 					} else {
 						setToolTipText(c.node.details);
