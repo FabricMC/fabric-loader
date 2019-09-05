@@ -508,6 +508,7 @@ public class ModResolver {
 							fullError.append("\n  - It ").append(error);
 						}
 					}
+
 					throw modJsonNode.addAndThrow(new RuntimeException(fullError.toString()));
 				}
 
