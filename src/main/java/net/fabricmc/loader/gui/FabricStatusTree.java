@@ -24,7 +24,7 @@ import java.util.Locale;
 
 public final class FabricStatusTree {
 
-	public enum WarningLevel {
+	public enum FabricTreeWarningLevel {
 		ERROR,
 		WARN,
 		INFO,
@@ -32,17 +32,22 @@ public final class FabricStatusTree {
 
 		public final String lowerCaseName = name().toLowerCase(Locale.ROOT);
 
-		public boolean isWorseThan(WarningLevel other) {
+		public boolean isWorseThan(FabricTreeWarningLevel other) {
 			return ordinal() < other.ordinal();
 		}
 
-		public boolean isAtLeast(WarningLevel other) {
+		public boolean isAtLeast(FabricTreeWarningLevel other) {
 			return ordinal() <= other.ordinal();
 		}
 
-		public static WarningLevel getWorst(WarningLevel a, WarningLevel b) {
+		public static FabricTreeWarningLevel getWorst(FabricTreeWarningLevel a, FabricTreeWarningLevel b) {
 			return a.isWorseThan(b) ? a : b;
 		}
+	}
+
+	public enum FabricBasicButtonType {
+		/** Sends the status message to the main application, then disables itself. */
+		CLICK_ONCE;
 	}
 
 	/** No icon is displayed. */
@@ -85,11 +90,10 @@ public final class FabricStatusTree {
 	 * of {@link #ICON_TYPE_TICK} */
 	public static final String ICON_TYPE_LESSER_CROSS = "lesser_cross";
 
-	/** Every node present in this list. */
 	public final List<FabricStatusTab> tabs = new ArrayList<>();
+	public final List<FabricStatusButton> buttons = new ArrayList<>();
 
-	/** The text for the error tab. (Unlike the other tabs the error tab displays this text above the node tree). */
-	public String mainErrorText = null;
+	public String mainText = null;
 
 	public static FabricStatusTree read(String from) {
 		FabricStatusTree tree = new FabricStatusTree();
@@ -109,11 +113,37 @@ public final class FabricStatusTree {
 		return tab;
 	}
 
+	public FabricStatusButton addButton(String text) {
+		FabricStatusButton button = new FabricStatusButton(text);
+		buttons.add(button);
+		return button;
+	}
+
+	public static final class FabricStatusButton {
+
+		public final String text;
+		public boolean shouldClose, shouldContinue;
+
+		public FabricStatusButton(String text) {
+			this.text = text;
+		}
+
+		public FabricStatusButton makeClose() {
+			shouldClose = true;
+			return this;
+		}
+
+		public FabricStatusButton makeContinue() {
+			this.shouldContinue = true;
+			return this;
+		}
+	}
+
 	public static final class FabricStatusTab {
 		public final FabricStatusNode node;
 
 		/** The minimum warning level to display for this tab. */
-		public WarningLevel filterLevel = WarningLevel.NONE;
+		public FabricTreeWarningLevel filterLevel = FabricTreeWarningLevel.NONE;
 
 		public FabricStatusTab(String name) {
 			this.node = new FabricStatusNode(null, name);
@@ -131,10 +161,11 @@ public final class FabricStatusTree {
 		public String name;
 
 		/** The icon type. There can be a maximum of 2 decorations (added with "+" symbols), or 3 if the
-		 * {@link #setWarningLevel(WarningLevel) warning level} is set to {@link WarningLevel#NONE } */
+		 * {@link #setWarningLevel(FabricTreeWarningLevel) warning level} is set to
+		 * {@link FabricTreeWarningLevel#NONE } */
 		public String iconType = ICON_TYPE_DEFAULT;
 
-		private WarningLevel warningLevel = WarningLevel.NONE;
+		private FabricTreeWarningLevel warningLevel = FabricTreeWarningLevel.NONE;
 
 		public boolean expandByDefault = false;
 
@@ -154,11 +185,11 @@ public final class FabricStatusTree {
 			newParent.children.add(this);
 		}
 
-		public WarningLevel getMaximumWarningLevel() {
+		public FabricTreeWarningLevel getMaximumWarningLevel() {
 			return warningLevel;
 		}
 
-		public void setWarningLevel(WarningLevel level) {
+		public void setWarningLevel(FabricTreeWarningLevel level) {
 			if (this.warningLevel == level) {
 				return;
 			}
@@ -176,15 +207,15 @@ public final class FabricStatusTree {
 		}
 
 		public void setError() {
-			setWarningLevel(WarningLevel.ERROR);
+			setWarningLevel(FabricTreeWarningLevel.ERROR);
 		}
 
 		public void setWarning() {
-			setWarningLevel(WarningLevel.WARN);
+			setWarningLevel(FabricTreeWarningLevel.WARN);
 		}
 
 		public void setInfo() {
-			setWarningLevel(WarningLevel.INFO);
+			setWarningLevel(FabricTreeWarningLevel.INFO);
 		}
 
 		public FabricStatusNode addChild(String string) {

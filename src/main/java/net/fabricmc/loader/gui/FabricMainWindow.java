@@ -20,6 +20,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.event.WindowAdapter;
@@ -41,6 +42,7 @@ import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -56,9 +58,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
-import net.fabricmc.loader.gui.FabricStatusTree.WarningLevel;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricTreeWarningLevel;
 
 class FabricMainWindow {
 
@@ -104,8 +107,8 @@ class FabricMainWindow {
 
 		Container contentPane = window.getContentPane();
 
-		if (tree.mainErrorText != null && !tree.mainErrorText.isEmpty()) {
-			JLabel errorLabel = new JLabel(tree.mainErrorText);
+		if (tree.mainText != null && !tree.mainText.isEmpty()) {
+			JLabel errorLabel = new JLabel(tree.mainText);
 			errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			Font font = errorLabel.getFont();
 			errorLabel.setFont(font.deriveFont(font.getSize() * 2.0f));
@@ -121,10 +124,30 @@ class FabricMainWindow {
 			tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
 		}
 
+		if (!tree.buttons.isEmpty()) {
+			JPanel buttons = new JPanel();
+			contentPane.add(buttons, BorderLayout.SOUTH);
+			buttons.setLayout(new FlowLayout(FlowLayout.TRAILING));
+
+			for (FabricStatusButton button : tree.buttons) {
+				JButton btn = new JButton(button.text);
+				buttons.add(btn);
+				btn.addActionListener(e -> {
+					btn.setEnabled(false);
+					if (button.shouldClose) {
+						window.dispose();
+					}
+					if (button.shouldContinue) {
+						onCloseLatch.countDown();
+					}
+				});
+			}
+		}
+
 		window.setVisible(true);
 	}
 
-	private static JPanel createTreePanel(FabricStatusNode rootNode, WarningLevel minimumWarningLevel,
+	private static JPanel createTreePanel(FabricStatusNode rootNode, FabricTreeWarningLevel minimumWarningLevel,
 		IconSet iconSet) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -142,7 +165,9 @@ class FabricMainWindow {
 
 			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
 
-			if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(WarningLevel.WARN)) {
+			if (
+				node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(FabricTreeWarningLevel.WARN)
+			) {
 				tree.expandRow(row);
 			}
 		}
@@ -269,7 +294,8 @@ class FabricMainWindow {
 		public IconInfo(String mainPath, String[] decor) {
 			this.mainPath = mainPath;
 			this.decor = decor;
-			assert decor.length < 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
+			assert decor.length
+				< 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
 
 			if (decor.length == 0) {
 				// To mirror the no-decor constructor
@@ -288,11 +314,11 @@ class FabricMainWindow {
 
 			final String main;
 			List<String> decors = new ArrayList<>();
-			WarningLevel warnLevel = node.getMaximumWarningLevel();
+			FabricTreeWarningLevel warnLevel = node.getMaximumWarningLevel();
 
 			if (split.length == 0) {
 				// Empty string, but we might replace it with a warning
-				if (warnLevel == WarningLevel.NONE) {
+				if (warnLevel == FabricTreeWarningLevel.NONE) {
 					main = "missing";
 				} else {
 					main = "level_" + warnLevel.lowerCaseName;
@@ -300,7 +326,7 @@ class FabricMainWindow {
 			} else {
 				main = split[0];
 
-				if (warnLevel == WarningLevel.NONE) {
+				if (warnLevel == FabricTreeWarningLevel.NONE) {
 					// Just to add a gap
 					decors.add(null);
 				} else {
@@ -381,7 +407,7 @@ class FabricMainWindow {
 		public final List<CustomTreeNode> displayedChildren = new ArrayList<>();
 		private IconInfo iconInfo;
 
-		public CustomTreeNode(TreeNode parent, FabricStatusNode node, WarningLevel minimumWarningLevel) {
+		public CustomTreeNode(TreeNode parent, FabricStatusNode node, FabricTreeWarningLevel minimumWarningLevel) {
 			this.parent = parent;
 			this.node = node;
 

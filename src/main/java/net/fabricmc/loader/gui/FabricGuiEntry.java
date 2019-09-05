@@ -23,13 +23,12 @@ import java.util.List;
 
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
-import net.fabricmc.loader.gui.FabricStatusTree.WarningLevel;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricTreeWarningLevel;
 
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
 
 	public static final String OPTION_ALWAYS_SHOW_INFO = "fabric_loader.info_gui.always_show";
-	public static final String OPTION_DISABLE_WAIT = "fabric_loader.info_gui.disable_wait";
 	public static final String OPTION_ALWAYS_FORK = "fabric_loader.info_gui.always_fork";
 
 	/** The entry point for forking the main application over into a different process to get around incompatibilities
@@ -38,15 +37,14 @@ public final class FabricGuiEntry {
 	public static void main(String[] args) {
 
 		if (args.length == 2 && "--from-tree".equals(args[0])) {
-			// Forked opening
 			FabricStatusTree tree = FabricStatusTree.read(args[1]);
 
-			// Perform basic validation
 			if (tree == null) {
 				System.out.println("Status: Invalid tree!");
 				System.out.println("Tree Text: " + args[1]);
 				System.exit(-1);
 			} else {
+
 				// Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
 				System.out.println("Status: Correct tree.");
 
@@ -61,7 +59,7 @@ public final class FabricGuiEntry {
 		} else if (args.length == 1 && "--test".equals(args[0])) {
 			// Test code
 			FabricStatusTree tree = new FabricStatusTree();
-			tree.mainErrorText = "Failed to launch!";
+			tree.mainText = "Failed to launch!";
 
 			FabricStatusTab except = tree.addTab("Errors");
 			FabricStatusNode exception = except.addChild("Crash");
@@ -79,7 +77,7 @@ public final class FabricGuiEntry {
 			for (int i = 0; i < 8; i++) {
 				boolean isFabric = i >= 4;
 				FabricStatusNode jarNode = jarRoot.addChild("_" + i);
-				jarNode.setWarningLevel(WarningLevel.values()[i & 3]);
+				jarNode.setWarningLevel(FabricTreeWarningLevel.values()[i & 3]);
 
 				if (isFabric) {
 					jarNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
@@ -95,7 +93,7 @@ public final class FabricGuiEntry {
 			}
 
 			try {
-				open(false, tree);
+				openWindow(tree, false);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
@@ -131,14 +129,24 @@ public final class FabricGuiEntry {
 		return true || Boolean.getBoolean(OPTION_ALWAYS_SHOW_INFO);
 	}
 
-	/** @throws Exception if something went wrong while opening the window. */
-	public static void open(boolean isCrashing, FabricStatusTree tree) throws Exception {
-		open(isCrashing, tree, !Boolean.getBoolean(OPTION_DISABLE_WAIT));
-	}
+	/** Opens the given {@link FabricStatusTree} in a new swing window.
+	 * 
+	 * @param forceFork If true then this will create a new process to host the window, false will always use this
+	 *            process, and null will only fork if the current operating system doesn't support LWJGL + swing windows
+	 *            at the same time (such as mac osx).
+	 * @param shouldWait If true then this call will wait until either the user clicks the "continue" button or the
+	 *            window is closed before returning, otherwise this method will return as soon as the window has opened.
+	 * @throws Exception if something went wrong while opening the window. */
+	public static void open(FabricStatusTree tree, Boolean forceFork, boolean shouldWait) throws Exception {
+		final boolean fork;
 
-	/** @throws Exception if something went wrong while opening the window. */
-	public static void open(boolean isCrashing, FabricStatusTree tree, boolean shouldWait) throws Exception {
-		if (!isCrashing && shouldFork()) {
+		if (forceFork != null) {
+			fork = forceFork;
+		} else {
+			fork = shouldFork();
+		}
+
+		if (fork) {
 			fork(tree, shouldWait);
 		} else {
 			openWindow(tree, shouldWait);
@@ -164,7 +172,7 @@ public final class FabricGuiEntry {
 
 		List<String> commands = new ArrayList<>();
 		commands.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-		commands.add("-cp");
+		commands.add("--class-path");
 		commands.add(System.getProperty("java.class.path"));
 		commands.add(FabricGuiEntry.class.getName());
 		commands.add("--from-tree");
@@ -176,6 +184,8 @@ public final class FabricGuiEntry {
 			Process p = pb.start();
 			// Always halt until it closes
 			boolean hasStartedUp = false;
+
+			// TODO: Handle input (like "Status: Correct tree", or "Status: Continue")
 
 			if (!shouldWait) {
 				return;

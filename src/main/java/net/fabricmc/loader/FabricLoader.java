@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,19 +48,17 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.CustomValue.CvArray;
 import net.fabricmc.loader.api.metadata.CustomValue.CvObject;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
 import net.fabricmc.loader.discovery.ModCandidate;
 import net.fabricmc.loader.discovery.ModResolutionException;
 import net.fabricmc.loader.discovery.ModResolver;
+import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.gui.FabricStatusTree;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
-import net.fabricmc.loader.discovery.*;
-import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
@@ -194,11 +191,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		} catch (ModResolutionException cause) {
 			RuntimeException exitException = new RuntimeException("Failed to resolve mods!", cause);
 
-			tree.mainErrorText = "Failed to launch!";
+			tree.mainText = "Failed to launch!";
 			addThrowable(crashTab.node, cause, new HashSet<>());
 
+			// Maybe add an "open mods folder" button?
+			// or should that be part of the main tree's right-click menu?
+			tree.addButton("Exit").makeClose();
+
 			try {
-				FabricGuiEntry.open(true, tree, false);
+				FabricGuiEntry.open(tree, false, false);
 			} catch (Exception guiOpeningException) {
 				// If it doesn't open (for whatever reason) then the only thing we can do
 				// is crash normally - as this might be a headless environment, or some
@@ -211,6 +212,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 			throw exitException;
 		}
+
 		tree.tabs.remove(crashTab);
 
 		if (FabricGuiEntry.shouldShowInformationGui()) {
@@ -280,9 +282,13 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			}
 
 			// TODO: Class duplication detection!
+			// TODO: Old minecraft method call detection!
+
+			tree.addButton("Continue loading").makeContinue();
+			tree.addButton("Close and continue loading").makeClose();
 
 			try {
-				FabricGuiEntry.open(false, tree);
+				FabricGuiEntry.open(tree, null, true);
 			} catch (Exception e) {
 				// The user must have explicitly asked for this to be shown, so they probably
 				// don't want to just continue loading the game even if it couldn't be shown.
@@ -401,9 +407,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (mods.isEmpty()) {
 			return;
 		}
+
 		FabricStatusNode n = node.addChild(section);
 		List<ModDependency> sorted = new ArrayList<>(mods);
 		sorted.sort(Comparator.comparing(ModDependency::getModId));
+
 		for (ModDependency dep : sorted) {
 			FabricStatusNode submodNode = n.addChild(dep.getModId());
 			ModContainer mod = modMap.get(dep.getModId());
@@ -414,6 +422,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			} else if (dep instanceof ModDependencyV1) {
 				ModDependencyV1 depv1 = (ModDependencyV1) dep;
 				List<String> versions = depv1.getMatcherStringList();
+
 				if (versions.size() == 0) {
 					FabricStatusNode matcher = submodNode.addChild(prefix + " versions: none!");
 					matcher.setWarning();
@@ -422,6 +431,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					setVersionMatchStatusV1(mod, versions.get(0), matcher);
 				} else {
 					FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
+
 					for (String sub : versions) {
 						FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
 						setVersionMatchStatusV1(mod, sub, subVersion);
@@ -562,6 +572,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		EnvType currentEnvironment = getEnvironmentType();
+
 		if (!info.loadsInEnvironment(currentEnvironment)) {
 			candidate.getFileNode().addChild("Not for this environment: " + currentEnvironment.name().toLowerCase(Locale.ROOT));
 			return;
