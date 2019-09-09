@@ -141,9 +141,9 @@ class EntrypointStorage {
 				if (result != null) {
 					results.add(result);
 				}
-			} catch (Exception e) {
+			} catch (Throwable t) {
 				hadException = true;
-				FabricLoader.INSTANCE.getLogger().error("Exception occured while getting '" + key + "' entrypoints @ " + entry, e);
+				FabricLoader.INSTANCE.getLogger().error("Exception occured while getting '" + key + "' entrypoints @ " + entry, t);
 			}
 		}
 
