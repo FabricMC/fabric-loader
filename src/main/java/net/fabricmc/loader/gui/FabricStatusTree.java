@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 public final class FabricStatusTree {
 
 	public enum FabricTreeWarningLevel {
@@ -90,21 +93,19 @@ public final class FabricStatusTree {
 	 * of {@link #ICON_TYPE_TICK} */
 	public static final String ICON_TYPE_LESSER_CROSS = "lesser_cross";
 
+	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
 	public final List<FabricStatusTab> tabs = new ArrayList<>();
 	public final List<FabricStatusButton> buttons = new ArrayList<>();
 
 	public String mainText = null;
 
 	public static FabricStatusTree read(String from) {
-		FabricStatusTree tree = new FabricStatusTree();
-
-		return tree;
+		return GSON.fromJson(from, FabricStatusTree.class);
 	}
 
 	public String write() {
-		StringBuilder sb = new StringBuilder();
-
-		return sb.toString();
+		return GSON.toJson(this);
 	}
 
 	public FabricStatusTab addTab(String name) {
@@ -156,7 +157,7 @@ public final class FabricStatusTree {
 
 	public static final class FabricStatusNode {
 
-		private FabricStatusNode parent;
+		private transient FabricStatusNode parent;
 
 		public String name;
 

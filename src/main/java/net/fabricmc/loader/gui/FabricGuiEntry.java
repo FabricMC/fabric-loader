@@ -18,7 +18,10 @@ package net.fabricmc.loader.gui;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
@@ -39,24 +42,46 @@ public final class FabricGuiEntry {
 		if (args.length == 2 && "--from-tree".equals(args[0])) {
 			FabricStatusTree tree = FabricStatusTree.read(args[1]);
 
-			if (tree == null) {
-				System.out.println("Status: Invalid tree!");
-				System.out.println("Tree Text: " + args[1]);
+			onForkInternal(args, tree);
+
+		} else if (args.length == 2 && "--read-tree".equals(args[0])) {
+
+			int byteCount = Integer.parseInt(args[1]);
+			if (byteCount < 1 || byteCount > 0x2_000_000) {
+				// Just to make sure that we don't have something silly going on
+				System.out.println("Bad byte count! (" + byteCount + ")");
 				System.exit(-1);
-			} else {
-
-				// Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
-				System.out.println("Status: Correct tree.");
-
-				try {
-					openWindow(tree, true);
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
+				return;
 			}
 
-			return;
-		} else if (args.length == 1 && "--test".equals(args[0])) {
+			byte[] bytes = new byte[byteCount];
+			int index = 0;
+			try {
+				while (index < bytes.length) {
+					int count = System.in.read(bytes, index, bytes.length - index);
+					if (count < 0) {
+						break;
+					}
+					index += count;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(-1);
+				return;
+			}
+
+			if (index < bytes.length) {
+				System.out.println("Not enough bytes were written! (Expected " + byteCount + ", but read " + index + ")");
+				System.exit(-1);
+				return;
+			}
+
+			FabricStatusTree tree = FabricStatusTree.read(new String(bytes, StandardCharsets.UTF_8));
+
+			onForkInternal(args, tree);
+
+		} else if (args.length == 1 && ("--test".equals(args[0]) || "--test-fork".equals(args[0]))) {
+
 			// Test code
 			FabricStatusTree tree = new FabricStatusTree();
 			tree.mainText = "Failed to launch!";
@@ -91,15 +116,32 @@ public final class FabricGuiEntry {
 				jarNode.addChild("net.com.pl.www").iconType = FabricStatusTree.ICON_TYPE_JAVA_PACKAGE;
 				jarNode.addChild("assets.lols.whatever").iconType = FabricStatusTree.ICON_TYPE_PACKAGE;
 			}
-
 			try {
-				openWindow(tree, false);
+				open(tree, "--test-fork".equals(args[0]), false);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		} else {
-			System.out.println("Expected 2 arguments: '--from-tree' followed by the tree, or '--test'");
+			System.out.println("Expected 2 arguments: '--from-tree' followed by the tree, or '--test', or '--test-fork'");
 			System.exit(-1);
+		}
+	}
+
+	private static void onForkInternal(String[] args, FabricStatusTree tree) {
+		if (tree == null) {
+			System.out.println("Status: Invalid tree!");
+			System.out.println("Tree Text: " + args[1]);
+			System.exit(-1);
+		} else {
+
+			// Inform the parent that we have finished reading the tree, so it doesn't need to stop us.
+			System.out.println("Status: Correct tree.");
+
+			try {
+				openWindow(tree, true);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
@@ -172,16 +214,37 @@ public final class FabricGuiEntry {
 
 		List<String> commands = new ArrayList<>();
 		commands.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-		commands.add("--class-path");
+		commands.add("-cp");
 		commands.add(System.getProperty("java.class.path"));
 		commands.add(FabricGuiEntry.class.getName());
-		commands.add("--from-tree");
-		commands.add(tree.write());
+
+		String treeText = tree.write();
+		byte[] treeBytes;
+		// TODO: Find out from system params if this is a good idea or not?
+		final boolean writeTree = treeText.length() > 1000;
+		if (writeTree) {
+			commands.add("--read-tree");
+			treeBytes = treeText.getBytes(StandardCharsets.UTF_8);
+			commands.add("" + treeBytes.length);
+		} else {
+			commands.add("--from-tree");
+			commands.add(treeText);
+			treeBytes = new byte[0];
+		}
+		treeText = null;
+
 		ProcessBuilder pb = new ProcessBuilder(commands);
-		pb.inheritIO();
+		pb.redirectError(Redirect.INHERIT);
+		pb.redirectOutput(Redirect.INHERIT);
 
 		try {
 			Process p = pb.start();
+
+			if (writeTree) {
+				p.getOutputStream().write(treeBytes, 0, treeBytes.length);
+			}
+			treeBytes = null;
+
 			// Always halt until it closes
 			boolean hasStartedUp = false;
 
@@ -194,13 +257,18 @@ public final class FabricGuiEntry {
 			try {
 				p.waitFor();
 			} catch (InterruptedException e) {
-				// Is this correct?
-				p.destroy();
+
 			}
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			//
 		}
 	}
 
