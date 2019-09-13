@@ -218,18 +218,17 @@ public final class FabricGuiEntry {
 		commands.add(System.getProperty("java.class.path"));
 		commands.add(FabricGuiEntry.class.getName());
 
-		String treeText = tree.write();
 		byte[] treeBytes;
+		String treeText = tree.write();
 		// TODO: Find out from system params if this is a good idea or not?
-		final boolean writeTree = treeText.length() > 1000;
-		if (writeTree) {
+		if (treeText.length() > 1000) {
 			commands.add("--read-tree");
 			treeBytes = treeText.getBytes(StandardCharsets.UTF_8);
 			commands.add("" + treeBytes.length);
 		} else {
 			commands.add("--from-tree");
 			commands.add(treeText);
-			treeBytes = new byte[0];
+			treeBytes = null;
 		}
 		treeText = null;
 
@@ -240,10 +239,10 @@ public final class FabricGuiEntry {
 		try {
 			Process p = pb.start();
 
-			if (writeTree) {
+			if (treeBytes != null) {
 				p.getOutputStream().write(treeBytes, 0, treeBytes.length);
+				treeBytes = null;
 			}
-			treeBytes = null;
 
 			// Always halt until it closes
 			boolean hasStartedUp = false;
