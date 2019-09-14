@@ -19,11 +19,9 @@ package net.fabricmc.loader.gui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -137,6 +135,7 @@ public final class FabricGuiEntry {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
+			System.out.println("Status: Continue.");
 		}
 	}
 

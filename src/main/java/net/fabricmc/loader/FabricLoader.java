@@ -70,10 +70,14 @@ import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 
-/** The main class for mod loading operations. */
+/**
+ * The main class for mod loading operations.
+ */
 public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
-	/** @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getInstance()} where possible, report missing areas
-	 *             as an issue. */
+	/**
+	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getInstance()} where possible,
+	 * report missing areas as an issue.
+	 */
 	@Deprecated
 	public static final FabricLoader INSTANCE = new FabricLoader();
 
@@ -94,9 +98,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private File gameDir;
 	private File configDir;
 
-	protected FabricLoader() {}
+	protected FabricLoader() {
+	}
 
-	/** Freeze the FabricLoader, preventing additional mods from being loaded. */
+	/**
+	 * Freeze the FabricLoader, preventing additional mods from being loaded.
+	 */
 	public void freeze() {
 		if (frozen) {
 			throw new RuntimeException("Already frozen!");
@@ -133,13 +140,17 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return FabricLauncherBase.getLauncher().getEnvironmentType();
 	}
 
-	/** @return The game instance's root directory. */
+	/**
+	 * @return The game instance's root directory.
+	 */
 	@Override
 	public File getGameDirectory() {
 		return gameDir;
 	}
 
-	/** @return The game instance's configuration directory. */
+	/**
+	 * @return The game instance's configuration directory.
+	 */
 	@Override
 	public File getConfigDirectory() {
 		if (!configDir.exists()) {
@@ -281,8 +292,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			} catch (Throwable e) {
 				// The user must have explicitly asked for this to be shown, so they probably
 				// don't want to just continue loading the game even if it couldn't be shown.
-				String message = "Failed to open the information GUI!" + "\n(Note: You can remove the '-D"
-					+ FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO + "=true' argument to disable the information GUI)";
+				String message = "Failed to open the information GUI!"
+					+ "\n(Note: You can remove the '-D" + FabricGuiEntry.OPTION_ALWAYS_SHOW_INFO
+					+ "=true' argument to disable the information GUI)";
 				throw new RuntimeException(message, e);
 			}
 		}
@@ -391,8 +403,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 	}
 
-	private void addRelatedInformation(FabricStatusNode node, String section, String prefix, Collection<
-		ModDependency> mods) {
+	private void addRelatedInformation(FabricStatusNode node, String section, String prefix, Collection<ModDependency> mods) {
 		if (mods.isEmpty()) {
 			return;
 		}
@@ -419,9 +430,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					FabricStatusNode matcher = submodNode.addChild(prefix + " versions: '" + versions.get(0) + "'");
 					setVersionMatchStatusV1(mod, versions.get(0), matcher);
 				} else {
-					FabricStatusNode allVersionsNode = submodNode.addChild(
-						prefix + " versions: (any of these " + versions.size() + "):"
-					);
+					FabricStatusNode allVersionsNode = submodNode.addChild(prefix + " versions: (any of these " + versions.size() + "):");
 
 					for (String sub : versions) {
 						FabricStatusNode subVersion = allVersionsNode.addChild("'" + sub + "'");
@@ -437,9 +446,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				loadStatus.iconType = FabricStatusTree.ICON_TYPE_LESSER_CROSS;
 				submodNode.iconType = FabricStatusTree.ICON_TYPE_UNKNOWN_FILE;
 			} else {
-				FabricStatusNode loadStatus = submodNode.addChild(
-					"Loaded version: " + mod.getMetadata().getVersion().getFriendlyString()
-				);
+				FabricStatusNode loadStatus = submodNode.addChild("Loaded version: " + mod.getMetadata().getVersion().getFriendlyString());
 				loadStatus.iconType = FabricStatusTree.ICON_TYPE_TICK;
 				submodNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
 			}
@@ -484,14 +491,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				break;
 		}
 
-		LOGGER.info(
-			"[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size(), candidateMap.values()
-				.stream().map(
-					info -> String.format(
-						"%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()
-					)
-				).collect(Collectors.joining(", "))
-		);
+		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size(), candidateMap.values().stream()
+			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
+			.collect(Collectors.joining(", ")));
 
 		for (ModCandidate candidate : candidateMap.values()) {
 			addMod(candidate);
@@ -519,8 +521,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
 			mappingResolver = new FabricMappingResolver(
-				FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings, FabricLauncherBase
-					.getLauncher().getTargetNamespace()
+				FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings,
+				FabricLauncherBase.getLauncher().getTargetNamespace()
 			);
 		}
 
@@ -547,8 +549,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return FabricLauncherBase.getLauncher().isDevelopment();
 	}
 
-	/** @return A list of all loaded mods, as ModContainers.
-	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getAllMods()} */
+	/**
+	 * @return A list of all loaded mods, as ModContainers.
+	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getAllMods()}
+	 */
 	@Deprecated
 	public Collection<ModContainer> getModContainers() {
 		return Collections.unmodifiableList(mods);
@@ -564,18 +568,13 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		URL originUrl = candidate.getOriginUrl();
 
 		if (modMap.containsKey(info.getId())) {
-			throw new ModResolutionException(
-				"Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", "
-					+ originUrl.getFile() + ")"
-			);
+			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
 		EnvType currentEnvironment = getEnvironmentType();
 
 		if (!info.loadsInEnvironment(currentEnvironment)) {
-			candidate.getFileNode().addChild(
-				"Not for this environment: " + currentEnvironment.name().toLowerCase(Locale.ROOT)
-			);
+			candidate.getFileNode().addChild("Not for this environment: " + currentEnvironment.name().toLowerCase(Locale.ROOT));
 			return;
 		}
 
@@ -587,26 +586,44 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	protected void postprocessModMetadata() {
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				LOGGER.warn(
-					"Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString()
-						+ ") does not respect SemVer - comparison support is limited."
-				);
+				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") does not respect SemVer - comparison support is limited.");
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
-				LOGGER.warn(
-					"Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString()
-						+ ") uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed."
-				);
+				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
 			}
 		}
 	}
 
-	/* private void sortMods() { LOGGER.debug("Sorting mods"); LinkedList<ModContainer> sorted = new LinkedList<>(); for
-	 * (ModContainer mod : mods) { if (sorted.isEmpty() || mod.getInfo().getRequires().size() == 0) {
-	 * sorted.addFirst(mod); } else { boolean b = false; l1: for (int i = 0; i < sorted.size(); i++) { for
-	 * (Map.Entry<String, ModMetadataV0.Dependency> entry : sorted.get(i).getInfo().getRequires().entrySet()) { String
-	 * depId = entry.getKey(); ModMetadataV0.Dependency dep = entry.getValue(); if
-	 * (depId.equalsIgnoreCase(mod.getInfo().getId()) && dep.satisfiedBy(mod.getInfo())) { sorted.add(i, mod); b = true;
-	 * break l1; } } } if (!b) { sorted.addLast(mod); } } } mods = sorted; } */
+	/* private void sortMods() {
+		LOGGER.debug("Sorting mods");
+
+		LinkedList<ModContainer> sorted = new LinkedList<>();
+		for (ModContainer mod : mods) {
+			if (sorted.isEmpty() || mod.getInfo().getRequires().size() == 0) {
+				sorted.addFirst(mod);
+			} else {
+				boolean b = false;
+				l1:
+				for (int i = 0; i < sorted.size(); i++) {
+					for (Map.Entry<String, ModMetadataV0.Dependency> entry : sorted.get(i).getInfo().getRequires().entrySet()) {
+						String depId = entry.getKey();
+						ModMetadataV0.Dependency dep = entry.getValue();
+
+						if (depId.equalsIgnoreCase(mod.getInfo().getId()) && dep.satisfiedBy(mod.getInfo())) {
+							sorted.add(i, mod);
+							b = true;
+							break l1;
+						}
+					}
+				}
+
+				if (!b) {
+					sorted.addLast(mod);
+				}
+			}
+		}
+
+		mods = sorted;
+	} */
 
 	public void instantiateMods(File newRunDir, Object gameInstance) {
 		if (!frozen) {
@@ -635,12 +652,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				if (containsKnot) {
 					getLogger().info("Environment: Target class loader is parent of game class loader.");
 				} else {
-					getLogger().warn(
-						"\n\n* CLASS LOADER MISMATCH! THIS IS VERY BAD AND WILL PROBABLY CAUSE WEIRD ISSUES! *\n"
-							+ " - Expected game class loader: " + FabricLauncherBase.getLauncher()
-								.getTargetClassLoader() + "\n" + " - Actual game class loader: " + gameClassLoader
-							+ "\n" + "Could not find the expected class loader in game class loader parents!\n"
-					);
+					getLogger().warn("\n\n* CLASS LOADER MISMATCH! THIS IS VERY BAD AND WILL PROBABLY CAUSE WEIRD ISSUES! *\n"
+						+ " - Expected game class loader: " + FabricLauncherBase.getLauncher().getTargetClassLoader() + "\n"
+						+ " - Actual game class loader: " + gameClassLoader + "\n"
+						+ "Could not find the expected class loader in game class loader parents!\n");
 				}
 			}
 		}
@@ -650,10 +665,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (gameDir != null) {
 			try {
 				if (!gameDir.getCanonicalFile().equals(newRunDir.getCanonicalFile())) {
-					getLogger().warn(
-						"Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath()
-							+ ", while initializer says " + gameDir.getAbsolutePath() + "..."
-					);
+					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath() + ", while initializer says " + gameDir.getAbsolutePath() + "...");
 					setGameDir(newRunDir);
 				}
 			} catch (IOException e) {
@@ -669,18 +681,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			// add language adapters
 			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
 				if (adapterMap.containsKey(laEntry.getKey())) {
-					throw new RuntimeException(
-						"Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", "
-							+ adapterMap.get(laEntry.getKey()).getClass().getName() + ")"
-					);
+					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
 				}
 
 				try {
-					adapterMap.put(
-						laEntry.getKey(), (LanguageAdapter) Class.forName(
-							laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()
-						).getDeclaredConstructor().newInstance()
-					);
+					adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getDeclaredConstructor().newInstance());
 				} catch (Exception e) {
 					throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
 				}
@@ -702,10 +707,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					}
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(
-					String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()),
-					e
-				);
+				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);
 			}
 		}
 	}
