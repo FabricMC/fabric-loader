@@ -17,6 +17,8 @@
 package net.fabricmc.loader.gui;
 
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +103,10 @@ public final class FabricStatusTree {
 	public String mainText = null;
 
 	public static FabricStatusTree read(String from) {
+		return read(new StringReader(from));
+	}
+
+	public static FabricStatusTree read(Reader from) {
 		return GSON.fromJson(from, FabricStatusTree.class);
 	}
 

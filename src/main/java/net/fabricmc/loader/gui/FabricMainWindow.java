@@ -23,6 +23,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -68,6 +71,12 @@ class FabricMainWindow {
 	static Icon missingIcon = null;
 
 	static void open(FabricStatusTree tree, boolean shouldWait) throws Exception {
+		System.out.println("open0");
+		if (GraphicsEnvironment.isHeadless()) {
+			System.out.println("open1 - headless");
+			throw new HeadlessException();
+		}
+		System.out.println("open2");
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		open0(tree, shouldWait);
 	}
