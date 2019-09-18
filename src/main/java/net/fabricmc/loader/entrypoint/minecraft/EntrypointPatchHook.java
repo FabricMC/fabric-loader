@@ -253,7 +253,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						} else {
 							it = gameMethod.instructions.iterator();
 						}
-						if(lwjglLogNode != null){
+						if (lwjglLogNode != null) {
 							moveBefore(it, lwjglLogNode);
 						}
 						it.add(new VarInsnNode(Opcodes.ALOAD, 0));
