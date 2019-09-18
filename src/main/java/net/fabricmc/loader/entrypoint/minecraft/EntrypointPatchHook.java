@@ -126,6 +126,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 
 			MethodNode gameMethod = null;
 			MethodNode gameConstructor = null;
+			AbstractInsnNode lwjglLogNode = null;
 			int gameMethodQuality = 0;
 
 			for (MethodNode gmCandidate : gameClass.methods) {
@@ -135,9 +136,10 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						gameMethod = gmCandidate;
 						gameMethodQuality = 1;
 					}
-				} else if (type == EnvType.CLIENT && !isApplet && gameMethodQuality < 2) {
-					// Try to find a non-constructor with an LDC string "LWJGL Version: ".
-					// This is the "init()" method, or called somewhere in that vicinity,
+				}
+				if (type == EnvType.CLIENT && !isApplet && gameMethodQuality < 2) {
+					// Try to find a method with an LDC string "LWJGL Version: ".
+					// This is the "init()" method, or as of 19w38a is the constructor, or called somewhere in that vicinity,
 					// and is by far superior in hooking into for a well-off mod start.
 
 					int qual = 2;
@@ -154,6 +156,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 									hasLwjglLog = true;
 									if ("LWJGL Version: ".equals(s) || "LWJGL Version: {}".equals(s) || "Backend library: {}".equals(s)) {
 										qual = 3;
+										lwjglLogNode = insn;
 									}
 									break;
 								}
@@ -249,6 +252,9 @@ public class EntrypointPatchHook extends EntrypointPatch {
 							it = consIt;
 						} else {
 							it = gameMethod.instructions.iterator();
+						}
+						if (lwjglLogNode != null) {
+							moveBefore(it, lwjglLogNode);
 						}
 						it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 						it.add(new FieldInsnNode(Opcodes.GETFIELD, ((FieldInsnNode) insn).owner, ((FieldInsnNode) insn).name, ((FieldInsnNode) insn).desc));
