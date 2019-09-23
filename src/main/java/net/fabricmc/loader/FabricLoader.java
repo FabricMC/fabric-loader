@@ -48,6 +48,7 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.CustomValue.CvArray;
 import net.fabricmc.loader.api.metadata.CustomValue.CvObject;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
@@ -199,7 +200,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			tree.addButton("Exit").makeClose();
 
 			try {
-				FabricGuiEntry.open(tree, false, false);
+				FabricGuiEntry.open(tree, false, true);
 			} catch (Throwable guiOpeningException) {
 				// If it doesn't open (for whatever reason) then the only thing we can do
 				// is crash normally - as this might be a headless environment, or some
@@ -225,7 +226,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 			for (String modId : modIds) {
 				ModContainer mod = modMap.get(modId);
-				LoaderModMetadata modmeta = mod.getInfo();
+				ModMetadata modmeta = mod.getInfo();
 				FabricStatusNode modNode = modsTab.addChild(modId + " (" + modmeta.getName() + ")");
 				modNodes.add(modNode);
 				// TODO: Icon!
