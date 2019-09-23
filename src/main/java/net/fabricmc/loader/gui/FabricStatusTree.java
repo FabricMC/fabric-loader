@@ -17,15 +17,10 @@
 package net.fabricmc.loader.gui;
 
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 public final class FabricStatusTree {
 
@@ -95,24 +90,10 @@ public final class FabricStatusTree {
 	 * of {@link #ICON_TYPE_TICK} */
 	public static final String ICON_TYPE_LESSER_CROSS = "lesser_cross";
 
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
 	public final List<FabricStatusTab> tabs = new ArrayList<>();
 	public final List<FabricStatusButton> buttons = new ArrayList<>();
 
 	public String mainText = null;
-
-	public static FabricStatusTree read(String from) {
-		return read(new StringReader(from));
-	}
-
-	public static FabricStatusTree read(Reader from) {
-		return GSON.fromJson(from, FabricStatusTree.class);
-	}
-
-	public String write() {
-		return GSON.toJson(this);
-	}
 
 	public FabricStatusTab addTab(String name) {
 		FabricStatusTab tab = new FabricStatusTab(name);

@@ -24,9 +24,6 @@ import com.google.gson.*;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.gui.FabricStatusTree;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -72,7 +69,7 @@ public class ModResolver {
 			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
 			.build()
 	);
-	private static final Map<URL, List<JarInJarCandidate>> inMemoryCache = new ConcurrentHashMap<>();
+	private static final Map<URL, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 	private static final Object launcherSyncObject = new Object();
 
@@ -412,14 +409,12 @@ public class ModResolver {
 
 	static class UrlProcessAction extends RecursiveAction {
 		private final FabricLoader loader;
-		private final FabricStatusNode fileNode;
 		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
 		private final int depth;
 
-		UrlProcessAction(FabricLoader loader, FabricStatusNode fileNode, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
+		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
 			this.loader = loader;
-			this.fileNode = fileNode;
 			this.candidatesById = candidatesById;
 			this.url = url;
 			this.depth = depth;
@@ -438,7 +433,7 @@ public class ModResolver {
 				// normalize URL (used as key for nested JAR lookup)
 				normalizedUrl = UrlUtil.asUrl(path);
 			} catch (UrlConversionException e) {
-				throw fileNode.addAndThrow(new RuntimeException("Failed to convert URL " + url + "!", e));
+				throw new RuntimeException("Failed to convert URL " + url + "!", e);
 			}
 
 			if (Files.isDirectory(path)) {
@@ -459,38 +454,27 @@ public class ModResolver {
 					modJson = jarFs.get().getPath("fabric.mod.json");
 					rootDir = jarFs.get().getRootDirectories().iterator().next();
 				} catch (IOException e) {
-					throw fileNode.addAndThrow(new RuntimeException("Failed to open mod JAR at " + path + "!"));
+					throw new RuntimeException("Failed to open mod JAR at " + path + "!");
 				}
 			}
 
 			LoaderModMetadata[] info;
 
-			FabricStatusNode modJsonNode = fileNode.addChild("fabric.mod.json");
-			modJsonNode.iconType = FabricStatusTree.ICON_TYPE_JSON;
-
 			try (InputStream stream = Files.newInputStream(modJson)) {
-				info = ModMetadataParser.getMods(loader, stream, modJsonNode);
+				info = ModMetadataParser.getMods(loader, stream);
 			} catch (JsonSyntaxException e) {
-				modJsonNode.addException(e);
 				throw new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e);
 			} catch (NoSuchFileException e) {
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
-				modJsonNode.addException(e);
 				throw new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e);
 			}
 
-			if (info.length > 0) {
-				modJsonNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JSON;
-				fileNode.iconType = FabricStatusTree.ICON_TYPE_FABRIC_JAR_FILE;
-			}
-
 			for (LoaderModMetadata i : info) {
-				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth, fileNode);
+				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
-					// Don't add the exception to the modjson here because the Mod Metadata format will already have added it.
 					throw new RuntimeException(String.format("Mod file `%s` has no id", candidate.getOriginUrl().getFile()));
 				}
 
@@ -509,7 +493,7 @@ public class ModResolver {
 						}
 					}
 
-					throw modJsonNode.addAndThrow(new RuntimeException(fullError.toString()));
+					throw new RuntimeException(fullError.toString());
 				}
 
 				added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
@@ -519,10 +503,10 @@ public class ModResolver {
 				} else {
 					loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
 
-					List<JarInJarCandidate> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
 						loader.getLogger().debug("Searching for nested JARs in " + candidate);
 						Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
-						List<JarInJarCandidate> list = new ArrayList<>(jars.size());
+						List<Path> list = new ArrayList<>(jars.size());
 
 						jars.stream()
 							.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
@@ -538,7 +522,7 @@ public class ModResolver {
 										throw new RuntimeException("Failed to load nested JAR " + modPath + " into memory (" + dest + ")!", e);
 									}
 
-									list.add(new JarInJarCandidate(dest, modPath));
+									list.add(dest);
 								}
 							});
 
@@ -546,19 +530,16 @@ public class ModResolver {
 					});
 
 					if (!jarInJars.isEmpty()) {
-						List<UrlProcessAction> actions = jarInJars.stream()
-							.map((jarInJarCandidate) -> {
-								Path p = jarInJarCandidate.toLoadPath;
-								try {
-									FabricStatusNode childNode = getFileNode(fileNode, jarInJarCandidate.fromPath.toString());
-									childNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
-									return new UrlProcessAction(loader, childNode, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
-								} catch (UrlConversionException e) {
-									throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
-								}
-							}).collect(Collectors.toList());
-						simplifyNode(fileNode);
-						invokeAll(actions);
+						invokeAll(
+							jarInJars.stream()
+								.map((p) -> {
+									try {
+										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+									} catch (UrlConversionException e) {
+										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
+									}
+								}).collect(Collectors.toList())
+						);
 					}
 				}
 			}
@@ -569,57 +550,24 @@ public class ModResolver {
 		}
 	}
 
-	static final class JarInJarCandidate {
-		public final Path toLoadPath;
-		public final Path fromPath;
-
-		public JarInJarCandidate(Path toLoadPath, Path fromPath) {
-			this.toLoadPath = toLoadPath;
-			this.fromPath = fromPath;
-		}
-	}
-
 	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
-		return resolve(loader, new FabricStatusTab("Nope"));
-	}
-
-	public Map<String, ModCandidate> resolve(FabricLoader loader, FabricStatusTab filesystemTab) throws ModResolutionException {
 		ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
 
-		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
-		List<UrlProcessAction> actions = new ArrayList<>();
-		for (ModCandidateFinder f : candidateFinders) {
-			FabricStatusNode finderNode = filesystemTab.addChild(f.toString());
-			f.findCandidates(loader, (u) -> {
-				String file = u.getFile();
-				FabricStatusNode fileNode = getFileNode(finderNode, file);
-				actions.add(new UrlProcessAction(loader, fileNode, candidatesById, u, 0));
-			});
-			finderNode.iconType = FabricStatusTree.ICON_TYPE_DEFAULT;
-			simplifyNode(finderNode);
-		}
-
 		Queue<UrlProcessAction> allActions = new ConcurrentLinkedQueue<>();
-		for (UrlProcessAction action : actions) {
-			allActions.add(action);
-			pool.execute(action);
+		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
+		for (ModCandidateFinder f : candidateFinders) {
+			f.findCandidates(loader, (u) -> {
+				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0);
+				allActions.add(action);
+				pool.execute(action);
+			});
 		}
 
 		// add builtin mods
-		Collection<BuiltinMod> builtinMods = loader.getGameProvider().getBuiltinMods();
-		if (!builtinMods.isEmpty()) {
-			FabricStatusNode builtinModsNode = filesystemTab.addChild("Game provided"); 
-			filesystemTab.node.children.remove(builtinModsNode);
-			filesystemTab.node.children.add(0, builtinModsNode);
-			for (BuiltinMod mod : builtinMods) {
-				FabricStatusNode builtinNode = builtinModsNode.addChild(mod.metadata.getId() + " (" + mod.metadata.getName() + ")");
-				builtinNode.iconType = FabricStatusTree.ICON_TYPE_JAR_FILE;
-				builtinNode.addChild("Version: '" + mod.metadata.getVersion() + "'");
-				ModCandidate builtinCandidate = new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, builtinNode);
-				candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(builtinCandidate);
-			}
+		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
+			candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0));
 		}
 
 		boolean tookTooLong = false;
@@ -642,13 +590,13 @@ public class ModResolver {
 				}
 			}
 		} catch (InterruptedException e) {
-			throw new ModResolutionException("Mod resolution took too long!", e);
+			throw new RuntimeException("Mod resolution took too long!", e);
 		}
 		if (tookTooLong) {
-			throw new ModResolutionException("Mod resolution took too long!");
+			throw new RuntimeException("Mod resolution took too long!");
 		}
 		if (exception != null) {
-			throw new ModResolutionException("Mod resolution failed!", exception);
+			throw new RuntimeException("Mod resolution failed!", exception);
 		}
 
 		long time2 = System.currentTimeMillis();
@@ -667,13 +615,5 @@ public class ModResolver {
 		}
 
 		return result;
-	}
-
-	private static FabricStatusNode getFileNode(FabricStatusNode root, String file) {
-		return root.getFileNode(file, FabricStatusTree.ICON_TYPE_FOLDER, FabricStatusTree.ICON_TYPE_JAR_FILE);
-	}
-
-	private static void simplifyNode(FabricStatusNode finderNode) {
-		finderNode.mergeChildFilePaths(FabricStatusTree.ICON_TYPE_FOLDER);
 	}
 }
