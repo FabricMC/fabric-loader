@@ -590,13 +590,13 @@ public class ModResolver {
 				}
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Mod resolution took too long!", e);
+			throw new ModResolutionException("Mod resolution took too long!", e);
 		}
 		if (tookTooLong) {
-			throw new RuntimeException("Mod resolution took too long!");
+			throw new ModResolutionException("Mod resolution took too long!");
 		}
 		if (exception != null) {
-			throw new RuntimeException("Mod resolution failed!", exception);
+			throw new ModResolutionException("Mod resolution failed!", exception);
 		}
 
 		long time2 = System.currentTimeMillis();
