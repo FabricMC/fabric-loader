@@ -100,6 +100,20 @@ public abstract class EntrypointPatch {
 		it.previous();
 	}
 
+	protected void moveAfter(ListIterator<AbstractInsnNode> it, AbstractInsnNode targetNode) {
+		while (it.hasNext()) {
+			AbstractInsnNode node = it.next();
+			if (node == targetNode) {
+				break;
+			}
+		}
+	}
+
+	protected void moveBefore(ListIterator<AbstractInsnNode> it, AbstractInsnNode targetNode) {
+		moveAfter(it, targetNode);
+		it.previous();
+	}
+
 	protected boolean isStatic(int access) {
 		return ((access & Opcodes.ACC_STATIC) != 0);
 	}
