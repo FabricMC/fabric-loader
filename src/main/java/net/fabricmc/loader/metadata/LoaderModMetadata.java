@@ -18,15 +18,12 @@ package net.fabricmc.loader.metadata;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import com.google.gson.JsonObject;
 
 /**
  * Internal variant of the ModMetadata interface.
@@ -46,5 +43,4 @@ public interface LoaderModMetadata extends ModMetadata {
 	Collection<String> getEntrypointKeys();
 
 	void emitFormatWarnings(Logger logger);
-	void emitFormatWarnings(JsonObject src, FabricStatusNode node);
 }

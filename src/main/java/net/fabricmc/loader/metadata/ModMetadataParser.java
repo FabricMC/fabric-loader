@@ -19,7 +19,6 @@ package net.fabricmc.loader.metadata;
 import com.google.gson.*;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.util.version.VersionDeserializer;
 
 import java.io.InputStream;
@@ -51,39 +50,28 @@ public class ModMetadataParser {
 
 	private static final JsonParser JSON_PARSER = new JsonParser();
 
-	private static LoaderModMetadata getMod(FabricLoader loader, JsonObject object, FabricStatusNode jsonNode) {
+	private static LoaderModMetadata getMod(FabricLoader loader, JsonObject object) {
 		if (!object.has("schemaVersion")) {
 			return GSON_V0.fromJson(object, ModMetadataV0.class);
 		} else {
-			int version = object.get("schemaVersion").getAsInt();
 			//noinspection SwitchStatementWithTooFewBranches
-			switch (version) {
+			switch (object.get("schemaVersion").getAsInt()) {
 				case 1:
 					return GSON_V1.fromJson(object, ModMetadataV1.class);
 				default:
-					loader.getLogger().warn("Mod ID " + (object.has("id") ? object.get("id").getAsString() : "<unknown>") + " has invalid schema version: " + version);
-					if (jsonNode != null) {
-						jsonNode.addChild("Invalid/unknown 'schemaVersion': " + version).setWarning();
-					}
+					loader.getLogger().warn("Mod ID " + (object.has("id") ? object.get("id").getAsString() : "<unknown>") + " has invalid schema version: " + object.get("schemaVersion").getAsInt());
 					return null;
 			}
 		}
 	}
 
 	public static LoaderModMetadata[] getMods(FabricLoader loader, InputStream in) {
-		return getMods(loader, in, null);
-	}
-
-	public static LoaderModMetadata[] getMods(FabricLoader loader, InputStream in, FabricStatusNode jsonNode) {
 		JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
 		if (el.isJsonObject()) {
-			LoaderModMetadata metadata = getMod(loader, el.getAsJsonObject(), jsonNode);
+			LoaderModMetadata metadata = getMod(loader, el.getAsJsonObject());
 			if (metadata != null) {
-				metadata.emitFormatWarnings(el.getAsJsonObject(), jsonNode);
 				return new LoaderModMetadata[] { metadata };
 			}
-		} else if (jsonNode != null) {
-			jsonNode.addChild("Expected an object, but got " + el).setWarning();
 		}
 
 		return new LoaderModMetadata[0];

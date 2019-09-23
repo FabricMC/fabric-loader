@@ -23,13 +23,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.api.Version;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Type;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -110,13 +108,6 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	@Override
 	public void emitFormatWarnings(Logger logger) {
 
-	}
-
-	@Override
-	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {
-		if (id == null || id.isEmpty()) {
-			node.addChild("Missing key: 'id'!").setError();
-		}
 	}
 
 	@Override
@@ -324,45 +315,35 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 		Collection<ModDependency> toModDependencies() {
 			if (modDepList == null) {
 				List<ModDependency> list = new ArrayList<>(this.size());
-				for (Entry<String, Dependency> entry : this.entrySet()) {
-					list.add(new ModDependencyV0(entry.getKey(), entry.getValue()));
+				for (String s : this.keySet()) {
+					list.add(new ModDependency() {
+						@Override
+						public String getModId() {
+							return s;
+						}
+
+						@Override
+						public boolean matches(Version version) {
+							return DependencyMap.this.get(s).satisfiedBy(version);
+						}
+
+						@Override
+						public String toString() {
+							String[] matchers = DependencyMap.this.get(s).versionMatchers;
+							if (matchers.length == 0) {
+								return getModId();
+							} else if (matchers.length == 1) {
+								return getModId() + " @ " + matchers[0];
+							} else {
+								return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+							}
+						}
+					});
 				}
 				modDepList = Collections.unmodifiableList(list);
 			}
 
 			return modDepList;
-		}
-	}
-
-	public static final class ModDependencyV0 implements ModDependency {
-		private final String modId;
-		private final Dependency dependency;
-
-		private ModDependencyV0(String modId, Dependency dependency) {
-			this.modId = modId;
-			this.dependency = dependency;
-		}
-
-		@Override
-		public String getModId() {
-			return modId;
-		}
-
-		@Override
-		public boolean matches(Version version) {
-			return dependency.satisfiedBy(version);
-		}
-
-		@Override
-		public String toString() {
-			String[] matchers = dependency.versionMatchers;
-			if (matchers.length == 0) {
-				return getModId();
-			} else if (matchers.length == 1) {
-				return getModId() + " @ " + matchers[0];
-			} else {
-				return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
-			}
 		}
 	}
 

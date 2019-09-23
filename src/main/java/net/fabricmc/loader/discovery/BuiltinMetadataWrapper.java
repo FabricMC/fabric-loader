@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.gson.JsonObject;
-
 import org.apache.logging.log4j.Logger;
 
 import net.fabricmc.api.EnvType;
@@ -33,7 +31,6 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.metadata.AbstractModMetadata;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
@@ -98,6 +95,4 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public Collection<String> getEntrypointKeys() { return Collections.emptyList(); }
 	@Override
 	public void emitFormatWarnings(Logger logger) { }
-	@Override
-	public void emitFormatWarnings(JsonObject src, FabricStatusNode node) {	}
 }

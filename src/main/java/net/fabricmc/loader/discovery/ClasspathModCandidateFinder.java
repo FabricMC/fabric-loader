@@ -97,9 +97,4 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 			}
 		});
 	}
-
-	@Override
-	public String toString() {
-		return "Classpath";
-	}
 }
