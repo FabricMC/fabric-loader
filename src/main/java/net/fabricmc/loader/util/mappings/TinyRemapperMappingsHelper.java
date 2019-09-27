@@ -16,29 +16,34 @@
 
 package net.fabricmc.loader.util.mappings;
 
-import net.fabricmc.mappings.*;
+import net.fabricmc.mapping.tree.ClassDef;
+import net.fabricmc.mapping.tree.FieldDef;
+import net.fabricmc.mapping.tree.MethodDef;
+import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.tinyremapper.IMappingProvider;
-import net.fabricmc.tinyremapper.MemberInstance;
 
 public class TinyRemapperMappingsHelper {
 	private TinyRemapperMappingsHelper() {
 
 	}
+	private static IMappingProvider.Member memberOf(String className, String memberName, String descriptor) {
+		return new IMappingProvider.Member(className, memberName, descriptor);
+	}
 
-	public static IMappingProvider create(Mappings mappings, String from, String to) {
-		return (classMap, fieldMap, methodMap) -> {
-			for (ClassEntry entry : mappings.getClassEntries()) {
-				classMap.put(entry.get(from), entry.get(to));
-			}
+	public static IMappingProvider create(TinyTree mappings, String from, String to) {
+		return (acceptor) -> {
+			for (ClassDef classDef : mappings.getClasses()) {
+				String className = classDef.getName(from);
+				acceptor.acceptClass(className, classDef.getName(to));
 
-			for (FieldEntry entry : mappings.getFieldEntries()) {
-				EntryTriple fromTriple = entry.get(from);
-				fieldMap.put(fromTriple.getOwner() + "/" + MemberInstance.getFieldId(fromTriple.getName(), fromTriple.getDesc()), entry.get(to).getName());
-			}
+				for (FieldDef field : classDef.getFields()) {
+					acceptor.acceptField(memberOf(className, field.getName(from), field.getDescriptor(from)), field.getName(to));
+				}
 
-			for (MethodEntry entry : mappings.getMethodEntries()) {
-				EntryTriple fromTriple = entry.get(from);
-				methodMap.put(fromTriple.getOwner() + "/" + MemberInstance.getMethodId(fromTriple.getName(), fromTriple.getDesc()), entry.get(to).getName());
+				for (MethodDef method : classDef.getMethods()) {
+					IMappingProvider.Member methodIdentifier = memberOf(className, method.getName(from), method.getDescriptor(from));
+					acceptor.acceptMethod(methodIdentifier, method.getName(to));
+				}
 			}
 		};
 	}

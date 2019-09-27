@@ -17,14 +17,16 @@
 package net.fabricmc.loader;
 
 import net.fabricmc.loader.api.MappingResolver;
-import net.fabricmc.mappings.*;
+import net.fabricmc.mapping.tree.ClassDef;
+import net.fabricmc.mapping.tree.Descriptored;
+import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mappings.EntryTriple;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 class FabricMappingResolver implements MappingResolver {
-	private final Supplier<Mappings> mappingsSupplier;
+	private final Supplier<TinyTree> mappingsSupplier;
 	private final Set<String> namespaces;
 	private final Map<String, NamespaceData> namespaceDataMap = new HashMap<>();
 	private final String targetNamespace;
@@ -36,42 +38,50 @@ class FabricMappingResolver implements MappingResolver {
 		private final Map<EntryTriple, String> methodNames = new HashMap<>();
 	}
 
-	FabricMappingResolver(Supplier<Mappings> mappingsSupplier, String targetNamespace) {
+	FabricMappingResolver(Supplier<TinyTree> mappingsSupplier, String targetNamespace) {
 		this.mappingsSupplier = mappingsSupplier;
 		this.targetNamespace = targetNamespace;
-		namespaces = Collections.unmodifiableSet(new HashSet<>(mappingsSupplier.get().getNamespaces()));
+		namespaces = Collections.unmodifiableSet(new HashSet<>(mappingsSupplier.get().getMetadata().getNamespaces()));
 	}
 
 	protected final NamespaceData getNamespaceData(String namespace) {
-		return namespaceDataMap.computeIfAbsent(namespace, (ns) -> {
+		return namespaceDataMap.computeIfAbsent(namespace, (fromNamespace) -> {
 			if (!namespaces.contains(namespace)) {
 				throw new IllegalArgumentException("Unknown namespace: " + namespace);
 			}
 
 			NamespaceData data = new NamespaceData();
-			Mappings mappings = mappingsSupplier.get();
+			TinyTree mappings = mappingsSupplier.get();
 			Map<String, String> classNameMap = new HashMap<>();
-			Function<String, String> classMapper = (s) -> classNameMap.computeIfAbsent(s, (cname) -> cname.replace('/', '.'));
-			Function<EntryTriple, EntryTriple> tripletMapper = (s) -> new EntryTriple(classMapper.apply(s.getOwner()), s.getName(), s.getDesc());
 
-			for (ClassEntry classEntry : mappings.getClassEntries()) {
-				String fromClass = classMapper.apply(classEntry.get(ns));
-				String toClass = classMapper.apply(classEntry.get(targetNamespace));
+			for (ClassDef classEntry : mappings.getClasses()) {
+				String fromClass = computeIfAbsentClassName(classNameMap, classEntry.getName(fromNamespace));
+				String toClass = computeIfAbsentClassName(classNameMap, classEntry.getName(targetNamespace));
 
 				data.classNames.put(fromClass, toClass);
 				data.classNamesInverse.put(toClass, fromClass);
-			}
 
-			for (FieldEntry fieldEntry : mappings.getFieldEntries()) {
-				data.fieldNames.put(tripletMapper.apply(fieldEntry.get(ns)), fieldEntry.get(targetNamespace).getName());
-			}
+				String mappedClassName = computeIfAbsentClassName(classNameMap, fromClass);
 
-			for (MethodEntry methodEntry : mappings.getMethodEntries()) {
-				data.methodNames.put(tripletMapper.apply(methodEntry.get(ns)), methodEntry.get(targetNamespace).getName());
+				putDescriptored(fromNamespace, classEntry.getFields(), data.fieldNames, mappedClassName);
+				putDescriptored(fromNamespace, classEntry.getMethods(), data.methodNames, mappedClassName);
 			}
 
 			return data;
 		});
+	}
+
+	private String computeIfAbsentClassName(Map<String, String> classNameMap, String s) {
+		return classNameMap.computeIfAbsent(s, (cname) -> cname.replace('/', '.'));
+	}
+
+	private <T extends Descriptored> void putDescriptored(String fromNamespace, Collection<T> descriptoredList,
+														  Map<EntryTriple, String> putInto, String fromClass) {
+		for (T descriptored : descriptoredList) {
+			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace),
+				descriptored.getDescriptor(fromNamespace));
+			putInto.put(fromEntry, descriptored.getName(targetNamespace));
+		}
 	}
 
 	@Override
