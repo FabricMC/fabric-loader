@@ -114,10 +114,10 @@ public abstract class EntrypointPatch {
 		it.previous();
 	}
 
-	protected void moveBefore(ListIterator<AbstractInsnNode> it, Class<? extends AbstractInsnNode> nodeClass) {
+	protected void moveBeforeType(ListIterator<AbstractInsnNode> it, int nodeType) {
 		while (it.hasPrevious()) {
 			AbstractInsnNode node = it.previous();
-			if (node.getClass().isAssignableFrom(nodeClass)) {
+			if (node.getType() == nodeType) {
 				break;
 			}
 		}
