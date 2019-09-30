@@ -114,6 +114,15 @@ public abstract class EntrypointPatch {
 		it.previous();
 	}
 
+	protected void moveBefore(ListIterator<AbstractInsnNode> it, Class<? extends AbstractInsnNode> nodeClass) {
+		while (it.hasPrevious()) {
+			AbstractInsnNode node = it.previous();
+			if (node.getClass().isAssignableFrom(nodeClass)) {
+				break;
+			}
+		}
+	}
+
 	protected boolean isStatic(int access) {
 		return ((access & Opcodes.ACC_STATIC) != 0);
 	}

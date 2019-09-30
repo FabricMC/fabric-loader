@@ -255,6 +255,9 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						}
 						if (lwjglLogNode != null) {
 							moveBefore(it, lwjglLogNode);
+							for (int i = 0; i < 4; i++) {
+								moveBefore(it, MethodInsnNode.class);
+							}
 						}
 						it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 						it.add(new FieldInsnNode(Opcodes.GETFIELD, ((FieldInsnNode) insn).owner, ((FieldInsnNode) insn).name, ((FieldInsnNode) insn).desc));
