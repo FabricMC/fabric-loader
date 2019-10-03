@@ -25,20 +25,22 @@ archivesBaseName = "fabric-loader"
 def ENV = System.getenv()
 version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
 
-repositories {
-	mavenCentral()
-	jcenter()
-	maven {
-		name = 'Fabric'
-		url = 'https://maven.fabricmc.net'
-	}
-	maven {
-		name = 'SpongePowered'
-		url = 'http://repo.spongepowered.org/maven'
-	}
-	maven {
-		name = 'mojang'
-		url = 'https://libraries.minecraft.net/'
+allprojects {
+	repositories {
+		mavenCentral()
+		jcenter()
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net'
+		}
+		maven {
+			name = 'SpongePowered'
+			url = 'http://repo.spongepowered.org/maven'
+		}
+		maven {
+			name = 'mojang'
+			url = 'https://libraries.minecraft.net/'
+		}
 	}
 }
 
