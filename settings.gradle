@@ -1,10 +1,13 @@
 pluginManagement {
 	repositories {
 		maven {
-			url = "http://maven.fabricmc.net"
+			url = "https://maven.fabricmc.net"
 			name = "FabricMC"
 		}
 		gradlePluginPortal()
 	}
 }
 rootProject.name='fabric-loader'
+
+include '1.14'
+include '1.15'
