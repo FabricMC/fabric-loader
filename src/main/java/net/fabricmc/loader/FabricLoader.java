@@ -173,7 +173,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		} catch (ModResolutionException cause) {
 			RuntimeException exitException = new RuntimeException("Failed to resolve mods!", cause);
 
-			if (!GraphicsEnvironment.isHeadless() && provider.canOpenErrorGui()) {
+			if (provider.canOpenErrorGui() && !GraphicsEnvironment.isHeadless()) {
 				FabricStatusTree tree = new FabricStatusTree();
 				FabricStatusTab crashTab = tree.addTab("Crash");
 
