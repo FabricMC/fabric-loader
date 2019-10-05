@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader;
 
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -167,31 +168,33 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (provider == null) throw new IllegalStateException("game provider not set");
 		if (frozen) throw new IllegalStateException("Frozen - cannot load additional mods!");
 
-		FabricStatusTree tree = new FabricStatusTree();
-		FabricStatusTab crashTab = tree.addTab("Crash");
-
 		try {
 			setup();
 		} catch (ModResolutionException cause) {
 			RuntimeException exitException = new RuntimeException("Failed to resolve mods!", cause);
 
-			tree.mainText = "Failed to launch!";
-			addThrowable(crashTab.node, cause, new HashSet<>());
-
-			// Maybe add an "open mods folder" button?
-			// or should that be part of the main tree's right-click menu?
-			tree.addButton("Exit").makeClose();
-
-			try {
-				FabricGuiEntry.open(tree);
-			} catch (Throwable guiOpeningException) {
-				// If it doesn't open (for whatever reason) then the only thing we can do
-				// is crash normally - as this might be a headless environment, or some
-				// other strange thing happened.
-
-				// Either way this exception isn't as important as the main exception.
-				exitException.addSuppressed(guiOpeningException);
-				throw exitException;
+			if (!GraphicsEnvironment.isHeadless() && provider.canOpenErrorGui()) {
+				FabricStatusTree tree = new FabricStatusTree();
+				FabricStatusTab crashTab = tree.addTab("Crash");
+		
+				tree.mainText = "Failed to launch!";
+				addThrowable(crashTab.node, cause, new HashSet<>());
+		
+				// Maybe add an "open mods folder" button?
+				// or should that be part of the main tree's right-click menu?
+				tree.addButton("Exit").makeClose();
+		
+				try {
+					FabricGuiEntry.open(tree);
+				} catch (Throwable guiOpeningException) {
+					// If it doesn't open (for whatever reason) then the only thing we can do
+					// is crash normally - as this might be a headless environment, or some
+					// other strange thing happened.
+		
+					// Either way this exception isn't as important as the main exception.
+					exitException.addSuppressed(guiOpeningException);
+					throw exitException;
+				}
 			}
 
 			throw exitException;
