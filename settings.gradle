@@ -7,4 +7,4 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
-rootProject.name='fabric-loader-staging'
+rootProject.name='fabric-loader'

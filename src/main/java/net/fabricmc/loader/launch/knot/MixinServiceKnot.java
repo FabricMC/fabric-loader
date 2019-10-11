@@ -197,4 +197,14 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	public String getSideName() {
 		return FabricLauncherBase.getLauncher().getEnvironmentType().name();
 	}
+
+	@Override
+	public MixinEnvironment.CompatibilityLevel getMinCompatibilityLevel() {
+		return MixinEnvironment.CompatibilityLevel.JAVA_8;
+	}
+
+	@Override
+	public MixinEnvironment.CompatibilityLevel getMaxCompatibilityLevel() {
+		return MixinEnvironment.CompatibilityLevel.JAVA_14;
+	}
 }
