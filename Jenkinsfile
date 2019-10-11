@@ -19,7 +19,7 @@ pipeline {
 
       stage('Publish') {
          when {
-            branch 'master'
+            branch 'dev/0.7'
          }
          steps {
             sh "./gradlew publish --stacktrace"

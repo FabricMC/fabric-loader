@@ -17,18 +17,19 @@
 package net.fabricmc.loader.launch.knot;
 
 import com.google.common.collect.ImmutableList;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import org.spongepowered.asm.lib.ClassReader;
-import org.spongepowered.asm.lib.tree.ClassNode;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import org.spongepowered.asm.launch.platform.container.ContainerHandleURI;
+import org.spongepowered.asm.launch.platform.container.IContainerHandle;
 import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.service.IClassBytecodeProvider;
-import org.spongepowered.asm.service.IClassProvider;
-import org.spongepowered.asm.service.IMixinService;
-import org.spongepowered.asm.service.ITransformer;
+import org.spongepowered.asm.service.*;
 import org.spongepowered.asm.util.ReEntranceLock;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,12 +41,10 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 		lock = new ReEntranceLock(1);
 	}
 
-	@Override
 	public byte[] getClassBytes(String name, String transformedName) throws IOException {
 		return FabricLauncherBase.getLauncher().getClassByteArray(name);
 	}
 
-	@Override
 	public byte[] getClassBytes(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
 		byte[] classBytes = FabricLauncherBase.getLauncher().getClassByteArray(name);
 		if (classBytes != null) {
@@ -57,7 +56,13 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public ClassNode getClassNode(String name) throws ClassNotFoundException, IOException {
-		ClassReader reader = new ClassReader(getClassBytes(name, true /* irrelevant, at least right now */));
+		// TODO: is this the correct default?
+		return getClassNode(name, false);
+	}
+
+	@Override
+	public ClassNode getClassNode(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
+		ClassReader reader = new ClassReader(getClassBytes(name, runTransformers));
 		ClassNode node = new ClassNode();
 		reader.accept(node, 0);
 		return node;
@@ -140,6 +145,20 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	}
 
 	@Override
+	public IContainerHandle getPrimaryContainer() {
+		try {
+			return new ContainerHandleURI(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public Collection<IContainerHandle> getMixinContainers() {
+		return Collections.emptyList();
+	}
+
+	@Override
 	public InputStream getResourceAsStream(String name) {
 		return FabricLauncherBase.getLauncher().getResourceAsStream(name);
 	}
@@ -162,6 +181,16 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	@Override
 	public Collection<ITransformer> getTransformers() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public Collection<ITransformer> getDelegatedTransformers() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	public void addTransformerExclusion(String name) {
+
 	}
 
 	@Override
