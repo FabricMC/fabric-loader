@@ -19,6 +19,7 @@ package net.fabricmc.loader.launch.knot;
 import org.spongepowered.asm.launch.platform.container.IContainerHandle;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class MixinContainerHandleMod implements IContainerHandle {
 	@Override
@@ -28,6 +29,6 @@ public class MixinContainerHandleMod implements IContainerHandle {
 
 	@Override
 	public Collection<IContainerHandle> getNestedContainers() {
-		return null;
+		return Collections.emptyList();
 	}
 }
