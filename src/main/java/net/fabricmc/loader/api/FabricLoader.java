@@ -19,6 +19,7 @@ package net.fabricmc.loader.api;
 import net.fabricmc.api.EnvType;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -93,11 +94,21 @@ public interface FabricLoader {
 	 * Get the current game working directory.
 	 * @return The directory.
 	 */
-	File getGameDirectory();
+	Path getGamePath();
+
+	@Deprecated
+	default File getGameDirectory() {
+		return getGamePath().toFile();
+	}
 
 	/**
 	 * Get the current directory for game configuration files.
 	 * @return The directory.
 	 */
-	File getConfigDirectory();
+	Path getConfigPath();
+
+	@Deprecated
+	default File getConfigDirectory() {
+		return getConfigPath().toFile();
+	}
 }

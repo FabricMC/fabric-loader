@@ -28,7 +28,7 @@ public final class EntrypointClient {
 			runDir = new File(".");
 		}
 
-		FabricLoader.INSTANCE.instantiateMods(runDir, gameInstance);
+		FabricLoader.INSTANCE.instantiateMods(runDir.toPath(), gameInstance);
 		EntrypointUtils.logErrors("main", FabricLoader.INSTANCE.getEntrypoints("main", ModInitializer.class), ModInitializer::onInitialize);
 		EntrypointUtils.logErrors("client", FabricLoader.INSTANCE.getEntrypoints("client", ClientModInitializer.class), ClientModInitializer::onInitializeClient);
 	}

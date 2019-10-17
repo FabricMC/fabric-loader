@@ -32,6 +32,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -62,8 +64,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private MappingResolver mappingResolver;
 	private GameProvider provider;
-	private File gameDir;
-	private File configDir;
+	private Path gameDir;
+	private Path configDir;
 
 	protected FabricLoader() {
 	}
@@ -89,12 +91,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public void setGameProvider(GameProvider provider) {
 		this.provider = provider;
 
-		setGameDir(provider.getLaunchDirectory().toFile());
+		setGameDir(provider.getLaunchDirectory());
 	}
 
-	private void setGameDir(File gameDir) {
+	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir;
-		this.configDir = new File(gameDir, "config");
+		this.configDir = gameDir.resolve("config");
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 * @return The game instance's root directory.
 	 */
 	@Override
-	public File getGameDirectory() {
+	public Path getGamePath() {
 		return gameDir;
 	}
 
@@ -119,15 +121,19 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 * @return The game instance's configuration directory.
 	 */
 	@Override
-	public File getConfigDirectory() {
-		if (!configDir.exists()) {
-			configDir.mkdirs();
+	public Path getConfigPath() {
+		if (!Files.exists(configDir)) {
+			try {
+				Files.createDirectories(configDir);
+			} catch (IOException e) {
+				throw new RuntimeException("Creating config directory", e);
+			}
 		}
 		return configDir;
 	}
 
-	public File getModsDirectory() {
-		return new File(getGameDirectory(), "mods");
+	public Path getModsPath() {
+		return getGamePath().resolve("mods");
 	}
 
 	private String join(Stream<String> strings, String joiner) {
@@ -151,7 +157,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
-		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath()));
+		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsPath()));
 		Map<String, ModCandidate> candidateMap;
 		try {
 			candidateMap = resolver.resolve(this);
@@ -303,7 +309,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		mods = sorted;
 	} */
 
-	public void instantiateMods(File newRunDir, Object gameInstance) {
+	public void instantiateMods(Path newRunDir, Object gameInstance) {
 		if (!frozen) {
 			throw new RuntimeException("Cannot instantiate mods when not frozen!");
 		}
@@ -342,8 +348,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		if (gameDir != null) {
 			try {
-				if (!gameDir.getCanonicalFile().equals(newRunDir.getCanonicalFile())) {
-					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath() + ", while initializer says " + gameDir.getAbsolutePath() + "...");
+				if (!gameDir.toRealPath().equals(newRunDir.toRealPath())) {
+					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.toRealPath() + ", while initializer says " + gameDir.toRealPath() + "...");
 					setGameDir(newRunDir);
 				}
 			} catch (IOException e) {
