@@ -113,7 +113,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 * @return The game instance's root directory.
 	 */
 	@Override
-	public Path getGamePath() {
+	public Path getGameDir() {
 		return gameDir;
 	}
 
@@ -121,7 +121,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 * @return The game instance's configuration directory.
 	 */
 	@Override
-	public Path getConfigPath() {
+	public Path getConfigDir() {
 		if (!Files.exists(configDir)) {
 			try {
 				Files.createDirectories(configDir);
@@ -132,8 +132,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return configDir;
 	}
 
-	public Path getModsPath() {
-		return getGamePath().resolve("mods");
+	public Path getModsDir() {
+		return getGameDir().resolve("mods");
 	}
 
 	private String join(Stream<String> strings, String joiner) {
@@ -157,7 +157,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
-		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsPath()));
+		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir()));
 		Map<String, ModCandidate> candidateMap;
 		try {
 			candidateMap = resolver.resolve(this);

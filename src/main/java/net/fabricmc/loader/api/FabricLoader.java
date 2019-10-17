@@ -94,21 +94,21 @@ public interface FabricLoader {
 	 * Get the current game working directory.
 	 * @return The directory.
 	 */
-	Path getGamePath();
+	Path getGameDir();
 
 	@Deprecated
 	default File getGameDirectory() {
-		return getGamePath().toFile();
+		return getGameDir().toFile();
 	}
 
 	/**
 	 * Get the current directory for game configuration files.
 	 * @return The directory.
 	 */
-	Path getConfigPath();
+	Path getConfigDir();
 
 	@Deprecated
 	default File getConfigDirectory() {
-		return getConfigPath().toFile();
+		return getConfigDir().toFile();
 	}
 }
