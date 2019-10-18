@@ -120,13 +120,22 @@ class FabricMainWindow {
 			contentPane.add(errorLabel, BorderLayout.NORTH);
 		}
 
-		JTabbedPane tabs = new JTabbedPane();
-		contentPane.add(tabs, BorderLayout.CENTER);
-
 		IconSet icons = new IconSet();
 
-		for (FabricStatusTab tab : tree.tabs) {
-			tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
+		if (tree.tabs.isEmpty()) {
+			FabricStatusTab tab = new FabricStatusTab("Opening Errors");
+			tab.addChild("No tabs provided! (Something is very broken)").setError();
+			contentPane.add(createTreePanel(tab.node, tab.filterLevel, icons), BorderLayout.CENTER);
+		} else if (tree.tabs.size() == 1) {
+			FabricStatusTab tab = tree.tabs.get(0);
+			contentPane.add(createTreePanel(tab.node, tab.filterLevel, icons), BorderLayout.CENTER);
+		} else {
+			JTabbedPane tabs = new JTabbedPane();
+			contentPane.add(tabs, BorderLayout.CENTER);
+
+			for (FabricStatusTab tab : tree.tabs) {
+				tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
+			}
 		}
 
 		if (!tree.buttons.isEmpty()) {
@@ -170,9 +179,7 @@ class FabricMainWindow {
 
 			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
 
-			if (
-				node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(FabricTreeWarningLevel.WARN)
-			) {
+			if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(FabricTreeWarningLevel.WARN)) {
 				tree.expandRow(row);
 			}
 		}
@@ -180,8 +187,8 @@ class FabricMainWindow {
 		ToolTipManager.sharedInstance().registerComponent(tree);
 		tree.setCellRenderer(new CustomTreeCellRenderer(iconSet));
 
-		JScrollPane treeView = new JScrollPane(tree);
-		panel.add(treeView);
+		JScrollPane scrollPane = new JScrollPane(tree);
+		panel.add(scrollPane);
 
 		return panel;
 	}
