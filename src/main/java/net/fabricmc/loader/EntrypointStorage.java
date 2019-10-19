@@ -148,9 +148,11 @@ class EntrypointStorage {
 
 		if (!exceptions.isEmpty()) {
 			EntrypointException e = new EntrypointException("Could not look up entries for entrypoint " + key + "!");
+
 			for (Exception suppressed : exceptions) {
 				e.addSuppressed(suppressed);
 			}
+
 			throw e;
 		} else {
 			return results;
