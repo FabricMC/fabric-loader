@@ -133,7 +133,7 @@ class EntrypointStorage {
 			return Collections.emptyList();
 		}
 
-		boolean hadException = false;
+		List<Exception> exceptions = new ArrayList<>();
 		List<T> results = new ArrayList<>(entries.size());
 		for (Entry entry : entries) {
 			try {
@@ -142,13 +142,16 @@ class EntrypointStorage {
 					results.add(result);
 				}
 			} catch (Exception e) {
-				hadException = true;
-				FabricLoader.INSTANCE.getLogger().error("Exception occured while getting '" + key + "' entrypoints @ " + entry, e);
+				exceptions.add(e);
 			}
 		}
 
-		if (hadException) {
-			throw new EntrypointException("Could not look up entries for entrypoint " + key + "!");
+		if (!exceptions.isEmpty()) {
+			EntrypointException e = new EntrypointException("Could not look up entries for entrypoint " + key + "!");
+			for (Exception suppressed : exceptions) {
+				e.addSuppressed(suppressed);
+			}
+			throw e;
 		} else {
 			return results;
 		}
