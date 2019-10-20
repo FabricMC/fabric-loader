@@ -66,7 +66,6 @@ import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricTreeWarningLevel;
 
 class FabricMainWindow {
-
 	static Icon missingIcon = null;
 
 	static void open(FabricStatusTree tree, boolean shouldWait) throws Exception {
