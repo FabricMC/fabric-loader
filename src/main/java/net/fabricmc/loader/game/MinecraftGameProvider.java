@@ -169,6 +169,7 @@ public class MinecraftGameProvider implements GameProvider {
 		if (arguments == null || envType == EnvType.CLIENT) {
 			return true;
 		}
+
 		List<String> extras = arguments.getExtraArgs();
 		return !extras.contains("nogui") && !extras.contains("--nogui");
 	}

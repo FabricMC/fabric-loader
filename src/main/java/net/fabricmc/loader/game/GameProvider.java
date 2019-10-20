@@ -41,10 +41,11 @@ public interface GameProvider {
 	boolean locateGame(EnvType envType, ClassLoader loader);
 	void acceptArguments(String... arguments);
 	EntrypointTransformer getEntrypointTransformer();
+	void launch(ClassLoader loader);
+
 	default boolean canOpenErrorGui() {
 		return true;
 	}
-	void launch(ClassLoader loader);
 
 	public static class BuiltinMod {
 		public BuiltinMod(URL url, ModMetadata metadata) {

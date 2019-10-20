@@ -73,6 +73,7 @@ class FabricMainWindow {
 		if (GraphicsEnvironment.isHeadless()) {
 			throw new HeadlessException();
 		}
+
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		open0(tree, shouldWait);
 	}
@@ -262,6 +263,7 @@ class FabricMainWindow {
 
 			missingIcon = new ImageIcon(img);
 		}
+
 		return missingIcon;
 	}
 
@@ -306,8 +308,7 @@ class FabricMainWindow {
 		public IconInfo(String mainPath, String[] decor) {
 			this.mainPath = mainPath;
 			this.decor = decor;
-			assert decor.length
-				< 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
+			assert decor.length < 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
 
 			if (decor.length == 0) {
 				// To mirror the no-decor constructor
@@ -424,7 +425,7 @@ class FabricMainWindow {
 			this.node = node;
 
 			for (FabricStatusNode c : node.children) {
-				if (minimumWarningLevel.isWorseThan(c.getMaximumWarningLevel())) {
+				if (minimumWarningLevel.isHigherThan(c.getMaximumWarningLevel())) {
 					continue;
 				}
 

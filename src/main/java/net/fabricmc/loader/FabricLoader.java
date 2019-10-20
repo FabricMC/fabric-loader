@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader;
 
-import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,9 +45,7 @@ import net.fabricmc.loader.discovery.ModResolutionException;
 import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
-import net.fabricmc.loader.gui.FabricStatusTree;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
@@ -172,64 +168,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			setup();
 		} catch (ModResolutionException cause) {
 			RuntimeException exitException = new RuntimeException("Failed to resolve mods!", cause);
-
-			if (provider.canOpenErrorGui() && !GraphicsEnvironment.isHeadless()) {
-				FabricStatusTree tree = new FabricStatusTree();
-				FabricStatusTab crashTab = tree.addTab("Crash");
-
-				tree.mainText = "Failed to launch!";
-				addThrowable(crashTab.node, cause, new HashSet<>());
-
-				// Maybe add an "open mods folder" button?
-				// or should that be part of the main tree's right-click menu?
-				tree.addButton("Exit").makeClose();
-
-				try {
-					FabricGuiEntry.open(tree);
-				} catch (Throwable guiOpeningException) {
-					// If it doesn't open (for whatever reason) then the only thing we can do
-					// is crash normally - as this might be a headless environment, or some
-					// other strange thing happened.
-
-					// Either way this exception isn't as important as the main exception.
-					exitException.addSuppressed(guiOpeningException);
-					throw exitException;
-				}
-			}
-
+			FabricGuiEntry.showModErrorMessage(cause, exitException, provider);
 			throw exitException;
-		}
-	}
-
-	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
-		if (!seen.add(e)) {
-			return;
-		}
-
-		// Remove some self-repeating exception traces from the tree
-		// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
-		Throwable cause;
-
-		while ((cause = e.getCause()) != null) {
-			if (e.getSuppressed().length > 0) {
-				break;
-			}
-
-			if (!e.getMessage().equals(cause.getMessage()) && !e.getMessage().equals(cause.toString())) {
-				break;
-			}
-
-			e = cause;
-		}
-
-		FabricStatusNode sub = node.addException(e);
-
-		if (e.getCause() != null) {
-			addThrowable(sub, e.getCause(), seen);
-		}
-
-		for (Throwable t : e.getSuppressed()) {
-			addThrowable(sub, t, seen);
 		}
 	}
 

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 
 public final class FabricStatusTree {
-
 	public enum FabricTreeWarningLevel {
 		ERROR,
 		WARN,
@@ -32,7 +31,7 @@ public final class FabricStatusTree {
 
 		public final String lowerCaseName = name().toLowerCase(Locale.ROOT);
 
-		public boolean isWorseThan(FabricTreeWarningLevel other) {
+		public boolean isHigherThan(FabricTreeWarningLevel other) {
 			return ordinal() < other.ordinal();
 		}
 
@@ -40,8 +39,8 @@ public final class FabricStatusTree {
 			return ordinal() <= other.ordinal();
 		}
 
-		public static FabricTreeWarningLevel getWorst(FabricTreeWarningLevel a, FabricTreeWarningLevel b) {
-			return a.isWorseThan(b) ? a : b;
+		public static FabricTreeWarningLevel getHighest(FabricTreeWarningLevel a, FabricTreeWarningLevel b) {
+			return a.isHigherThan(b) ? a : b;
 		}
 	}
 
@@ -108,7 +107,6 @@ public final class FabricStatusTree {
 	}
 
 	public static final class FabricStatusButton {
-
 		public final String text;
 		public boolean shouldClose, shouldContinue;
 
@@ -143,8 +141,7 @@ public final class FabricStatusTree {
 	}
 
 	public static final class FabricStatusNode {
-
-		private transient FabricStatusNode parent;
+		private FabricStatusNode parent;
 
 		public String name;
 
@@ -182,11 +179,11 @@ public final class FabricStatusTree {
 				return;
 			}
 
-			if (warningLevel.isWorseThan(level)) {
+			if (warningLevel.isHigherThan(level)) {
 				// Just because I haven't written the back-fill revalidation for this
 				throw new Error("Why would you set the warning level multiple times?");
 			} else {
-				if (parent != null && level.isWorseThan(parent.warningLevel)) {
+				if (parent != null && level.isHigherThan(parent.warningLevel)) {
 					parent.setWarningLevel(level);
 				}
 
@@ -224,17 +221,16 @@ public final class FabricStatusTree {
 
 			sub.setError();
 			String msg = exception.getMessage();
-			String[] lines = msg.split("\n");
+			String[] lines = (msg == null ? exception.toString() : msg).split("\n");
 
 			if (lines.length == 0) {
-				// what
-				lines = new String[] { msg };
-			}
+				sub.name = exception.toString();
+			} else {
+				sub.name = lines[0];
 
-			sub.name = lines[0];
-
-			for (int i = 1; i < lines.length; i++) {
-				sub.addChild(lines[i]);
+				for (int i = 1; i < lines.length; i++) {
+					sub.addChild(lines[i]);
+				}
 			}
 
 			StringWriter sw = new StringWriter();
@@ -284,7 +280,6 @@ public final class FabricStatusTree {
 			FabricStatusNode fileNode = this;
 
 			pathIteration: for (String s : file.split("/")) {
-
 				if (s.isEmpty()) {
 					continue;
 				}

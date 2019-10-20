@@ -16,6 +16,16 @@
 
 package net.fabricmc.loader.gui;
 
+import java.awt.GraphicsEnvironment;
+import java.util.HashSet;
+import java.util.Set;
+
+import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.discovery.ModResolutionException;
+import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
+import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
+
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
 
@@ -28,5 +38,71 @@ public final class FabricGuiEntry {
 
 	private static void openWindow(FabricStatusTree tree, boolean shouldWait) throws Exception {
 		FabricMainWindow.open(tree, shouldWait);
+	}
+
+	public static void showModErrorMessage(ModResolutionException cause, RuntimeException exitException,
+		GameProvider gameProvider) {
+
+		if (gameProvider.canOpenErrorGui() && !GraphicsEnvironment.isHeadless()) {
+			FabricStatusTree tree = new FabricStatusTree();
+			FabricStatusTab crashTab = tree.addTab("Crash");
+
+			tree.mainText = "Failed to launch!";
+			addThrowable(crashTab.node, cause, new HashSet<>());
+
+			// Maybe add an "open mods folder" button?
+			// or should that be part of the main tree's right-click menu?
+			tree.addButton("Exit").makeClose();
+
+			try {
+				open(tree);
+			} catch (Throwable guiOpeningException) {
+				// If it doesn't open (for whatever reason) then the only thing we can do
+				// is crash normally - as this might be a headless environment, or some
+				// other strange thing happened.
+	
+				// Either way this exception isn't as important as the main exception.
+				exitException.addSuppressed(guiOpeningException);
+				throw exitException;
+			}
+		}
+	}
+
+	public static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
+		if (!seen.add(e)) {
+			return;
+		}
+
+		// Remove some self-repeating exception traces from the tree
+		// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
+		Throwable cause;
+
+		while ((cause = e.getCause()) != null) {
+			if (e.getSuppressed().length > 0) {
+				break;
+			}
+
+			String msg = e.getMessage();
+
+			if (msg == null) {
+				msg = e.getClass().getName();
+			}
+
+			if (!msg.equals(cause.getMessage()) && !msg.equals(cause.toString())) {
+				break;
+			}
+
+			e = cause;
+		}
+
+		FabricStatusNode sub = node.addException(e);
+
+		if (e.getCause() != null) {
+			addThrowable(sub, e.getCause(), seen);
+		}
+
+		for (Throwable t : e.getSuppressed()) {
+			addThrowable(sub, t, seen);
+		}
 	}
 }
