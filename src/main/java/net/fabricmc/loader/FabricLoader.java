@@ -164,8 +164,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		try {
 			setup();
-		} catch (ModResolutionException cause) {
-			FabricGuiEntry.displayCriticalError(new RuntimeException("Failed to resolve mods!", cause), true);
+		} catch (ModResolutionException exception) {
+			FabricGuiEntry.displayCriticalError(exception, true);
 		}
 	}
 
