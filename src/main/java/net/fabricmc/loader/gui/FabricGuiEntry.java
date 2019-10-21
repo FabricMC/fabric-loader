@@ -40,15 +40,19 @@ public final class FabricGuiEntry {
 		FabricMainWindow.open(tree, shouldWait);
 	}
 
-	public static void showModErrorMessage(ModResolutionException cause, RuntimeException exitException,
-		GameProvider gameProvider) {
+	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
+	 *            return normally. */
+	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
+		exception.printStackTrace(System.err);
 
-		if (gameProvider.canOpenErrorGui() && !GraphicsEnvironment.isHeadless()) {
+		GameProvider provider = FabricLoader.INSTANCE.getGameProvider();
+
+		if ((provider == null || provider.canOpenErrorGui()) && !GraphicsEnvironment.isHeadless()) {
 			FabricStatusTree tree = new FabricStatusTree();
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
 			tree.mainText = "Failed to launch!";
-			addThrowable(crashTab.node, cause, new HashSet<>());
+			addThrowable(crashTab.node, exception, new HashSet<>());
 
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?
@@ -56,19 +60,23 @@ public final class FabricGuiEntry {
 
 			try {
 				open(tree);
-			} catch (Throwable guiOpeningException) {
-				// If it doesn't open (for whatever reason) then the only thing we can do
-				// is crash normally - as this might be a headless environment, or some
-				// other strange thing happened.
-	
-				// Either way this exception isn't as important as the main exception.
-				exitException.addSuppressed(guiOpeningException);
-				throw exitException;
+			} catch (Exception e) {
+				RuntimeException ex = new RuntimeException("Failed to open the error gui!", e);
+
+				if (exitAfter) {
+					ex.printStackTrace(System.err);
+				} else {
+					throw ex;
+				}
 			}
+		}
+
+		if (exitAfter) {
+			System.exit(1);
 		}
 	}
 
-	public static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
+	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
 		if (!seen.add(e)) {
 			return;
 		}

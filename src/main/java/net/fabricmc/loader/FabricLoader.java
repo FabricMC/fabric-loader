@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,7 +44,6 @@ import net.fabricmc.loader.discovery.ModResolutionException;
 import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
-import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
@@ -167,9 +165,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		try {
 			setup();
 		} catch (ModResolutionException cause) {
-			RuntimeException exitException = new RuntimeException("Failed to resolve mods!", cause);
-			FabricGuiEntry.showModErrorMessage(cause, exitException, provider);
-			throw exitException;
+			FabricGuiEntry.displayCriticalError(new RuntimeException("Failed to resolve mods!", cause), true);
 		}
 	}
 
