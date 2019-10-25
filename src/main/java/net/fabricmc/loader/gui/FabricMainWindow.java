@@ -148,9 +148,11 @@ class FabricMainWindow {
 				buttons.add(btn);
 				btn.addActionListener(e -> {
 					btn.setEnabled(false);
+
 					if (button.shouldClose) {
 						window.dispose();
 					}
+
 					if (button.shouldContinue) {
 						onCloseLatch.countDown();
 					}

@@ -28,7 +28,6 @@ import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
-
 	/** Opens the given {@link FabricStatusTree} in a new swing window.
 	 * 
 	 * @throws Exception if something went wrong while opening the window. */

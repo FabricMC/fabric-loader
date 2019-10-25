@@ -209,12 +209,6 @@ public final class FabricStatusTree {
 			return child;
 		}
 
-		/** Calls {@link #addException(Throwable)}, and throws the given exception */
-		public <T extends Throwable> T addAndThrow(T exception) throws T {
-			addException(exception);
-			throw exception;
-		}
-
 		public FabricStatusNode addException(Throwable exception) {
 			FabricStatusNode sub = new FabricStatusNode(this, "...");
 			children.add(sub);
