@@ -26,6 +26,7 @@ public class TinyRemapperMappingsHelper {
 	private TinyRemapperMappingsHelper() {
 
 	}
+
 	private static IMappingProvider.Member memberOf(String className, String memberName, String descriptor) {
 		return new IMappingProvider.Member(className, memberName, descriptor);
 	}

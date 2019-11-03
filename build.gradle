@@ -60,6 +60,7 @@ dependencies {
 
 	compile 'com.google.jimfs:jimfs:1.1'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
+
 	// launchwrapper + dependencies
 	compile ('net.minecraft:launchwrapper:1.12') {
 		transitive = false
