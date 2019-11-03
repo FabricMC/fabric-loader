@@ -50,8 +50,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 		}
 	}
 
-	private <T extends Descriptored> void putDescriptoredInLookup(String from, String to, Collection<T> descriptored,
-																Map<String, Set<String>> lookup) {
+	private <T extends Descriptored> void putDescriptoredInLookup(String from, String to, Collection<T> descriptored, Map<String, Set<String>> lookup) {
 		for (T field : descriptored) {
 			String nameFrom = field.getName(from);
 			String descFrom = field.getDescriptor(from);

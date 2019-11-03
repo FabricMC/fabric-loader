@@ -84,8 +84,7 @@ class FabricMappingResolver implements MappingResolver {
 		return classNameMap.computeIfAbsent(s, FabricMappingResolver::replaceSlashesWithDots);
 	}
 
-	private <T extends Descriptored> void recordMember(String fromNamespace, Collection<T> descriptoredList,
-													Map<EntryTriple, String> putInto, String fromClass) {
+	private <T extends Descriptored> void recordMember(String fromNamespace, Collection<T> descriptoredList, Map<EntryTriple, String> putInto, String fromClass) {
 		for (T descriptored : descriptoredList) {
 			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace), descriptored.getDescriptor(fromNamespace));
 			putInto.put(fromEntry, descriptored.getName(targetNamespace));
