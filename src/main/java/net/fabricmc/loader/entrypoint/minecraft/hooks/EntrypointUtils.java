@@ -17,6 +17,7 @@
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.gui.FabricGuiEntry;
 
 import java.util.ArrayList;
 import java.util.Collection;
