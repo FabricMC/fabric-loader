@@ -16,14 +16,19 @@
 
 package net.fabricmc.loader;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.Descriptored;
 import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.mappings.EntryTriple;
-
-import java.util.*;
-import java.util.function.Supplier;
 
 class FabricMappingResolver implements MappingResolver {
 	private final Supplier<TinyTree> mappingsSupplier;
@@ -55,31 +60,34 @@ class FabricMappingResolver implements MappingResolver {
 			Map<String, String> classNameMap = new HashMap<>();
 
 			for (ClassDef classEntry : mappings.getClasses()) {
-				String fromClass = computeIfAbsentClassName(classNameMap, classEntry.getName(fromNamespace));
-				String toClass = computeIfAbsentClassName(classNameMap, classEntry.getName(targetNamespace));
+				String fromClass = mapClassName(classNameMap, classEntry.getName(fromNamespace));
+				String toClass = mapClassName(classNameMap, classEntry.getName(targetNamespace));
 
 				data.classNames.put(fromClass, toClass);
 				data.classNamesInverse.put(toClass, fromClass);
 
-				String mappedClassName = computeIfAbsentClassName(classNameMap, fromClass);
+				String mappedClassName = mapClassName(classNameMap, fromClass);
 
-				putDescriptored(fromNamespace, classEntry.getFields(), data.fieldNames, mappedClassName);
-				putDescriptored(fromNamespace, classEntry.getMethods(), data.methodNames, mappedClassName);
+				recordMember(fromNamespace, classEntry.getFields(), data.fieldNames, mappedClassName);
+				recordMember(fromNamespace, classEntry.getMethods(), data.methodNames, mappedClassName);
 			}
 
 			return data;
 		});
 	}
 
-	private String computeIfAbsentClassName(Map<String, String> classNameMap, String s) {
-		return classNameMap.computeIfAbsent(s, (cname) -> cname.replace('/', '.'));
+	private static String replaceSlashesWithDots(String cname) {
+		return cname.replace('/', '.');
 	}
 
-	private <T extends Descriptored> void putDescriptored(String fromNamespace, Collection<T> descriptoredList,
-														  Map<EntryTriple, String> putInto, String fromClass) {
+	private String mapClassName(Map<String, String> classNameMap, String s) {
+		return classNameMap.computeIfAbsent(s, FabricMappingResolver::replaceSlashesWithDots);
+	}
+
+	private <T extends Descriptored> void recordMember(String fromNamespace, Collection<T> descriptoredList,
+													Map<EntryTriple, String> putInto, String fromClass) {
 		for (T descriptored : descriptoredList) {
-			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace),
-				descriptored.getDescriptor(fromNamespace));
+			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace), descriptored.getDescriptor(fromNamespace));
 			putInto.put(fromEntry, descriptored.getName(targetNamespace));
 		}
 	}
