@@ -16,15 +16,16 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.mapping.tree.TinyMappingFactory;
-import net.fabricmc.mapping.tree.TinyTree;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import net.fabricmc.mapping.tree.TinyMappingFactory;
+import net.fabricmc.mapping.tree.TinyTree;
 
 public class MappingConfiguration {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
@@ -37,7 +38,7 @@ public class MappingConfiguration {
 			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
 
 			if (mappingStream != null) {
-				try(BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
 					long time = System.currentTimeMillis();
 					mappings = TinyMappingFactory.loadWithDetection(reader);
 					LOGGER.debug("Loading mappings took " + (System.currentTimeMillis() - time) + " ms");
