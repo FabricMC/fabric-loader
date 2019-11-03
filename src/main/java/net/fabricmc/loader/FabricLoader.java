@@ -16,26 +16,39 @@
 
 package net.fabricmc.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.discovery.*;
+import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
+import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
+import net.fabricmc.loader.discovery.ModCandidate;
+import net.fabricmc.loader.discovery.ModResolutionException;
+import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.*;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The main class for mod loading operations.
@@ -149,15 +162,18 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (provider == null) throw new IllegalStateException("game provider not set");
 		if (frozen) throw new IllegalStateException("Frozen - cannot load additional mods!");
 
+		try {
+			setup();
+		} catch (ModResolutionException exception) {
+			FabricGuiEntry.displayCriticalError(exception, true);
+		}
+	}
+
+	private void setup() throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath()));
-		Map<String, ModCandidate> candidateMap;
-		try {
-			candidateMap = resolver.resolve(this);
-		} catch (ModResolutionException e) {
-			throw new RuntimeException("Failed to resolve mods!", e);
-		}
+		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
 		String modText;
 		switch (candidateMap.values().size()) {
@@ -244,12 +260,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected void addMod(ModCandidate candidate) {
+	protected void addMod(ModCandidate candidate) throws ModResolutionException {
 		LoaderModMetadata info = candidate.getInfo();
 		URL originUrl = candidate.getOriginUrl();
 
 		if (modMap.containsKey(info.getId())) {
-			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
 		if (!info.loadsInEnvironment(getEnvironmentType())) {
