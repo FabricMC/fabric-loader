@@ -17,30 +17,39 @@
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.gui.FabricGuiEntry;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-final class EntrypointUtils {
-	private EntrypointUtils() {
+public final class EntrypointUtils {
+	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {
+		@SuppressWarnings("deprecation")
+		FabricLoader loader = FabricLoader.INSTANCE;
 
+		if (!loader.hasEntrypoints(name)) {
+			loader.getLogger().debug("No subscribers for entrypoint '" + name + "'");
+		} else {
+			invoke0(name, type, invoker);
+		}
 	}
 
-	static <T> void logErrors(String name, Collection<T> entrypoints, Consumer<T> entrypointConsumer) {
+	private static <T> void invoke0(String name, Class<T> type, Consumer<? super T> invoker) {
+		@SuppressWarnings("deprecation")
+		FabricLoader loader = FabricLoader.INSTANCE;
+		Collection<T> entrypoints = loader.getEntrypoints(name, type);
 		List<Throwable> errors = new ArrayList<>();
 
-		FabricLoader.INSTANCE.getLogger().debug("Iterating over entrypoint '" + name + "'");
+		loader.getLogger().debug("Iterating over entrypoint '" + name + "'");
 
-		entrypoints.forEach((e) -> {
+		for (T e : entrypoints) {
 			try {
-				entrypointConsumer.accept(e);
+				invoker.accept(e);
 			} catch (Throwable t) {
 				errors.add(t);
 			}
-		});
+		}
 
 		if (!errors.isEmpty()) {
 			RuntimeException exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors!");
@@ -48,7 +57,7 @@ final class EntrypointUtils {
 			for (Throwable t : errors) {
 				exception.addSuppressed(t);
 			}
-			
+
 			throw exception;
 		}
 	}

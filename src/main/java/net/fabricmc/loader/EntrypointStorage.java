@@ -25,10 +25,9 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 class EntrypointStorage {
-	static interface Entry {
+	interface Entry {
 		<T> T getOrCreate(Class<T> type) throws Exception;
 	}
 
@@ -125,6 +124,10 @@ class EntrypointStorage {
 		getOrCreateEntries(key).add(new NewEntry(
 			modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
 		));
+	}
+
+	boolean hasEntrypoints(String key) {
+		return entryMap.containsKey(key);
 	}
 
 	protected <T> List<T> getEntrypoints(String key, Class<T> type) {

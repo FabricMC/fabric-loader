@@ -18,6 +18,8 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.PreMainEntrypoint;
+import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -94,9 +96,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 
-		FabricLoader.INSTANCE.setGameProvider(provider);
-		FabricLoader.INSTANCE.load();
-		FabricLoader.INSTANCE.freeze();
+		@SuppressWarnings("deprecation")
+		FabricLoader loader = FabricLoader.INSTANCE;
+		loader.setGameProvider(provider);
+		loader.load();
+		loader.freeze();
 
 		launchClassLoader.registerTransformer("net.fabricmc.loader.launch.FabricClassTransformer");
 
@@ -124,6 +128,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
+
+		EntrypointUtils.invoke("preMain", PreMainEntrypoint.class, PreMainEntrypoint::onPreMain);
 	}
 
 	@Override

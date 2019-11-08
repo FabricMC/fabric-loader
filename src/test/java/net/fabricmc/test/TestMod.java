@@ -17,16 +17,31 @@
 package net.fabricmc.test;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.PreMainEntrypoint;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class TestMod implements ModInitializer {
+public class TestMod implements PreMainEntrypoint, ModInitializer {
 
 	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
 
 	@Override
+	public void onPreMain() {
+		if (TestMod.class.getClassLoader() != FabricLauncherBase.getLauncher().getTargetClassLoader()) {
+			throw new IllegalStateException("invalid class loader: "+TestMod.class.getClassLoader());
+		}
+
+		LOGGER.info("In preMain (cl "+TestMod.class.getClassLoader()+")");
+	}
+
+	@Override
 	public void onInitialize() {
+		if (TestMod.class.getClassLoader() != FabricLauncherBase.getLauncher().getTargetClassLoader()) {
+			throw new IllegalStateException("invalid class loader: "+TestMod.class.getClassLoader());
+		}
+
 		LOGGER.info("**************************");
 		LOGGER.info("Hello from Fabric");
 		LOGGER.info("**************************");
