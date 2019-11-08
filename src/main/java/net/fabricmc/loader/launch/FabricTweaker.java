@@ -18,7 +18,7 @@ package net.fabricmc.loader.launch;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.PreMainEntrypoint;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.MinecraftGameProvider;
@@ -129,7 +129,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
-		EntrypointUtils.invoke("preMain", PreMainEntrypoint.class, PreMainEntrypoint::onPreMain);
+		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 	}
 
 	@Override

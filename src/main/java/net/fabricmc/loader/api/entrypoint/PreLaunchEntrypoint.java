@@ -20,12 +20,14 @@ package net.fabricmc.loader.api.entrypoint;
  * Entrypoint getting invoked just before launching the game.
  *
  * <p><b>Avoid interfering with the game from this!</b> Accessing anything needs careful consideration to avoid
- * interfering with its own initialization or otherwise harming its state.
+ * interfering with its own initialization or otherwise harming its state. It is recommended to implement this interface
+ * on its own class to avoid running static initializers too early, e.g. because they were referenced in field or method
+ * signatures in the same class.
  *
- * <p>The entrypoint is exposed as {@code preMain} in the mod json and runs for any environment. It usually executes
+ * <p>The entrypoint is exposed as {@code preLaunch} in the mod json and runs for any environment. It usually executes
  * several seconds before the main/client/server entrypoints.
  */
 @FunctionalInterface
-public interface PreMainEntrypoint {
-	void onPreMain();
+public interface PreLaunchEntrypoint {
+	void onPreLaunch();
 }

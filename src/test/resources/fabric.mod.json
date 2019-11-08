@@ -11,7 +11,7 @@
     }
   ],
   "entrypoints": {
-    "preMain": [
+    "preLaunch": [
       "net.fabricmc.test.TestMod"
     ],
     "main": [

@@ -18,7 +18,7 @@ package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.PreMainEntrypoint;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
@@ -133,7 +133,7 @@ public final class Knot extends FabricLauncherBase {
 
 		classLoader.getDelegate().initializeTransformers();
 
-		EntrypointUtils.invoke("preMain", PreMainEntrypoint.class, PreMainEntrypoint::onPreMain);
+		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 
 		provider.launch(cl);
 	}

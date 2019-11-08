@@ -17,23 +17,29 @@
 package net.fabricmc.test;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.entrypoint.PreMainEntrypoint;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class TestMod implements PreMainEntrypoint, ModInitializer {
+public class TestMod implements PreLaunchEntrypoint, ModInitializer {
 
 	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
 
+	/**
+	 * Entrypoint implementation for preLaunch.
+	 *
+	 * <p>Warning: This should normally be in a separate class from later entrypoints to avoid accidentally loading
+	 * and/or initializing game classes. This is just trivial test code not meant for production use.
+	 */
 	@Override
-	public void onPreMain() {
+	public void onPreLaunch() {
 		if (TestMod.class.getClassLoader() != FabricLauncherBase.getLauncher().getTargetClassLoader()) {
 			throw new IllegalStateException("invalid class loader: "+TestMod.class.getClassLoader());
 		}
 
-		LOGGER.info("In preMain (cl "+TestMod.class.getClassLoader()+")");
+		LOGGER.info("In preLaunch (cl "+TestMod.class.getClassLoader()+")");
 	}
 
 	@Override
