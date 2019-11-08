@@ -54,7 +54,7 @@ public class MappingConfiguration {
 			}
 
 			if (mappings == null) {
-				LOGGER.warn("Could not find tiny mappings, mods using the mappings api will break.");
+				LOGGER.info("Mappings not present, mods using the mappings API may not work.");
 				mappings = TinyMappingFactory.EMPTY_TREE;
 			}
 

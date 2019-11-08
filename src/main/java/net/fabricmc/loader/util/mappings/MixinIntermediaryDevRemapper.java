@@ -35,8 +35,6 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 	public MixinIntermediaryDevRemapper(TinyTree mappings, String from, String to) {
 		super(mappings, from, to);
 
-		// Asie sincerely hated that he had to do this.
-
 		nameDescFieldLookup = new HashMap<>();
 		nameDescMethodLookup = new HashMap<>();
 		allPossibleClassNames = new HashSet<>();
