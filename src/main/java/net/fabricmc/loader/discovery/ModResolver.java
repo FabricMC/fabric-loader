@@ -167,7 +167,7 @@ public class ModResolver {
 						try {
 							solver.addClause(new VecInt(clause));
 						} catch (ContradictionException e) {
-							throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " requires " + dep + ")", e);
+							throw new ModResolutionException("Could not find required mod: " + mod.getInfo().getId() + " requires " + dep, e);
 						}
 					}
 
@@ -188,7 +188,7 @@ public class ModResolver {
 								solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
 							}
 						} catch (ContradictionException e) {
-							throw new ModResolutionException("Could not resolve valid mod collection (at: " + mod.getInfo().getId() + " breaks " + dep + ")", e);
+							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " breaks " + dep, e);
 						}
 					}
 				}
@@ -590,13 +590,13 @@ public class ModResolver {
 				}
 			}
 		} catch (InterruptedException e) {
-			throw new RuntimeException("Mod resolution took too long!", e);
+			throw new ModResolutionException("Mod resolution took too long!", e);
 		}
 		if (tookTooLong) {
-			throw new RuntimeException("Mod resolution took too long!");
+			throw new ModResolutionException("Mod resolution took too long!");
 		}
 		if (exception != null) {
-			throw new RuntimeException("Mod resolution failed!", exception);
+			throw new ModResolutionException("Mod resolution failed!", exception);
 		}
 
 		long time2 = System.currentTimeMillis();

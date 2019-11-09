@@ -55,8 +55,8 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-mappings-parser:0.1.1.8'
-	compile 'net.fabricmc:tiny-remapper:0.1.0.40'
+	compile 'net.fabricmc:tiny-mappings-parser:0.2.0.11'
+	compile 'net.fabricmc:tiny-remapper:0.2.0.52'
 
 	compile 'com.google.jimfs:jimfs:1.1'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'

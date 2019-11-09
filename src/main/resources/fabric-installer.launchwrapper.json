@@ -9,7 +9,7 @@
         "name": "net.minecraft:launchwrapper:1.12"
       },
       {
-        "name": "net.fabricmc:tiny-mappings-parser:0.1.1.8",
+        "name": "net.fabricmc:tiny-mappings-parser:0.2.0.11",
         "url": "https://maven.fabricmc.net/"
       },
       {
@@ -17,7 +17,7 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:tiny-remapper:0.1.0.40",
+        "name": "net.fabricmc:tiny-remapper:0.2.0.52",
         "url": "https://maven.fabricmc.net/"
       },
       {

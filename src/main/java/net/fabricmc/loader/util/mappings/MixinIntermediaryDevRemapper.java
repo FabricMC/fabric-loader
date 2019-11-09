@@ -16,46 +16,45 @@
 
 package net.fabricmc.loader.util.mappings;
 
-import net.fabricmc.mappings.*;
-import net.fabricmc.mappings.helpers.mixin.MixinMappingsRemapper;
+import net.fabricmc.mapping.tree.ClassDef;
+import net.fabricmc.mapping.tree.Descriptored;
+import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mapping.util.MixinRemapper;
 import org.spongepowered.asm.mixin.transformer.ClassInfo;
 
 import java.util.*;
 
-public class MixinIntermediaryDevRemapper extends MixinMappingsRemapper {
+public class MixinIntermediaryDevRemapper extends MixinRemapper {
 	private final Set<String> allPossibleClassNames;
 	private final Map<String, Set<String>> nameDescFieldLookup, nameDescMethodLookup;
 
-	private static String getNameDescKey(EntryTriple triple) {
-		return triple.getName() + ";;" + triple.getDesc();
+	private static String getNameDescKey(String name, String descriptor) {
+		return name+ ";;" + descriptor;
 	}
 
-	public MixinIntermediaryDevRemapper(Mappings mappings, String from, String to) {
+	public MixinIntermediaryDevRemapper(TinyTree mappings, String from, String to) {
 		super(mappings, from, to);
-
-		// I sincerely hate that I have to do this.
 
 		nameDescFieldLookup = new HashMap<>();
 		nameDescMethodLookup = new HashMap<>();
 		allPossibleClassNames = new HashSet<>();
 
-		for (FieldEntry entry : mappings.getFieldEntries()) {
-			EntryTriple tripleFrom = entry.get(from);
-			EntryTriple tripleTo = entry.get(to);
+		for (ClassDef classDef : mappings.getClasses()) {
+			allPossibleClassNames.add(classDef.getName(from));
+			allPossibleClassNames.add(classDef.getName(to));
 
-			nameDescFieldLookup.computeIfAbsent(getNameDescKey(tripleFrom), (a) -> new HashSet<>()).add(tripleTo.getName());
+			putDescriptoredInLookup(from, to, classDef.getFields(), nameDescFieldLookup);
+			putDescriptoredInLookup(from, to, classDef.getMethods(), nameDescMethodLookup);
 		}
+	}
 
-		for (MethodEntry entry : mappings.getMethodEntries()) {
-			EntryTriple tripleFrom = entry.get(from);
-			EntryTriple tripleTo = entry.get(to);
+	private <T extends Descriptored> void putDescriptoredInLookup(String from, String to, Collection<T> descriptored, Map<String, Set<String>> lookup) {
+		for (T field : descriptored) {
+			String nameFrom = field.getName(from);
+			String descFrom = field.getDescriptor(from);
+			String nameTo = field.getName(to);
 
-			nameDescMethodLookup.computeIfAbsent(getNameDescKey(tripleFrom), (a) -> new HashSet<>()).add(tripleTo.getName());
-		}
-
-		for (ClassEntry entry : mappings.getClassEntries()) {
-			allPossibleClassNames.add(entry.get(from));
-			allPossibleClassNames.add(entry.get(to));
+			lookup.computeIfAbsent(getNameDescKey(nameFrom,descFrom), (a) -> new HashSet<>()).add(nameTo);
 		}
 	}
 
