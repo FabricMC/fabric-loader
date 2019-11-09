@@ -51,7 +51,7 @@ dependencies {
 	compile 'org.ow2.asm:asm-tree:7.2'
 	compile 'org.ow2.asm:asm-util:7.2'
 
-	compile('net.fabricmc:sponge-mixin:0.8.11') {
+	compile('net.fabricmc:sponge-mixin:0.8+build.13') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
