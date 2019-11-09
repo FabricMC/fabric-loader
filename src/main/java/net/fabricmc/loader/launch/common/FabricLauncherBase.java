@@ -21,7 +21,7 @@ import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.Arguments;
-import net.fabricmc.mappings.Mappings;
+import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 import org.apache.logging.log4j.LogManager;
@@ -71,10 +71,10 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
 
-		Mappings mappings = launcher.isDevelopment() ? null : mappingConfiguration.getMappings();
+		TinyTree mappings = launcher.isDevelopment() ? null : mappingConfiguration.getMappings();
 		String targetNamespace = mappingConfiguration.getTargetNamespace();
 
-		if (mappings != null && mappings.getNamespaces().contains(targetNamespace)) {
+		if (mappings != null && mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
 			LOGGER.debug("Fabric mapping file detected, applying...");
 
 			try {
