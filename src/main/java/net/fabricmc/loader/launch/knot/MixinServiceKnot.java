@@ -34,7 +34,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 
-public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider {
+public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider, ITransformerProvider, IClassTracker {
 	private final ReEntranceLock lock;
 
 	public MixinServiceKnot() {
@@ -137,6 +137,21 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	@Override
 	public IClassBytecodeProvider getBytecodeProvider() {
 		return this;
+	}
+
+	@Override
+	public ITransformerProvider getTransformerProvider() {
+		return this;
+	}
+
+	@Override
+	public IClassTracker getClassTracker() {
+		return this;
+	}
+
+	@Override
+	public IMixinAuditTrail getAuditTrail() {
+		return null;
 	}
 
 	@Override
