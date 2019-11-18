@@ -23,7 +23,7 @@ import net.fabricmc.loader.transformer.FabricTransformer;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import org.spongepowered.asm.mixin.transformer.MixinTransformer;
+import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -59,7 +59,7 @@ class KnotClassDelegate {
 	private final GameProvider provider;
 	private final boolean isDevelopment;
 	private final EnvType envType;
-	private MixinTransformer mixinTransformer;
+	private FabricMixinTransformerProxy mixinTransformer;
 	private boolean transformInitialized = false;
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
@@ -74,18 +74,12 @@ class KnotClassDelegate {
 			throw new RuntimeException("Cannot initialize KnotClassDelegate twice!");
 		}
 
-		try {
-			Constructor<MixinTransformer> constructor = MixinTransformer.class.getDeclaredConstructor();
-			constructor.setAccessible(true);
-			mixinTransformer = constructor.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		mixinTransformer = new FabricMixinTransformerProxy();
 
 		transformInitialized = true;
 	}
 
-	private MixinTransformer getMixinTransformer() {
+	private FabricMixinTransformerProxy getMixinTransformer() {
 		assert mixinTransformer != null;
 		return mixinTransformer;
 	}
