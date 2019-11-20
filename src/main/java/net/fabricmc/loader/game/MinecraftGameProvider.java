@@ -166,6 +166,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public boolean canOpenErrorGui() {
+		// Disabled on macs due to -XstartOnFirstThread being incompatible with awt but required for lwjgl
 		if (System.getProperty("os.name").equals("Mac OS X")) {
 			return false;
 		}
