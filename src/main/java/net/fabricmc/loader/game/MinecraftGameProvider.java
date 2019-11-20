@@ -166,6 +166,10 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public boolean canOpenErrorGui() {
+		if (System.getProperty("os.name").equals("Mac OS X")) {
+			return false;
+		}
+
 		if (arguments == null || envType == EnvType.CLIENT) {
 			return true;
 		}
