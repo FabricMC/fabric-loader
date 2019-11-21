@@ -39,14 +39,14 @@ import net.fabricmc.loader.util.FileSystemUtil;
 
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
-			"\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-Release \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
+			"\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
 			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
 			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
 			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
 			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
-	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-Release )(\\d+)");
+	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(\\d+)w(\\d+)([a-z])");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
@@ -157,6 +157,9 @@ public final class McVersionLookup {
 		if (pos >= 0) return version.substring(0, pos);
 
 		pos = version.indexOf(" Pre-Release ");
+		if (pos >= 0) return version.substring(0, pos);
+
+		pos = version.indexOf(" Pre-release ");
 		if (pos >= 0) return version.substring(0, pos);
 
 		Matcher matcher = SNAPSHOT_PATTERN.matcher(version);
