@@ -25,50 +25,49 @@ import org.spongepowered.asm.mixin.transformer.ClassInfo;
 import java.util.*;
 
 public class MixinIntermediaryDevRemapper extends MixinRemapper {
-	private final Set<String> allPossibleClassNames;
-	private final Map<String, Set<String>> nameDescFieldLookup, nameDescMethodLookup;
+	private static final String ambiguousName = "<ambiguous>"; // dummy value for ambiguous mappings - needs querying with additional owner and/or desc info
 
-	private static String getNameDescKey(String name, String descriptor) {
-		return name+ ";;" + descriptor;
-	}
+	private final Set<String> allPossibleClassNames = new HashSet<>();
+	private final Map<String, String> nameFieldLookup = new HashMap<>();
+	private final Map<String, String> nameMethodLookup = new HashMap<>();
+	private final Map<String, String> nameDescFieldLookup = new HashMap<>();
+	private final Map<String, String> nameDescMethodLookup = new HashMap<>();
 
 	public MixinIntermediaryDevRemapper(TinyTree mappings, String from, String to) {
 		super(mappings, from, to);
-
-		nameDescFieldLookup = new HashMap<>();
-		nameDescMethodLookup = new HashMap<>();
-		allPossibleClassNames = new HashSet<>();
 
 		for (ClassDef classDef : mappings.getClasses()) {
 			allPossibleClassNames.add(classDef.getName(from));
 			allPossibleClassNames.add(classDef.getName(to));
 
-			putDescriptoredInLookup(from, to, classDef.getFields(), nameDescFieldLookup);
-			putDescriptoredInLookup(from, to, classDef.getMethods(), nameDescMethodLookup);
+			putMemberInLookup(from, to, classDef.getFields(), nameFieldLookup, nameDescFieldLookup);
+			putMemberInLookup(from, to, classDef.getMethods(), nameMethodLookup, nameDescMethodLookup);
 		}
 	}
 
-	private <T extends Descriptored> void putDescriptoredInLookup(String from, String to, Collection<T> descriptored, Map<String, Set<String>> lookup) {
+	private <T extends Descriptored> void putMemberInLookup(String from, String to, Collection<T> descriptored, Map<String, String> nameMap, Map<String, String> nameDescMap) {
 		for (T field : descriptored) {
 			String nameFrom = field.getName(from);
 			String descFrom = field.getDescriptor(from);
 			String nameTo = field.getName(to);
 
-			lookup.computeIfAbsent(getNameDescKey(nameFrom,descFrom), (a) -> new HashSet<>()).add(nameTo);
+			String prev = nameMap.putIfAbsent(nameFrom, nameTo);
+
+			if (prev != null && prev != ambiguousName && !prev.equals(nameTo)) {
+				nameDescMap.put(nameFrom, ambiguousName);
+			}
+
+			String key = getNameDescKey(nameFrom,descFrom);
+			prev = nameDescMap.putIfAbsent(key, nameTo);
+
+			if (prev != null && prev != ambiguousName && !prev.equals(nameTo)) {
+				nameDescMap.put(key, ambiguousName);
+			}
 		}
 	}
 
-	private void throwAmbiguousLookup(String type, String name, String desc, Set<String> values) {
-		StringBuilder builder = new StringBuilder("Ambiguous Mixin " + type + " lookup: " + name + " " + desc + " -> ");
-		int i = 0;
-		for (String s : values) {
-			if ((i++) > 0) {
-				builder.append(", ");
-			}
-
-			builder.append(s);
-		}
-		throw new RuntimeException(builder.toString());
+	private void throwAmbiguousLookup(String type, String name, String desc) {
+		throw new RuntimeException("Ambiguous Mixin: " + type + " lookup " + name + " " + desc+" is not unique");
 	}
 
 	private String mapMethodNameInner(String owner, String name, String desc) {
@@ -95,21 +94,30 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 	public String mapMethodName(String owner, String name, String desc) {
 		// handle unambiguous values early
 		if (owner == null || allPossibleClassNames.contains(owner)) {
-			Set<String> values = nameDescMethodLookup.get(name + ";;" + desc);
-			if (values != null && !values.isEmpty()) {
-				if (values.size() > 1) {
+			String newName;
+
+			if (desc == null) {
+				newName = nameMethodLookup.get(name);
+			} else {
+				newName = nameDescMethodLookup.get(getNameDescKey(name, desc));
+			}
+
+			if (newName != null) {
+				if (newName == ambiguousName) {
 					if (owner == null) {
-						throwAmbiguousLookup("method", name, desc, values);
+						throwAmbiguousLookup("method", name, desc);
 					}
 				} else {
-					return values.iterator().next();
+					return newName;
 				}
 			} else if (owner == null) {
 				return name;
 			} else {
+				// FIXME: this kind of namespace mixing shouldn't happen..
 				// TODO: this should not repeat more than once
 				String unmapOwner = unmap(owner);
 				String unmapDesc = unmapDesc(desc);
+
 				if (!unmapOwner.equals(owner) || !unmapDesc.equals(desc)) {
 					return mapMethodName(unmapOwner, name, unmapDesc);
 				} else {
@@ -121,7 +129,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 			}
 		}
 
-		LinkedList<ClassInfo> classInfos = new LinkedList<>();
+		Queue<ClassInfo> classInfos = new ArrayDeque<>();
 		classInfos.add(ClassInfo.forName(owner));
 
 		while (!classInfos.isEmpty()) {
@@ -158,21 +166,24 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 	public String mapFieldName(String owner, String name, String desc) {
 		// handle unambiguous values early
 		if (owner == null || allPossibleClassNames.contains(owner)) {
-			Set<String> values = nameDescFieldLookup.get(name + ";;" + desc);
-			if (values != null && !values.isEmpty()) {
-				if (values.size() > 1) {
+			String newName = nameDescFieldLookup.get(getNameDescKey(name, desc));
+
+			if (newName != null) {
+				if (newName == ambiguousName) {
 					if (owner == null) {
-						throwAmbiguousLookup("field", name, desc, values);
+						throwAmbiguousLookup("field", name, desc);
 					}
 				} else {
-					return values.iterator().next();
+					return newName;
 				}
 			} else if (owner == null) {
 				return name;
 			} else {
+				// FIXME: this kind of namespace mixing shouldn't happen..
 				// TODO: this should not repeat more than once
 				String unmapOwner = unmap(owner);
 				String unmapDesc = unmapDesc(desc);
+
 				if (!unmapOwner.equals(owner) || !unmapDesc.equals(desc)) {
 					return mapFieldName(unmapOwner, name, unmapDesc);
 				} else {
@@ -201,5 +212,9 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 		}
 
 		return name;
+	}
+
+	private static String getNameDescKey(String name, String descriptor) {
+		return name+ ";;" + descriptor;
 	}
 }
