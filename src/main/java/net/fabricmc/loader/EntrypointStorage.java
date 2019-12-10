@@ -152,10 +152,8 @@ class EntrypointStorage {
 		if (!exceptions.isEmpty()) {
 			EntrypointException e = new EntrypointException(key, exceptions.get(0));
 
-			for (Exception suppressed : exceptions) {
-				if (suppressed != e.getCause()) {
-					e.addSuppressed(suppressed);
-				}
+			for (int i = 1; i < exceptions.size(); i++) {
+				e.addSuppressed(exceptions.get(i));
 			}
 
 			throw e;
