@@ -20,7 +20,7 @@ public class EntrypointException extends RuntimeException {
 	private final String key;
 
 	public EntrypointException(String key, Throwable cause) {
-		super("Exception while loading entries for for entrypoint " + key + "!", cause);
+		super("Exception while loading entries for entrypoint " + key + "!", cause);
 		this.key = key;
 	}
 
