@@ -150,10 +150,11 @@ class EntrypointStorage {
 		}
 
 		if (!exceptions.isEmpty()) {
-			EntrypointException e = new EntrypointException(key, exceptions.get(0));
+			Iterator<Exception> it = exceptions.iterator();
+			EntrypointException e = new EntrypointException(key, it.next());
 
-			for (int i = 1; i < exceptions.size(); i++) {
-				e.addSuppressed(exceptions.get(i));
+			while (it.hasNext()) {
+				e.addSuppressed(it.next());
 			}
 
 			throw e;
