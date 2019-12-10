@@ -17,15 +17,14 @@
 package net.fabricmc.loader.api;
 
 public class EntrypointException extends RuntimeException {
-	public EntrypointException(Throwable t) {
-		super(t);
+	private final String key;
+
+	public EntrypointException(String key, Throwable cause) {
+		super("Exception while loading entries for for entrypoint " + key + "!", cause);
+		this.key = key;
 	}
 
-	public EntrypointException(String s) {
-		super(s);
-	}
-
-	public EntrypointException(String s, Throwable t) {
-		super(s, t);
+	public String getKey() {
+		return key;
 	}
 }
