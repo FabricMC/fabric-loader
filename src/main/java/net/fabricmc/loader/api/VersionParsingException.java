@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util.version;
+package net.fabricmc.loader.api;
 
 public class VersionParsingException extends Exception {
 	private static final long serialVersionUID = 8343336903854943054L;
