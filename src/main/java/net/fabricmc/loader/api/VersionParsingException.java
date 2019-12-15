@@ -16,12 +16,21 @@
 
 package net.fabricmc.loader.api;
 
-import net.fabricmc.loader.util.version.VersionDeserializer;
+@SuppressWarnings("deprecation") //Extending the deprecated one for backwards compatibility
+public class VersionParsingException extends net.fabricmc.loader.util.version.VersionParsingException {
+	public VersionParsingException() {
+		super();
+	}
 
-public interface Version {
-	String getFriendlyString();
+	public VersionParsingException(Throwable t) {
+		super(t);
+	}
 
-	static Version parse(String string) throws VersionParsingException {
-		return VersionDeserializer.deserialize(string);
+	public VersionParsingException(String s) {
+		super(s);
+	}
+
+	public VersionParsingException(String s, Throwable t) {
+		super(s, t);
 	}
 }
