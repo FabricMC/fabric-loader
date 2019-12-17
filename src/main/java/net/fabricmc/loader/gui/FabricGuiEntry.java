@@ -59,12 +59,10 @@ public final class FabricGuiEntry {
 			try {
 				open(tree);
 			} catch (Exception e) {
-				RuntimeException ex = new RuntimeException("Failed to open the error gui!", e);
-
 				if (exitAfter) {
-					FabricLoader.INSTANCE.getLogger().error("", exception);
+					FabricLoader.INSTANCE.getLogger().warn("Failed to open the error gui!", e);
 				} else {
-					throw ex;
+					throw new RuntimeException("Failed to open the error gui!", e);
 				}
 			}
 		}
