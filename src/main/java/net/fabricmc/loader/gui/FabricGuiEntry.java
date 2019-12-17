@@ -41,7 +41,7 @@ public final class FabricGuiEntry {
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
 	 *            return normally. */
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
-	    FabricLoader.INSTANCE.getLogger().fatal("", exception);
+		FabricLoader.INSTANCE.getLogger().fatal("", exception);
 
 		GameProvider provider = FabricLoader.INSTANCE.getGameProvider();
 
@@ -62,7 +62,7 @@ public final class FabricGuiEntry {
 				RuntimeException ex = new RuntimeException("Failed to open the error gui!", e);
 
 				if (exitAfter) {
-			        FabricLoader.INSTANCE.getLogger().error("", exception);
+					FabricLoader.INSTANCE.getLogger().error("", exception);
 				} else {
 					throw ex;
 				}
