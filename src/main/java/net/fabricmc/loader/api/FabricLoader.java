@@ -60,6 +60,12 @@ public interface FabricLoader {
 	Collection<ModContainer> getAllMods();
 
 	/**
+	 * Gets all mod containers added through {@link net.fabricmc.api.FakeModProvider}s.
+	 * @return A collection of all added fake mod containers.
+	 */
+	Collection<ModContainer> getFakeMods();
+
+	/**
 	 * Checks if a mod with a given ID is loaded.
 	 * @param id The ID of the mod, as defined in fabric.mod.json.
 	 * @return Whether or not the mod is present in this FabricLoader instance.

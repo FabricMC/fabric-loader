@@ -65,6 +65,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
+	protected final Map<String, ModContainer> fakeModMap = new HashMap<>();
+	protected List<net.fabricmc.loader.api.ModContainer> fakeMods = new ArrayList<>();
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
@@ -243,6 +245,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	@Override
+	public Collection<net.fabricmc.loader.api.ModContainer> getFakeMods() {
+		return Collections.unmodifiableList(mods);
+	}
+
+	@Override
 	public boolean isModLoaded(String id) {
 		return modMap.containsKey(id);
 	}
@@ -414,6 +421,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		} else {
 			setGameDir(newRunDir);
 		}
+	}
+
+	public void appendFakeMods(Collection<net.fabricmc.loader.api.ModContainer> mods) {
+		fakeMods.addAll(mods);
 	}
 
 	public Logger getLogger() {

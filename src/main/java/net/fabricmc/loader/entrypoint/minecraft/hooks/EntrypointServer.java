@@ -17,6 +17,7 @@
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
 import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.api.FakeModProvider;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 
@@ -30,6 +31,7 @@ public final class EntrypointServer {
 
 		FabricLoader.INSTANCE.prepareModInit(runDir, gameInstance);
 		EntrypointUtils.invoke("main", ModInitializer.class, ModInitializer::onInitialize);
+		FabricLoader.INSTANCE.getEntrypoints("fake_mods", FakeModProvider.class).forEach(provider -> FabricLoader.INSTANCE.appendFakeMods(provider.getFakeMods()));
 		EntrypointUtils.invoke("server", DedicatedServerModInitializer.class, DedicatedServerModInitializer::onInitializeServer);
 	}
 }
