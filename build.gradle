@@ -8,7 +8,7 @@ plugins {
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.3-SNAPSHOT"
+	id("fabric-loom") version "0.2.6-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -45,11 +45,11 @@ dependencies {
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:7.2'
-	compile 'org.ow2.asm:asm-analysis:7.2'
-	compile 'org.ow2.asm:asm-commons:7.2'
-	compile 'org.ow2.asm:asm-tree:7.2'
-	compile 'org.ow2.asm:asm-util:7.2'
+	compile 'org.ow2.asm:asm:7.3.1'
+	compile 'org.ow2.asm:asm-analysis:7.3.1'
+	compile 'org.ow2.asm:asm-commons:7.3.1'
+	compile 'org.ow2.asm:asm-tree:7.3.1'
+	compile 'org.ow2.asm:asm-util:7.3.1'
 
 	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
