@@ -159,16 +159,16 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 									URL source = realMeta == null ? null : realMeta.codeSource.getLocation();
 									throw new SecurityException("Cannot load the class " + name + " from "
 										+ ModResolver.describeRealLocation(metadata.codeSource.getLocation())
-										+ " because it's package has already been loaded (and sealed) from "
+										+ " because its package has already been loaded (and sealed) from "
 										+ ModResolver.describeRealLocation(source));
 								}
 							} else if (metadata.isPackageSealed(pkgName)) {
 								KnotClassDelegate.Metadata realMeta = delegate.packages.get(currentPackage);
 								URL source = realMeta == null ? null : realMeta.codeSource.getLocation();
 								throw new SecurityException("Cannot load the class " + name
-									+ " (and seal it's package) from "
+									+ " (and seal its package) from "
 									+ ModResolver.describeRealLocation(metadata.codeSource.getLocation())
-									+ " because it's package has already been loaded (but not sealed) from"
+									+ " because its package has already been loaded (but not sealed) from"
 									+ ModResolver.describeRealLocation(source));
 							}
 						} else {
