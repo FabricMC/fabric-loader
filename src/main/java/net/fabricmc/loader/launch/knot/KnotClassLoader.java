@@ -17,6 +17,7 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.game.GameProvider;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.net.URLClassLoader;
 import java.security.SecureClassLoader;
 import java.util.Enumeration;
 import java.util.Objects;
+import java.util.jar.Attributes;
 
 class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
 	private static class DynamicURLClassLoader extends URLClassLoader {
@@ -146,10 +148,31 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 
 					int pkgDelimiterPos = name.lastIndexOf('.');
 					if (pkgDelimiterPos > 0) {
-						// TODO: package definition stub
-						String pkgString = name.substring(0, pkgDelimiterPos);
-						if (getPackage(pkgString) == null) {
-							definePackage(pkgString, null, null, null, null, null, null, null);
+
+						String pkgName = name.substring(0, pkgDelimiterPos);
+						Package currentPackage = getPackage(pkgName);
+
+						if (currentPackage != null) {
+							if (currentPackage.isSealed()) {
+								if (!currentPackage.isSealed(metadata.codeSource.getLocation())) {
+									KnotClassDelegate.Metadata realMeta = delegate.packages.get(currentPackage);
+									URL source = realMeta == null ? null : realMeta.codeSource.getLocation();
+									throw new SecurityException("Cannot load the class " + name + " from "
+										+ ModResolver.describeRealLocation(metadata.codeSource.getLocation())
+										+ " because it's package has already been loaded (and sealed) from "
+										+ ModResolver.describeRealLocation(source));
+								}
+							} else if (metadata.isPackageSealed(pkgName)) {
+								KnotClassDelegate.Metadata realMeta = delegate.packages.get(currentPackage);
+								URL source = realMeta == null ? null : realMeta.codeSource.getLocation();
+								throw new SecurityException("Cannot load the class " + name
+									+ " (and seal it's package) from "
+									+ ModResolver.describeRealLocation(metadata.codeSource.getLocation())
+									+ " because it's package has already been loaded (but not sealed) from"
+									+ ModResolver.describeRealLocation(source));
+							}
+						} else {
+							definePackage(pkgName, metadata);
 						}
 					}
 
@@ -167,6 +190,18 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 
 			return c;
 		}
+	}
+
+	private void definePackage(String pkgName, KnotClassDelegate.Metadata metadata) {
+		String implVendor = metadata.getPackageValue(pkgName, Attributes.Name.IMPLEMENTATION_VENDOR);
+		String implVersion = metadata.getPackageValue(pkgName, Attributes.Name.IMPLEMENTATION_VERSION);
+		String implTitle = metadata.getPackageValue(pkgName, Attributes.Name.IMPLEMENTATION_TITLE);
+		String specVendor = metadata.getPackageValue(pkgName, Attributes.Name.SPECIFICATION_VENDOR);
+		String specVersion = metadata.getPackageValue(pkgName, Attributes.Name.SPECIFICATION_VERSION);
+		String specTitle = metadata.getPackageValue(pkgName, Attributes.Name.SPECIFICATION_TITLE);
+		URL sealBase = metadata.isPackageSealed(pkgName) ? metadata.codeSource.getLocation() : null;
+		Package pkg = definePackage(pkgName, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
+		delegate.packages.put(pkg, metadata);
 	}
 
 	@Override

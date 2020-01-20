@@ -28,7 +28,6 @@ import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -39,6 +38,7 @@ import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 class KnotClassDelegate {
@@ -52,9 +52,34 @@ class KnotClassDelegate {
 			this.manifest = manifest;
 			this.codeSource = codeSource;
 		}
+
+		boolean isPackageSealed(String pkgName) {
+			String value = getPackageValue(pkgName, Attributes.Name.SEALED);
+			return value != null && "true".equalsIgnoreCase(value);
+		}
+
+		String getPackageValue(String pkgName, Attributes.Name name) {
+			if (manifest == null) {
+				return null;
+			}
+
+			String value = null;
+			Attributes attributes = manifest.getAttributes(pkgName);
+
+			if (attributes != null) {
+				value = attributes.getValue(name);
+			}
+
+			if (value == null) {
+				value = manifest.getMainAttributes().getValue(name);
+			}
+
+			return value;
+		}
 	}
 
 	private final Map<String, Metadata> metadataCache = new HashMap<>();
+	final Map<Package, Metadata> packages = new HashMap<>();
 	private final KnotClassLoaderInterface itf;
 	private final GameProvider provider;
 	private final boolean isDevelopment;

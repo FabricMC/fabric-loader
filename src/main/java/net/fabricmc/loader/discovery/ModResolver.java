@@ -42,8 +42,10 @@ import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -69,7 +71,8 @@ public class ModResolver {
 			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
 			.build()
 	);
-	private static final Map<URL, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
+	private static final Map<URL, List<URL>> inMemoryCache = new ConcurrentHashMap<>();
+	private static final Map<URL, String> jarSources = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 	private static final Object launcherSyncObject = new Object();
 
@@ -503,10 +506,11 @@ public class ModResolver {
 				} else {
 					loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
 
-					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+					List<URL> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+						String parent = describeRealLocation(url);
 						loader.getLogger().debug("Searching for nested JARs in " + candidate);
 						Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
-						List<Path> list = new ArrayList<>(jars.size());
+						List<URL> list = new ArrayList<>(jars.size());
 
 						jars.stream()
 							.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
@@ -522,7 +526,13 @@ public class ModResolver {
 										throw new RuntimeException("Failed to load nested JAR " + modPath + " into memory (" + dest + ")!", e);
 									}
 
-									list.add(dest);
+									try {
+										URL childUrl = UrlUtil.asUrl(dest.normalize());
+										jarSources.put(childUrl, parent + "!" + modPath);
+										list.add(childUrl);
+									} catch (UrlConversionException e) {
+										throw new RuntimeException("Failed to turn path '" + dest.normalize() + "' into URL!", e);
+									}
 								}
 							});
 
@@ -532,12 +542,8 @@ public class ModResolver {
 					if (!jarInJars.isEmpty()) {
 						invokeAll(
 							jarInJars.stream()
-								.map((p) -> {
-									try {
-										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
-									} catch (UrlConversionException e) {
-										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
-									}
+								.map((u) -> {
+									return new UrlProcessAction(loader, candidatesById, u, depth + 1);
 								}).collect(Collectors.toList())
 						);
 					}
@@ -615,5 +621,29 @@ public class ModResolver {
 		}
 
 		return result;
+	}
+
+	public static String describeRealLocation(URL url) {
+		String location = jarSources.get(url);
+		if (location == null) {
+			String path;
+			try {
+				// decode "%20" into " " (amongst others)
+				path = url.toURI().getPath();
+			} catch (URISyntaxException e) {
+				path = url.getPath();
+			}
+			String gameDir = FabricLoader.INSTANCE.getGameDirectory().getAbsolutePath();
+			if (path.startsWith(gameDir)) {
+				String sub = path.substring(gameDir.length());
+				if (!sub.startsWith(File.separator)) {
+					sub = File.separator + sub;
+				}
+				return "<GameDirectory>" + sub;
+			}
+			return path;
+		} else {
+			return location;
+		}
 	}
 }
