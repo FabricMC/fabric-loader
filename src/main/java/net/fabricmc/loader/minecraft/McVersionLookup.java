@@ -42,12 +42,15 @@ public final class McVersionLookup {
 			"\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
 			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
 			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
+			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?|" // long alpha/beta names
 			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
 			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(\\d+)w(\\d+)([a-z])");
+	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)(\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)(\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
 	public static McVersion getVersion(Path gameJar) {
@@ -83,10 +86,16 @@ public final class McVersionLookup {
 				return ret;
 			}
 
-			// version-like constant return value of a Minecraft method (obfuscated/unknown name)
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/client/Minecraft.class"))
-					&& (ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null))) != null) {
-				return ret;
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/client/Minecraft.class"))) {
+				// version-like constant return value of a Minecraft method (obfuscated/unknown name)
+				if ((ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null))) != null) {
+					return ret;
+				}
+
+				// version-like constant passed into Display.setTitle in a Minecraft method (obfuscated/unknown name)
+				if ((ret = fromAnalyzer(Files.newInputStream(file), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"))) != null) {
+					return ret;
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -223,6 +232,17 @@ public final class McVersionLookup {
 	}
 
 	/**
+	 * Returns the probable version contained in the given string, or null if the string doesn't contain a version
+	 */
+	private static String findProbableVersion(String str) {
+		Matcher matcher = VERSION_PATTERN.matcher(str);
+		if (matcher.find())
+			return matcher.group();
+		else
+			return null;
+	}
+
+	/**
 	 * Convert an arbitrary MC version into semver-like release-preRelease form.
 	 *
 	 * <p>MC Snapshot -> alpha, MC Pre-Release -> rc.
@@ -250,6 +270,12 @@ public final class McVersionLookup {
 	}
 
 	private static String normalizeVersion(String version) {
+		Matcher matcher;
+		if ((matcher = BETA_PATTERN.matcher(version)).matches())
+			version = "b" + matcher.group(1);
+		else if ((matcher = ALPHA_PATTERN.matcher(version)).matches())
+			version = "a" + matcher.group(1);
+
 		StringBuilder ret = new StringBuilder(version.length() + 5);
 		boolean lastIsDigit = false;
 		boolean lastIsLeadingZero = false;
@@ -372,6 +398,61 @@ public final class McVersionLookup {
 
 		private final String fieldName;
 		private String className;
+		private String result;
+	}
+
+	private static final class MethodStringConstantContainsVisitor extends ClassVisitor implements Analyzer {
+		public MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
+			super(Opcodes.ASM7);
+
+			this.methodOwner = methodOwner;
+			this.methodName = methodName;
+		}
+
+		@Override
+		public String getResult() {
+			return result;
+		}
+
+		@Override
+		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+			if (result != null) return null;
+
+			// capture LDC ".." followed by INVOKE methodOwner.methodName
+			return new InsnFwdMethodVisitor() {
+				@Override
+				public void visitLdcInsn(Object value) {
+					if (value instanceof String) {
+						lastLdc = findProbableVersion((String) value);
+					} else {
+						lastLdc = null;
+					}
+				}
+
+				@Override
+				public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean itf) {
+					if (result == null
+						&& lastLdc != null
+						&& owner.equals(methodOwner)
+						&& name.equals(methodName)
+						&& descriptor.startsWith("(" + STRING_DESC + ")")) {
+						result = lastLdc;
+					}
+
+					lastLdc = null;
+				}
+
+				@Override
+				protected void visitAnyInsn() {
+					lastLdc = null;
+				}
+
+				String lastLdc;
+			};
+		}
+
+		private final String methodOwner;
+		private final String methodName;
 		private String result;
 	}
 
