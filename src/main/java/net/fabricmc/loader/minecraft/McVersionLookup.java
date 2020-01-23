@@ -239,10 +239,11 @@ public final class McVersionLookup {
 	 */
 	private static String findProbableVersion(String str) {
 		Matcher matcher = VERSION_PATTERN.matcher(str);
-		if (matcher.find())
+		if (matcher.find()) {
 			return matcher.group();
-		else
+		} else {
 			return null;
+		}
 	}
 
 	/**
@@ -274,16 +275,17 @@ public final class McVersionLookup {
 
 	private static String normalizeVersion(String version) {
 		Matcher matcher;
-		if ((matcher = BETA_PATTERN.matcher(version)).matches())
+		if ((matcher = BETA_PATTERN.matcher(version)).matches()) {
 			version = "0.33." + matcher.group(1);
-		else if ((matcher = ALPHA_PATTERN.matcher(version)).matches())
+		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) {
 			version = "0.32." + matcher.group(1);
-		else if ((matcher = INDEV_PATTERN.matcher(version)).matches())
+		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) {
 			version = "0.31." + matcher.group(1);
-		else if (version.startsWith("c")) // classic
+		} else if (version.startsWith("c")) { // classic
 			version = version.substring(1);
-		else if (version.startsWith("rd-")) // pre-classic
+		} else if (version.startsWith("rd-")) { // pre-classic
 			version = "0.0.0." + version.substring("rd-".length());
+		}
 
 		StringBuilder ret = new StringBuilder(version.length() + 5);
 		boolean lastIsDigit = false;
