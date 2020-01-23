@@ -39,12 +39,12 @@ import net.fabricmc.loader.util.FileSystemUtil;
 
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
-			"0\\.\\d+(\\.\\d+)?a?(_\\d+)?|" // match classic versions first
+			"0\\.\\d+(\\.\\d+)?a?(_\\d+)?|" // match classic versions first: 0.1.2a_34
 			+ "\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
 			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
 			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
-			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names
-			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names
+			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
+			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names: Infdev 12345678-9
 			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
 			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
 			);
@@ -274,17 +274,21 @@ public final class McVersionLookup {
 	}
 
 	private static String normalizeVersion(String version) {
+		// old version normalization scheme
+		// do this before the main part of normalization as we can get crazy strings like "Indev 0.31 12345678-9"
 		Matcher matcher;
-		if ((matcher = BETA_PATTERN.matcher(version)).matches()) {
-			version = "0.33." + matcher.group(1);
-		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) {
-			version = "0.32." + matcher.group(1);
-		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) {
+		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // beta 1.2.3: 1.0.0-beta.2.3
+			version = "1.0.0-beta." + matcher.group(1);
+		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // alpha 1.2.3: 1.0.0-alpha.2.3
+			version = "1.0.0-alpha." + matcher.group(1);
+		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // indev/infdev 12345678: 0.31.12345678
 			version = "0.31." + matcher.group(1);
-		} else if (version.startsWith("c")) { // classic
+		} else if (version.startsWith("c")) { // classic: unchanged, except remove prefix
 			version = version.substring(1);
 		} else if (version.startsWith("rd-")) { // pre-classic
-			version = "0.0.0." + version.substring("rd-".length());
+			version = version.substring("rd-".length());
+			if ("20090515".equals(version)) version = "150000"; // account for a weird exception to the pre-classic versioning scheme
+			version = "0.0.0-rd." + version;
 		}
 
 		StringBuilder ret = new StringBuilder(version.length() + 5);
