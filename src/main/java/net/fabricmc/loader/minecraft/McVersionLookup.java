@@ -239,6 +239,7 @@ public final class McVersionLookup {
 	 */
 	private static String findProbableVersion(String str) {
 		Matcher matcher = VERSION_PATTERN.matcher(str);
+
 		if (matcher.find()) {
 			return matcher.group();
 		} else {
@@ -277,13 +278,14 @@ public final class McVersionLookup {
 		// old version normalization scheme
 		// do this before the main part of normalization as we can get crazy strings like "Indev 0.31 12345678-9"
 		Matcher matcher;
+
 		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // beta 1.2.3: 1.0.0-beta.2.3
 			version = "1.0.0-beta." + matcher.group(1);
 		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // alpha 1.2.3: 1.0.0-alpha.2.3
 			version = "1.0.0-alpha." + matcher.group(1);
 		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // indev/infdev 12345678: 0.31.12345678
 			version = "0.31." + matcher.group(1);
-		} else if (version.startsWith("c")) { // classic: unchanged, except remove prefix
+		} else if (version.startsWith("c0.")) { // classic: unchanged, except remove prefix
 			version = version.substring(1);
 		} else if (version.startsWith("rd-")) { // pre-classic
 			version = version.substring("rd-".length());
