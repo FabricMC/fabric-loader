@@ -39,18 +39,21 @@ import net.fabricmc.loader.util.FileSystemUtil;
 
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
-			"\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
+			"0\\.\\d+(\\.\\d+)?a?(_\\d+)?|" // match classic versions first
+			+ "\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
 			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
 			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
-			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?|" // long alpha/beta names
+			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names
+			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names
 			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
 			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(\\d+)w(\\d+)([a-z])");
-	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)(\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)(\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
+	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
+	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
 	public static McVersion getVersion(Path gameJar) {
@@ -272,9 +275,15 @@ public final class McVersionLookup {
 	private static String normalizeVersion(String version) {
 		Matcher matcher;
 		if ((matcher = BETA_PATTERN.matcher(version)).matches())
-			version = "b" + matcher.group(1);
+			version = "0.33." + matcher.group(1);
 		else if ((matcher = ALPHA_PATTERN.matcher(version)).matches())
-			version = "a" + matcher.group(1);
+			version = "0.32." + matcher.group(1);
+		else if ((matcher = INDEV_PATTERN.matcher(version)).matches())
+			version = "0.31." + matcher.group(1);
+		else if (version.startsWith("c")) // classic
+			version = version.substring(1);
+		else if (version.startsWith("rd-")) // pre-classic
+			version = "0.0.0." + version.substring("rd-".length());
 
 		StringBuilder ret = new StringBuilder(version.length() + 5);
 		boolean lastIsDigit = false;
