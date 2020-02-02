@@ -136,7 +136,7 @@ class EntrypointStorage {
 			return Collections.emptyList();
 		}
 
-		List<Exception> exceptions = new ArrayList<>();
+		List<Throwable> errors = new ArrayList<>();
 		List<T> results = new ArrayList<>(entries.size());
 		for (Entry entry : entries) {
 			try {
@@ -144,15 +144,15 @@ class EntrypointStorage {
 				if (result != null) {
 					results.add(result);
 				}
-			} catch (Exception e) {
-				exceptions.add(e);
+			} catch (Throwable t) {
+				errors.add(t);
 			}
 		}
 
-		if (!exceptions.isEmpty()) {
+		if (!errors.isEmpty()) {
 			EntrypointException e = new EntrypointException("Could not look up entries for entrypoint " + key + "!");
 
-			for (Exception suppressed : exceptions) {
+			for (Throwable suppressed : errors) {
 				e.addSuppressed(suppressed);
 			}
 
