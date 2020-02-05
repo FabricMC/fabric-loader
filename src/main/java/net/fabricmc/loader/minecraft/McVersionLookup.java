@@ -50,7 +50,7 @@ public final class McVersionLookup {
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
-	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(\\d+)w(\\d+)([a-z])");
+	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
@@ -109,6 +109,7 @@ public final class McVersionLookup {
 
 	private static McVersion fromVersionJson(InputStream is) {
 		try (JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+			String id = null;
 			String name = null;
 			String release = null;
 
@@ -116,6 +117,7 @@ public final class McVersionLookup {
 
 			while (reader.hasNext()) {
 				switch (reader.nextName()) {
+				case "id": id = reader.nextString(); break;
 				case "name": name = reader.nextString(); break;
 				case "release_target": release = reader.nextString(); break;
 				default: reader.skipValue();
@@ -123,6 +125,12 @@ public final class McVersionLookup {
 			}
 
 			reader.endObject();
+
+			if (name == null) {
+				name = id;
+			} else if (id != null) {
+				if (id.length() < name.length()) name = id;
+			}
 
 			if (name != null && release != null) return new McVersion(name, release);
 		} catch (IOException e) {
