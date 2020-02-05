@@ -180,7 +180,9 @@ public final class McVersionLookup {
 			int year = Integer.parseInt(matcher.group(1));
 			int week = Integer.parseInt(matcher.group(2));
 
-			if (year == 19 && week == 34) {
+			if (year == 20 && week >= 6) {
+				return "1.16";
+			} else if (year == 19 && week >= 34) {
 				return "1.15";
 			} else if (year == 18 && week >= 43 || year == 19 && week <= 14) {
 				return "1.14";
