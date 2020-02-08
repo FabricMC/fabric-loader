@@ -136,7 +136,7 @@ class EntrypointStorage {
 			return Collections.emptyList();
 		}
 
-		List<Exception> exceptions = new ArrayList<>();
+		List<Throwable> errors = new ArrayList<>();
 		List<T> results = new ArrayList<>(entries.size());
 		for (Entry entry : entries) {
 			try {
@@ -144,13 +144,13 @@ class EntrypointStorage {
 				if (result != null) {
 					results.add(result);
 				}
-			} catch (Exception e) {
-				exceptions.add(e);
+			} catch (Throwable t) {
+				errors.add(t);
 			}
 		}
 
-		if (!exceptions.isEmpty()) {
-			Iterator<Exception> it = exceptions.iterator();
+		if (!errors.isEmpty()) {
+			Iterator<Throwable> it = errors.iterator();
 			EntrypointException e = new EntrypointException(key, it.next());
 
 			while (it.hasNext()) {

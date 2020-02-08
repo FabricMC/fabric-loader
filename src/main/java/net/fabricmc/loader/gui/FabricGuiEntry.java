@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.discovery.ModResolutionException;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
@@ -42,7 +41,7 @@ public final class FabricGuiEntry {
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
 	 *            return normally. */
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
-		exception.printStackTrace(System.err);
+		FabricLoader.INSTANCE.getLogger().fatal("A critical error occurred", exception);
 
 		GameProvider provider = FabricLoader.INSTANCE.getGameProvider();
 
@@ -60,12 +59,10 @@ public final class FabricGuiEntry {
 			try {
 				open(tree);
 			} catch (Exception e) {
-				RuntimeException ex = new RuntimeException("Failed to open the error gui!", e);
-
 				if (exitAfter) {
-					ex.printStackTrace(System.err);
+					FabricLoader.INSTANCE.getLogger().warn("Failed to open the error gui!", e);
 				} else {
-					throw ex;
+					throw new RuntimeException("Failed to open the error gui!", e);
 				}
 			}
 		}
