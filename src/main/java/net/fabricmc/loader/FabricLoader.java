@@ -365,7 +365,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 	}
 
-	public void prepareModInit(File newRunDir, Object gameInstance) {
+	private void prepareModInit(File newRunDir, Object gameInstance) {
 		if (!frozen) {
 			throw new RuntimeException("Cannot instantiate mods when not frozen!");
 		}
@@ -418,5 +418,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public Logger getLogger() {
 		return LOGGER;
+	}
+
+	public static void preInit(File newRunDir, Object gameInstance) {
+		INSTANCE.prepareModInit(newRunDir, gameInstance);
 	}
 }

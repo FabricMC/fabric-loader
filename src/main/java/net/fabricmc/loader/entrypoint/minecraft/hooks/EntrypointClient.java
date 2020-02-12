@@ -16,11 +16,12 @@
 
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
+import java.io.File;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.ModPostInitializer;
 import net.fabricmc.loader.FabricLoader;
-
-import java.io.File;
 
 public final class EntrypointClient {
 	public static void start(File runDir, Object gameInstance) {
@@ -28,8 +29,9 @@ public final class EntrypointClient {
 			runDir = new File(".");
 		}
 
-		FabricLoader.INSTANCE.prepareModInit(runDir, gameInstance);
-		EntrypointUtils.invoke("main", ModInitializer.class, ModInitializer::onInitialize);
+		FabricLoader.preInit(runDir, gameInstance);
+		EntrypointUtils.invoke("init", ModInitializer.class, ModInitializer::onInitialize);
 		EntrypointUtils.invoke("client", ClientModInitializer.class, ClientModInitializer::onInitializeClient);
+		EntrypointUtils.invoke("postInit", ModPostInitializer.class, ModPostInitializer::onPostInitialize);
 	}
 }
