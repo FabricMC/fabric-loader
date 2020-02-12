@@ -34,7 +34,7 @@ import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.util.version.VersionDeserializer;
 import net.fabricmc.loader.util.version.VersionParsingException;
 
-public final class BuiltinModMetadata extends AbstractModMetadata {
+public final class BuiltinModMetadata implements ModMetadata {
 	private final String id;
 	private final Version version;
 	private final String name;

@@ -31,12 +31,11 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
-import net.fabricmc.loader.metadata.AbstractModMetadata;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.NestedJarEntry;
 
-class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMetadata {
+class BuiltinMetadataWrapper implements LoaderModMetadata {
 	private final ModMetadata parent;
 
 	public BuiltinMetadataWrapper(ModMetadata parent) {

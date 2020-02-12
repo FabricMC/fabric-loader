@@ -16,11 +16,10 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import com.google.gson.JsonElement;
-import net.fabricmc.loader.api.Version;
-
 import java.util.Collection;
 import java.util.Optional;
+
+import net.fabricmc.loader.api.Version;
 
 public interface ModMetadata {
 	String getType();
@@ -63,16 +62,4 @@ public interface ModMetadata {
 
 	boolean containsCustomValue(String key);
 	CustomValue getCustomValue(String key);
-
-	/**
-	 * @deprecated Use {@link #containsCustomValue} instead, this will be removed (can't expose GSON types)!
-	 */
-	@Deprecated
-	boolean containsCustomElement(String key);
-
-	/**
-	 * @deprecated Use {@link #getCustomValue} instead, this will be removed (can't expose GSON types)!
-	 */
-	@Deprecated
-	JsonElement getCustomElement(String key);
 }

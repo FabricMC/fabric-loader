@@ -16,25 +16,40 @@
 
 package net.fabricmc.loader.metadata;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.Version;
-import org.apache.logging.log4j.Logger;
-
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Definition class for "fabric.mod.json" files.
  */
-public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetadata {
+public class ModMetadataV0 implements LoaderModMetadata {
 	// Required
 	private String id;
 	private Version version;

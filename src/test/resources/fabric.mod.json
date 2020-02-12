@@ -14,7 +14,7 @@
     "preLaunch": [
       "net.fabricmc.test.TestMod"
     ],
-    "main": [
+    "init": [
       "net.fabricmc.test.TestMod"
     ]
   }
