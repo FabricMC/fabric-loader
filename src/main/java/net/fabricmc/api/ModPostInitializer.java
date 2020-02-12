@@ -17,6 +17,6 @@
 package net.fabricmc.api;
 
 @FunctionalInterface
-public interface ModPostnitializer {
+public interface ModPostInitializer {
 	void onPostInitialize();
 }
