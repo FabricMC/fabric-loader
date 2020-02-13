@@ -54,6 +54,7 @@ import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.zip.ZipError;
 
 import static com.google.common.jimfs.Feature.FILE_CHANNEL;
 import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
@@ -167,6 +168,7 @@ public class ModResolver {
 						try {
 							solver.addClause(new VecInt(clause));
 						} catch (ContradictionException e) {
+							//TODO: JiJ'd mods don't manage to throw this exception and instead fail silently
 							throw new ModResolutionException("Could not find required mod: " + mod.getInfo().getId() + " requires " + dep, e);
 						}
 					}
@@ -220,7 +222,10 @@ public class ModResolver {
 					}
 				}
 
-				// assume satisfied
+				// TODO: better error message, have a way to figure out precisely which mods are causing this
+				if (!problem.isSatisfiable(assumptions)) {
+					throw new ModResolutionException("Could not resolve mod collection due to an unknown error");
+				}
 				int[] model = problem.model();
 				result = new HashMap<>();
 
@@ -455,6 +460,8 @@ public class ModResolver {
 					rootDir = jarFs.get().getRootDirectories().iterator().next();
 				} catch (IOException e) {
 					throw new RuntimeException("Failed to open mod JAR at " + path + "!");
+				} catch (ZipError e) {
+					throw new RuntimeException("Jar at " + path + " is corrupted, please redownload it!");
 				}
 			}
 
