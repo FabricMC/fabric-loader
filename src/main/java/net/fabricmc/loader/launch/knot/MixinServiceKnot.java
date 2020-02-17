@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -155,7 +154,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public Collection<String> getPlatformAgents() {
-		return Arrays.asList("org.spongepowered.asm.launch.platform.MixinPlatformAgentDefault");
+		return Collections.singletonList("org.spongepowered.asm.launch.platform.MixinPlatformAgentDefault");
 	}
 
 	@Override
