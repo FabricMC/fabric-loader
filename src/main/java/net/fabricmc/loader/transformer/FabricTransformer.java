@@ -17,8 +17,10 @@
 package net.fabricmc.loader.transformer;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.transformer.escalator.AccessEscalatorVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -55,6 +57,11 @@ public final class FabricTransformer {
 		ClassWriter classWriter = new ClassWriter(0);
 		ClassVisitor visitor = classWriter;
 		int visitorCount = 0;
+
+		if (isMinecraftClass && FabricLoader.INSTANCE.getAccessEscalator().getTargets().contains(name)) {
+			visitor = new AccessEscalatorVisitor(Opcodes.ASM7, visitor, FabricLoader.INSTANCE.getAccessEscalator());
+			visitorCount++;
+		}
 
 		if (transformAccess) {
 			visitor = new PackageAccessFixer(Opcodes.ASM7, visitor);

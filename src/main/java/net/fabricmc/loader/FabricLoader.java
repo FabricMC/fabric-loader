@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.fabricmc.loader.transformer.escalator.AccessEscalator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -68,6 +69,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
+	private final AccessEscalator accessEscalator = new AccessEscalator();
 
 	private boolean frozen = false;
 
@@ -414,6 +416,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		} else {
 			setGameDir(newRunDir);
 		}
+	}
+
+	public AccessEscalator getAccessEscalator() {
+		return accessEscalator;
 	}
 
 	public Logger getLogger() {

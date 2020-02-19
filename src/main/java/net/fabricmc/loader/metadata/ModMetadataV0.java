@@ -122,6 +122,11 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
+	public String getAccessEscalator() {
+		return null;
+	}
+
+	@Override
 	public boolean loadsInEnvironment(EnvType type) {
 		switch (side) {
 			case UNIVERSAL:
