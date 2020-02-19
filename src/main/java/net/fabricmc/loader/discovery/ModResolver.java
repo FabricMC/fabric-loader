@@ -252,7 +252,7 @@ public class ModResolver {
 		StringBuilder errorsSoft = new StringBuilder();
 
 		if (!missingMods.isEmpty()) {
-			errorsHard.append("\n - Missing mods: ").append(missingMods.stream().collect(Collectors.joining(", ")));
+			errorsHard.append("\n - Missing mods: ").append(String.join(", ", missingMods));
 		} else {
 			// verify result: dependencies
 			for (ModCandidate candidate : result.values()) {

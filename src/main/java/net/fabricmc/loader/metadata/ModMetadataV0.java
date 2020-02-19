@@ -28,8 +28,6 @@ import java.lang.reflect.Type;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Definition class for "fabric.mod.json" files.
@@ -335,7 +333,7 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 							} else if (matchers.length == 1) {
 								return getModId() + " @ " + matchers[0];
 							} else {
-								return getModId() + " @ [" + Stream.of(matchers).collect(Collectors.joining(", ")) + "]";
+								return getModId() + " @ "+Arrays.toString(matchers);
 							}
 						}
 					});
@@ -382,7 +380,7 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 
 		@Override
 		public String toString() {
-			return "[" + Stream.of(versionMatchers).collect(Collectors.joining(", ")) + "]";
+			return Arrays.toString(versionMatchers);
 		}
 
 		public static class Deserializer implements JsonDeserializer<Dependency> {
