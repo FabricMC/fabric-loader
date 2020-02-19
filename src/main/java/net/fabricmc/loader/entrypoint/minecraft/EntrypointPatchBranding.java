@@ -38,20 +38,35 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
 		for (String brandClassName : ImmutableList.of(
-			"net.minecraft.client.ClientBrandRetriever",
-			"net.minecraft.server.MinecraftServer"
-		)) {
-			try {
-				ClassNode brandClass = loadClass(launcher, brandClassName);
-				if (brandClass != null) {
-					if (applyBrandingPatch(brandClass)) {
-						classEmitter.accept(brandClass);
+				"net.minecraft.client.ClientBrandRetriever",
+				"net.minecraft.server.MinecraftServer"
+			)) {
+				try {
+					ClassNode brandClass = loadClass(launcher, brandClassName);
+					if (brandClass != null) {
+						if (applyBrandingPatch(brandClass)) {
+							classEmitter.accept(brandClass);
+						}
 					}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
-		}
+		
+		for (String brandClassName : ImmutableList.of(
+				"net.minecraft.class_1084"
+			)) {
+				try {
+					ClassNode brandClass = loadClass(launcher, brandClassName);
+					if (brandClass != null) {
+						if (applyBrandingPatch(brandClass)) {
+							classEmitter.accept(brandClass);
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 	}
 
 

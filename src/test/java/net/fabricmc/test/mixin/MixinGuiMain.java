@@ -16,24 +16,23 @@
 
 package net.fabricmc.test.mixin;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.text.Text;
+import java.util.Map;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = TitleScreen.class, remap = false)
-public abstract class MixinGuiMain extends Screen {
+import net.minecraft.class_1084;
+import net.minecraft.class_1293;
+import net.minecraft.class_376;
 
-	protected MixinGuiMain(Text textComponent_1) {
-		super(textComponent_1);
+@Mixin(value = class_1084.class, remap = false)
+public abstract class MixinGuiMain {
+	
+	@Inject(at = @At("HEAD"), method="method_3730", cancellable = true)
+	public void method_3730(CallbackInfoReturnable<Map<class_376, class_1293>> ci) {
+		ci.setReturnValue(null);
 	}
-
-	@Inject(method = "render(IIF)V", at = @At("RETURN"))
-	public void render(int mouseX, int mouseY, float delta, CallbackInfo info) {
-		this.font.draw("Fabric Test Mod", 2, this.height - 30, -1);
-	}
-
+	
 }

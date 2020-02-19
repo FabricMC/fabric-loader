@@ -16,8 +16,30 @@
 
 package net.fabricmc.loader.metadata;
 
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -25,11 +47,6 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
-import org.apache.logging.log4j.Logger;
-
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Definition class for "fabric.mod.json" files.
@@ -333,9 +350,9 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 
 					person.name = obj.get("name").getAsString();
 					if (obj.has("contact")) {
-						person.contact = new MapBackedContactInformation(
-							context.deserialize(obj.get("contact"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType())
-						);
+//						person.contact = new MapBackedContactInformation(
+//							context.deserialize(obj.get("contact"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType())
+//						);
 					}
 				} else if (json.isJsonPrimitive()) {
 					person.name = json.getAsString();

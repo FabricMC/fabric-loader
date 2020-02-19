@@ -8,7 +8,7 @@ plugins {
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.6-SNAPSHOT"
+	id("fabric-loom") version "0.2.7-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -18,10 +18,11 @@ archivesBaseName = "fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
+version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "1")
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 	jcenter()
 	maven {
 		name = 'Fabric'
@@ -53,7 +54,6 @@ dependencies {
 
 	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
-		exclude module: 'guava'
 	}
 	compile 'net.fabricmc:tiny-mappings-parser:0.2.0.11'
 	compile 'net.fabricmc:tiny-remapper:0.2.0.52'
