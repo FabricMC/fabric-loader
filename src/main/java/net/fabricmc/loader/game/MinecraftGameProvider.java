@@ -35,7 +35,6 @@ import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.GuavaFix;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.minecraft.McVersionLookup;
@@ -55,8 +54,7 @@ public class MinecraftGameProvider implements GameProvider {
 	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
 		new EntrypointPatchHook(it),
 		new EntrypointPatchBranding(it),
-		new EntrypointPatchFML125(it),
-		new GuavaFix(it)
+		new EntrypointPatchFML125(it)
 	));
 
 	@Override

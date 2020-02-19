@@ -40,6 +40,11 @@ public final class FabricTransformer {
                                 && name.equals("firstNonNull")
                                 && descriptor.equals("(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;")) {
                             owner = "com/google/common/base/MoreObjects";
+                        }else if(owner.equals("com/google/common/collect/Iterators")
+                        		&& name.equals("emptyIterator")) {
+                        	owner = "net/fabricmc/loader/guava/IteratorsFix";
+                        	name = "emptyListIterator";
+                        	descriptor = "()Lcom/google/common/collect/UnmodifiableListIterator;";
                         }
 
                         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
