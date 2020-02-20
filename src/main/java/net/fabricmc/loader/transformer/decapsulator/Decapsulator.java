@@ -10,10 +10,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -21,8 +19,8 @@ import java.util.Set;
 public class Decapsulator {
 	public String namespace;
 	public Map<String, Access> classAccess = new HashMap<>();
-	public Map<EntryTriple, ChangeList> methodAccess = new HashMap<>();
-	public Map<EntryTriple, ChangeList> fieldAccess = new HashMap<>();
+	public Map<EntryTriple, Access> methodAccess = new HashMap<>();
+	public Map<EntryTriple, Access> fieldAccess = new HashMap<>();
 	private Set<String> classes = new LinkedHashSet<>();
 
 	public void loadFromMods(FabricLoader fabricLoader){
@@ -86,7 +84,7 @@ public class Decapsulator {
 				throw new RuntimeException(String.format("Invalid line (%s)", line));
 			}
 
-			Access access = parseAccess(split[0]);
+			String access = split[0];
 
 			targets.add(split[2].replaceAll("/", "."));
 
@@ -96,12 +94,7 @@ public class Decapsulator {
 						throw new RuntimeException(String.format("Expected (<access>\tclass\t<className>) got (%s)", line));
 					}
 
-					if (classAccess.containsKey(split[2])) {
-						classAccess.put(split[2], mergeAccess(access, classAccess.get(split[2])));
-					} else {
-						classAccess.put(split[2], access);
-					}
-
+					classAccess.put(split[2], applyAccess(access, classAccess.getOrDefault(split[2], Access.DEFAULT)));
 					break;
 				case "field":
 					if (split.length != 5) {
@@ -136,45 +129,37 @@ public class Decapsulator {
 		classes.addAll(parentClasses);
 	}
 
-	void addOrMerge(Map<EntryTriple, ChangeList> map, EntryTriple entry, Access access) {
+	void addOrMerge(Map<EntryTriple, Access> map, EntryTriple entry, String access) {
 		if (entry == null || access == null) {
 			throw new RuntimeException("Input entry or access is null");
 		}
 
-		if (map.containsKey(entry)) {
-			map.get(entry).add(access);
-		} else {
-			map.put(entry, new ChangeList(access));
-		}
+		map.put(entry, applyAccess(access, map.getOrDefault(entry, Access.DEFAULT)));
 	}
 
-	private Access parseAccess(String input) {
+	private Access applyAccess(String input, Access access) {
 		switch (input.toLowerCase(Locale.ROOT)) {
 			case "public":
-				return Access.PUBLIC;
+				return access.makePublic();
 			case "protected":
-				return Access.PROTECTED;
+				return access.makeProtected();
 			case "stripfinal":
-				return Access.STRIP_FINAL;
+				return access.stripFinal();
 			default:
 				throw new UnsupportedOperationException("Unknown access type:" + input);
 		}
-	}
-
-	private static Access mergeAccess(Access a, Access b) {
-		return Access.values()[Math.max(a.ordinal(), b.ordinal())];
 	}
 
 	public Access getClassAccess(String className) {
 		return classAccess.getOrDefault(className, Access.DEFAULT);
 	}
 
-	public ChangeList getFieldAccess(EntryTriple entryTriple) {
-		return fieldAccess.getOrDefault(entryTriple, ChangeList.EMPTY);
+	public Access getFieldAccess(EntryTriple entryTriple) {
+		return fieldAccess.getOrDefault(entryTriple, Access.DEFAULT);
 	}
 
-	public ChangeList getMethodAccess(EntryTriple entryTriple) {
-		return methodAccess.getOrDefault(entryTriple, ChangeList.EMPTY);
+	public Access getMethodAccess(EntryTriple entryTriple) {
+		return methodAccess.getOrDefault(entryTriple, Access.DEFAULT);
 	}
 
 	public Set<String> getTargets() {
@@ -182,68 +167,56 @@ public class Decapsulator {
 	}
 
 	public enum Access {
-		DEFAULT,
-		PROTECTED,
-		PUBLIC,
+		DEFAULT(false, false, false),
+		PROTECTED(true, false, false),
+		PROTECTED_STRIP_FINAL(true,false, true),
+		PUBLIC(false, true, false),
+		PUBLIC_STRIP_FINAL(false,true, true),
+		STRIP_FINAL(false, false, true);
 
-		STRIP_FINAL;
+		private final boolean makeProtected;
+		private final boolean makePublic;
+		private final boolean stripFinal;
 
-		public int apply(int access) {
-			switch (this) {
-				case DEFAULT:
-					return access;
-				case PUBLIC:
-					return (access & ~7) | Opcodes.ACC_PUBLIC;
-				case PROTECTED:
-					if ((access & Opcodes.ACC_PUBLIC) != 0) { //Already public
-						return access;
-					}
-
-					return (access & ~7) | Opcodes.ACC_PROTECTED;
-				case STRIP_FINAL:
-					return access & ~Opcodes.ACC_FINAL; //Remove final
-				default:
-					throw new RuntimeException("Something bad happened");
-			}
-		}
-	}
-
-	public static class ChangeList {
-		public static final ChangeList EMPTY = new ChangeList();
-
-		private final List<Access> changes = new ArrayList<>();
-
-		public ChangeList() {
+		Access(boolean makeProtected, boolean makePublic, boolean stripFinal) {
+			this.makeProtected = makeProtected;
+			this.makePublic = makePublic;
+			this.stripFinal = stripFinal;
 		}
 
-		public ChangeList(Access access) {
-			this();
-			add(access);
+		public Access makePublic() {
+			return stripFinal ? PUBLIC_STRIP_FINAL : PUBLIC;
 		}
 
-		public void add(Access access) {
-			if (changes.contains(access)) {
-				return;
-			}
+		public Access makeProtected() {
+			if (makePublic) return this;
+			return stripFinal ? PROTECTED_STRIP_FINAL : PROTECTED;
+		}
 
-			if (access == Access.PUBLIC) {
-				changes.remove(Access.PROTECTED);
+		public Access stripFinal() {
+			if (makePublic) {
+				return PUBLIC_STRIP_FINAL;
+			} else if (makeProtected) {
+				return PROTECTED_STRIP_FINAL;
 			}
-
-			changes.add(access);
+			return STRIP_FINAL;
 		}
 
 		public int apply(int access) {
-			for (Access change : getChanges()) {
-				access = change.apply(access);
+			if (makePublic) {
+				access = (access & ~7) | Opcodes.ACC_PUBLIC;
+			} else if (makeProtected) {
+				if ((access & Opcodes.ACC_PUBLIC) == 0) {
+					//Only make it protected if not public
+					access = (access & ~7) | Opcodes.ACC_PROTECTED;
+				}
+			}
+
+			if (stripFinal) {
+				access = access & ~Opcodes.ACC_FINAL;;
 			}
 
 			return access;
 		}
-
-		public List<Access> getChanges() {
-			return changes;
-		}
 	}
-
 }
