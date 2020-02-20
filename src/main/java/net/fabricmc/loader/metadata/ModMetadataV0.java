@@ -122,7 +122,7 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
-	public String getDecapsulator() {
+	public String getAccessWidener() {
 		return null;
 	}
 

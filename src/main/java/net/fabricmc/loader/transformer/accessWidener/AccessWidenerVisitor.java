@@ -1,18 +1,18 @@
-package net.fabricmc.loader.transformer.decapsulator;
+package net.fabricmc.loader.transformer.accessWidener;
 
 import net.fabricmc.mappings.EntryTriple;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-public class DecapsulatorVisitor extends ClassVisitor {
-	private final Decapsulator decapsulator;
+public class AccessWidenerVisitor extends ClassVisitor {
+	private final AccessWidener accessWidener;
 
 	private String className;
 
-	public DecapsulatorVisitor(int api, ClassVisitor classVisitor, Decapsulator decapsulator) {
+	public AccessWidenerVisitor(int api, ClassVisitor classVisitor, AccessWidener accessWidener) {
 		super(api, classVisitor);
-		this.decapsulator = decapsulator;
+		this.accessWidener = accessWidener;
 	}
 
 	@Override
@@ -20,7 +20,7 @@ public class DecapsulatorVisitor extends ClassVisitor {
 		className = name;
 		super.visit(
 				version,
-				decapsulator.getClassAccess(name).apply(access),
+				accessWidener.getClassAccess(name).apply(access),
 				name,
 				signature,
 				superName,
@@ -34,14 +34,14 @@ public class DecapsulatorVisitor extends ClassVisitor {
 				name,
 				outerName,
 				innerName,
-				decapsulator.getClassAccess(name).apply(access)
+				accessWidener.getClassAccess(name).apply(access)
 		);
 	}
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 		return super.visitField(
-				decapsulator.getFieldAccess(new EntryTriple(className, name, descriptor)).apply(access),
+				accessWidener.getFieldAccess(new EntryTriple(className, name, descriptor)).apply(access),
 				name,
 				descriptor,
 				signature,
@@ -52,7 +52,7 @@ public class DecapsulatorVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 		return super.visitMethod(
-				decapsulator.getMethodAccess(new EntryTriple(className, name, descriptor)).apply(access),
+				accessWidener.getMethodAccess(new EntryTriple(className, name, descriptor)).apply(access),
 				name,
 				descriptor,
 				signature,

@@ -122,7 +122,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			}
 		}
 
-		FabricLoader.INSTANCE.getDecapsulator().loadFromMods(FabricLoader.INSTANCE);
+		FabricLoader.INSTANCE.getAccessWidener().loadFromMods(FabricLoader.INSTANCE);
 
 		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 

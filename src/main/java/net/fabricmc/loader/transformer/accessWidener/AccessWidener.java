@@ -1,4 +1,4 @@
-package net.fabricmc.loader.transformer.decapsulator;
+package net.fabricmc.loader.transformer.accessWidener;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class Decapsulator {
+public class AccessWidener {
 	public String namespace;
 	public Map<String, Access> classAccess = new HashMap<>();
 	public Map<EntryTriple, Access> methodAccess = new HashMap<>();
@@ -26,15 +26,15 @@ public class Decapsulator {
 	public void loadFromMods(FabricLoader fabricLoader){
 		for (ModContainer modContainer : fabricLoader.getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
-			String decapsulator = modMetadata.getDecapsulator();
+			String accessWidener = modMetadata.getAccessWidener();
 
-			if (decapsulator != null) {
-				Path path = modContainer.getPath(decapsulator);
+			if (accessWidener != null) {
+				Path path = modContainer.getPath(accessWidener);
 
 				try (BufferedReader reader = Files.newBufferedReader(path)) {
 					read(reader, fabricLoader.getMappingResolver().getCurrentRuntimeNamespace());
 				} catch (Exception e) {
-					throw new RuntimeException("Failed to read decapsulator file from mod " + modMetadata.getId(), e);
+					throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
 				}
 			}
 		}
@@ -43,8 +43,8 @@ public class Decapsulator {
 	public void read(BufferedReader reader, String currentNamespace) throws IOException {
 		String[] header = reader.readLine().split("\t");
 
-		if (header.length != 2 || !header[0].equals("decapsulator\\v1")) {
-			throw new UnsupportedOperationException("Unsupported or invalid access decapsulator file, expected: decapsulator\\v1 <namespace>");
+		if (header.length != 2 || !header[0].equals("accessWidener\\v1")) {
+			throw new UnsupportedOperationException("Unsupported or invalid access accessWidener file, expected: accessWidener\\v1 <namespace>");
 		}
 
 		if (!header[1].equals(currentNamespace)) {
@@ -75,7 +75,7 @@ public class Decapsulator {
 
 			//Will be a common issue, make it clear.
 			if (line.contains(" ")) {
-				throw new RuntimeException("Decapsulator contains one or more space character, tabs are required on line: " + line);
+				throw new RuntimeException("AccessWidener contains one or more space character, tabs are required on line: " + line);
 			}
 
 			String[] split = line.split("\t");
