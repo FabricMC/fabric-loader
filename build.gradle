@@ -36,11 +36,15 @@ repositories {
 		name = 'mojang'
 		url = 'https://libraries.minecraft.net/'
 	}
+		maven {
+		name = 'hydosMavenRepo'
+		url = 'https://hydos.github.io/'
+	}
 }
 
 dependencies {
 	minecraft "com.mojang:minecraft:1.8.9"
-	mappings "net.fabricmc:yarn:1.8.9+build.1"
+	mappings "net.fabricmc:yarn:1.8.9+build.2"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'

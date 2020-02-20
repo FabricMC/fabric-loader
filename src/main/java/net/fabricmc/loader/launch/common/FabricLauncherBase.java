@@ -223,6 +223,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 				if(argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")){
 					versionType = argMap.get("versionType") + "/";
 				}
+				System.out.println(versionType);
 				argMap.put("versionType", versionType + "Fabric");
 
 				if (!argMap.containsKey("gameDir")) {

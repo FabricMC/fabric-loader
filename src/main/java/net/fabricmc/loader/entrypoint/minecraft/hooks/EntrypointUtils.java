@@ -25,7 +25,6 @@ import java.util.function.Consumer;
 
 public final class EntrypointUtils {
 	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {
-		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
 
 		if (!loader.hasEntrypoints(name)) {
@@ -36,7 +35,6 @@ public final class EntrypointUtils {
 	}
 
 	private static <T> void invoke0(String name, Class<T> type, Consumer<? super T> invoker) {
-		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
 		Collection<T> entrypoints = loader.getEntrypoints(name, type);
 		List<Throwable> errors = new ArrayList<>();
