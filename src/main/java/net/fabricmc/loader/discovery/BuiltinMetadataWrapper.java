@@ -86,7 +86,7 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	@Override
 	public Collection<String> getMixinConfigs(EnvType type) { return Collections.emptyList(); }
 	@Override
-	public String getAccessEscalator() { return null; }
+	public String getDecapsulator() { return null; }
 	@Override
 	public boolean loadsInEnvironment(EnvType type) { return true; }
 	@Override

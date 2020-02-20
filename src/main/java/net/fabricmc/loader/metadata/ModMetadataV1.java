@@ -44,7 +44,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	private EntrypointContainer entrypoints = new EntrypointContainer();
 	private JarEntry[] jars = new JarEntry[0];
 	private MixinEntry[] mixins = new MixinEntry[0];
-	private String accessEscalator;
+	private String decapsulator;
 
 	// Optional (dependency resolution)
 	private DependencyContainer depends = new DependencyContainer();
@@ -125,8 +125,8 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
-	public String getAccessEscalator() {
-		return accessEscalator;
+	public String getDecapsulator() {
+		return decapsulator;
 	}
 
 	@Override

@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.fabricmc.loader.transformer.escalator.AccessEscalator;
+import net.fabricmc.loader.transformer.decapsulator.Decapsulator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -69,7 +69,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
-	private final AccessEscalator accessEscalator = new AccessEscalator();
+	private final Decapsulator decapsulator = new Decapsulator();
 
 	private boolean frozen = false;
 
@@ -418,8 +418,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 	}
 
-	public AccessEscalator getAccessEscalator() {
-		return accessEscalator;
+	public Decapsulator getDecapsulator() {
+		return decapsulator;
 	}
 
 	public Logger getLogger() {

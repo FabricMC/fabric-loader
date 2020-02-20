@@ -1,4 +1,4 @@
-package net.fabricmc.loader.transformer.escalator;
+package net.fabricmc.loader.transformer.decapsulator;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -18,7 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class AccessEscalator {
+public class Decapsulator {
 	public String namespace;
 	public Map<String, Access> classAccess = new HashMap<>();
 	public Map<EntryTriple, ChangeList> methodAccess = new HashMap<>();
@@ -28,15 +28,15 @@ public class AccessEscalator {
 	public void loadFromMods(FabricLoader fabricLoader){
 		for (ModContainer modContainer : fabricLoader.getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
-			String accessEscalator = modMetadata.getAccessEscalator();
+			String decapsulator = modMetadata.getDecapsulator();
 
-			if (accessEscalator != null) {
-				Path path = modContainer.getPath(accessEscalator);
+			if (decapsulator != null) {
+				Path path = modContainer.getPath(decapsulator);
 
 				try (BufferedReader reader = Files.newBufferedReader(path)) {
 					read(reader, fabricLoader.getMappingResolver().getCurrentRuntimeNamespace());
-				} catch (IOException e) {
-					throw new RuntimeException("Failed to read access escalator from mod " + modMetadata.getId(), e);
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to read decapsulator file from mod " + modMetadata.getId(), e);
 				}
 			}
 		}
@@ -45,17 +45,17 @@ public class AccessEscalator {
 	public void read(BufferedReader reader, String currentNamespace) throws IOException {
 		String[] header = reader.readLine().split("\t");
 
-		if (header.length != 2 || !header[0].equals("ae\\v1")) {
-			throw new UnsupportedOperationException("Unsupported or invalid access escalator file");
+		if (header.length != 2 || !header[0].equals("decapsulator\\v1")) {
+			throw new UnsupportedOperationException("Unsupported or invalid access decapsulator file, expected: decapsulator\\v1 <namespace>");
 		}
 
 		if (!header[1].equals(currentNamespace)) {
-			throw new RuntimeException("Namespace does not match current runtime namespace");
+			throw new RuntimeException(String.format("Namespace (%s) does not match current runtime namespace (%s)", header[1], currentNamespace));
 		}
 
 		if (namespace != null) {
 			if (!namespace.equals(header[1])) {
-				throw new RuntimeException("Namespace mismatch");
+				throw new RuntimeException(String.format("Namespace mismatch, expected %s got %s", namespace, header[1]));
 			}
 		}
 
@@ -77,13 +77,13 @@ public class AccessEscalator {
 
 			//Will be a common issue, make it clear.
 			if (line.contains(" ")) {
-				throw new RuntimeException("Access escalator contains spaces, tabs are required on line: " + line);
+				throw new RuntimeException("Decapsulator contains one or more space character, tabs are required on line: " + line);
 			}
 
 			String[] split = line.split("\t");
 
 			if (split.length != 3 && split.length != 5) {
-				throw new RuntimeException("Failed to parse access escalator. at line:" + line);
+				throw new RuntimeException(String.format("Invalid line (%s)", line));
 			}
 
 			Access access = parseAccess(split[0]);
@@ -93,7 +93,7 @@ public class AccessEscalator {
 			switch (split[1]) {
 				case "class":
 					if (split.length != 3) {
-						throw new RuntimeException("Failed to parse access escalator. at line:" + line);
+						throw new RuntimeException(String.format("Expected (<access>\tclass\t<className>) got (%s)", line));
 					}
 
 					if (classAccess.containsKey(split[2])) {
@@ -105,14 +105,14 @@ public class AccessEscalator {
 					break;
 				case "field":
 					if (split.length != 5) {
-						throw new RuntimeException("Failed to parse access escalator. at line:" + line);
+						throw new RuntimeException(String.format("Expected (<access>\tfield\t<className>\t<fieldName>\t<fieldDesc>) got (%s)", line));
 					}
 
 					addOrMerge(fieldAccess, new EntryTriple(split[2], split[3], split[4]), access);
 					break;
 				case "method":
 					if (split.length != 5) {
-						throw new RuntimeException("Failed to parse access escalator. at line:" + line);
+						throw new RuntimeException(String.format("Expected (<access>\tmethod\t<className>\t<methodName>\t<methodDesc>) got (%s)", line));
 					}
 
 					addOrMerge(methodAccess, new EntryTriple(split[2], split[3], split[4]), access);
@@ -136,12 +136,6 @@ public class AccessEscalator {
 		classes.addAll(parentClasses);
 	}
 
-	void addOrMerge(Map<EntryTriple, ChangeList> map, EntryTriple entry, ChangeList changeList) {
-		for (Access access : changeList.getChanges()) {
-			addOrMerge(map, entry, access);
-		}
-	}
-
 	void addOrMerge(Map<EntryTriple, ChangeList> map, EntryTriple entry, Access access) {
 		if (entry == null || access == null) {
 			throw new RuntimeException("Input entry or access is null");
@@ -160,10 +154,10 @@ public class AccessEscalator {
 				return Access.PUBLIC;
 			case "protected":
 				return Access.PROTECTED;
-			case "mutable":
-				return Access.MUTABLE;
+			case "stripfinal":
+				return Access.STRIP_FINAL;
 			default:
-				throw new UnsupportedOperationException("Unknown access:" + input);
+				throw new UnsupportedOperationException("Unknown access type:" + input);
 		}
 	}
 
@@ -192,17 +186,7 @@ public class AccessEscalator {
 		PROTECTED,
 		PUBLIC,
 
-		MUTABLE(true);
-
-		private final boolean exclusive;
-
-		Access(boolean exclusive) {
-			this.exclusive = exclusive;
-		}
-
-		Access() {
-			this(false);
-		}
+		STRIP_FINAL;
 
 		public int apply(int access) {
 			switch (this) {
@@ -216,7 +200,7 @@ public class AccessEscalator {
 					}
 
 					return (access & ~7) | Opcodes.ACC_PROTECTED;
-				case MUTABLE:
+				case STRIP_FINAL:
 					return access & ~Opcodes.ACC_FINAL; //Remove final
 				default:
 					throw new RuntimeException("Something bad happened");
@@ -238,38 +222,15 @@ public class AccessEscalator {
 		}
 
 		public void add(Access access) {
-			if (access.exclusive && !changes.contains(access)) {
-				changes.add(access);
-			} else {
-				if (changes.isEmpty() || changes.stream().allMatch(a -> a.exclusive)) {
-					changes.add(access);
-				} else {
-					Access existing = null;
-
-					for (Access change : changes) {
-						if (!change.exclusive) {
-							if (existing != null) {
-								throw new RuntimeException("More than one change");
-							}
-
-							existing = change;
-						}
-					}
-
-					if (existing == null) {
-						throw new RuntimeException("Failed to find existing, something has gone wrong");
-					}
-
-					changes.remove(existing);
-					changes.add(mergeAccess(existing, access));
-				}
+			if (changes.contains(access)) {
+				return;
 			}
-		}
 
-		public void merge(ChangeList changeList) {
-			for (Access change : changeList.getChanges()) {
-				add(change);
+			if (access == Access.PUBLIC) {
+				changes.remove(Access.PROTECTED);
 			}
+
+			changes.add(access);
 		}
 
 		public int apply(int access) {

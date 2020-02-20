@@ -1,18 +1,18 @@
-package net.fabricmc.loader.transformer.escalator;
+package net.fabricmc.loader.transformer.decapsulator;
 
 import net.fabricmc.mappings.EntryTriple;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-public class AccessEscalatorVisitor extends ClassVisitor {
-	private final AccessEscalator accessEscalator;
+public class DecapsulatorVisitor extends ClassVisitor {
+	private final Decapsulator decapsulator;
 
 	private String className;
 
-	public AccessEscalatorVisitor(int api, ClassVisitor classVisitor, AccessEscalator accessEscalator) {
+	public DecapsulatorVisitor(int api, ClassVisitor classVisitor, Decapsulator decapsulator) {
 		super(api, classVisitor);
-		this.accessEscalator = accessEscalator;
+		this.decapsulator = decapsulator;
 	}
 
 	@Override
@@ -20,7 +20,7 @@ public class AccessEscalatorVisitor extends ClassVisitor {
 		className = name;
 		super.visit(
 				version,
-				accessEscalator.getClassAccess(name).apply(access),
+				decapsulator.getClassAccess(name).apply(access),
 				name,
 				signature,
 				superName,
@@ -34,14 +34,14 @@ public class AccessEscalatorVisitor extends ClassVisitor {
 				name,
 				outerName,
 				innerName,
-				accessEscalator.getClassAccess(name).apply(access)
+				decapsulator.getClassAccess(name).apply(access)
 		);
 	}
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 		return super.visitField(
-				accessEscalator.getFieldAccess(new EntryTriple(className, name, descriptor)).apply(access),
+				decapsulator.getFieldAccess(new EntryTriple(className, name, descriptor)).apply(access),
 				name,
 				descriptor,
 				signature,
@@ -52,7 +52,7 @@ public class AccessEscalatorVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 		return super.visitMethod(
-				accessEscalator.getMethodAccess(new EntryTriple(className, name, descriptor)).apply(access),
+				decapsulator.getMethodAccess(new EntryTriple(className, name, descriptor)).apply(access),
 				name,
 				descriptor,
 				signature,
