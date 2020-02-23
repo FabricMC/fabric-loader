@@ -16,12 +16,6 @@
 
 package net.fabricmc.loader.transformer.accessWidener;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.mappings.EntryTriple;
-import org.objectweb.asm.Opcodes;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,6 +26,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.objectweb.asm.Opcodes;
+
+import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.metadata.LoaderModMetadata;
+import net.fabricmc.mappings.EntryTriple;
+
 public class AccessWidener {
 	public String namespace;
 	public Map<String, Access> classAccess = new HashMap<>();
@@ -39,7 +40,7 @@ public class AccessWidener {
 	public Map<EntryTriple, Access> fieldAccess = new HashMap<>();
 	private Set<String> classes = new LinkedHashSet<>();
 
-	public void loadFromMods(FabricLoader fabricLoader){
+	public void loadFromMods(FabricLoader fabricLoader) {
 		for (ModContainer modContainer : fabricLoader.getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
 			String accessWidener = modMetadata.getAccessWidener();
@@ -105,29 +106,29 @@ public class AccessWidener {
 			targets.add(split[2].replaceAll("/", "."));
 
 			switch (split[1]) {
-				case "class":
-					if (split.length != 3) {
-						throw new RuntimeException(String.format("Expected (<access>\tclass\t<className>) got (%s)", line));
-					}
+			case "class":
+				if (split.length != 3) {
+					throw new RuntimeException(String.format("Expected (<access>\tclass\t<className>) got (%s)", line));
+				}
 
-					classAccess.put(split[2], applyAccess(access, classAccess.getOrDefault(split[2], Access.DEFAULT)));
-					break;
-				case "field":
-					if (split.length != 5) {
-						throw new RuntimeException(String.format("Expected (<access>\tfield\t<className>\t<fieldName>\t<fieldDesc>) got (%s)", line));
-					}
+				classAccess.put(split[2], applyAccess(access, classAccess.getOrDefault(split[2], Access.DEFAULT)));
+				break;
+			case "field":
+				if (split.length != 5) {
+					throw new RuntimeException(String.format("Expected (<access>\tfield\t<className>\t<fieldName>\t<fieldDesc>) got (%s)", line));
+				}
 
-					addOrMerge(fieldAccess, new EntryTriple(split[2], split[3], split[4]), access);
-					break;
-				case "method":
-					if (split.length != 5) {
-						throw new RuntimeException(String.format("Expected (<access>\tmethod\t<className>\t<methodName>\t<methodDesc>) got (%s)", line));
-					}
+				addOrMerge(fieldAccess, new EntryTriple(split[2], split[3], split[4]), access);
+				break;
+			case "method":
+				if (split.length != 5) {
+					throw new RuntimeException(String.format("Expected (<access>\tmethod\t<className>\t<methodName>\t<methodDesc>) got (%s)", line));
+				}
 
-					addOrMerge(methodAccess, new EntryTriple(split[2], split[3], split[4]), access);
-					break;
-				default:
-					throw new UnsupportedOperationException("Unsupported type " + split[1]);
+				addOrMerge(methodAccess, new EntryTriple(split[2], split[3], split[4]), access);
+				break;
+			default:
+				throw new UnsupportedOperationException("Unsupported type " + split[1]);
 			}
 		}
 
@@ -155,14 +156,14 @@ public class AccessWidener {
 
 	private Access applyAccess(String input, Access access) {
 		switch (input.toLowerCase(Locale.ROOT)) {
-			case "public":
-				return access.makePublic();
-			case "protected":
-				return access.makeProtected();
-			case "stripfinal":
-				return access.stripFinal();
-			default:
-				throw new UnsupportedOperationException("Unknown access type:" + input);
+		case "public":
+			return access.makePublic();
+		case "protected":
+			return access.makeProtected();
+		case "stripfinal":
+			return access.stripFinal();
+		default:
+			throw new UnsupportedOperationException("Unknown access type:" + input);
 		}
 	}
 
@@ -185,9 +186,9 @@ public class AccessWidener {
 	public enum Access {
 		DEFAULT(false, false, false),
 		PROTECTED(true, false, false),
-		PROTECTED_STRIP_FINAL(true,false, true),
+		PROTECTED_STRIP_FINAL(true, false, true),
 		PUBLIC(false, true, false),
-		PUBLIC_STRIP_FINAL(false,true, true),
+		PUBLIC_STRIP_FINAL(false, true, true),
 		STRIP_FINAL(false, false, true);
 
 		private final boolean makeProtected;
@@ -215,6 +216,7 @@ public class AccessWidener {
 			} else if (makeProtected) {
 				return PROTECTED_STRIP_FINAL;
 			}
+
 			return STRIP_FINAL;
 		}
 

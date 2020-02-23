@@ -16,10 +16,11 @@
 
 package net.fabricmc.loader.transformer.accessWidener;
 
-import net.fabricmc.mappings.EntryTriple;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+
+import net.fabricmc.mappings.EntryTriple;
 
 public class AccessWidenerVisitor extends ClassVisitor {
 	private final AccessWidener accessWidener;
