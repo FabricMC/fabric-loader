@@ -24,13 +24,14 @@ public class EntrypointException extends RuntimeException {
 	 */
 	@Deprecated
 	public EntrypointException(String key, Throwable cause) {
-		super("Exception while loading entries for entrypoint " + key + "!", cause);
+		super("Exception while loading entries for entrypoint '" + key + "'!", cause);
 		this.key = key;
 	}
 
 	/**
 	 * @deprecated For internal use only, use regular exceptions!
 	 */
+	@Deprecated
 	public EntrypointException(String key, String causeModid, Throwable cause) {
 		super("Exception while loading entries for entrypoint '" + key + "' provided by '" + causeModid + "'", cause);
 		this.key = key;
