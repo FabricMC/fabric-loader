@@ -150,10 +150,11 @@ class EntrypointStorage {
 		}
 
 		if (!errors.isEmpty()) {
-			EntrypointException e = new EntrypointException("Could not look up entries for entrypoint " + key + "!");
+			Iterator<Throwable> it = errors.iterator();
+			EntrypointException e = new EntrypointException(key, it.next());
 
-			for (Throwable suppressed : errors) {
-				e.addSuppressed(suppressed);
+			while (it.hasNext()) {
+				e.addSuppressed(it.next());
 			}
 
 			throw e;
