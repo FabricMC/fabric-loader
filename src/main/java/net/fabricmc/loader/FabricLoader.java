@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -218,6 +219,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	@Override
 	public <T> List<T> getEntrypoints(String key, Class<T> type) {
 		return entrypointStorage.getEntrypoints(key, type);
+	}
+
+	@Override
+	public <T> Collection<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
+		return entrypointStorage.getEntrypointContainers(key, type);
 	}
 
 	@Override
