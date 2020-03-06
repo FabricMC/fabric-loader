@@ -181,7 +181,7 @@ class EntrypointStorage {
 		}
 	}
 
-	protected <T> Collection<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
+	protected <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
 		if (entries == null) {
 			return Collections.emptyList();

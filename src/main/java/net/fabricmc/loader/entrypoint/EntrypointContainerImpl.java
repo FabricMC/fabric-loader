@@ -34,7 +34,7 @@ public class EntrypointContainerImpl<T> implements EntrypointContainer<T> {
 	}
 
 	@Override
-	public ModContainer getProvidingModContainer() {
+	public ModContainer getProvider() {
 		return container;
 	}
 }

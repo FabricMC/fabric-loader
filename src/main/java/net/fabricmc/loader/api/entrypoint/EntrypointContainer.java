@@ -21,5 +21,5 @@ import net.fabricmc.loader.api.ModContainer;
 public interface EntrypointContainer<T> {
 	T getEntrypoint();
 
-	ModContainer getProvidingModContainer();
+	ModContainer getProvider();
 }

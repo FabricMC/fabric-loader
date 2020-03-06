@@ -51,7 +51,7 @@ public final class EntrypointUtils {
 				invoker.accept(container.getEntrypoint());
 			} catch (Throwable t) {
 				if (errors.isEmpty()) {
-					rootErrorCause = container.getProvidingModContainer();
+					rootErrorCause = container.getProvider();
 				}
 
 				errors.add(t);

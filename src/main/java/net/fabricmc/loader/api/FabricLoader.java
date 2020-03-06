@@ -40,7 +40,7 @@ public interface FabricLoader {
 
 	<T> List<T> getEntrypoints(String key, Class<T> type);
 
-	<T> Collection<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
+	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
 
 	/**
 	 * Get the current mapping resolver.

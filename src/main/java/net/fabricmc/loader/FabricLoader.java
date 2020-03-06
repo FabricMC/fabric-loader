@@ -222,7 +222,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	@Override
-	public <T> Collection<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
+	public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		return entrypointStorage.getEntrypointContainers(key, type);
 	}
 
