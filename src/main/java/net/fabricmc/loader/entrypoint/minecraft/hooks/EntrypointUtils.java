@@ -40,9 +40,8 @@ public final class EntrypointUtils {
 	private static <T> void invoke0(String name, Class<T> type, Consumer<? super T> invoker) {
 		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
+		RuntimeException exception = null;
 		Collection<EntrypointContainer<T>> entrypoints = loader.getEntrypointContainers(name, type);
-		ModContainer rootErrorCause = null;
-		List<Throwable> errors = new ArrayList<>();
 
 		loader.getLogger().debug("Iterating over entrypoint '" + name + "'");
 
@@ -50,21 +49,15 @@ public final class EntrypointUtils {
 			try {
 				invoker.accept(container.getEntrypoint());
 			} catch (Throwable t) {
-				if (errors.isEmpty()) {
-					rootErrorCause = container.getProvider();
+				if (exception == null) {
+					exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors, provided by '" + container.getProvider().getMetadata().getId() + "'!");
+				} else {
+					exception.addSuppressed(t);
 				}
-
-				errors.add(t);
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			RuntimeException exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors, provided by '" + rootErrorCause.getMetadata().getId() + "'!");
-
-			for (Throwable t : errors) {
-				exception.addSuppressed(t);
-			}
-
+		if (exception != null) {
 			throw exception;
 		}
 	}

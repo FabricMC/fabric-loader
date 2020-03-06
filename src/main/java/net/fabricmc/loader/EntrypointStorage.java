@@ -150,8 +150,7 @@ class EntrypointStorage {
 			return Collections.emptyList();
 		}
 
-		ModContainer rootErrorCause = null;
-		List<Throwable> errors = new ArrayList<>();
+		EntrypointException exception = null;
 		List<T> results = new ArrayList<>(entries.size());
 		for (Entry entry : entries) {
 			try {
@@ -160,25 +159,19 @@ class EntrypointStorage {
 					results.add(result);
 				}
 			} catch (Throwable t) {
-				if (errors.isEmpty()) {
-					rootErrorCause = entry.getModContainer();
+				if (exception == null) {
+					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+				} else {
+					exception.addSuppressed(t);
 				}
-				errors.add(t);
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			Iterator<Throwable> it = errors.iterator();
-			EntrypointException e = new EntrypointException(key, rootErrorCause.getMetadata().getId(), it.next());
-
-			while (it.hasNext()) {
-				e.addSuppressed(it.next());
-			}
-
-			throw e;
-		} else {
-			return results;
+		if (exception != null) {
+			throw exception;
 		}
+
+		return results;
 	}
 
 	protected <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
@@ -187,8 +180,7 @@ class EntrypointStorage {
 			return Collections.emptyList();
 		}
 
-		ModContainer rootErrorCause = null;
-		List<Throwable> errors = new ArrayList<>();
+		EntrypointException exception = null;
 		List<EntrypointContainer<T>> results = new ArrayList<>(entries.size());
 		for (Entry entry : entries) {
 			try {
@@ -197,25 +189,18 @@ class EntrypointStorage {
 					results.add(new EntrypointContainerImpl<>(entry.getModContainer(), result));
 				}
 			} catch (Throwable t) {
-				if (errors.isEmpty()) {
-					rootErrorCause = entry.getModContainer();
+				if (exception == null) {
+					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+				} else {
+					exception.addSuppressed(t);
 				}
-
-				errors.add(t);
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			Iterator<Throwable> it = errors.iterator();
-			EntrypointException e = new EntrypointException(key, rootErrorCause.getMetadata().getId(), it.next());
-
-			while (it.hasNext()) {
-				e.addSuppressed(it.next());
-			}
-
-			throw e;
-		} else {
-			return results;
+		if (exception != null) {
+			throw exception;
 		}
+
+		return results;
 	}
 }
