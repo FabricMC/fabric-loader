@@ -146,7 +146,6 @@ class EntrypointStorage {
 
 	protected <T> List<T> getEntrypoints(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
-
 		if (entries == null) return Collections.emptyList();
 
 		EntrypointException exception = null;
@@ -177,7 +176,6 @@ class EntrypointStorage {
 
 	protected <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
-
 		if (entries == null) return Collections.emptyList();
 
 		EntrypointException exception = null;
