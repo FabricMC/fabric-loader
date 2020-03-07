@@ -20,7 +20,7 @@ public class EntrypointException extends RuntimeException {
 	private final String key;
 
 	/**
-	 * @deprecated For internal use only, use regular exceptions!
+	 * @deprecated For internal use only, to be removed!
 	 */
 	@Deprecated
 	public EntrypointException(String key, Throwable cause) {
@@ -32,8 +32,8 @@ public class EntrypointException extends RuntimeException {
 	 * @deprecated For internal use only, use regular exceptions!
 	 */
 	@Deprecated
-	public EntrypointException(String key, String causeModid, Throwable cause) {
-		super("Exception while loading entries for entrypoint '" + key + "' provided by '" + causeModid + "'", cause);
+	public EntrypointException(String key, String causingMod, Throwable cause) {
+		super("Exception while loading entries for entrypoint '" + key + "' provided by '" + causingMod + "'", cause);
 		this.key = key;
 	}
 
