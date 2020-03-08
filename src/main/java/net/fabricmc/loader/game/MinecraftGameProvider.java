@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.game;
 
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
@@ -132,9 +131,9 @@ public class MinecraftGameProvider implements GameProvider {
 		List<String> entrypointClasses;
 
 		if (envType == EnvType.CLIENT) {
-			entrypointClasses = Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
+			entrypointClasses = Arrays.asList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
 		} else {
-			entrypointClasses = Lists.newArrayList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
+			entrypointClasses = Arrays.asList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
 		}
 
 		Optional<GameProviderHelper.EntrypointResult> entrypointResult = GameProviderHelper.findFirstClass(loader, entrypointClasses);
