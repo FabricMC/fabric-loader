@@ -200,7 +200,7 @@ public class AccessWidener {
 	}
 
 	private static int makeProtected(int i) {
-		if ((i & ~Opcodes.ACC_PUBLIC) == 0) {
+		if ((i & Opcodes.ACC_PUBLIC) != 0) {
 			//Return i if public
 			return i;
 		}
