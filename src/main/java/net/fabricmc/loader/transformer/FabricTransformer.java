@@ -48,8 +48,9 @@ public final class FabricTransformer {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
+		boolean applyAccessWidener = isMinecraftClass && FabricLoader.INSTANCE.getAccessWidener().getTargets().contains(name);
 
-		if (!transformAccess && !environmentStrip) {
+		if (!transformAccess && !environmentStrip && !applyAccessWidener) {
 			return bytes;
 		}
 
@@ -58,7 +59,7 @@ public final class FabricTransformer {
 		ClassVisitor visitor = classWriter;
 		int visitorCount = 0;
 
-		if (isMinecraftClass && FabricLoader.INSTANCE.getAccessWidener().getTargets().contains(name)) {
+		if (applyAccessWidener) {
 			visitor = new AccessWidenerVisitor(Opcodes.ASM7, visitor, FabricLoader.INSTANCE.getAccessWidener());
 			visitorCount++;
 		}
