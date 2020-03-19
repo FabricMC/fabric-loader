@@ -17,6 +17,7 @@
 package net.fabricmc.loader.api;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 
 import java.io.File;
 import java.util.Collection;
@@ -38,6 +39,8 @@ public interface FabricLoader {
 	}
 
 	<T> List<T> getEntrypoints(String key, Class<T> type);
+
+	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
 
 	/**
 	 * Get the current mapping resolver.
