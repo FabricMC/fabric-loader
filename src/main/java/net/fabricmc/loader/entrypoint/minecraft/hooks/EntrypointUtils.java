@@ -50,9 +50,10 @@ public final class EntrypointUtils {
 				invoker.accept(container.getEntrypoint());
 			} catch (Throwable t) {
 				if (exception == null) {
-					exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors, provided by '" + container.getProvider().getMetadata().getId() + "'!");
+					exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors, provided by '" + container.getProvider().getMetadata().getId() + "'!", t);
+				} else {
+					exception.addSuppressed(t);
 				}
-				exception.addSuppressed(t);
 			}
 		}
 
