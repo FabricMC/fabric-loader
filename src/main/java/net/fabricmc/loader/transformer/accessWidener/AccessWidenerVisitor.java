@@ -19,6 +19,7 @@ package net.fabricmc.loader.transformer.accessWidener;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.mappings.EntryTriple;
 
@@ -37,7 +38,7 @@ public class AccessWidenerVisitor extends ClassVisitor {
 		className = name;
 		super.visit(
 				version,
-				accessWidener.getClassAccess(name).getOperator().applyAsInt(access),
+				accessWidener.getClassAccess(name).apply(access),
 				name,
 				signature,
 				superName,
@@ -51,14 +52,14 @@ public class AccessWidenerVisitor extends ClassVisitor {
 				name,
 				outerName,
 				innerName,
-				accessWidener.getClassAccess(name).getOperator().applyAsInt(access)
+				accessWidener.getClassAccess(name).apply(access)
 		);
 	}
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 		return super.visitField(
-				accessWidener.getFieldAccess(new EntryTriple(className, name, descriptor)).getOperator().applyAsInt(access),
+				accessWidener.getFieldAccess(new EntryTriple(className, name, descriptor)).apply(access),
 				name,
 				descriptor,
 				signature,
@@ -68,12 +69,31 @@ public class AccessWidenerVisitor extends ClassVisitor {
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-		return super.visitMethod(
-				accessWidener.getMethodAccess(new EntryTriple(className, name, descriptor)).getOperator().applyAsInt(access),
+		return new AccessWidenerMethodVisitor(super.visitMethod(
+				accessWidener.getMethodAccess(new EntryTriple(className, name, descriptor)).apply(access),
 				name,
 				descriptor,
 				signature,
 				exceptions
-		);
+		));
+	}
+
+	private class AccessWidenerMethodVisitor extends MethodVisitor {
+		AccessWidenerMethodVisitor(MethodVisitor methodVisitor) {
+			super(Opcodes.ASM7, methodVisitor);
+		}
+
+		@Override
+		public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+			if (opcode == Opcodes.INVOKESPECIAL && owner.equals(className) && !name.equals("<init>")) {
+				AccessWidener.Access methodAccess = accessWidener.getMethodAccess(new EntryTriple(owner, name, descriptor));
+
+				if (methodAccess != AccessWidener.MethodAccess.DEFAULT) {
+					opcode = Opcodes.INVOKEVIRTUAL;
+				}
+			}
+
+			super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+		}
 	}
 }
