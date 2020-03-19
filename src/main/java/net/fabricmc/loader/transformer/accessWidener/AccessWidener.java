@@ -200,7 +200,7 @@ public class AccessWidener {
 	}
 
 	private static int makeProtected(int i) {
-		if ((i & Opcodes.ACC_PRIVATE) != 0) {
+		if ((i & ~Opcodes.ACC_PUBLIC) == 0) {
 			//Return i if public
 			return i;
 		}
@@ -233,7 +233,7 @@ public class AccessWidener {
 	public enum ClassAccess implements Access {
 		DEFAULT(i -> i),
 		ACCESSIBLE(i -> makePublic(makeFinalIfPrivate(i))),
-		EXTENDABLE(i -> makeProtected(removeFinal(i))),
+		EXTENDABLE(i -> makePublic(removeFinal(i))),
 		ACCESSIBLE_EXTENDABLE(i -> makePublic(removeFinal(i)));
 
 		private final IntUnaryOperator operator;
