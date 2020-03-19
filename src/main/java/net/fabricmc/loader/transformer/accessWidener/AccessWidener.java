@@ -70,16 +70,16 @@ public class AccessWidener {
 		}
 
 		if (!header[2].equals(currentNamespace)) {
-			throw new RuntimeException(String.format("Namespace (%s) does not match current runtime namespace (%s)", header[1], currentNamespace));
+			throw new RuntimeException(String.format("Namespace (%s) does not match current runtime namespace (%s)", header[2], currentNamespace));
 		}
 
 		if (namespace != null) {
-			if (!namespace.equals(header[1])) {
-				throw new RuntimeException(String.format("Namespace mismatch, expected %s got %s", namespace, header[1]));
+			if (!namespace.equals(header[2])) {
+				throw new RuntimeException(String.format("Namespace mismatch, expected %s got %s", namespace, header[2]));
 			}
 		}
 
-		namespace = header[1];
+		namespace = header[2];
 
 		String line;
 
