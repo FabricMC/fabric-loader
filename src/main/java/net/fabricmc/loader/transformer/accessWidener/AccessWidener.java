@@ -263,9 +263,9 @@ public class AccessWidener {
 
 	public enum MethodAccess implements Access {
 		DEFAULT(i -> i),
-		ACCESSIBLE(i -> makePublic(i)), //Make public, add final if private
-		EXTENDABLE(i -> makeProtected(removeFinal(i))), //Make protected and strip final
-		ACCESSIBLE_EXTENDABLE(i -> makePublic(removeFinal(i))); //Make public and strip final
+		ACCESSIBLE(i -> makePublic(i)),
+		EXTENDABLE(i -> makeProtected(removeFinal(i))),
+		ACCESSIBLE_EXTENDABLE(i -> makePublic(removeFinal(i)));
 
 		private final IntUnaryOperator operator;
 
