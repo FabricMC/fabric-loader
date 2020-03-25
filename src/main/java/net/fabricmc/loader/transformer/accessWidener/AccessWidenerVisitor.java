@@ -38,7 +38,7 @@ public class AccessWidenerVisitor extends ClassVisitor {
 		className = name;
 		super.visit(
 				version,
-				accessWidener.getClassAccess(name).apply(access),
+				accessWidener.getClassAccess(name).applyAsInt(access),
 				name,
 				signature,
 				superName,
@@ -52,14 +52,14 @@ public class AccessWidenerVisitor extends ClassVisitor {
 				name,
 				outerName,
 				innerName,
-				accessWidener.getClassAccess(name).apply(access)
+				accessWidener.getClassAccess(name).applyAsInt(access)
 		);
 	}
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 		return super.visitField(
-				accessWidener.getFieldAccess(new EntryTriple(className, name, descriptor)).apply(access),
+				accessWidener.getFieldAccess(new EntryTriple(className, name, descriptor)).applyAsInt(access),
 				name,
 				descriptor,
 				signature,
@@ -70,7 +70,7 @@ public class AccessWidenerVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 		return new AccessWidenerMethodVisitor(super.visitMethod(
-				accessWidener.getMethodAccess(new EntryTriple(className, name, descriptor)).apply(access),
+				accessWidener.getMethodAccess(new EntryTriple(className, name, descriptor)).applyAsInt(access),
 				name,
 				descriptor,
 				signature,

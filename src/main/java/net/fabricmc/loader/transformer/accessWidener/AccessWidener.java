@@ -208,31 +208,21 @@ public class AccessWidener {
 		return (i & ~(Opcodes.ACC_PRIVATE)) | Opcodes.ACC_PROTECTED;
 	}
 
-	private static int makeFinalIfPrivate(int i) {
-		if ((i & Opcodes.ACC_PRIVATE) != 0) {
-			return i | Opcodes.ACC_FINAL;
-		}
-
-		return i;
-	}
-
 	private static int removeFinal(int i) {
 		return i & ~Opcodes.ACC_FINAL;
 	}
 
-	public interface Access {
+	public interface Access extends IntUnaryOperator {
 		Access makeAccessible();
 
 		Access makeExtendable();
 
 		Access makeMutable();
-
-		int apply(int i);
 	}
 
 	public enum ClassAccess implements Access {
 		DEFAULT(i -> i),
-		ACCESSIBLE(i -> makePublic(makeFinalIfPrivate(i))),
+		ACCESSIBLE(i -> makePublic(i)),
 		EXTENDABLE(i -> makePublic(removeFinal(i))),
 		ACCESSIBLE_EXTENDABLE(i -> makePublic(removeFinal(i)));
 
@@ -266,14 +256,14 @@ public class AccessWidener {
 		}
 
 		@Override
-		public int apply(int i) {
-			return operator.applyAsInt(i);
+		public int applyAsInt(int operand) {
+			return operator.applyAsInt(operand);
 		}
 	}
 
 	public enum MethodAccess implements Access {
 		DEFAULT(i -> i),
-		ACCESSIBLE(i -> makePublic(makeFinalIfPrivate(i))), //Make public, add final if private
+		ACCESSIBLE(i -> makePublic(i)), //Make public, add final if private
 		EXTENDABLE(i -> makeProtected(removeFinal(i))), //Make protected and strip final
 		ACCESSIBLE_EXTENDABLE(i -> makePublic(removeFinal(i))); //Make public and strip final
 
@@ -307,8 +297,8 @@ public class AccessWidener {
 		}
 
 		@Override
-		public int apply(int i) {
-			return operator.applyAsInt(i);
+		public int applyAsInt(int operand) {
+			return operator.applyAsInt(operand);
 		}
 	}
 
@@ -348,8 +338,8 @@ public class AccessWidener {
 		}
 
 		@Override
-		public int apply(int i) {
-			return operator.applyAsInt(i);
+		public int applyAsInt(int operand) {
+			return operator.applyAsInt(operand);
 		}
 	}
 }
