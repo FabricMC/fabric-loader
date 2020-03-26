@@ -208,6 +208,14 @@ public class AccessWidener {
 		return (i & ~(Opcodes.ACC_PRIVATE)) | Opcodes.ACC_PROTECTED;
 	}
 
+	private static int makeFinalIfPrivate(int i) {
+		if ((i & Opcodes.ACC_PRIVATE) != 0) {
+			return i | Opcodes.ACC_FINAL;
+		}
+
+		return i;
+	}
+
 	private static int removeFinal(int i) {
 		return i & ~Opcodes.ACC_FINAL;
 	}
@@ -263,7 +271,7 @@ public class AccessWidener {
 
 	public enum MethodAccess implements Access {
 		DEFAULT(i -> i),
-		ACCESSIBLE(i -> makePublic(i)),
+		ACCESSIBLE(i -> makePublic(makeFinalIfPrivate(i))),
 		EXTENDABLE(i -> makeProtected(removeFinal(i))),
 		ACCESSIBLE_EXTENDABLE(i -> makePublic(removeFinal(i)));
 
