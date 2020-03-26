@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.game;
+package net.fabricmc.loader.api.entrypoint;
 
-import java.util.Collections;
-import java.util.List;
+import net.fabricmc.loader.api.ModContainer;
 
-public final class GameProviders {
-	private GameProviders() { }
+/**
+ * Represents a container which holds both an entrypoint instance and the {@link ModContainer} which has provided the entrypoint,
+ * @param <T> The type of the entrypoint
+ */
+public interface EntrypointContainer<T> {
+	/**
+	 * Gets the entrypoint.
+	 * @return An entrypoint instance.
+	 */
+	T getEntrypoint();
 
-	public static List<GameProvider> create() {
-		return Collections.singletonList(new MinecraftGameProvider());
-	}
+	/**
+	 * Gets the mod which has provided this entrypoint.
+	 * @return The mod which as provided this entrypoint.
+	 */
+	ModContainer getProvider();
 }
