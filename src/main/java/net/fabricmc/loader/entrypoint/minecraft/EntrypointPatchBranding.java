@@ -25,6 +25,8 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.util.ListIterator;
 import java.util.function.Consumer;
@@ -46,15 +48,6 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 						if (applyBrandingPatch(brandClass)) {
 							classEmitter.accept(brandClass);
 						}
-		for (String brandClassName : new String[] {
-			"net.minecraft.client.ClientBrandRetriever",
-			"net.minecraft.server.MinecraftServer"
-		}) {
-			try {
-				ClassNode brandClass = loadClass(launcher, brandClassName);
-				if (brandClass != null) {
-					if (applyBrandingPatch(brandClass)) {
-						classEmitter.accept(brandClass);
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
