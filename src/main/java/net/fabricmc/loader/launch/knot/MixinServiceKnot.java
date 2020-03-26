@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.launch.knot;
 
+import com.google.common.collect.ImmutableList;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -154,7 +156,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public Collection<String> getPlatformAgents() {
-		return Collections.singletonList("org.spongepowered.asm.launch.platform.MixinPlatformAgentDefault");
+		return ImmutableList.of("org.spongepowered.asm.launch.platform.MixinPlatformAgentDefault");
 	}
 
 	@Override

@@ -17,8 +17,6 @@
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,24 +36,26 @@ public final class EntrypointUtils {
 
 	private static <T> void invoke0(String name, Class<T> type, Consumer<? super T> invoker) {
 		FabricLoader loader = FabricLoader.INSTANCE;
-		RuntimeException exception = null;
-		Collection<EntrypointContainer<T>> entrypoints = loader.getEntrypointContainers(name, type);
+		Collection<T> entrypoints = loader.getEntrypoints(name, type);
+		List<Throwable> errors = new ArrayList<>();
 
 		loader.getLogger().debug("Iterating over entrypoint '" + name + "'");
 
-		for (EntrypointContainer<T> container : entrypoints) {
+		for (T e : entrypoints) {
 			try {
-				invoker.accept(container.getEntrypoint());
+				invoker.accept(e);
 			} catch (Throwable t) {
-				if (exception == null) {
-					exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors, provided by '" + container.getProvider().getMetadata().getId() + "'!", t);
-				} else {
-					exception.addSuppressed(t);
-				}
+				errors.add(t);
 			}
 		}
 
-		if (exception != null) {
+		if (!errors.isEmpty()) {
+			RuntimeException exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors!");
+
+			for (Throwable t : errors) {
+				exception.addSuppressed(t);
+			}
+
 			throw exception;
 		}
 	}

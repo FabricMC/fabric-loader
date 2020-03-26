@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.discovery;
 
+import com.google.common.base.Joiner;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
@@ -252,7 +253,7 @@ public class ModResolver {
 		StringBuilder errorsSoft = new StringBuilder();
 
 		if (!missingMods.isEmpty()) {
-			errorsHard.append("\n - Missing mods: ").append(String.join(", ", missingMods));
+			errorsHard.append("\n - Missing mods: ").append(Joiner.on(", ").join(missingMods));
 		} else {
 			// verify result: dependencies
 			for (ModCandidate candidate : result.values()) {

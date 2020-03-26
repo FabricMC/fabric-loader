@@ -16,13 +16,14 @@
 
 package net.fabricmc.loader.game;
 
-import java.util.Collections;
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
 public final class GameProviders {
 	private GameProviders() { }
 
 	public static List<GameProvider> create() {
-		return Collections.singletonList(new MinecraftGameProvider());
+		return ImmutableList.of(new MinecraftGameProvider());
 	}
 }

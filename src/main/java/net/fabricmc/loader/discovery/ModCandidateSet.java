@@ -16,7 +16,11 @@
 
 package net.fabricmc.loader.discovery;
 
+import com.google.common.base.Joiner;
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,11 +80,11 @@ public class ModCandidateSet {
 
 	public Collection<ModCandidate> toSortedSet() throws ModResolutionException {
 		if (depthZeroCandidates.size() > 1) {
-			String modVersions = depthZeroCandidates.stream()
+			Set<String> modVersionStrings = depthZeroCandidates.stream()
 				.map((c) -> "[" + c.getInfo().getVersion() + " at " + c.getOriginUrl().getFile() + "]")
-				.collect(Collectors.joining(", "));
+				.collect(Collectors.toSet());
 
-			throw new ModResolutionException("Duplicate versions for mod ID '" + modId + "': " + modVersions);
+			throw new ModResolutionException("Duplicate versions for mod ID '" + modId + "': " + Joiner.on(", ").join(modVersionStrings));
 		} else if (depthZeroCandidates.size() == 1) {
 			return depthZeroCandidates;
 		} else if (candidates.size() > 1) {
