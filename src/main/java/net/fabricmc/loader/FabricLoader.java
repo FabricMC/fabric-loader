@@ -50,7 +50,7 @@ import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
-import net.fabricmc.loader.transformer.accessWidener.AccessWidener;
+import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
 
 /**
  * The main class for mod loading operations.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.transformer.accessWidener;
+package net.fabricmc.loader.transformer.accesswidener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
