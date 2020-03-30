@@ -16,28 +16,31 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.mappings.Mappings;
-import net.fabricmc.mappings.MappingsProvider;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
+import net.fabricmc.mapping.tree.TinyMappingFactory;
+import net.fabricmc.mapping.tree.TinyTree;
 
 public class MappingConfiguration {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 
-	private static Mappings mappings;
+	private static TinyTree mappings;
 	private static boolean checkedMappings;
 
-	public Mappings getMappings() {
+	public TinyTree getMappings() {
 		if (!checkedMappings) {
 			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
 
 			if (mappingStream != null) {
-				try {
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
 					long time = System.currentTimeMillis();
-					mappings = MappingsProvider.readTinyMappings(mappingStream);
+					mappings = TinyMappingFactory.loadWithDetection(reader);
 					LOGGER.debug("Loading mappings took " + (System.currentTimeMillis() - time) + " ms");
 				} catch (IOException ee) {
 					ee.printStackTrace();
@@ -51,7 +54,8 @@ public class MappingConfiguration {
 			}
 
 			if (mappings == null) {
-				mappings = MappingsProvider.createEmptyMappings();
+				LOGGER.info("Mappings not present!");
+				mappings = TinyMappingFactory.EMPTY_TREE;
 			}
 
 			checkedMappings = true;

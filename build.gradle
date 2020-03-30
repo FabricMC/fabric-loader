@@ -1,6 +1,6 @@
 buildscript {
 	dependencies {
-		classpath "net.fabricmc:fabric-loom:0.2.5-SNAPSHOT"
+		classpath "net.fabricmc:fabric-loom:0.2.6-SNAPSHOT"
 	}
 }
 
@@ -49,18 +49,18 @@ dependencies {
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:7.1'
-	compile 'org.ow2.asm:asm-analysis:7.1'
-	compile 'org.ow2.asm:asm-commons:7.1'
-	compile 'org.ow2.asm:asm-tree:7.1'
-	compile 'org.ow2.asm:asm-util:7.1'
+	compile 'org.ow2.asm:asm:7.3.1'
+	compile 'org.ow2.asm:asm-analysis:7.3.1'
+	compile 'org.ow2.asm:asm-commons:7.3.1'
+	compile 'org.ow2.asm:asm-tree:7.3.1'
+	compile 'org.ow2.asm:asm-util:7.3.1'
 
-	compile('net.fabricmc:sponge-mixin:0.7.11.38') {
+	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-mappings-parser:0.1.1.8'
-	compile 'net.fabricmc:tiny-remapper:0.1.0.40'
+	compile 'net.fabricmc:tiny-mappings-parser:0.2.0.11'
+	compile 'net.fabricmc:tiny-remapper:0.2.0.52'
 
 	compile 'com.google.jimfs:jimfs:1.1'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
@@ -96,14 +96,14 @@ jar {
 	}
 }
 
-task copyJson(type: Copy, dependsOn: ["jar"]) {
+task copyJson(type: Copy, dependsOn: ["remapJar"]) {
 	from('src/main/resources/fabric-installer.json') {
 		rename { "${archivesBaseName}-${version}.json" }
 	}
 	into 'build/libs'
 }
 
-task copyJsonLw(type: Copy, dependsOn: ["jar"]) {
+task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
 	from('src/main/resources/fabric-installer.launchwrapper.json') {
 		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
 	}
@@ -147,16 +147,16 @@ publishing {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
 			artifact(file("${project.buildDir}/libs/$archivesBaseName-${version}.jar")) {
-				builtBy jar
+				builtBy remapJar
 			}
 			artifact(sourcesJar) {
-				builtBy sourcesJar
+				builtBy remapSourcesJar
 			}
 			artifact(file('src/main/resources/fabric-installer.json')) {
-				builtBy jar
+				builtBy remapJar
 			}
 			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
-				builtBy jar
+				builtBy remapJar
 				classifier = "launchwrapper"
 			}
 		}

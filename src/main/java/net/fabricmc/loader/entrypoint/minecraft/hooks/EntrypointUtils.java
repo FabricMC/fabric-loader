@@ -17,37 +17,47 @@
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-final class EntrypointUtils {
-	private EntrypointUtils() {
+public final class EntrypointUtils {
+	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {
+		@SuppressWarnings("deprecation")
+		FabricLoader loader = FabricLoader.INSTANCE;
 
+		if (!loader.hasEntrypoints(name)) {
+			loader.getLogger().debug("No subscribers for entrypoint '" + name + "'");
+		} else {
+			invoke0(name, type, invoker);
+		}
 	}
 
-	static <T> void logErrors(String name, Collection<T> entrypoints, Consumer<T> entrypointConsumer) {
-		List<Throwable> errors = new ArrayList<>();
+	private static <T> void invoke0(String name, Class<T> type, Consumer<? super T> invoker) {
+		@SuppressWarnings("deprecation")
+		FabricLoader loader = FabricLoader.INSTANCE;
+		RuntimeException exception = null;
+		Collection<EntrypointContainer<T>> entrypoints = loader.getEntrypointContainers(name, type);
 
-		FabricLoader.INSTANCE.getLogger().debug("Iterating over entrypoint '" + name + "'");
+		loader.getLogger().debug("Iterating over entrypoint '" + name + "'");
 
-		entrypoints.forEach((e) -> {
+		for (EntrypointContainer<T> container : entrypoints) {
 			try {
-				entrypointConsumer.accept(e);
+				invoker.accept(container.getEntrypoint());
 			} catch (Throwable t) {
-				errors.add(t);
+				if (exception == null) {
+					exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors, provided by '" + container.getProvider().getMetadata().getId() + "'!", t);
+				} else {
+					exception.addSuppressed(t);
+				}
 			}
-		});
+		}
 
-		if (!errors.isEmpty()) {
-			RuntimeException exception = new RuntimeException("Could not execute entrypoint stage '" + name + "' due to errors!");
-
-			for (Throwable t : errors) {
-				exception.addSuppressed(t);
-			}
-			
+		if (exception != null) {
 			throw exception;
 		}
 	}
