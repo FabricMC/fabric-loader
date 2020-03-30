@@ -120,8 +120,6 @@ public class AppletFrame extends Frame implements WindowListener {
 			applet.stop();
 			applet.destroy();
 		}
-
-		System.exit(0);
 	}
 
 	@Override
