@@ -73,6 +73,11 @@ dependencies {
 
 	compile 'org.apache.logging.log4j:log4j-core:2.8.1'
 
+	compile 'com.google.code.gson:gson:2.8.6'
+	compile group: 'com.google.guava', name: 'guava', version: '28.2-jre'
+
+
+
 }
 
 processResources {
@@ -96,14 +101,14 @@ jar {
 	}
 }
 
-task copyJson(type: Copy, dependsOn: ["remapJar"]) {
+task copyJson(type: Copy, dependsOn: ["jar"]) {
 	from('src/main/resources/fabric-installer.json') {
 		rename { "${archivesBaseName}-${version}.json" }
 	}
 	into 'build/libs'
 }
 
-task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
+task copyJsonLw(type: Copy, dependsOn: ["jar"]) {
 	from('src/main/resources/fabric-installer.launchwrapper.json') {
 		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
 	}
@@ -147,16 +152,16 @@ publishing {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
 			artifact(file("${project.buildDir}/libs/$archivesBaseName-${version}.jar")) {
-				builtBy remapJar
+				builtBy jar
 			}
 			artifact(sourcesJar) {
-				builtBy remapSourcesJar
+				builtBy sourcesJar
 			}
 			artifact(file('src/main/resources/fabric-installer.json')) {
-				builtBy remapJar
+				builtBy jar
 			}
 			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
-				builtBy remapJar
+				builtBy jar
 				classifier = "launchwrapper"
 			}
 		}
