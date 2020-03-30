@@ -70,7 +70,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
-	private final AccessWidener accessWidener = new AccessWidener();
+	private final AccessWidener accessWidener = new AccessWidener(this);
 
 	private boolean frozen = false;
 

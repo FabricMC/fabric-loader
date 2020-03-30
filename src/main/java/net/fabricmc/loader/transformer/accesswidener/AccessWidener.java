@@ -41,7 +41,13 @@ public class AccessWidener {
 	public Map<EntryTriple, Access> fieldAccess = new HashMap<>();
 	private Set<String> classes = new LinkedHashSet<>();
 
-	public void loadFromMods(FabricLoader fabricLoader) {
+	private final FabricLoader fabricLoader;
+
+	public AccessWidener(FabricLoader fabricLoader) {
+		this.fabricLoader = fabricLoader;
+	}
+
+	public void loadFromMods() {
 		for (ModContainer modContainer : fabricLoader.getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
 			String accessWidener = modMetadata.getAccessWidener();
