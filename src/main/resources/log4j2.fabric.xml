@@ -51,7 +51,7 @@
 		</RollingRandomAccessFile>
 	</Appenders>
 	<Loggers>
-		<Logger level="${sys:fabric.log.minecraft.level:-info}" name="net.minecraft"/>
+		<Logger level="${sys:fabric.log.level:-info}" name="net.minecraft"/>
 		<Root level="all">
 			<AppenderRef ref="DebugFile" level="${sys:fabric.log.debug.level:-debug}"/>
 			<AppenderRef ref="SysOut" level="${sys:fabric.log.level:-info}"/>
