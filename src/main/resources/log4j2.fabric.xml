@@ -49,7 +49,6 @@
 			</Policies>
 
 		</RollingRandomAccessFile>
-
 	</Appenders>
 	<Loggers>
 		<Logger level="info" name="net.minecraft"/>
