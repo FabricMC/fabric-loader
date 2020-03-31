@@ -14,7 +14,12 @@
 
 		<!--	Vanilla server gui	-->
 		<Queue name="ServerGuiConsole">
-			<PatternLayout pattern="[%d{HH:mm:ss} %level]: %msg%n" />
+			<PatternLayout>
+				<LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss} %level] (%logger{1}) %msg%n">
+					<!-- Dont show the logger name for minecraft classes-->
+					<PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss} %level] %msg%n"/>
+				</LoggerNamePatternSelector>
+			</PatternLayout>
 		</Queue>
 
 		<!--	latest.log same as vanilla	-->
@@ -22,7 +27,7 @@
 			<PatternLayout>
 				<LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level] (%logger{1}) %msg%n">
 					<!-- Dont show the logger name for minecraft classes-->
-					<PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n"/>
+					<PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss}] [%t/%level] (Minecraft) %msg%n"/>
 				</LoggerNamePatternSelector>
 			</PatternLayout>
 			<Policies>
@@ -33,12 +38,7 @@
 
 		<!--	Debug log file	-->
 		<RollingRandomAccessFile name="DebugFile" fileName="logs/debug/debug.log" filePattern="logs/debug/%d{yyyy-MM-dd}-%i.log.gz">
-			<PatternLayout>
-				<LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss}] [%t/%level] (%logger{1}) %msg%n">
-					<!-- Dont show the logger name for minecraft classes-->
-					<PatternMatch key="net.minecraft.,com.mojang." pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n"/>
-				</LoggerNamePatternSelector>
-			</PatternLayout>
+			<PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] (%logger) %msg%n" />
 
 			<!--	Keep 3 files max	-->
 			<DefaultRolloverStrategy max="3" fileIndex="min"/>
