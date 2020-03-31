@@ -13,7 +13,7 @@
 		</Console>
 
 		<!--	Vanilla server gui	-->
-		<Queue name="ServerGuiConsole">
+		<Queue name="ServerGuiConsole" ignoreExceptions="true">
 			<PatternLayout>
 				<LoggerNamePatternSelector defaultPattern="[%d{HH:mm:ss} %level] (%logger{1}) %msg%n">
 					<!-- Dont show the logger name for minecraft classes-->
@@ -37,26 +37,26 @@
 		</RollingRandomAccessFile>
 
 		<!--	Debug log file	-->
-		<RollingRandomAccessFile name="DebugFile" fileName="logs/debug/debug.log" filePattern="logs/debug/%d{yyyy-MM-dd}-%i.log.gz">
+		<RollingRandomAccessFile name="DebugFile" fileName="logs/debug.log" filePattern="logs/debug-%i.log.gz">
 			<PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] (%logger) %msg%n" />
 
-			<!--	Keep 3 files max	-->
-			<DefaultRolloverStrategy max="3" fileIndex="min"/>
+			<!--	Keep 5 files max	-->
+			<DefaultRolloverStrategy max="5" fileIndex="min"/>
 			
 			<Policies>
-				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="500MB"/>
 				<OnStartupTriggeringPolicy />
 			</Policies>
 
 		</RollingRandomAccessFile>
 	</Appenders>
 	<Loggers>
-		<Logger level="info" name="net.minecraft"/>
-		<Root level="debug">
-			<AppenderRef ref="DebugFile"/>
-			<AppenderRef ref="SysOut" level="info"/>
-			<AppenderRef ref="LatestFile" level="info"/>
-			<AppenderRef ref="ServerGuiConsole" level="info"/>
+		<Logger level="${sys:fabric.log.minecraft.level:-info}" name="net.minecraft"/>
+		<Root level="all">
+			<AppenderRef ref="DebugFile" level="${sys:fabric.log.debug.level:-debug}"/>
+			<AppenderRef ref="SysOut" level="${sys:fabric.log.level:-info}"/>
+			<AppenderRef ref="LatestFile" level="${sys:fabric.log.level:-info}"/>
+			<AppenderRef ref="ServerGuiConsole" level="${sys:fabric.log.level:-info}"/>
 		</Root>
 	</Loggers>
 </Configuration>
