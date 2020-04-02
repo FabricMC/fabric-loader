@@ -57,18 +57,18 @@ public final class FabricTransformer {
 		int visitorCount = 0;
 
 		if (transformAccess) {
-			visitor = new PackageAccessFixer(Opcodes.ASM7, visitor);
+			visitor = new PackageAccessFixer(Opcodes.ASM8, visitor);
 			visitorCount++;
 		}
 
 		if (environmentStrip) {
-			EnvironmentStrippingData stripData = new EnvironmentStrippingData(Opcodes.ASM7, envType.toString());
+			EnvironmentStrippingData stripData = new EnvironmentStrippingData(Opcodes.ASM8, envType.toString());
 			classReader.accept(stripData, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
 			if (stripData.stripEntireClass()) {
 				throw new RuntimeException("Cannot load class " + name + " in environment type " + envType);
 			}
 			if (!stripData.isEmpty()) {
-				visitor = new ClassStripper(Opcodes.ASM7, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
+				visitor = new ClassStripper(Opcodes.ASM8, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
 				visitorCount++;
 			}
 		}

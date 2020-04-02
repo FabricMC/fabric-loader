@@ -359,7 +359,7 @@ public final class McVersionLookup {
 
 	private static final class FieldStringConstantVisitor extends ClassVisitor implements Analyzer {
 		public FieldStringConstantVisitor(String fieldName) {
-			super(Opcodes.ASM7);
+			super(Opcodes.ASM8);
 
 			this.fieldName = fieldName;
 		}
@@ -430,7 +430,7 @@ public final class McVersionLookup {
 
 	private static final class MethodStringConstantContainsVisitor extends ClassVisitor implements Analyzer {
 		public MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
-			super(Opcodes.ASM7);
+			super(Opcodes.ASM8);
 
 			this.methodOwner = methodOwner;
 			this.methodName = methodName;
@@ -485,7 +485,7 @@ public final class McVersionLookup {
 
 	private static final class MethodConstantRetVisitor extends ClassVisitor implements Analyzer {
 		public MethodConstantRetVisitor(String methodName) {
-			super(Opcodes.ASM7);
+			super(Opcodes.ASM8);
 
 			this.methodName = methodName;
 		}
@@ -543,7 +543,7 @@ public final class McVersionLookup {
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
 		public MethodConstantVisitor(String methodNameHint) {
-			super(Opcodes.ASM7);
+			super(Opcodes.ASM8);
 
 			this.methodNameHint = methodNameHint;
 		}
@@ -561,7 +561,7 @@ public final class McVersionLookup {
 				return null;
 			}
 
-			return new MethodVisitor(Opcodes.ASM7) {
+			return new MethodVisitor(Opcodes.ASM8) {
 				@Override
 				public void visitLdcInsn(Object value) {
 					String str;
@@ -583,7 +583,7 @@ public final class McVersionLookup {
 
 	private static abstract class InsnFwdMethodVisitor extends MethodVisitor {
 		public InsnFwdMethodVisitor() {
-			super(Opcodes.ASM7);
+			super(Opcodes.ASM8);
 		}
 
 		protected abstract void visitAnyInsn();
