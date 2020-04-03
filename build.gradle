@@ -106,10 +106,6 @@ task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
 tasks.build.dependsOn "copyJson"
 tasks.build.dependsOn "copyJsonLw"
 
-task wrapper(type: Wrapper) {
-	gradleVersion = '4.10.3'
-}
-
 String getClasspathEntries(){
 	String classPath = ""
 	File installerFile = file("src/main/resources/fabric-installer.json")
