@@ -299,8 +299,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			ClassReader reader = new ClassReader(bytes);
 			return reader.getSuperName().equals(superCls);
 		} catch (IOException e) {
-			//Nope?
-			return false;
+			throw new RuntimeException("Failed to check superclass of " + cls, e);
 		}
 	}
 }
