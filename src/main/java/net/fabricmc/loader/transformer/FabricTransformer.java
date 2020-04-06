@@ -60,7 +60,7 @@ public final class FabricTransformer {
 		int visitorCount = 0;
 
 		if (applyAccessWidener) {
-			visitor = new AccessWidenerVisitor(Opcodes.ASM7, visitor, FabricLoader.INSTANCE.getAccessWidener());
+			visitor = new AccessWidenerVisitor(Opcodes.ASM8, visitor, FabricLoader.INSTANCE.getAccessWidener());
 			visitorCount++;
 		}
 
