@@ -220,7 +220,7 @@ public class AccessWidener {
 		}
 
 		// Skip interface and static methods
-		if ((ownerAccess & Opcodes.ACC_INTERFACE) != 0 || (access & Opcodes.ACC_STATIC) != 0) {
+		if ((ownerAccess & (Opcodes.ACC_INTERFACE | Opcodes.ACC_STATIC)) != 0) {
 			return access;
 		}
 
