@@ -17,8 +17,10 @@
 package net.fabricmc.loader.transformer;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.transformer.accesswidener.AccessWidenerVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -46,8 +48,9 @@ public final class FabricTransformer {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
+		boolean applyAccessWidener = isMinecraftClass && FabricLoader.INSTANCE.getAccessWidener().getTargets().contains(name);
 
-		if (!transformAccess && !environmentStrip) {
+		if (!transformAccess && !environmentStrip && !applyAccessWidener) {
 			return bytes;
 		}
 
@@ -55,6 +58,11 @@ public final class FabricTransformer {
 		ClassWriter classWriter = new ClassWriter(0);
 		ClassVisitor visitor = classWriter;
 		int visitorCount = 0;
+
+		if (applyAccessWidener) {
+			visitor = new AccessWidenerVisitor(Opcodes.ASM8, visitor, FabricLoader.INSTANCE.getAccessWidener());
+			visitorCount++;
+		}
 
 		if (transformAccess) {
 			visitor = new PackageAccessFixer(Opcodes.ASM8, visitor);

@@ -50,6 +50,7 @@ import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
+import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
 
 /**
  * The main class for mod loading operations.
@@ -69,6 +70,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
+	private final AccessWidener accessWidener = new AccessWidener(this);
 
 	private boolean frozen = false;
 
@@ -420,6 +422,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		} else {
 			setGameDir(newRunDir);
 		}
+	}
+
+	public AccessWidener getAccessWidener() {
+		return accessWidener;
 	}
 
 	public Logger getLogger() {
