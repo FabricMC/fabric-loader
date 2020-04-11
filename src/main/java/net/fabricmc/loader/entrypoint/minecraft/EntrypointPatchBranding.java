@@ -25,8 +25,6 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import com.google.common.collect.ImmutableList;
-
 import java.io.IOException;
 import java.util.ListIterator;
 import java.util.function.Consumer;
@@ -38,36 +36,21 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
-		for (String brandClassName : ImmutableList.of(
+		for (String brandClassName : new String[] {
 				"net.minecraft.client.ClientBrandRetriever",
 				"net.minecraft.server.MinecraftServer"
-			)) {
-				try {
-					ClassNode brandClass = loadClass(launcher, brandClassName);
-					if (brandClass != null) {
-						if (applyBrandingPatch(brandClass)) {
-							classEmitter.accept(brandClass);
-						}
+		}) {
+			try {
+				ClassNode brandClass = loadClass(launcher, brandClassName);
+				if (brandClass != null) {
+					if (applyBrandingPatch(brandClass)) {
+						classEmitter.accept(brandClass);
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-		
-		for (String brandClassName : ImmutableList.of(
-				"net.minecraft.class_1084"
-			)) {
-				try {
-					ClassNode brandClass = loadClass(launcher, brandClassName);
-					if (brandClass != null) {
-						if (applyBrandingPatch(brandClass)) {
-							classEmitter.accept(brandClass);
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+		}
 	}
 
 

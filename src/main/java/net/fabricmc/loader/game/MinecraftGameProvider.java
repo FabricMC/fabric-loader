@@ -16,31 +16,25 @@
 
 package net.fabricmc.loader.game;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding_1_8_9;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding_1_8_9;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.minecraft.McVersionLookup;
 import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
 import net.fabricmc.loader.util.Arguments;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.*;
 
 public class MinecraftGameProvider implements GameProvider {
 	private static final Gson GSON = new Gson();
@@ -53,10 +47,10 @@ public class MinecraftGameProvider implements GameProvider {
 	private boolean hasModLoader = false;
 
 	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
-		new EntrypointPatchHook(it),
-		new EntrypointPatchBranding(it),
-		new EntrypointPatchFML125(it),
-		new EntrypointPatchBranding_1_8_9(it)
+			new EntrypointPatchHook(it),
+			new EntrypointPatchBranding(it),
+			new EntrypointPatchFML125(it),
+			new EntrypointPatchBranding_1_8_9(it)
 	));
 
 	@Override
@@ -71,7 +65,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public String getRawGameVersion() {
-		return "1.8.9";
+		return versionData.raw;
 	}
 
 	@Override
@@ -90,9 +84,9 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		return Arrays.asList(
-			new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
-				.setName(getGameName())
-				.build())
+				new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
+						.setName(getGameName())
+						.build())
 		);
 	}
 
@@ -136,7 +130,7 @@ public class MinecraftGameProvider implements GameProvider {
 		List<String> entrypointClasses;
 
 		if (envType == EnvType.CLIENT) {
-			entrypointClasses = Lists.newArrayList("net.minecraft.client.main.Main", "net.minecraft.client.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
+			entrypointClasses = Arrays.asList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
 		} else {
 			entrypointClasses = Arrays.asList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
 		}

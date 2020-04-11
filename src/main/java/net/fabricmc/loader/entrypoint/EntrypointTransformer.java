@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.entrypoint;
 
-import com.google.common.collect.ImmutableList;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,7 +38,7 @@ public class EntrypointTransformer {
 	private boolean entrypointsLocated = false;
 
 	public EntrypointTransformer(Function<EntrypointTransformer, List<EntrypointPatch>> patches) {
-		this.patches = ImmutableList.copyOf(patches.apply(this));
+		this.patches = patches.apply(this);
 	}
 
 	ClassNode loadClass(FabricLauncher launcher, String className) throws IOException {
@@ -79,6 +78,7 @@ public class EntrypointTransformer {
 
 	/**
 	 * This must run first, contractually!
+	 *
 	 * @param className The class name,
 	 * @return The transformed class data.
 	 */

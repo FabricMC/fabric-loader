@@ -156,7 +156,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public Collection<String> getPlatformAgents() {
-		return ImmutableList.of("org.spongepowered.asm.launch.platform.MixinPlatformAgentDefault");
+		return Collections.singletonList("org.spongepowered.asm.launch.platform.MixinPlatformAgentDefault");
 	}
 
 	@Override
