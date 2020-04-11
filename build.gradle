@@ -37,14 +37,14 @@ repositories {
 		url = 'https://libraries.minecraft.net/'
 	}
 		maven {
-		name = 'LegacyMavenRepo'
+		name = 'hydosMavenRepo'
 		url = 'https://dl.bintray.com/legacy-fabric/Legacy-Fabric-Maven'
 	}
 }
 
 dependencies {
 	minecraft "com.mojang:minecraft:1.8.9"
-	mappings "1.8.9+build.202004110912"
+	mappings "net.fabricmc:yarn:1.8.9+build.202004110912"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
