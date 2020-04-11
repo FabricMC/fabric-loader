@@ -16,11 +16,11 @@
 
 package net.fabricmc.loader;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModContainer;
 import net.fabricmc.loader.api.EntrypointException;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.entrypoint.EntrypointContainerImpl;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 
@@ -29,12 +29,14 @@ import java.util.*;
 class EntrypointStorage {
 	interface Entry {
 		<T> T getOrCreate(Class<T> type) throws Exception;
+
+		ModContainer getModContainer();
 	}
 
 	private static class OldEntry implements Entry {
 		private static final net.fabricmc.loader.language.LanguageAdapter.Options options = net.fabricmc.loader.language.LanguageAdapter.Options.Builder.create()
-			.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
-			.build();
+				.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
+				.build();
 
 		private final ModContainer mod;
 		private final String languageAdapter;
@@ -66,6 +68,11 @@ class EntrypointStorage {
 				return (T) object;
 			}
 		}
+
+		@Override
+		public ModContainer getModContainer() {
+			return mod;
+		}
 	}
 
 	private static class NewEntry implements Entry {
@@ -96,6 +103,11 @@ class EntrypointStorage {
 			return (T) o;
 		}
 
+		@Override
+		public ModContainer getModContainer() {
+			return mod;
+		}
+
 		private <T> T create(Class<T> type) throws Exception {
 			return adapter.create(mod, value, type);
 		}
@@ -122,7 +134,7 @@ class EntrypointStorage {
 
 		FabricLoader.INSTANCE.getLogger().debug("Registering new-style initializer " + metadata.getValue() + " for mod " + modContainer.getInfo().getId() + " (key " + key + ")");
 		getOrCreateEntries(key).add(new NewEntry(
-			modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
+				modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
 		));
 	}
 
@@ -132,33 +144,61 @@ class EntrypointStorage {
 
 	protected <T> List<T> getEntrypoints(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
-		if (entries == null) {
-			return Collections.emptyList();
-		}
+		if (entries == null) return Collections.emptyList();
 
-		List<Throwable> errors = new ArrayList<>();
+		EntrypointException exception = null;
 		List<T> results = new ArrayList<>(entries.size());
+
 		for (Entry entry : entries) {
 			try {
 				T result = entry.getOrCreate(type);
+
 				if (result != null) {
 					results.add(result);
 				}
 			} catch (Throwable t) {
-				errors.add(t);
+				if (exception == null) {
+					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+				} else {
+					exception.addSuppressed(t);
+				}
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			EntrypointException e = new EntrypointException("Could not look up entries for entrypoint " + key + "!");
-
-			for (Throwable suppressed : errors) {
-				e.addSuppressed(suppressed);
-			}
-
-			throw e;
-		} else {
-			return results;
+		if (exception != null) {
+			throw exception;
 		}
+
+		return results;
+	}
+
+	protected <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
+		List<Entry> entries = entryMap.get(key);
+		if (entries == null) return Collections.emptyList();
+
+		EntrypointException exception = null;
+		List<EntrypointContainer<T>> results = new ArrayList<>(entries.size());
+
+		for (Entry entry : entries) {
+			try {
+				T result = entry.getOrCreate(type);
+
+				if (result != null) {
+					results.add(new EntrypointContainerImpl<>(entry.getModContainer(), result));
+				}
+			} catch (Throwable t) {
+				if (exception == null) {
+					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+				} else {
+					exception.addSuppressed(t);
+				}
+			}
+		}
+
+		if (exception != null) {
+			throw exception;
+		}
+
+		return results;
 	}
 }
