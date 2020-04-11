@@ -18,10 +18,10 @@ package net.fabricmc.loader.metadata;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.Version;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Type;

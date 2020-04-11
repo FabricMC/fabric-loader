@@ -19,11 +19,12 @@ package net.fabricmc.loader.discovery;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
+
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataParser;
@@ -33,8 +34,11 @@ import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.sat4j.core.VecInt;
 import net.fabricmc.loader.util.sat4j.minisat.SolverFactory;
+import net.fabricmc.loader.util.sat4j.specs.ContradictionException;
+import net.fabricmc.loader.util.sat4j.specs.IProblem;
+import net.fabricmc.loader.util.sat4j.specs.ISolver;
+import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
-import net.fabricmc.loader.util.sat4j.specs.*;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -180,7 +184,7 @@ public class ModResolver {
 
 						try {
 							for (int m : matchingCandidates) {
-								solver.addClause(new VecInt(new int[]{-modClauseId, -m}));
+								solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
 							}
 						} catch (ContradictionException e) {
 							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " breaks " + dep, e);
@@ -350,9 +354,7 @@ public class ModResolver {
 		}
 	}
 
-	/**
-	 * @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense.
-	 */
+	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */
 	private static boolean isModIdValid(String modId, List<String> errorList) {
 		// A more useful error list for MOD_ID_PATTERN
 		if (modId.isEmpty()) {

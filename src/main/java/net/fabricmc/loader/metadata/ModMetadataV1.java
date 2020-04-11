@@ -119,9 +119,9 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	@Override
 	public Collection<String> getMixinConfigs(EnvType type) {
 		return Arrays.asList(mixins).stream()
-				.filter((e) -> e.environment.matches(type))
-				.map((e) -> e.config)
-				.collect(Collectors.toList());
+			.filter((e) -> e.environment.matches(type))
+			.map((e) -> e.config)
+			.collect(Collectors.toList());
 	}
 
 	@Override
