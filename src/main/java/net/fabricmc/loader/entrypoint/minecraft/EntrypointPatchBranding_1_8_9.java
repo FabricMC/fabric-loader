@@ -33,12 +33,7 @@ public class EntrypointPatchBranding_1_8_9 extends EntrypointPatch {
 	}
 	
 	public ClassNode loadMainClass(FabricLauncher launcher) {
-		try {
-			return loadClass(launcher, "net/minecraft/client/MinecraftClient");
-		}catch(Exception e) {
-			return loadClass(launcher, "net/minecraft/client/main/Main");
-		}
-		
+		return loadClass(launcher, "net/minecraft/client/main/Main");
 	}
 
 	@Override
