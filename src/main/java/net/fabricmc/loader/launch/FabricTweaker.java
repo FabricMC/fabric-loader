@@ -122,6 +122,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			}
 		}
 
+		FabricLoader.INSTANCE.getAccessWidener().loadFromMods();
+
 		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 
 		// Setup Mixin environment
