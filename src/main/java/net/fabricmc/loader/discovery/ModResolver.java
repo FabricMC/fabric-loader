@@ -19,12 +19,11 @@ package net.fabricmc.loader.discovery;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
-import com.google.gson.*;
-
+import com.google.gson.JsonSyntaxException;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.ModMetadataParser;
@@ -34,11 +33,8 @@ import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.sat4j.core.VecInt;
 import net.fabricmc.loader.util.sat4j.minisat.SolverFactory;
-import net.fabricmc.loader.util.sat4j.specs.ContradictionException;
-import net.fabricmc.loader.util.sat4j.specs.IProblem;
-import net.fabricmc.loader.util.sat4j.specs.ISolver;
-import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
+import net.fabricmc.loader.util.sat4j.specs.*;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -60,13 +56,13 @@ import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
 public class ModResolver {
 	// nested JAR store
 	private static final FileSystem inMemoryFs = Jimfs.newFileSystem(
-			"nestedJarStore",
-			Configuration.builder(PathType.unix())
-					.setRoots("/")
-					.setWorkingDirectory("/")
-					.setAttributeViews("basic")
-					.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
-					.build()
+		"nestedJarStore",
+		Configuration.builder(PathType.unix())
+			.setRoots("/")
+			.setWorkingDirectory("/")
+			.setAttributeViews("basic")
+			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
+			.build()
 	);
 	private static final Map<URL, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
@@ -154,10 +150,10 @@ public class ModResolver {
 
 					for (ModDependency dep : mod.getInfo().getDepends()) {
 						int[] matchingCandidates = modCandidateMap.getOrDefault(dep.getModId(), Collections.emptyList())
-								.stream()
-								.filter((c) -> dep.matches(c.getInfo().getVersion()))
-								.mapToInt(candidateIntMap::get)
-								.toArray();
+							.stream()
+							.filter((c) -> dep.matches(c.getInfo().getVersion()))
+							.mapToInt(candidateIntMap::get)
+							.toArray();
 
 						int[] clause = new int[matchingCandidates.length + 1];
 						System.arraycopy(matchingCandidates, 0, clause, 0, matchingCandidates.length);
@@ -177,14 +173,14 @@ public class ModResolver {
 
 					for (ModDependency dep : mod.getInfo().getBreaks()) {
 						int[] matchingCandidates = modCandidateMap.getOrDefault(dep.getModId(), Collections.emptyList())
-								.stream()
-								.filter((c) -> dep.matches(c.getInfo().getVersion()))
-								.mapToInt(candidateIntMap::get)
-								.toArray();
+							.stream()
+							.filter((c) -> dep.matches(c.getInfo().getVersion()))
+							.mapToInt(candidateIntMap::get)
+							.toArray();
 
 						try {
 							for (int m : matchingCandidates) {
-								solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
+								solver.addClause(new VecInt(new int[]{-modClauseId, -m}));
 							}
 						} catch (ContradictionException e) {
 							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " breaks " + dep, e);
@@ -287,11 +283,11 @@ public class ModResolver {
 
 				if (!suspiciousVersions.isEmpty()) {
 					errorsSoft.append("\n - Conflicting versions found for ")
-							.append(candidate.getInfo().getId())
-							.append(": used ")
-							.append(version.getFriendlyString())
-							.append(", also found ")
-							.append(suspiciousVersions.stream().map(Version::getFriendlyString).collect(Collectors.joining(", ")));
+						.append(candidate.getInfo().getId())
+						.append(": used ")
+						.append(version.getFriendlyString())
+						.append(", also found ")
+						.append(suspiciousVersions.stream().map(Version::getFriendlyString).collect(Collectors.joining(", ")));
 				}
 			}
 		}
@@ -354,7 +350,9 @@ public class ModResolver {
 		}
 	}
 
-	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */
+	/**
+	 * @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense.
+	 */
 	private static boolean isModIdValid(String modId, List<String> errorList) {
 		// A more useful error list for MOD_ID_PATTERN
 		if (modId.isEmpty()) {
@@ -508,36 +506,36 @@ public class ModResolver {
 						List<Path> list = new ArrayList<>(jars.size());
 
 						jars.stream()
-								.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
-								.forEach((modPath) -> {
-									if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
-										// TODO: pre-check the JAR before loading it, if possible
-										loader.getLogger().debug("Found nested JAR: " + modPath);
-										Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
+							.map((j) -> rootDir.resolve(j.getFile().replace("/", rootDir.getFileSystem().getSeparator())))
+							.forEach((modPath) -> {
+								if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
+									// TODO: pre-check the JAR before loading it, if possible
+									loader.getLogger().debug("Found nested JAR: " + modPath);
+									Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
 
-										try {
-											Files.copy(modPath, dest);
-										} catch (IOException e) {
-											throw new RuntimeException("Failed to load nested JAR " + modPath + " into memory (" + dest + ")!", e);
-										}
-
-										list.add(dest);
+									try {
+										Files.copy(modPath, dest);
+									} catch (IOException e) {
+										throw new RuntimeException("Failed to load nested JAR " + modPath + " into memory (" + dest + ")!", e);
 									}
-								});
+
+									list.add(dest);
+								}
+							});
 
 						return list;
 					});
 
 					if (!jarInJars.isEmpty()) {
 						invokeAll(
-								jarInJars.stream()
-										.map((p) -> {
-											try {
-												return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
-											} catch (UrlConversionException e) {
-												throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
-											}
-										}).collect(Collectors.toList())
+							jarInJars.stream()
+								.map((p) -> {
+									try {
+										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+									} catch (UrlConversionException e) {
+										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
+									}
+								}).collect(Collectors.toList())
 						);
 					}
 				}

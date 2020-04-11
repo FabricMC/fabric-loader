@@ -78,7 +78,6 @@ public class EntrypointTransformer {
 
 	/**
 	 * This must run first, contractually!
-	 *
 	 * @param className The class name,
 	 * @return The transformed class data.
 	 */

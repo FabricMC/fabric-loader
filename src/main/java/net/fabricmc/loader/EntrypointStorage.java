@@ -35,8 +35,8 @@ class EntrypointStorage {
 
 	private static class OldEntry implements Entry {
 		private static final net.fabricmc.loader.language.LanguageAdapter.Options options = net.fabricmc.loader.language.LanguageAdapter.Options.Builder.create()
-				.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
-				.build();
+			.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
+			.build();
 
 		private final ModContainer mod;
 		private final String languageAdapter;
@@ -134,7 +134,7 @@ class EntrypointStorage {
 
 		FabricLoader.INSTANCE.getLogger().debug("Registering new-style initializer " + metadata.getValue() + " for mod " + modContainer.getInfo().getId() + " (key " + key + ")");
 		getOrCreateEntries(key).add(new NewEntry(
-				modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
+			modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
 		));
 	}
 

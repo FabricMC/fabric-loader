@@ -47,10 +47,10 @@ public class MinecraftGameProvider implements GameProvider {
 	private boolean hasModLoader = false;
 
 	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
-			new EntrypointPatchHook(it),
-			new EntrypointPatchBranding(it),
-			new EntrypointPatchFML125(it),
-			new EntrypointPatchBranding_1_8_9(it)
+		new EntrypointPatchHook(it),
+		new EntrypointPatchBranding(it),
+		new EntrypointPatchFML125(it),
+		new EntrypointPatchBranding_1_8_9(it)
 	));
 
 	@Override
@@ -84,9 +84,9 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		return Arrays.asList(
-				new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
-						.setName(getGameName())
-						.build())
+			new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
+				.setName(getGameName())
+				.build())
 		);
 	}
 
