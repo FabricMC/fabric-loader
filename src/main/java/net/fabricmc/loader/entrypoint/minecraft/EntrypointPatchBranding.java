@@ -36,7 +36,7 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
-		for (String brandClassName : new String[]{
+		for (String brandClassName : new String[] {
 			"net.minecraft.client.ClientBrandRetriever",
 			"net.minecraft.server.MinecraftServer"
 		}) {
