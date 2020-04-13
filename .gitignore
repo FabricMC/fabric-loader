@@ -4,6 +4,7 @@
 # Folders
 !/gradle
 !/src
+!/.github
 
 # Files
 !/.gitattributes
