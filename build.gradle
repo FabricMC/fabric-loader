@@ -149,8 +149,8 @@ bintray {
 		userOrg = "legacy-fabric"
 		licenses = ["CC0-1.0"]
 		version {
-			name = yarnVersion
-			vcsTag = yarnVersion
+			name = version
+			vcsTag = version
 			released = new Date()
 			githubRepo = 'Legacy-Fabric/fabric-loader-1.8.9'
 			websiteUrl = 'https://github.com/Legacy-Fabric/fabric-loader-1.8.9'
