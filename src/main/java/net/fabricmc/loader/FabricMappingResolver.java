@@ -40,7 +40,10 @@ class FabricMappingResolver implements MappingResolver {
 		private final Map<String, String> classNames = new HashMap<>();
 		private final Map<String, String> classNamesInverse = new HashMap<>();
 		private final Map<EntryTriple, String> fieldNames = new HashMap<>();
+		// set this to null and lazily compute when needed to save on memory
+		private Map<EntryTriple, String> fieldNamesInverse = null;
 		private final Map<EntryTriple, String> methodNames = new HashMap<>();
+		private Map<EntryTriple, String> methodNamesInverse = null;
 	}
 
 	FabricMappingResolver(Supplier<TinyTree> mappingsSupplier, String targetNamespace) {
@@ -129,11 +132,61 @@ class FabricMappingResolver implements MappingResolver {
 	}
 
 	@Override
+	public String unmapFieldName(String namespace, String owner, String name, String descriptor) {
+		if (owner.indexOf('/') >= 0) {
+			throw new IllegalArgumentException("Class name must be provided in dot format: " + owner);
+		}
+
+		NamespaceData namespaceData = getNamespaceData(namespace);
+		if (namespaceData.fieldNamesInverse == null) {
+			namespaceData.fieldNamesInverse = new HashMap<>();
+			computeInverseMappings(namespaceData, namespaceData.fieldNames, namespaceData.fieldNamesInverse);
+		}
+
+		return namespaceData.fieldNamesInverse.getOrDefault(new EntryTriple(owner, name, descriptor), name);
+	}
+
+	@Override
 	public String mapMethodName(String namespace, String owner, String name, String descriptor) {
 		if (owner.indexOf('/') >= 0) {
 			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
 		}
 
 		return getNamespaceData(namespace).methodNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
+	}
+
+	@Override
+	public String unmapMethodName(String namespace, String owner, String name, String descriptor) {
+		if (owner.indexOf('/') >= 0) {
+			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
+		}
+
+		NamespaceData namespaceData = getNamespaceData(namespace);
+		if (namespaceData.methodNamesInverse == null) {
+			namespaceData.methodNamesInverse = new HashMap<>();
+			computeInverseMappings(namespaceData, namespaceData.methodNames, namespaceData.methodNamesInverse);
+		}
+
+		return namespaceData.methodNamesInverse.getOrDefault(new EntryTriple(owner, name, descriptor), name);
+	}
+
+	private void computeInverseMappings(NamespaceData namespaceData, Map<EntryTriple, String> forwardMap, Map<EntryTriple, String> inverseMap) {
+		for (Map.Entry<EntryTriple, String> forwardEntry : forwardMap.entrySet()) {
+			String forwardOwner = forwardEntry.getKey().getOwner();
+			String inverseOwner = namespaceData.classNames.getOrDefault(forwardOwner, forwardOwner);
+
+			String forwardDesc = forwardEntry.getKey().getDesc();
+			StringBuilder inverseDesc = new StringBuilder(forwardDesc);
+			for (int lIndex = inverseDesc.indexOf("L"); lIndex >= 0; lIndex = inverseDesc.indexOf("L", lIndex)) {
+				int semicolonIndex = inverseDesc.indexOf(";", lIndex);
+				String forwardClassName = inverseDesc.substring(lIndex + 1, semicolonIndex).replace('/', '.');
+				String inverseClassName = namespaceData.classNames.getOrDefault(forwardClassName, forwardClassName);
+				inverseDesc.replace(lIndex + 1, semicolonIndex, inverseClassName.replace('.', '/'));
+				// Add on length of LinverseClass;
+				lIndex += inverseClassName.length() + 2;
+			}
+
+			inverseMap.put(new EntryTriple(inverseOwner, forwardEntry.getValue(), inverseDesc.toString()), forwardEntry.getKey().getName());
+		}
 	}
 }

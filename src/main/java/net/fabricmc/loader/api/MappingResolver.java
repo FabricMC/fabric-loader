@@ -50,7 +50,7 @@ public interface MappingResolver {
 	String mapClassName(String namespace, String className);
 
 	/**
-	 * Unmap a class name to the mapping currently used at runtime.
+	 * Unmap a class name from the mapping currently used at runtime.
 	 *
 	 * @param targetNamespace The target namespace for unmapping.
 	 * @param className The provided class name, in dot-format ("mypackage.MyClass$Inner"),
@@ -71,6 +71,17 @@ public interface MappingResolver {
 	String mapFieldName(String namespace, String owner, String name, String descriptor);
 
 	/**
+	 * Unmap a field name from the mapping currently used at runtime.
+	 *
+	 * @param targetNamespace The target namespace for unmapping.
+	 * @param owner The owner of the field, in dot-format ("mypackage.MyClass$Inner").
+	 * @param name The name of the field.
+	 * @param descriptor The descriptor of the field.
+	 * @return The unmapped field name, or name if such a mapping is not present
+	 */
+	String unmapFieldName(String targetNamespace, String owner, String name, String descriptor);
+
+	/**
 	 * Map a method name to the mapping currently used at runtime.
 	 *
 	 * @param namespace The namespace of the provided method name.
@@ -80,4 +91,15 @@ public interface MappingResolver {
 	 * @return The mapped method name, or name if such a mapping is not present.
 	 */
 	String mapMethodName(String namespace, String owner, String name, String descriptor);
+
+	/**
+	 * Unmap a method name from the mapping currently used at runtime.
+	 *
+	 * @param targetNamespace The target namespace for unmapping.
+	 * @param owner The owner of the method, in dot-format ("mypackage.MyClass$Inner").
+	 * @param name The name of the method.
+	 * @param descriptor The descriptor of the method.
+	 * @return The unmapped method name, or name if such a mapping is not present.
+	 */
+	String unmapMethodName(String targetNamespace, String owner, String name, String descriptor);
 }
