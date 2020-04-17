@@ -133,6 +133,9 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 javadoc {
 	options {
+		if (file("README.html").exists()) {
+			overview = "README.html"
+		}
 		source = "8"
 		encoding = 'UTF-8'
 		charSet = 'UTF-8'
