@@ -140,17 +140,14 @@ javadoc {
 		links(
 				'https://asm.ow2.io/javadoc/',
 				'https://docs.oracle.com/javase/8/docs/api/',
-				'http://jenkins.liteloader.com/job/Mixin/javadoc/',
 				'https://logging.apache.org/log4j/2.x/log4j-api/apidocs/'
 		)
 		// Disable the crazy super-strict doclint tool in Java 8
 		addStringOption('Xdoclint:none', '-quiet')
 	}
 	source sourceSets.main.allJava.srcDirs
-	classpath = sourceSets.main.compileClasspath
+	classpath = sourceSets.main.compileClasspath + sourceSets.main.output // compile impl stuff for dep as well
 	include("**/api/**")
-	include("**/net/fabricmc/loader/util/version/VersionParsingException.java")
-	include("**/net/fabricmc/loader/util/version/VersionDeserializer.java")
 	// workaround as one of the api stuff use that package
 	failOnError false
 }
@@ -158,8 +155,7 @@ javadoc {
 task javadocJar(type: Jar) {
 	dependsOn javadoc
 	from javadoc.destinationDir
-	//Set as `fatjavadoc` to prevent an ide form trying to use this javadoc, over using the modules javadoc
-	classifier = 'fatjavadoc'
+	classifier = 'javadoc'
 }
 build.dependsOn javadocJar
 

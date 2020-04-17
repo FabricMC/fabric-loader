@@ -16,7 +16,29 @@
 
 package net.fabricmc.api;
 
+/**
+ * A mod initializer ran only on {@link EnvType#CLIENT}.
+ *
+ * <p>This entrypoint is suitable for setting up client-specific logic, such as rendering
+ * or integrated server tweaks.</p>
+ *
+ * <p>In {@code fabric.mod.json}, the entrypoint is defined as:
+ * <pre><blockquote>
+ *     "entrypoints": {
+ *         "client": [
+ *             &lt;a list of string referring to your client mod initializers&gt;
+ *         ]
+ *     }
+ * </blockquote></pre></p>
+ *
+ * @see ModInitializer
+ * @see DedicatedServerModInitializer
+ * @see net.fabricmc.loader.api.FabricLoader#getEntrypointContainers(String, Class)
+ */
 @FunctionalInterface
 public interface ClientModInitializer {
+	/**
+	 * Runs the mod initializer on the client environment.
+	 */
 	void onInitializeClient();
 }
