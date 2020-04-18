@@ -43,6 +43,7 @@ package net.fabricmc.loader.api;
  *     package net.fabricmc.example;
  *     import net.fabricmc.api.ModInitializer;
  *     public class ExampleMod implements ModInitializer {
+ *       public ExampleMod() {} // the constructor must be public no-argument
  *       {@literal @}Override
  *       public void onInitialize() {}
  *     }
@@ -62,8 +63,11 @@ package net.fabricmc.loader.api;
  *   <pre><blockquote>
  *     package net.fabricmc.example;
  *     import net.fabricmc.api.ModInitializer;
- *     public enum ExampleMod implements ModInitializer {
- *       INSTANCE;
+ *     public final class ExampleMod implements ModInitializer {
+ *       public static final ExampleMod INSTANCE = new ExampleMod();
+ *
+ *       private ExampleMod() {} // Doesn't need to be instantiable by loader
+ *
  *       {@literal @}Override
  *       public void onInitialize() {}
  *     }
@@ -79,7 +83,9 @@ package net.fabricmc.loader.api;
  *   <p>An example of an entrypoint method
  *   <pre><blockquote>
  *     package net.fabricmc.example;
- *     public class ExampleMod {
+ *     public final class ExampleMod {
+ *       private ExampleMod() {} // doesn't need to be instantiable by others if method is static
+ *
  *       public static void init() {}
  *     }
  *   </blockquote></pre>

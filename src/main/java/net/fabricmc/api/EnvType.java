@@ -24,8 +24,6 @@ package net.fabricmc.api;
  *
  * @see Environment
  * @see EnvironmentInterface
- * @see <a href="https://launchermeta.mojang.com/mc/game/version_manifest.json">A list of <i>Minecraft</i>
- * version's json files</a>
  */
 public enum EnvType {
 	/**

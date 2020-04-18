@@ -19,14 +19,7 @@ package net.fabricmc.api;
 /**
  * A mod initializer.
  *
- * <p>In {@code fabric.mod.json}, the entrypoint is defined as:
- * <pre><blockquote>
- *     "entrypoints": {
- *         "main": [
- *             &lt;a list of string referring to your mod initializers&gt;
- *         ]
- *     }
- * </blockquote></pre></p>
+ * <p>In {@code fabric.mod.json}, the entrypoint is defined with {@code main} key.</p>
  *
  * @see ClientModInitializer
  * @see DedicatedServerModInitializer
