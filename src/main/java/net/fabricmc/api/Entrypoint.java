@@ -12,8 +12,6 @@ import java.lang.annotation.Target;
  * The loader will treat any member meeting the definition of an
  * entrypoint as an entrypoint regardless of whether or not an
  * {@code Entrypoint} annotation is present on the member declaration.
- *
- * @since 0.1.3
  */
 @Documented
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.CONSTRUCTOR })
