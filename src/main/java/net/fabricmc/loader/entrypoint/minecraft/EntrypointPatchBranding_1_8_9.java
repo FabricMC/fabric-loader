@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncher;
@@ -35,19 +36,15 @@ public class EntrypointPatchBranding_1_8_9 extends EntrypointPatch {
 		super(transformer);
 	}
 
-	public ClassNode loadMainClass(FabricLauncher launcher) {
-		return loadClass(launcher, "net/minecraft/client/main/Main");
-	}
-
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
-		loadMainClass(launcher).methods.forEach(m -> {
+		loadClass(launcher, FabricLoader.getInstance().getMappingResolver().mapClassName("intermediary", "net.minecraft.class_669").replace(".", "/")).methods.forEach(m -> {
 			String titleScreen = null;
 
 			if (true) {
 				ListIterator<AbstractInsnNode> instructions = m.instructions.iterator();
 
-				while (instructions.hasNext()) {
+				while(instructions.hasNext()) {
 					AbstractInsnNode node = instructions.next();
 
 					if (node instanceof LdcInsnNode && "Post startup".equals(((LdcInsnNode) node).cst)) {
@@ -67,7 +64,7 @@ public class EntrypointPatchBranding_1_8_9 extends EntrypointPatch {
 					}
 				}
 			}
-			if (titleScreen == null) {
+			if(titleScreen == null) {
 				return;
 			}
 			ClassNode titleScreenClass = loadClass(launcher, titleScreen);
