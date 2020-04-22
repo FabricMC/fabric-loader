@@ -191,7 +191,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				break;
 		}
 
-		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size());
+		LOGGER.info("[%s] " + modText, getClass().getSimpleName(), candidateMap.values().size());
 
 		List<ModCandidate> candidates = new ArrayList<>(candidateMap.values());
 		candidates.sort(Comparator.comparing(candidate -> candidate.getInfo().getId()));
