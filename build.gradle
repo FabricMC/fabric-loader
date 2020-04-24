@@ -231,10 +231,10 @@ publishing {
 			artifact(sourcesJar) {
 				builtBy sourcesJar
 			}
-			artifact(file('src/main/resources/fabric-installer.json')) {
+			artifact(createInstallerJSON.outputs.files.singleFile) {
 				builtBy copyJson
 			}
-			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
+			artifact(createInstallerLWJSON.outputs.files.singleFile) {
 				builtBy copyJsonLw
 				classifier = "launchwrapper"
 			}
