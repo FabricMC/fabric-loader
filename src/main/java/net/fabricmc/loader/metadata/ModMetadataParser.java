@@ -48,8 +48,6 @@ public class ModMetadataParser {
 		.registerTypeAdapter(ModMetadataV0.Person.class, new ModMetadataV0.Person.Deserializer())
 		.create();
 
-	private static final JsonParser JSON_PARSER = new JsonParser();
-
 	private static LoaderModMetadata getMod(FabricLoader loader, JsonObject object) {
 		if (!object.has("schemaVersion")) {
 			return GSON_V0.fromJson(object, ModMetadataV0.class);
@@ -66,7 +64,7 @@ public class ModMetadataParser {
 	}
 
 	public static LoaderModMetadata[] getMods(FabricLoader loader, InputStream in) {
-		JsonElement el = JSON_PARSER.parse(new InputStreamReader(in));
+		JsonElement el = JsonParser.parseReader(new InputStreamReader(in));
 		if (el.isJsonObject()) {
 			LoaderModMetadata metadata = getMod(loader, el.getAsJsonObject());
 			if (metadata != null) {

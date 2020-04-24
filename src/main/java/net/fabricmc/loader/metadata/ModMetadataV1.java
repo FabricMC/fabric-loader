@@ -125,7 +125,6 @@ public class ModMetadataV1 implements LoaderModMetadata {
 		return entrypoints.metadataMap.keySet();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void emitFormatWarnings(Logger logger) {
 		if (!requires.dependencies.isEmpty()) {

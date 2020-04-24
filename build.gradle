@@ -59,6 +59,7 @@ dependencies {
 	//mappings "net.fabricmc:yarn:1.14.4+build.1"
 	implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.8.1'
 	implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
+	implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
 
 	// Minecraft's JAR uses these annotations
 	compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
