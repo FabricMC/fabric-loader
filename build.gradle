@@ -1,14 +1,10 @@
-import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-
 buildscript {
 	repositories {
 		mavenCentral();
 	}
 
 	dependencies {
-		classpath 'com.google.code.gson:gson:2.8.5'
+		classpath group: 'net.sourceforge.argo', name: 'argo', version: '5.13'
 	}
 }
 
@@ -19,6 +15,10 @@ plugins {
 	id 'idea'
 	id 'eclipse'
 	//id("fabric-loom") version "0.2.6-SNAPSHOT"
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '4.9'
 }
 
 sourceCompatibility = 1.8
@@ -47,37 +47,44 @@ repositories {
 	}
 }
 
+configurations {
+	installed
+	launchwrapper.extendsFrom installed
+	implementation.extendsFrom(installed, launchwrapper)
+	testCompileOnly.extendsFrom compileOnly
+}
+
 dependencies {
 	//minecraft "com.mojang:minecraft:1.14.4"
 	//mappings "net.fabricmc:yarn:1.14.4+build.1"
-	compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.8.1'
-	compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
+	implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.8.1'
+	implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8.1'
 
 	// Minecraft's JAR uses these annotations
-	compile 'com.google.code.findbugs:jsr305:3.0.2'
+	compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:7.3.1'
-	compile 'org.ow2.asm:asm-analysis:7.3.1'
-	compile 'org.ow2.asm:asm-commons:7.3.1'
-	compile 'org.ow2.asm:asm-tree:7.3.1'
-	compile 'org.ow2.asm:asm-util:7.3.1'
+	installed 'org.ow2.asm:asm:7.3.1'
+	installed 'org.ow2.asm:asm-analysis:7.3.1'
+	installed 'org.ow2.asm:asm-commons:7.3.1'
+	installed 'org.ow2.asm:asm-tree:7.3.1'
+	installed 'org.ow2.asm:asm-util:7.3.1'
 
-	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
+	installed('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-mappings-parser:0.2.0.11'
-	compile 'net.fabricmc:tiny-remapper:0.2.0.52'
+	installed 'net.fabricmc:tiny-mappings-parser:0.2.0.11'
+	installed 'net.fabricmc:tiny-remapper:0.2.0.52'
 
-	compile 'com.google.jimfs:jimfs:1.1'
-	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
+	installed 'com.google.jimfs:jimfs:1.1'
+	installed 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
 	// launchwrapper + dependencies
-	compile ('net.minecraft:launchwrapper:1.12') {
+	launchwrapper ('net.minecraft:launchwrapper:1.12') {
 		transitive = false
 	}
-	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+	launchwrapper 'net.sf.jopt-simple:jopt-simple:5.0.3'
 }
 
 processResources {
@@ -93,7 +100,94 @@ processResources {
 	}
 }
 
+import static argo.jdom.JsonNodeBuilders.*;
+import argo.format.PrettyJsonFormatter;
+import argo.jdom.JsonArrayNodeBuilder;
+import argo.jdom.JsonNode;
+import argo.jdom.JsonObjectNodeBuilder;
+import java.util.function.Consumer;
+
+JsonObjectNodeBuilder makeDependencyObject(Dependency dependency) {
+	return anObjectBuilder()
+			.withField("name", aStringBuilder(String.join(":", dependency.getGroup(), dependency.getName(), dependency.getVersion())))
+			.withField("url", aStringBuilder("https://maven.fabricmc.net/"));
+}
+
+JsonObjectNodeBuilder getInstallerJSON(Configuration config, Consumer<JsonArrayNodeBuilder> extraLibs = {}) {
+	JsonObjectNodeBuilder libraries = anObjectBuilder();
+
+	JsonArrayNodeBuilder clientLibs = anArrayBuilder();
+	//There aren't any client side only libraries
+	libraries.withField("client", clientLibs);
+
+	JsonArrayNodeBuilder commonLibs = anArrayBuilder();
+	config.dependencies.findAll { 
+		it instanceof ExternalDependency 
+	}.forEach {
+		commonLibs.withElement(makeDependencyObject(it))
+	}
+	extraLibs.accept(commonLibs)
+	libraries.withField("common", commonLibs);
+
+	JsonArrayNodeBuilder serverLibs = anArrayBuilder();
+	serverLibs.withElement(anObjectBuilder()
+			.withField("_comment", aStringBuilder("jimfs in fabric-server-launch requires guava on the system classloader"))
+			.withField("name", aStringBuilder("com.google.guava:guava:21.0"))
+			//Mojang hosts Guava: https://libraries.minecraft.net/com/google/guava/guava/21.0/guava-21.0.jar
+			);
+	libraries.withField("server", serverLibs);
+
+	return anObjectBuilder().withField("version", aNumberBuilder("1")).withField("libraries", libraries);
+}
+
+task createInstallerJSON() {
+	def output = file("$buildDir/generated-resources/fabric-installer.json")
+	outputs.file(output)
+
+	doLast {
+		output.withWriter('utf-8') {writer ->
+			new PrettyJsonFormatter().format(getInstallerJSON(configurations.installed)
+				.withField("mainClass", anObjectBuilder()
+					.withField("client", aStringBuilder("net.fabricmc.loader.launch.knot.KnotClient"))
+					.withField("server", aStringBuilder("net.fabricmc.loader.launch.knot.KnotServer"))
+				).build(), writer);
+		}
+	}
+}
+
+task createInstallerLWJSON() {
+	def output = file("$buildDir/generated-resources/fabric-installer.launchwrapper.json")
+	outputs.file(output)
+
+	doLast {
+		output.withWriter('utf-8') {writer ->
+			new PrettyJsonFormatter().format(getInstallerJSON(configurations.installed) {dependencies ->
+					dependencies.withElement(anObjectBuilder()
+						.withField("name", aStringBuilder("net.minecraft:launchwrapper:1.12"))
+						)
+				}.withField("mainClass", aStringBuilder("net.minecraft.launchwrapper.Launch"))
+				.withField("arguments", anObjectBuilder()
+					.withField("client", anArrayBuilder()
+					).withField("common", anArrayBuilder()
+					).withField("server", anArrayBuilder()
+					)
+				).withField("launchwrapper", anObjectBuilder()
+					.withField("tweakers", anObjectBuilder()
+						.withField("client", anArrayBuilder()
+							.withElement(aStringBuilder("net.fabricmc.loader.launch.FabricClientTweaker"))
+						).withField("common", anArrayBuilder()
+						).withField("server", anArrayBuilder()
+							.withElement(aStringBuilder("net.fabricmc.loader.launch.FabricServerTweaker"))
+						)
+					)
+				).build(), writer);
+		}
+	}
+}
+
 jar {
+	from createInstallerJSON.outputs
+	from createInstallerLWJSON.outputs
 	manifest {
 		attributes (
 			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
@@ -101,43 +195,22 @@ jar {
 	}
 }
 
-task copyJson(type: Copy, dependsOn: ["jar"]) {
-	from('src/main/resources/fabric-installer.json') {
+task copyJson(type: Copy, dependsOn: createInstallerJSON) {
+	from(createInstallerJSON.outputs) {
 		rename { "${archivesBaseName}-${version}.json" }
 	}
 	into 'build/libs'
 }
 
-task copyJsonLw(type: Copy, dependsOn: ["jar"]) {
-	from('src/main/resources/fabric-installer.launchwrapper.json') {
+task copyJsonLw(type: Copy, dependsOn: createInstallerLWJSON) {
+	from(createInstallerLWJSON.outputs) {
 		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
 	}
 	into 'build/libs'
 }
 
-tasks.build.dependsOn "copyJson"
-tasks.build.dependsOn "copyJsonLw"
-
-task wrapper(type: Wrapper) {
-	gradleVersion = '4.9'
-}
-
-String getClasspathEntries(){
-	String classPath = ""
-	File installerFile = file("src/main/resources/fabric-installer.json")
-	JsonObject object = Gson.newInstance().fromJson(new InputStreamReader(new FileInputStream(installerFile)), JsonObject.class)
-
-	["common", "server"].forEach { l ->
-		for (JsonElement element : object.getAsJsonObject("libraries").getAsJsonArray(l)) {
-			String dep = element.getAsJsonObject().get("name").getAsString()
-			String[] depSplit = dep.split(":")
-			if (depSplit.length != 3) throw new RuntimeException("Invalid dependency " + dep);
-			classPath = classPath + " libs/" + depSplit[1] + "-" + depSplit[2] + ".jar"
-		}
-	}
-
-	return classPath;
-}
+tasks.build.dependsOn copyJson
+tasks.build.dependsOn copyJsonLw
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
@@ -151,17 +224,17 @@ publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
-			artifact(file("${project.buildDir}/libs/$archivesBaseName-${version}.jar")) {
+			artifact(jar) {
 				builtBy jar
 			}
 			artifact(sourcesJar) {
 				builtBy sourcesJar
 			}
 			artifact(file('src/main/resources/fabric-installer.json')) {
-				builtBy jar
+				builtBy copyJson
 			}
 			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
-				builtBy jar
+				builtBy copyJsonLw
 				classifier = "launchwrapper"
 			}
 		}
