@@ -137,6 +137,11 @@ public class ModMetadataV0 implements LoaderModMetadata {
 	}
 
 	@Override
+	public String getAccessWidener() {
+		return null;
+	}
+
+	@Override
 	public boolean loadsInEnvironment(EnvType type) {
 		switch (side) {
 			case UNIVERSAL:
@@ -350,7 +355,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 							} else if (matchers.length == 1) {
 								return getModId() + " @ " + matchers[0];
 							} else {
-								return getModId() + " @ [" + Joiner.on(", ").join(Arrays.asList(matchers)) + "]";
+								return getModId() + " @ "+Arrays.toString(matchers);
 							}
 						}
 					});
@@ -397,7 +402,7 @@ public class ModMetadataV0 implements LoaderModMetadata {
 
 		@Override
 		public String toString() {
-			return "[" + Joiner.on(", ").join(versionMatchers) + "]";
+			return Arrays.toString(versionMatchers);
 		}
 
 		public static class Deserializer implements JsonDeserializer<Dependency> {
@@ -485,20 +490,20 @@ public class ModMetadataV0 implements LoaderModMetadata {
 			public Person deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
 				if (element.isJsonPrimitive()) {
 					String person = element.getAsString();
-					List<String> parts = Lists.newArrayList(person.split(" "));
+					String[] parts = person.split(" ");
 
 					String name, email = "", website = "";
 
-					Matcher websiteMatcher = WEBSITE_PATTERN.matcher(parts.get(parts.size() - 1));
+					Matcher websiteMatcher = WEBSITE_PATTERN.matcher(parts[parts.length - 1]);
 					if (websiteMatcher.matches()) {
 						website = websiteMatcher.group(1);
-						parts.remove(parts.size() - 1);
+						parts = Arrays.copyOf(parts, parts.length - 1);
 					}
 
-					Matcher emailMatcher = EMAIL_PATTERN.matcher(parts.get(parts.size() - 1));
+					Matcher emailMatcher = EMAIL_PATTERN.matcher(parts[parts.length - 1]);
 					if (emailMatcher.matches()) {
 						email = emailMatcher.group(1);
-						parts.remove(parts.size() - 1);
+						parts = Arrays.copyOf(parts, parts.length - 1);
 					}
 
 					name = String.join(" ", parts);

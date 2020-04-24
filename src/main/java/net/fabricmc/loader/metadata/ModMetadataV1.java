@@ -62,6 +62,7 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	private EntrypointContainer entrypoints = new EntrypointContainer();
 	private JarEntry[] jars = new JarEntry[0];
 	private MixinEntry[] mixins = new MixinEntry[0];
+	private String accessWidener;
 
 	// Optional (dependency resolution)
 	private DependencyContainer depends = new DependencyContainer();
@@ -138,6 +139,11 @@ public class ModMetadataV1 implements LoaderModMetadata {
 			.filter((e) -> e.environment.matches(type))
 			.map((e) -> e.config)
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public String getAccessWidener() {
+		return accessWidener;
 	}
 
 	@Override

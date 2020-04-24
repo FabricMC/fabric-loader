@@ -65,18 +65,18 @@ dependencies {
 	compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	installed 'org.ow2.asm:asm:7.3.1'
-	installed 'org.ow2.asm:asm-analysis:7.3.1'
-	installed 'org.ow2.asm:asm-commons:7.3.1'
-	installed 'org.ow2.asm:asm-tree:7.3.1'
-	installed 'org.ow2.asm:asm-util:7.3.1'
+	installed 'org.ow2.asm:asm:8.0'
+	installed 'org.ow2.asm:asm-analysis:8.0'
+	installed 'org.ow2.asm:asm-commons:8.0'
+	installed 'org.ow2.asm:asm-tree:8.0'
+	installed 'org.ow2.asm:asm-util:8.0'
 
 	installed('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	installed 'net.fabricmc:tiny-mappings-parser:0.2.0.11'
-	installed 'net.fabricmc:tiny-remapper:0.2.0.52'
+	installed 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
+	installed 'net.fabricmc:tiny-remapper:0.2.2.64'
 
 	installed 'com.google.jimfs:jimfs:1.1'
 	installed 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'

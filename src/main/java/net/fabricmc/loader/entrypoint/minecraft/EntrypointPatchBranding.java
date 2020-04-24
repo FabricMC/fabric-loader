@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
-import com.google.common.collect.ImmutableList;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncher;
@@ -37,10 +36,10 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
-		for (String brandClassName : ImmutableList.of(
+		for (String brandClassName : new String[] {
 			"net.minecraft.client.ClientBrandRetriever",
 			"net.minecraft.server.MinecraftServer"
-		)) {
+		}) {
 			try {
 				ClassNode brandClass = loadClass(launcher, brandClassName);
 				if (brandClass != null) {

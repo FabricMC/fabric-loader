@@ -112,14 +112,14 @@ public class AppletFrame extends Frame implements WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		new Thread(new AppletForcedShutdownListener(30000L)).start();
+		Thread shutdownListenerThread = new Thread(new AppletForcedShutdownListener(30000L));
+		shutdownListenerThread.setDaemon(true);
+		shutdownListenerThread.start();
 
 		if (applet != null) {
 			applet.stop();
 			applet.destroy();
 		}
-
-		System.exit(0);
 	}
 
 	@Override
