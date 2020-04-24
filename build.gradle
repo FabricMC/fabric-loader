@@ -180,5 +180,9 @@ publishing {
 		}
 	}
 }
+
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
+license {
+	exclude '**/io/github/minecraftcursedlegacy/**'
+}

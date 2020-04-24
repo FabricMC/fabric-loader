@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.api;
+package io.github.minecraftcursedlegacy.api;
 
 @FunctionalInterface
 public interface ModPostInitializer {

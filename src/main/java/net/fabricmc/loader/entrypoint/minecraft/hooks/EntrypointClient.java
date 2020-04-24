@@ -20,8 +20,9 @@ import java.io.File;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.api.ModPostInitializer;
 import net.fabricmc.loader.FabricLoader;
+
+import io.github.minecraftcursedlegacy.api.ModPostInitializer;
 
 public final class EntrypointClient {
 	public static void start(File runDir, Object gameInstance) {
