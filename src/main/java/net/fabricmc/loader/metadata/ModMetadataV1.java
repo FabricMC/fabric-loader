@@ -111,11 +111,6 @@ public class ModMetadataV1 implements LoaderModMetadata {
 	}
 
 	@Override
-	public Collection<String> getOldInitializers() {
-		return Collections.emptyList();
-	}
-
-	@Override
 	public List<EntrypointMetadata> getEntrypoints(String type) {
 		List<EntrypointMetadata> list = entrypoints.metadataMap.get(type);
 		return list != null ? list : Collections.emptyList();

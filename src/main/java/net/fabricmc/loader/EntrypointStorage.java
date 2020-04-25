@@ -16,17 +16,20 @@
 
 package net.fabricmc.loader;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.ModContainer;
-import net.fabricmc.loader.api.EntrypointException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.MutableClassToInstanceMap;
+
 import net.fabricmc.loader.api.LanguageAdapter;
-import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.entrypoint.EntrypointContainerImpl;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
-
-import java.util.*;
 
 class EntrypointStorage {
 	interface Entry {
@@ -35,19 +38,15 @@ class EntrypointStorage {
 		ModContainer getModContainer();
 	}
 
-	private static class OldEntry implements Entry {
-		private static final net.fabricmc.loader.language.LanguageAdapter.Options options = net.fabricmc.loader.language.LanguageAdapter.Options.Builder.create()
-			.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
-			.build();
-
+	private static class NewEntry implements Entry {
 		private final ModContainer mod;
-		private final String languageAdapter;
+		private final LanguageAdapter adapter;
 		private final String value;
-		private Object object;
+		private final ClassToInstanceMap<Object> instanceMap = MutableClassToInstanceMap.create(new IdentityHashMap<>());
 
-		private OldEntry(ModContainer mod, String languageAdapter, String value) {
+		private NewEntry(ModContainer mod, LanguageAdapter adapter, String value) {
 			this.mod = mod;
-			this.languageAdapter = languageAdapter;
+			this.adapter = adapter;
 			this.value = value;
 		}
 
@@ -58,51 +57,12 @@ class EntrypointStorage {
 
 		@Override
 		public <T> T getOrCreate(Class<T> type) throws Exception {
-			if (object == null) {
-				net.fabricmc.loader.language.LanguageAdapter adapter = (net.fabricmc.loader.language.LanguageAdapter) Class.forName(languageAdapter, true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getConstructor().newInstance();
-				object = adapter.createInstance(value, options);
-			}
-
-			if (object == null || !type.isAssignableFrom(object.getClass())) {
-				return null;
-			} else {
-				//noinspection unchecked
-				return (T) object;
-			}
-		}
-
-		@Override
-		public ModContainer getModContainer() {
-			return mod;
-		}
-	}
-
-	private static class NewEntry implements Entry {
-		private final ModContainer mod;
-		private final LanguageAdapter adapter;
-		private final String value;
-		private final Map<Class<?>, Object> instanceMap = new IdentityHashMap<>();
-
-		private NewEntry(ModContainer mod, LanguageAdapter adapter, String value) {
-			this.mod = mod;
-			this.adapter = adapter;
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return mod.getInfo().getId() + "->(0.3.x)" + value;
-		}
-
-		@Override
-		public <T> T getOrCreate(Class<T> type) throws Exception {
-			Object o = instanceMap.get(type);
+			T o = instanceMap.getInstance(type);
 			if (o == null) {
 				o = create(type);
-				instanceMap.put(type, o);
+				instanceMap.putInstance(type, o);
 			}
-			//noinspection unchecked
-			return (T) o;
+			return o;
 		}
 
 		@Override
@@ -121,14 +81,7 @@ class EntrypointStorage {
 		return entryMap.computeIfAbsent(key, (z) -> new ArrayList<>());
 	}
 
-	protected void addDeprecated(ModContainer modContainer, String adapter, String value) throws ClassNotFoundException, LanguageAdapterException {
-		FabricLoader.INSTANCE.getLogger().debug("Registering 0.3.x old-style initializer " + value + " for mod " + modContainer.getInfo().getId());
-		OldEntry oe = new OldEntry(modContainer, adapter, value);
-		getOrCreateEntries("main").add(oe);
-		getOrCreateEntries("client").add(oe);
-		getOrCreateEntries("server").add(oe);
-	}
-
+	@SuppressWarnings("deprecation")
 	protected void add(ModContainer modContainer, String key, EntrypointMetadata metadata, Map<String, LanguageAdapter> adapterMap) throws Exception {
 		if (!adapterMap.containsKey(metadata.getAdapter())) {
 			throw new Exception("Could not find adapter '" + metadata.getAdapter() + "' (mod " + modContainer.getInfo().getId() + "!)");
@@ -160,7 +113,7 @@ class EntrypointStorage {
 				}
 			} catch (Throwable t) {
 				if (exception == null) {
-					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+					exception = new EntrypointException(key, entry.getModContainer(), t);
 				} else {
 					exception.addSuppressed(t);
 				}
@@ -190,7 +143,7 @@ class EntrypointStorage {
 				}
 			} catch (Throwable t) {
 				if (exception == null) {
-					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+					exception = new EntrypointException(key, entry.getModContainer(), t);
 				} else {
 					exception.addSuppressed(t);
 				}

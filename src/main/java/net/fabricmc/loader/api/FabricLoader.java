@@ -38,9 +38,9 @@ public interface FabricLoader {
 		return net.fabricmc.loader.FabricLoader.INSTANCE;
 	}
 
-	<T> List<T> getEntrypoints(String key, Class<T> type);
+	<T> List<T> getEntrypoints(String key, Class<T> type) throws EntrypointException;
 
-	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
+	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) throws EntrypointException;
 
 	/**
 	 * Get the current mapping resolver.

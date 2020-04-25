@@ -16,46 +16,44 @@
 
 package net.fabricmc.loader.api;
 
-public class EntrypointException extends RuntimeException {
-	private final String key;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
-	/**
-	 * @deprecated For internal use only, to be removed!
-	 */
-	@Deprecated
-	public EntrypointException(String key, Throwable cause) {
-		super("Exception while loading entries for entrypoint '" + key + "'!", cause);
-		this.key = key;
+/**
+ * Exception thrown when creating an entrypoint fails
+ * 
+ * @see FabricLoader#getEntrypoints(String, Class)
+ * @see FabricLoader#getEntrypointContainers(String, Class)
+ * 
+ * @since 0.9
+ */
+public abstract class EntrypointException extends RuntimeException {
+	private static final long serialVersionUID = -1219519081530919388L;
+
+	protected EntrypointException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 	/**
-	 * @deprecated For internal use only, use regular exceptions!
+	 * The entrypoint key which was being constructed (such as {@code init} or {@code client})
+	 * 
+	 * @return The entrypoint key which the entry was registered for
 	 */
-	@Deprecated
-	public EntrypointException(String key, String causingMod, Throwable cause) {
-		super("Exception while loading entries for entrypoint '" + key + "' provided by '" + causingMod + "'", cause);
-		this.key = key;
-	}
+	public abstract String getEntrypointName();
 
 	/**
-	 * @deprecated For internal use only, to be removed!
+	 * The owning mod of the entry which failed to be constructed
+	 * 
+	 * @return The owning mod of the entry
 	 */
-	@Deprecated
-	public EntrypointException(String s) {
-		super(s);
-		this.key = "";
-	}
+	public abstract ModContainer getOwningMod();
 
 	/**
-	 * @deprecated For internal use only, to be removed!
+	 * Find any additional exceptions from other entries which were also thrown after this
+	 * 
+	 * @return Additional exceptions which were thrown for the same entrypoint
 	 */
-	@Deprecated
-	public EntrypointException(Throwable t) {
-		super(t);
-		this.key = "";
-	}
-
-	public String getKey() {
-		return key;
+	public Stream<EntrypointException> getFurtherExceptions() {
+		return Arrays.stream(getSuppressed()).filter(e -> e instanceof EntrypointException).map(e -> (EntrypointException) e);
 	}
 }

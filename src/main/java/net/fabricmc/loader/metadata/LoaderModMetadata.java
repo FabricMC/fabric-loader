@@ -39,7 +39,6 @@ public interface LoaderModMetadata extends ModMetadata {
 	String getAccessWidener();
 	boolean loadsInEnvironment(EnvType type);
 
-	Collection<String> getOldInitializers();
 	List<EntrypointMetadata> getEntrypoints(String type);
 	Collection<String> getEntrypointKeys();
 
