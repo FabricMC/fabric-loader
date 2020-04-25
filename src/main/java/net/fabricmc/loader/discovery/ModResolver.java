@@ -406,6 +406,7 @@ public class ModResolver {
 		return errorList.isEmpty();
 	}
 
+	@SuppressWarnings("serial")
 	static class UrlProcessAction extends RecursiveAction {
 		private final FabricLoader loader;
 		private final Map<String, ModCandidateSet> candidatesById;

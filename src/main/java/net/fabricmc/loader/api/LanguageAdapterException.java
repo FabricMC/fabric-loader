@@ -17,6 +17,8 @@
 package net.fabricmc.loader.api;
 
 public class LanguageAdapterException extends Exception {
+	private static final long serialVersionUID = -5753508665782481573L;
+
 	public LanguageAdapterException(String s) {
 		super(s);
 	}

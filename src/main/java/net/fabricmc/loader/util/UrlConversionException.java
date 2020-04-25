@@ -17,6 +17,8 @@
 package net.fabricmc.loader.util;
 
 public class UrlConversionException extends Exception {
+	private static final long serialVersionUID = -4671816844336373890L;
+
 	public UrlConversionException() {
 		super();
 	}

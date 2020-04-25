@@ -17,6 +17,8 @@
 package net.fabricmc.loader.util.version;
 
 public class VersionParsingException extends Exception {
+	private static final long serialVersionUID = 8343336903854943054L;
+
 	public VersionParsingException() {
 		super();
 	}

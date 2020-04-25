@@ -38,6 +38,7 @@ import java.util.Map;
  *
  * It has been adapted here for the purposes of the Fabric loader.
  */
+@SuppressWarnings("serial")
 public class AppletLauncher extends Applet implements AppletStub {
 	public static File gameDir;
 

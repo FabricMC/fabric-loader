@@ -17,6 +17,8 @@
 package net.fabricmc.loader.discovery;
 
 public class ModResolutionException extends Exception {
+	private static final long serialVersionUID = 4293467874590267287L;
+
 	public ModResolutionException(String s) {
 		super(s);
 	}

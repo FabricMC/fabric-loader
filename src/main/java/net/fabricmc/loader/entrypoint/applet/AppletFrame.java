@@ -33,6 +33,7 @@ import java.io.File;
  *
  * It has been adapted here for the purposes of the Fabric loader.
  */
+@SuppressWarnings("serial")
 public class AppletFrame extends Frame implements WindowListener {
 	private AppletLauncher applet = null;
 
