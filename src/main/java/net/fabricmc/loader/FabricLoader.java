@@ -243,20 +243,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return FabricLauncherBase.getLauncher().isDevelopment();
 	}
 
-	/**
-	 * @return A list of all loaded mods, as ModContainers.
-	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getAllMods()}
-	 */
-	@Deprecated
-	public Collection<ModContainer> getModContainers() {
-		return Collections.unmodifiableList(mods);
-	}
-
-	@Deprecated
-	public List<ModContainer> getMods() {
-		return Collections.unmodifiableList(mods);
-	}
-
 	protected void addMod(ModCandidate candidate) throws ModResolutionException {
 		LoaderModMetadata info = candidate.getInfo();
 		URL originUrl = candidate.getOriginUrl();
