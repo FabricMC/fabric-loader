@@ -39,18 +39,9 @@ public class ModMetadataParser {
 		.registerTypeAdapter(ModMetadataV1.Environment.class, new ModMetadataV1.Environment.Deserializer())
 		.create();
 
-	private static final Gson GSON_V0 = new GsonBuilder()
-		.registerTypeAdapter(Version.class, new VersionDeserializer())
-		.registerTypeAdapter(ModMetadataV0.Side.class, new ModMetadataV0.Side.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Mixins.class, new ModMetadataV0.Mixins.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Links.class, new ModMetadataV0.Links.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Dependency.class, new ModMetadataV0.Dependency.Deserializer())
-		.registerTypeAdapter(ModMetadataV0.Person.class, new ModMetadataV0.Person.Deserializer())
-		.create();
-
 	private static LoaderModMetadata getMod(FabricLoader loader, JsonObject object) {
 		if (!object.has("schemaVersion")) {
-			return GSON_V0.fromJson(object, ModMetadataV0.class);
+			throw new UnsupportedOperationException("Loader 0.3 era fabric.mod.jsons (without a schemaVersion) are no longer supported");
 		} else {
 			//noinspection SwitchStatementWithTooFewBranches
 			switch (object.get("schemaVersion").getAsInt()) {
