@@ -112,8 +112,10 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 							emittedInfo = true;
 						}
 
+						String sidedOrigin = launcher.getEnvironmentType().name().toLowerCase(Locale.ENGLISH);
+						String originNamespace = mappings.getMetadata().getNamespaces().contains(sidedOrigin) ? sidedOrigin : "official";
 						TinyRemapper remapper = TinyRemapper.newRemapper()
-							.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
+							.withMappings(TinyRemapperMappingsHelper.create(mappings, originNamespace, targetNamespace))
 							.rebuildSourceFilenames(true)
 							.build();
 
