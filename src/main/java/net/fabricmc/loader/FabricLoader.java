@@ -49,8 +49,8 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
+import net.fabricmc.loader.util.DefaultLanguageAdapter;
 
 /**
  * The main class for mod loading operations.
@@ -356,11 +356,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		for (ModContainer mod : mods) {
 			try {
 				mod.setupRootPath();
-
-				for (String in : mod.getInfo().getOldInitializers()) {
-					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
-					entrypointStorage.addDeprecated(mod, adapter, in);
-				}
 
 				for (String key : mod.getInfo().getEntrypointKeys()) {
 					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
