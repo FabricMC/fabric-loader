@@ -16,17 +16,6 @@
 
 package net.fabricmc.loader.game;
 
-import com.google.gson.Gson;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.metadata.BuiltinModMetadata;
-import net.fabricmc.loader.minecraft.McVersionLookup;
-import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
-import net.fabricmc.loader.util.Arguments;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -38,9 +27,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class MinecraftGameProvider implements GameProvider {
-	private static final Gson GSON = new Gson();
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.metadata.BuiltinModMetadata;
+import net.fabricmc.loader.minecraft.McVersionLookup;
+import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
+import net.fabricmc.loader.util.Arguments;
 
+public class MinecraftGameProvider implements GameProvider {
 	private EnvType envType;
 	private String entrypoint;
 	private Arguments arguments;

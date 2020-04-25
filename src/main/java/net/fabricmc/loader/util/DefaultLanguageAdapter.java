@@ -16,15 +16,18 @@
 
 package net.fabricmc.loader.util;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-
-import java.lang.invoke.MethodHandle;
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class DefaultLanguageAdapter implements LanguageAdapter {
 	public static final DefaultLanguageAdapter INSTANCE = new DefaultLanguageAdapter();
@@ -50,8 +53,7 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 		if (methodSplit.length == 1) {
 			if (type.isAssignableFrom(c)) {
 				try {
-					//noinspection unchecked
-					return (T) c.getDeclaredConstructor().newInstance();
+					return c.asSubclass(type).getDeclaredConstructor().newInstance();
 				} catch (Exception e) {
 					throw new LanguageAdapterException(e);
 				}
@@ -84,8 +86,7 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 					throw new LanguageAdapterException("Field " + value + " cannot be cast to " + type.getName() + "!");
 				}
 
-				//noinspection unchecked
-				return (T) field.get(null);
+				return type.cast(field.get(null));
 			} catch (NoSuchFieldException e) {
 				// ignore
 			} catch (IllegalAccessException e) {
@@ -114,14 +115,13 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 			}
 
 			final Object targetObject = object;
+			return type.cast(Proxy.newProxyInstance(FabricLauncherBase.getLauncher().getTargetClassLoader(), new Class[] { type }, new InvocationHandler() {
 
-			//noinspection unchecked
-			return (T) Proxy.newProxyInstance(FabricLauncherBase.getLauncher().getTargetClassLoader(), new Class[] { type }, new InvocationHandler() {
 				@Override
 				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 					return targetMethod.invoke(targetObject, args);
 				}
-			});
+			}));
 		}
 	}
 }

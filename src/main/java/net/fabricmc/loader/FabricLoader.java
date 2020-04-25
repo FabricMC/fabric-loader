@@ -26,9 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -144,21 +142,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public File getModsDirectory() {
 		return new File(getGameDirectory(), "mods");
-	}
-
-	private String join(Stream<String> strings, String joiner) {
-		StringBuilder builder = new StringBuilder();
-		AtomicInteger i = new AtomicInteger();
-
-		strings.sequential().forEach((s) -> {
-			if ((i.getAndIncrement()) > 0) {
-				builder.append(joiner);
-			}
-
-			builder.append(s);
-		});
-
-		return builder.toString();
 	}
 
 	public void load() {

@@ -86,6 +86,7 @@ public class ModResolver {
 	}
 
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
+	@SuppressWarnings("unchecked")
 	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
@@ -278,8 +279,7 @@ public class ModResolver {
 				for (ModCandidate other : modCandidateMap.get(candidate.getInfo().getId())) {
 					Version otherVersion = other.getInfo().getVersion();
 					if (version instanceof Comparable && otherVersion instanceof Comparable && !version.equals(otherVersion)) {
-						//noinspection unchecked
-						if (((Comparable) version).compareTo(otherVersion) == 0) {
+						if (((Comparable<Version>) version).compareTo(otherVersion) == 0) {
 							suspiciousVersions.add(otherVersion);
 						}
 					}

@@ -25,13 +25,13 @@ public class ModCandidateSet {
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
 	private final Map<String, ModCandidate> candidates = new HashMap<>();
 
+	@SuppressWarnings("unchecked")
 	private static int compare(ModCandidate a, ModCandidate b) {
 		Version av = a.getInfo().getVersion();
 		Version bv = b.getInfo().getVersion();
 
 		if (av instanceof Comparable && bv instanceof Comparable) {
-			//noinspection unchecked
-			return ((Comparable) bv).compareTo(av);
+			return ((Comparable<Version>) bv).compareTo(av);
 		} else {
 			return 0;
 		}

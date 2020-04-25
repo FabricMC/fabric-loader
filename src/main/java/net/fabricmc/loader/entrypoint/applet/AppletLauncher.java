@@ -87,15 +87,6 @@ public class AppletLauncher extends Applet implements AppletStub {
 		}
 	}
 
-	private URL pathToUrl(File path) {
-		try {
-			return path.toURI().toURL();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 	@Override
 	public void appletResize(int width, int height) {
 		mcApplet.resize(width, height);

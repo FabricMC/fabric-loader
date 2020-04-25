@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -59,6 +58,8 @@ import javax.swing.WindowConstants;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+
+import com.google.common.collect.Iterators;
 
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
@@ -478,20 +479,8 @@ class FabricMainWindow {
 		}
 
 		@Override
-		public Enumeration children() {
-			return new Enumeration<CustomTreeNode>() {
-				Iterator<CustomTreeNode> it = displayedChildren.iterator();
-
-				@Override
-				public boolean hasMoreElements() {
-					return it.hasNext();
-				}
-
-				@Override
-				public CustomTreeNode nextElement() {
-					return it.next();
-				}
-			};
+		public Enumeration<CustomTreeNode> children() {
+			return Iterators.asEnumeration(displayedChildren.iterator());
 		}
 	}
 }

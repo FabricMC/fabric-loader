@@ -16,19 +16,9 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.game.GameProvider;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.transformer.FabricTransformer;
-import net.fabricmc.loader.util.FileSystemUtil;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -40,6 +30,16 @@ import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Manifest;
+
+import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.transformer.FabricTransformer;
+import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
 class KnotClassDelegate {
 	static class Metadata {
