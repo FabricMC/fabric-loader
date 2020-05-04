@@ -41,27 +41,25 @@ public class EntrypointPatchBranding_1_8_9 extends EntrypointPatch {
 		loadClass(launcher, FabricLoader.getInstance().getMappingResolver().mapClassName("intermediary", "net.minecraft.class_669").replace(".", "/")).methods.forEach(m -> {
 			String titleScreen = null;
 
-			if (true) {
-				ListIterator<AbstractInsnNode> instructions = m.instructions.iterator();
+			ListIterator<AbstractInsnNode> instructions = m.instructions.iterator();
 
-				while(instructions.hasNext()) {
-					AbstractInsnNode node = instructions.next();
+			while(instructions.hasNext()) {
+				AbstractInsnNode node = instructions.next();
 
-					if (node instanceof LdcInsnNode && "Post startup".equals(((LdcInsnNode) node).cst)) {
-						while (instructions.hasNext()) {
-							node = instructions.next();
+				if (node instanceof LdcInsnNode && "Post startup".equals(((LdcInsnNode) node).cst)) {
+					while (instructions.hasNext()) {
+						node = instructions.next();
 
-							if (node instanceof MethodInsnNode) {
-								MethodInsnNode invoke = (MethodInsnNode) node;
+						if (node instanceof MethodInsnNode) {
+							MethodInsnNode invoke = (MethodInsnNode) node;
 
-								if (invoke.getOpcode() == Opcodes.INVOKESPECIAL && invoke.name.equals("<init>") && invoke.desc.equals("()V")) {
-									titleScreen = invoke.owner;
-								}
+							if (invoke.getOpcode() == Opcodes.INVOKESPECIAL && invoke.name.equals("<init>") && invoke.desc.equals("()V")) {
+								titleScreen = invoke.owner;
 							}
 						}
-
-						break;
 					}
+
+					break;
 				}
 			}
 			if(titleScreen == null) {
