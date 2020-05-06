@@ -23,6 +23,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 
 import io.github.minecraftcursedlegacy.api.ModPostInitializer;
+import io.github.minecraftcursedlegacy.impl.Hacks;
 
 public final class EntrypointServer {
 	public static void start(File runDir, Object gameInstance) {
@@ -33,6 +34,7 @@ public final class EntrypointServer {
 		FabricLoader.preInit(runDir, gameInstance);
 		EntrypointUtils.invoke("init", ModInitializer.class, ModInitializer::onInitialize);
 		EntrypointUtils.invoke("server", DedicatedServerModInitializer.class, DedicatedServerModInitializer::onInitializeServer);
+		Hacks.hack.run();
 		EntrypointUtils.invoke("postInit", ModPostInitializer.class, ModPostInitializer::onPostInitialize);
 	}
 }
