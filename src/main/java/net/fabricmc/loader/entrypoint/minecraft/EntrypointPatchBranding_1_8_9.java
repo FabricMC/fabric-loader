@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
@@ -38,52 +39,54 @@ public class EntrypointPatchBranding_1_8_9 extends EntrypointPatch {
 
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
-		loadClass(launcher, FabricLoader.getInstance().getMappingResolver().mapClassName("intermediary", "net.minecraft.class_669").replace(".", "/")).methods.forEach(m -> {
-			String titleScreen = null;
+		if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT){
+			loadClass(launcher, FabricLoader.getInstance().getMappingResolver().mapClassName("intermediary", "net.minecraft.class_669").replace(".", "/")).methods.forEach(m -> {
+				String titleScreen = null;
 
-			ListIterator<AbstractInsnNode> instructions = m.instructions.iterator();
+				ListIterator<AbstractInsnNode> instructions = m.instructions.iterator();
 
-			while(instructions.hasNext()) {
-				AbstractInsnNode node = instructions.next();
+				while(instructions.hasNext()) {
+					AbstractInsnNode node = instructions.next();
 
-				if (node instanceof LdcInsnNode && "Post startup".equals(((LdcInsnNode) node).cst)) {
-					while (instructions.hasNext()) {
-						node = instructions.next();
+					if (node instanceof LdcInsnNode && "Post startup".equals(((LdcInsnNode) node).cst)) {
+						while (instructions.hasNext()) {
+							node = instructions.next();
 
-						if (node instanceof MethodInsnNode) {
-							MethodInsnNode invoke = (MethodInsnNode) node;
+							if (node instanceof MethodInsnNode) {
+								MethodInsnNode invoke = (MethodInsnNode) node;
 
-							if (invoke.getOpcode() == Opcodes.INVOKESPECIAL && invoke.name.equals("<init>") && invoke.desc.equals("()V")) {
-								titleScreen = invoke.owner;
+								if (invoke.getOpcode() == Opcodes.INVOKESPECIAL && invoke.name.equals("<init>") && invoke.desc.equals("()V")) {
+									titleScreen = invoke.owner;
+								}
+							}
+						}
+
+						break;
+					}
+				}
+				if(titleScreen == null) {
+					return;
+				}
+				ClassNode titleScreenClass = loadClass(launcher, titleScreen);
+				titleScreenClass.methods.forEach(m2 -> {
+					ListIterator<AbstractInsnNode> instructions2 = m2.instructions.iterator();
+
+					while (instructions2.hasNext()) {
+						AbstractInsnNode node = instructions2.next();
+
+						if (node instanceof LdcInsnNode) {
+							String constant = String.valueOf(((LdcInsnNode) node).cst);
+
+							if (constant.startsWith("Minecraft ")) {
+								instructions2.set(new LdcInsnNode(constant + "/Fabric"));
 							}
 						}
 					}
+				});
 
-					break;
-				}
-			}
-			if(titleScreen == null) {
-				return;
-			}
-			ClassNode titleScreenClass = loadClass(launcher, titleScreen);
-			titleScreenClass.methods.forEach(m2 -> {
-				ListIterator<AbstractInsnNode> instructions2 = m2.instructions.iterator();
-
-				while (instructions2.hasNext()) {
-					AbstractInsnNode node = instructions2.next();
-
-					if (node instanceof LdcInsnNode) {
-						String constant = String.valueOf(((LdcInsnNode) node).cst);
-
-						if (constant.startsWith("Minecraft ")) {
-							instructions2.set(new LdcInsnNode(constant + "/Fabric"));
-						}
-					}
-				}
+				classEmitter.accept(titleScreenClass);
 			});
-
-			classEmitter.accept(titleScreenClass);
-		});
+		}
 	}
 
 	@Override
