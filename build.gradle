@@ -38,8 +38,8 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.14.4"
-	mappings "net.fabricmc:yarn:1.14.4+build.1"
+	minecraft "com.mojang:minecraft:1.15.2"
+	mappings "net.fabricmc:yarn:1.15.2+build.15:v2"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
@@ -56,7 +56,7 @@ dependencies {
 		exclude module: 'guava'
 	}
 	compile 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	compile 'net.fabricmc:tiny-remapper:0.2.2.64'
+	compile 'net.fabricmc:tiny-remapper:0.3.0.70'
 
 	compile 'com.google.jimfs:jimfs:1.1'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'

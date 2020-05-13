@@ -411,12 +411,14 @@ public class ModResolver {
 		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
 		private final int depth;
+		private final boolean requiresRemap;
 
-		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
+		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth, boolean requiresRemap) {
 			this.loader = loader;
 			this.candidatesById = candidatesById;
 			this.url = url;
 			this.depth = depth;
+			this.requiresRemap = requiresRemap;
 		}
 
 		@Override
@@ -470,7 +472,7 @@ public class ModResolver {
 			}
 
 			for (LoaderModMetadata i : info) {
-				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
+				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth, requiresRemap);
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
@@ -533,7 +535,7 @@ public class ModResolver {
 							jarInJars.stream()
 								.map((p) -> {
 									try {
-										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1, requiresRemap);
 									} catch (UrlConversionException e) {
 										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
 									}
@@ -553,12 +555,11 @@ public class ModResolver {
 		ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
-
 		Queue<UrlProcessAction> allActions = new ConcurrentLinkedQueue<>();
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
 		for (ModCandidateFinder f : candidateFinders) {
-			f.findCandidates(loader, (u) -> {
-				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0);
+			f.findCandidates(loader, (u, requiresRemap) -> {
+				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0, requiresRemap);
 				allActions.add(action);
 				pool.execute(action);
 			});
@@ -566,7 +567,7 @@ public class ModResolver {
 
 		// add builtin mods
 		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
-			candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0));
+			candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, false));
 		}
 
 		boolean tookTooLong = false;
@@ -614,5 +615,9 @@ public class ModResolver {
 		}
 
 		return result;
+	}
+
+	public static FileSystem getInMemoryFs() {
+		return inMemoryFs;
 	}
 }

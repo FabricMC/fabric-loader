@@ -24,17 +24,19 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class DirectoryModCandidateFinder implements ModCandidateFinder {
 	private final Path path;
+	private final boolean requiresRemap;
 
-	public DirectoryModCandidateFinder(Path path) {
+	public DirectoryModCandidateFinder(Path path, boolean requiresRemap) {
 		this.path = path;
+		this.requiresRemap = requiresRemap;
 	}
 
 	@Override
-	public void findCandidates(FabricLoader loader, Consumer<URL> urlProposer) {
+	public void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> urlProposer) {
 		if (!Files.exists(path)) {
 			try {
 				Files.createDirectory(path);
@@ -51,7 +53,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 			Files.walk(path, 1).forEach((modPath) -> {
 				if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
 					try {
-						urlProposer.accept(UrlUtil.asUrl(modPath));
+						urlProposer.accept(UrlUtil.asUrl(modPath), requiresRemap);
 					} catch (UrlConversionException e) {
 						throw new RuntimeException("Failed to convert URL for mod '" + modPath + "'!", e);
 					}

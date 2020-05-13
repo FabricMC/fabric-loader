@@ -91,6 +91,10 @@ public class MinecraftGameProvider implements GameProvider {
 		);
 	}
 
+	public Path getGameJar() {
+		return gameJar;
+	}
+
 	@Override
 	public String getEntrypoint() {
 		return entrypoint;
