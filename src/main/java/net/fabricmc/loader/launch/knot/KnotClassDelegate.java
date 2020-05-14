@@ -148,16 +148,19 @@ class KnotClassDelegate {
 		return Metadata.EMPTY;
 	}
 
-	public byte[] loadClassData(String name) {
-		byte[] transformedClassArray = getTransformedClassByteArray(name, true);
-		if (!transformInitialized) {
+	public byte[] getPostMixinClassByteArray(String name) {
+		byte[] transformedClassArray = getPreMixinClassByteArray(name, true);
+		if (!transformInitialized || !canTransformClass(name)) {
 			return transformedClassArray;
 		}
 
 		return getMixinTransformer().transformClassBytes(name, name, transformedClassArray);
 	}
 
-	public byte[] getTransformedClassByteArray(String name, boolean skipOriginalLoader) {
+	/**
+	 * Runs all the class transformers except mixin
+	 */
+	public byte[] getPreMixinClassByteArray(String name, boolean skipOriginalLoader) {
 		// some of the transformers rely on dot notation
 		name = name.replace('/', '.');
 
@@ -186,6 +189,7 @@ class KnotClassDelegate {
 	}
 
 	private boolean canTransformClass(String name) {
+		name = name.replace('/', '.');
 		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
 		return /* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j");
 	}

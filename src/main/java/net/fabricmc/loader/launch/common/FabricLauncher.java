@@ -36,9 +36,12 @@ public interface FabricLauncher {
 
 	ClassLoader getTargetClassLoader();
 
-	byte[] getClassByteArray(String name) throws IOException;
-
-	byte[] getTransformedClassByteArray(String name) throws IOException;
+	/**
+	 * Gets the byte array for a particular class
+	 * @param name The name of the class to retrieve
+	 * @param runTransformers Whether to run all transformers <i>except mixin</i> on the class
+	 */
+	byte[] getClassByteArray(String name, boolean runTransformers) throws IOException;
 
 	boolean isDevelopment();
 
