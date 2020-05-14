@@ -38,6 +38,8 @@ public interface FabricLauncher {
 
 	byte[] getClassByteArray(String name) throws IOException;
 
+	byte[] getTransformedClassByteArray(String name) throws IOException;
+
 	boolean isDevelopment();
 
 	String getEntrypoint();

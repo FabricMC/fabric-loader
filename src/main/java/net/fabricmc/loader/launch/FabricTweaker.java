@@ -170,6 +170,24 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
+	public byte[] getTransformedClassByteArray(String name) throws IOException {
+		// TODO: we need a way of applying the class transformers without applying mixins
+		throw new RuntimeException("TODO getTransformedClassByteArray/launchwrapper");
+//		String transformedName = name.replace('/', '.');
+//		byte[] classBytes = launchClassLoader.getClassBytes(name);
+//
+//		if (classLoaderUtil.isClassExcluded(name, transformedName)) {
+//			return classBytes;
+//		}
+//
+//		for (IClassTransformer transformer : launchClassLoader.getTransformers()) {
+//			classBytes = transformer.transform(name, transformedName, classBytes);
+//		}
+//
+//		return classBytes;
+	}
+
+	@Override
 	public boolean isDevelopment() {
 		return isDevelopment;
 	}

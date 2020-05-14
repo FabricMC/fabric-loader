@@ -140,7 +140,7 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 			Class<?> c = findLoadedClass(name);
 
 			if (c == null && !name.startsWith("com.google.gson.") && !name.startsWith("java.")) { // FIXME: remove the GSON exclusion once loader stops using it (or repackages it)
-				byte[] input = delegate.loadClassData(name, resolve);
+				byte[] input = delegate.loadClassData(name);
 				if (input != null) {
 					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, urlLoader.getResource(delegate.getClassFileName(name)));
 
