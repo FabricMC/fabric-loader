@@ -8,7 +8,7 @@ plugins {
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.6-SNAPSHOT"
+	id("fabric-loom") version "0.2.7-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
