@@ -166,7 +166,7 @@ class KnotClassDelegate {
 
 		if (!transformInitialized || !canTransformClass(name)) {
 			try {
-				return getClassByteArray(name, skipOriginalLoader);
+				return getRawClassByteArray(name, skipOriginalLoader);
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}
@@ -175,7 +175,7 @@ class KnotClassDelegate {
 		byte[] input = provider.getEntrypointTransformer().transform(name);
 		if (input == null) {
 			try {
-				input = getClassByteArray(name, skipOriginalLoader);
+				input = getRawClassByteArray(name, skipOriginalLoader);
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}
@@ -188,7 +188,7 @@ class KnotClassDelegate {
 		return null;
 	}
 
-	private boolean canTransformClass(String name) {
+	private static boolean canTransformClass(String name) {
 		name = name.replace('/', '.');
 		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
 		return /* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j");
@@ -198,7 +198,7 @@ class KnotClassDelegate {
 		return name.replace('.', '/') + ".class";
 	}
 
-	public byte[] getClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
+	public byte[] getRawClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
 		String classFile = getClassFileName(name);
 		InputStream inputStream = itf.getResourceAsStream(classFile, skipOriginalLoader);
 		if (inputStream == null) {

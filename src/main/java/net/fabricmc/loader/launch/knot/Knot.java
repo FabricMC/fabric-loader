@@ -207,7 +207,7 @@ public final class Knot extends FabricLauncherBase {
 		if (runTransformers) {
 			return classLoader.getDelegate().getPreMixinClassByteArray(name, false);
 		} else {
-			return classLoader.getDelegate().getClassByteArray(name, false);
+			return classLoader.getDelegate().getRawClassByteArray(name, false);
 		}
 	}
 
