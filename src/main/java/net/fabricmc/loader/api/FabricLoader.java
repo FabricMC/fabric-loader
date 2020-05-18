@@ -100,9 +100,7 @@ public interface FabricLoader {
 	Path getGameDir();
 
 	@Deprecated
-	default File getGameDirectory() {
-		return getGameDir().toFile();
-	}
+	File getGameDirectory();
 
 	/**
 	 * Get the current directory for game configuration files.
@@ -111,7 +109,5 @@ public interface FabricLoader {
 	Path getConfigDir();
 
 	@Deprecated
-	default File getConfigDirectory() {
-		return getConfigDir().toFile();
-	}
+	File getConfigDirectory();
 }

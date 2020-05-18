@@ -133,6 +133,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return gameDir;
 	}
 
+	@Override
 	@Deprecated
 	public File getGameDirectory() {
 		return getGameDir().toFile();
@@ -153,6 +154,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return configDir;
 	}
 
+	@Override
 	@Deprecated
 	public File getConfigDirectory() {
 		return getConfigDir().toFile();
