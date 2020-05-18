@@ -190,7 +190,7 @@ class EntrypointStorage {
 				}
 			} catch (Throwable t) {
 				if (exception == null) {
-					exception = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+					exception = new EntrypointException(key, entry.getModContainer().getMetadata(), t);
 				} else {
 					exception.addSuppressed(t);
 				}

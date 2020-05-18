@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.api;
 
+import net.fabricmc.loader.api.metadata.ModMetadata;
+
 public class EntrypointException extends RuntimeException {
 	private final String key;
 
@@ -34,6 +36,14 @@ public class EntrypointException extends RuntimeException {
 	@Deprecated
 	public EntrypointException(String key, String causingMod, Throwable cause) {
 		super("Exception while loading entries for entrypoint '" + key + "' provided by '" + causingMod + "'", cause);
+		this.key = key;
+	}
+
+	/**
+	 * @deprecated For internal use only, to be removed!
+	 */
+	public EntrypointException(String key, ModMetadata causingMod, Throwable cause) {
+		super("Exception while loading entries for entrypoint '" + key + "' provided by '" + causingMod.getName() + "' (" + causingMod.getId() + ")", cause);
 		this.key = key;
 	}
 
