@@ -64,7 +64,7 @@ public interface ModMetadata {
 
 	boolean containsCustomValue(String key);
 	CustomValue getCustomValue(String key);
-	Map<String, CustomValue> getCustomValues();
+	CustomValue.CvObject getCustomValues();
 
 	/**
 	 * @deprecated Use {@link #containsCustomValue} instead, this will be removed (can't expose GSON types)!

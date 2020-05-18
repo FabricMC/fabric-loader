@@ -133,7 +133,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	@Override
 	public CustomValue getCustomValue(String key) { return null; }
 	@Override
-	public Map<String, CustomValue> getCustomValues() { return Collections.emptyMap(); }
+	public CustomValue.CvObject getCustomValues() { return CustomValueImpl.emptyObject(); }
 
 	public static class Builder {
 		private final String id;

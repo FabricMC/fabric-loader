@@ -76,6 +76,10 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 	}
 
+	public static CustomValue.CvObject emptyObject() {
+		return new ObjectImpl(Collections.emptyMap());
+	}
+
 	@Override
 	public final CvObject getAsObject() {
 		if (this instanceof ObjectImpl) {
