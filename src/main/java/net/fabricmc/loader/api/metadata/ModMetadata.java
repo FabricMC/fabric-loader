@@ -20,6 +20,7 @@ import com.google.gson.JsonElement;
 import net.fabricmc.loader.api.Version;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ModMetadata {
@@ -63,6 +64,7 @@ public interface ModMetadata {
 
 	boolean containsCustomValue(String key);
 	CustomValue getCustomValue(String key);
+	Map<String, CustomValue> getCustomValues();
 
 	/**
 	 * @deprecated Use {@link #containsCustomValue} instead, this will be removed (can't expose GSON types)!

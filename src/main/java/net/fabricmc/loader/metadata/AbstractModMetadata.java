@@ -40,6 +40,16 @@ public abstract class AbstractModMetadata implements ModMetadata {
 		return value != null ? convert(value) : null;
 	}
 
+	@Override
+	public boolean containsCustomValue(String key) {
+		return getCustomValues().containsKey(key);
+	}
+
+	@Override
+	public CustomValue getCustomValue(String key) {
+		return getCustomValues().get(key);
+	}
+
 	private static JsonElement convert(CustomValue value) {
 		switch (value.getType()) {
 		case ARRAY: {

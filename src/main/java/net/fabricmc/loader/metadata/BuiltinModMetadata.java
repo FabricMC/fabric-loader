@@ -132,6 +132,8 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	public boolean containsCustomValue(String key) { return false; }
 	@Override
 	public CustomValue getCustomValue(String key) { return null; }
+	@Override
+	public Map<String, CustomValue> getCustomValues() { return Collections.emptyMap(); }
 
 	public static class Builder {
 		private final String id;
