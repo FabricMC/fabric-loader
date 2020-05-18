@@ -576,7 +576,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 			@Override
 			public CustomValueContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 				if (!json.isJsonObject()) {
-					throw new JsonParseException("Custom values must be an object!");
+					throw new JsonParseException("Custom values must be in an object!");
 				}
 
 				final CustomValueContainer container = new CustomValueContainer();
