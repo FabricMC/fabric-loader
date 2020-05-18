@@ -18,6 +18,8 @@ package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
+import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();
 
-	private KnotClassLoaderInterface loader;
+	private KnotClassLoaderInterface classLoader;
 	private boolean isDevelopment;
 	private EnvType envType;
 	private final File gameJarFile;
@@ -100,9 +102,10 @@ public final class Knot extends FabricLauncherBase {
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
 		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
-		loader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider) : new KnotClassLoader(isDevelopment(), envType, provider);
+		classLoader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider) : new KnotClassLoader(isDevelopment(), envType, provider);
+		ClassLoader cl = (ClassLoader) classLoader;
 
-		if(provider.isObfuscated()) {
+		if (provider.isObfuscated()) {
 			for (Path path : provider.getGameContextJars()) {
 				FabricLauncherBase.deobfuscate(
 					provider.getGameId(), provider.getNormalizedGameVersion(),
@@ -116,19 +119,25 @@ public final class Knot extends FabricLauncherBase {
 		// Locate entrypoints before switching class loaders
 		provider.getEntrypointTransformer().locateEntrypoints(this);
 
-		Thread.currentThread().setContextClassLoader((ClassLoader) loader);
+		Thread.currentThread().setContextClassLoader(cl);
 
-		FabricLoader.INSTANCE.setGameProvider(provider);
-		FabricLoader.INSTANCE.load();
-		FabricLoader.INSTANCE.freeze();
+		@SuppressWarnings("deprecation")
+		FabricLoader loader = FabricLoader.INSTANCE;
+		loader.setGameProvider(provider);
+		loader.load();
+		loader.freeze();
+
+		FabricLoader.INSTANCE.getAccessWidener().loadFromMods();
 
 		MixinBootstrap.init();
-		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoader.INSTANCE);
+		FabricMixinBootstrap.init(getEnvironmentType(), loader);
 		FabricLauncherBase.finishMixinBootstrapping();
 
-		loader.getDelegate().initializeTransformers();
+		classLoader.getDelegate().initializeTransformers();
 
-		provider.launch((ClassLoader) loader);
+		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+
+		provider.launch(cl);
 	}
 
 	@Override
@@ -166,7 +175,7 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public void propose(URL url) {
 		FabricLauncherBase.LOGGER.debug("[Knot] Proposed " + url + " to classpath.");
-		loader.addURL(url);
+		classLoader.addURL(url);
 	}
 
 	@Override
@@ -176,13 +185,13 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public boolean isClassLoaded(String name) {
-		return loader.isClassLoaded(name);
+		return classLoader.isClassLoaded(name);
 	}
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
 		try {
-			return loader.getResourceAsStream(name, false);
+			return classLoader.getResourceAsStream(name, false);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read file '" + name + "'!", e);
 		}
@@ -190,12 +199,12 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public ClassLoader getTargetClassLoader() {
-		return (ClassLoader) loader;
+		return (ClassLoader) classLoader;
 	}
 
 	@Override
 	public byte[] getClassByteArray(String name) throws IOException {
-		return loader.getDelegate().getClassByteArray(name, false);
+		return classLoader.getDelegate().getClassByteArray(name, false);
 	}
 
 	@Override

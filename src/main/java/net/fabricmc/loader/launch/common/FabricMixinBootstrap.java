@@ -21,13 +21,14 @@ import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
-import net.fabricmc.mappings.Mappings;
+import net.fabricmc.mapping.tree.TinyTree;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,18 +60,21 @@ public final class FabricMixinBootstrap {
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
-			Mappings mappings = mappingConfiguration.getMappings();
+			TinyTree mappings = mappingConfiguration.getMappings();
 
-			if (mappings != null && mappings.getNamespaces().contains("intermediary") && mappings.getNamespaces().contains(mappingConfiguration.getTargetNamespace())) {
-				System.setProperty("mixin.env.remapRefMap", "true");
+			if (mappings != null) {
+				List<String> namespaces = mappings.getMetadata().getNamespaces();
+				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
+					System.setProperty("mixin.env.remapRefMap", "true");
 
-				try {
-					MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
-					MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-					LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
-				} catch (Exception e) {
-					LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
-					e.printStackTrace();
+					try {
+						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
+						LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
+					} catch (Exception e) {
+						LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
+						e.printStackTrace();
+					}
 				}
 			}
 		}

@@ -16,28 +16,43 @@
 
 package net.fabricmc.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.discovery.*;
+import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
+import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
+import net.fabricmc.loader.discovery.ModCandidate;
+import net.fabricmc.loader.discovery.ModResolutionException;
+import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
 
 /**
  * The main class for mod loading operations.
@@ -57,6 +72,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
+	private final AccessWidener accessWidener = new AccessWidener(this);
 
 	private boolean frozen = false;
 
@@ -117,6 +133,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return gameDir;
 	}
 
+	@Deprecated
+	public File getGameDirectory() {
+		return getGameDir().toFile();
+	}
+
 	/**
 	 * @return The game instance's configuration directory.
 	 */
@@ -132,8 +153,18 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return configDir;
 	}
 
+	@Deprecated
+	public File getConfigDirectory() {
+		return getConfigDir().toFile();
+	}
+
 	public Path getModsDir() {
 		return getGameDir().resolve("mods");
+	}
+
+	@Deprecated
+	public File getModsDirectory() {
+		return getModsDir().toFile();
 	}
 
 	private String join(Stream<String> strings, String joiner) {
@@ -155,15 +186,18 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		if (provider == null) throw new IllegalStateException("game provider not set");
 		if (frozen) throw new IllegalStateException("Frozen - cannot load additional mods!");
 
+		try {
+			setup();
+		} catch (ModResolutionException exception) {
+			FabricGuiEntry.displayCriticalError(exception, true);
+		}
+	}
+
+	private void setup() throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir()));
-		Map<String, ModCandidate> candidateMap;
-		try {
-			candidateMap = resolver.resolve(this);
-		} catch (ModResolutionException e) {
-			throw new RuntimeException("Failed to resolve mods!", e);
-		}
+		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
 		String modText;
 		switch (candidateMap.values().size()) {
@@ -197,11 +231,22 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		postprocessModMetadata();
+		setupLanguageAdapters();
+		setupMods();
+	}
+
+	public boolean hasEntrypoints(String key) {
+		return entrypointStorage.hasEntrypoints(key);
 	}
 
 	@Override
 	public <T> List<T> getEntrypoints(String key, Class<T> type) {
 		return entrypointStorage.getEntrypoints(key, type);
+	}
+
+	@Override
+	public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
+		return entrypointStorage.getEntrypointContainers(key, type);
 	}
 
 	@Override
@@ -250,12 +295,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return Collections.unmodifiableList(mods);
 	}
 
-	protected void addMod(ModCandidate candidate) {
+	protected void addMod(ModCandidate candidate) throws ModResolutionException {
 		LoaderModMetadata info = candidate.getInfo();
 		URL originUrl = candidate.getOriginUrl();
 
 		if (modMap.containsKey(info.getId())) {
-			throw new RuntimeException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
 		if (!info.loadsInEnvironment(getEnvironmentType())) {
@@ -309,7 +354,47 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		mods = sorted;
 	} */
 
-	public void instantiateMods(Path newRunDir, Object gameInstance) {
+	private void setupLanguageAdapters() {
+		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
+
+		for (ModContainer mod : mods) {
+			// add language adapters
+			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
+				if (adapterMap.containsKey(laEntry.getKey())) {
+					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
+				}
+
+				try {
+					adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getDeclaredConstructor().newInstance());
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
+				}
+			}
+		}
+	}
+
+	private void setupMods() {
+		for (ModContainer mod : mods) {
+			try {
+				mod.setupRootPath();
+
+				for (String in : mod.getInfo().getOldInitializers()) {
+					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
+					entrypointStorage.addDeprecated(mod, adapter, in);
+				}
+
+				for (String key : mod.getInfo().getEntrypointKeys()) {
+					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
+						entrypointStorage.add(mod, key, in, adapterMap);
+					}
+				}
+			} catch (Exception e) {
+				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);
+			}
+		}
+	}
+
+	public void prepareModInit(Path newRunDir, Object gameInstance) {
 		if (!frozen) {
 			throw new RuntimeException("Cannot instantiate mods when not frozen!");
 		}
@@ -358,42 +443,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		} else {
 			setGameDir(newRunDir);
 		}
+	}
 
-		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
-
-		for (ModContainer mod : mods) {
-			// add language adapters
-			for (Map.Entry<String, String> laEntry : mod.getInfo().getLanguageAdapterDefinitions().entrySet()) {
-				if (adapterMap.containsKey(laEntry.getKey())) {
-					throw new RuntimeException("Duplicate language adapter key: " + laEntry.getKey() + "! (" + laEntry.getValue() + ", " + adapterMap.get(laEntry.getKey()).getClass().getName() + ")");
-				}
-
-				try {
-					adapterMap.put(laEntry.getKey(), (LanguageAdapter) Class.forName(laEntry.getValue(), true, FabricLauncherBase.getLauncher().getTargetClassLoader()).getDeclaredConstructor().newInstance());
-				} catch (Exception e) {
-					throw new RuntimeException("Failed to instantiate language adapter: " + laEntry.getKey(), e);
-				}
-			}
-		}
-
-		for (ModContainer mod : mods) {
-			try {
-				mod.instantiate();
-
-				for (String in : mod.getInfo().getOldInitializers()) {
-					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
-					entrypointStorage.addDeprecated(mod, adapter, in);
-				}
-
-				for (String key : mod.getInfo().getEntrypointKeys()) {
-					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
-						entrypointStorage.add(mod, key, in, adapterMap);
-					}
-				}
-			} catch (Exception e) {
-				throw new RuntimeException(String.format("Failed to load mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);
-			}
-		}
+	public AccessWidener getAccessWidener() {
+		return accessWidener;
 	}
 
 	public Logger getLogger() {

@@ -8,7 +8,7 @@ plugins {
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.3-SNAPSHOT"
+	id("fabric-loom") version "0.2.7-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -45,18 +45,18 @@ dependencies {
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:7.1'
-	compile 'org.ow2.asm:asm-analysis:7.1'
-	compile 'org.ow2.asm:asm-commons:7.1'
-	compile 'org.ow2.asm:asm-tree:7.1'
-	compile 'org.ow2.asm:asm-util:7.1'
+	compile 'org.ow2.asm:asm:8.0'
+	compile 'org.ow2.asm:asm-analysis:8.0'
+	compile 'org.ow2.asm:asm-commons:8.0'
+	compile 'org.ow2.asm:asm-tree:8.0'
+	compile 'org.ow2.asm:asm-util:8.0'
 
-	compile('net.fabricmc:sponge-mixin:0.7.11.38') {
+	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-mappings-parser:0.1.1.8'
-	compile 'net.fabricmc:tiny-remapper:0.1.0.40'
+	compile 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
+	compile 'net.fabricmc:tiny-remapper:0.2.2.64'
 
 	compile 'com.google.jimfs:jimfs:1.1'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
@@ -105,10 +105,6 @@ task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
 
 tasks.build.dependsOn "copyJson"
 tasks.build.dependsOn "copyJsonLw"
-
-task wrapper(type: Wrapper) {
-	gradleVersion = '4.10.3'
-}
 
 String getClasspathEntries(){
 	String classPath = ""

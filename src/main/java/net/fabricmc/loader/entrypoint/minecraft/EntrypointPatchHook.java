@@ -20,6 +20,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncher;
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
@@ -67,6 +68,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			// -- SERVER --
 			// (1.5-1.7?)-: Just find it instantiating itself.
 			// (1.6-1.8?)+: an <init> starting with java.io.File can be assumed to be definite
+			// (20w20b)+  : Now has its own main class, that constructs the server class. Find a specific regex string in the class.
 
 			if (type == EnvType.CLIENT) {
 				// pre-1.6 route
@@ -104,12 +106,18 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
 						type == EnvType.CLIENT
 						? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
-						: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).desc.startsWith("(Ljava/io/File;"),
+						: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && hasSuperClass(((MethodInsnNode) insn).owner, mainClass.name, launcher),
 						true
 					);
 
+					// New 20w20b way of finding the server constructor
+					if (newGameInsn == null && type == EnvType.SERVER) {
+						newGameInsn = (MethodInsnNode) findInsn(mainMethod, insn -> (insn instanceof MethodInsnNode) && insn.getOpcode() == Opcodes.INVOKESPECIAL && hasStrInMethod(((MethodInsnNode)insn).owner, "<clinit>", "()V", "^[a-fA-F0-9]{40}$", launcher), false);
+					}
+
 					if (newGameInsn != null) {
 						gameEntrypoint = newGameInsn.owner.replace('/', '.');
+						serverHasFile = newGameInsn.desc.startsWith("(Ljava/io/File;");
 					}
 				}
 			}
@@ -287,4 +295,50 @@ public class EntrypointPatchHook extends EntrypointPatch {
 		}
 	}
 
+	private boolean hasSuperClass(String cls, String superCls, FabricLauncher launcher) {
+		if (cls.contains("$") || (!cls.startsWith("net/minecraft") && cls.contains("/"))) {
+			return false;
+		}
+
+		try {
+			byte[] bytes = launcher.getClassByteArray(cls);
+			ClassReader reader = new ClassReader(bytes);
+			return reader.getSuperName().equals(superCls);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to check superclass of " + cls, e);
+		}
+	}
+
+	private boolean hasStrInMethod(String cls, String methodName, String methodDesc, String str, FabricLauncher launcher) {
+		if (cls.contains("$") || (!cls.startsWith("net/minecraft") && cls.contains("/"))) {
+			return false;
+		}
+
+		try {
+			byte[] bytes = launcher.getClassByteArray(cls);
+			ClassReader reader = new ClassReader(bytes);
+			ClassNode node = new ClassNode();
+			reader.accept(node, 0);
+
+			for (MethodNode method : node.methods) {
+				if (method.name.equals(methodName) && method.desc.equals(methodDesc)) {
+					for (AbstractInsnNode insn : method.instructions) {
+						if (insn instanceof LdcInsnNode) {
+							Object cst = ((LdcInsnNode) insn).cst;
+							if (cst instanceof String) {
+								if (cst.equals(str)) {
+									return true;
+								}
+							}
+						}
+					}
+					break;
+				}
+			}
+
+			return false;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to find string in " + cls + methodName + methodDesc, e);
+		}
+	}
 }
