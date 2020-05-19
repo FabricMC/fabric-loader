@@ -17,6 +17,7 @@
 package net.fabricmc.loader.metadata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,7 +32,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.util.ImmutableIterator;
 
 abstract class CustomValueImpl implements CustomValue {
 	static final CustomValue BOOLEAN_TRUE = new BooleanImpl(true);
@@ -125,7 +125,7 @@ abstract class CustomValueImpl implements CustomValue {
 		private final Map<String, CustomValue> entries;
 
 		public ObjectImpl(Map<String, CustomValue> entries) {
-			this.entries = entries;
+			this.entries = Collections.unmodifiableMap(entries);
 		}
 
 		@Override
@@ -150,7 +150,7 @@ abstract class CustomValueImpl implements CustomValue {
 
 		@Override
 		public Iterator<Entry<String, CustomValue>> iterator() {
-			return new ImmutableIterator<>(entries.entrySet().iterator());
+			return entries.entrySet().iterator();
 		}
 	}
 
@@ -158,7 +158,7 @@ abstract class CustomValueImpl implements CustomValue {
 		private final List<CustomValue> entries;
 
 		public ArrayImpl(List<CustomValue> entries) {
-			this.entries = entries;
+			this.entries = Collections.unmodifiableList(entries);
 		}
 
 		@Override
@@ -178,7 +178,7 @@ abstract class CustomValueImpl implements CustomValue {
 
 		@Override
 		public Iterator<CustomValue> iterator() {
-			return new ImmutableIterator<>(entries.iterator());
+			return entries.iterator();
 		}
 	}
 
