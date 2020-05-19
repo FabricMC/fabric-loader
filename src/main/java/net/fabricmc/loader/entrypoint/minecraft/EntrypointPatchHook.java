@@ -73,8 +73,8 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			if (type == EnvType.CLIENT) {
 				// pre-1.6 route
 				List<FieldNode> newGameFields = findFields(mainClass,
-					(f) -> !isStatic(f.access) && f.desc.startsWith("L") && !f.desc.startsWith("Ljava/")
-				);
+						(f) -> !isStatic(f.access) && f.desc.startsWith("L") && !f.desc.startsWith("Ljava/")
+						);
 
 				if (newGameFields.size() == 1) {
 					gameEntrypoint = Type.getType(newGameFields.get(0).desc).getClassName();
@@ -91,9 +91,9 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				if (type == EnvType.SERVER) {
 					// pre-1.6 method search route
 					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
-						(insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).owner.equals(mainClass.name),
-						false
-					);
+							(insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).owner.equals(mainClass.name),
+							false
+							);
 
 					if (newGameInsn != null) {
 						gameEntrypoint = newGameInsn.owner.replace('/', '.');
@@ -104,11 +104,11 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				if (gameEntrypoint == null) {
 					// modern method search routes
 					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
-						type == EnvType.CLIENT
-						? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
-						: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && hasSuperClass(((MethodInsnNode) insn).owner, mainClass.name, launcher),
-						true
-					);
+							type == EnvType.CLIENT
+							? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
+									: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && hasSuperClass(((MethodInsnNode) insn).owner, mainClass.name, launcher),
+									true
+							);
 
 					// New 20w20b way of finding the server constructor
 					if (newGameInsn == null && type == EnvType.SERVER) {
@@ -216,7 +216,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						moveBefore(it, Opcodes.RETURN);
 					}
 
-/*							it.add(new TypeInsnNode(Opcodes.NEW, "java/io/File"));
+					/*							it.add(new TypeInsnNode(Opcodes.NEW, "java/io/File"));
 					it.add(new InsnNode(Opcodes.DUP));
 					it.add(new LdcInsnNode("."));
 					it.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/io/File", "<init>", "(Ljava/lang/String;)V", false)); */
@@ -252,7 +252,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				while (consIt.hasNext()) {
 					AbstractInsnNode insn = consIt.next();
 					if (insn.getOpcode() == Opcodes.PUTFIELD
-						&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
+							&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
 						debug("Run directory field is thought to be " + ((FieldInsnNode) insn).owner + "/" + ((FieldInsnNode) insn).name);
 
 						ListIterator<AbstractInsnNode> it;
@@ -315,7 +315,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 		}
 
 		try {
-			byte[] bytes = launcher.getClassByteArray(cls);
+			byte[] bytes = launcher.getClassByteArray(cls, false);
 			ClassReader reader = new ClassReader(bytes);
 			ClassNode node = new ClassNode();
 			reader.accept(node, 0);
