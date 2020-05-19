@@ -191,7 +191,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
-	public CustomValue.CvObject getCustomValues() {
+	public Map<String, CustomValue> getCustomValues() {
 		return custom.getCustomValues();
 	}
 
@@ -566,10 +566,10 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static class CustomValueContainer {
-		private CustomValue.CvObject customValues = CustomValueImpl.emptyObject();
+		private Map<String, CustomValue> customValues = new HashMap<>();
 
-		private CustomValue.CvObject getCustomValues() {
-			return this.customValues;
+		private Map<String, CustomValue> getCustomValues() {
+			return Collections.unmodifiableMap(this.customValues);
 		}
 
 		public static class Deserializer implements JsonDeserializer<CustomValueContainer> {
@@ -579,10 +579,14 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 					throw new JsonParseException("Custom values must be in an object!");
 				}
 
-				final CustomValueContainer container = new CustomValueContainer();
-				container.customValues = (CustomValue.CvObject) CustomValueImpl.fromJsonElement(json);
+				final CustomValueContainer valueContainer = new CustomValueContainer();
+				final Set<Map.Entry<String, JsonElement>> entries = json.getAsJsonObject().entrySet();
 
-				return container;
+				for (Map.Entry<String, JsonElement> entry : entries) {
+					valueContainer.customValues.put(entry.getKey(), CustomValueImpl.fromJsonElement(entry.getValue()));
+				}
+
+				return valueContainer;
 			}
 		}
 	}
