@@ -64,6 +64,14 @@ public interface ModMetadata {
 
 	boolean containsCustomValue(String key);
 	CustomValue getCustomValue(String key);
+
+	/**
+	 * Gets all custom values defined by this mod.
+	 *
+	 * <p>Note this map is unmodifiable.
+	 *
+	 * @return a map containing the custom values this mod defines.
+	 */
 	Map<String, CustomValue> getCustomValues();
 
 	/**

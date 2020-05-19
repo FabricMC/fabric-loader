@@ -566,10 +566,18 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	public static class CustomValueContainer {
-		private Map<String, CustomValue> customValues = new HashMap<>();
+		public CustomValueContainer() {
+			this.customValues = Collections.emptyMap();
+		}
+
+		public CustomValueContainer(Map<String, CustomValue> customValues) {
+			this.customValues = Collections.unmodifiableMap(customValues);
+		}
+
+		private final Map<String, CustomValue> customValues;
 
 		private Map<String, CustomValue> getCustomValues() {
-			return Collections.unmodifiableMap(this.customValues);
+			return this.customValues;
 		}
 
 		public static class Deserializer implements JsonDeserializer<CustomValueContainer> {
@@ -579,14 +587,14 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 					throw new JsonParseException("Custom values must be in an object!");
 				}
 
-				final CustomValueContainer valueContainer = new CustomValueContainer();
+				final Map<String, CustomValue> customValues = new HashMap<>();
 				final Set<Map.Entry<String, JsonElement>> entries = json.getAsJsonObject().entrySet();
 
 				for (Map.Entry<String, JsonElement> entry : entries) {
-					valueContainer.customValues.put(entry.getKey(), CustomValueImpl.fromJsonElement(entry.getValue()));
+					customValues.put(entry.getKey(), CustomValueImpl.fromJsonElement(entry.getValue()));
 				}
 
-				return valueContainer;
+				return new CustomValueContainer(customValues);
 			}
 		}
 	}
