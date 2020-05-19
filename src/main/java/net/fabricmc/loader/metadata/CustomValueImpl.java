@@ -31,6 +31,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.util.ImmutableIterator;
 
 abstract class CustomValueImpl implements CustomValue {
 	static final CustomValue BOOLEAN_TRUE = new BooleanImpl(true);
@@ -149,7 +150,7 @@ abstract class CustomValueImpl implements CustomValue {
 
 		@Override
 		public Iterator<Entry<String, CustomValue>> iterator() {
-			return entries.entrySet().iterator();
+			return new ImmutableIterator<>(entries.entrySet().iterator());
 		}
 	}
 
@@ -177,7 +178,7 @@ abstract class CustomValueImpl implements CustomValue {
 
 		@Override
 		public Iterator<CustomValue> iterator() {
-			return entries.iterator();
+			return new ImmutableIterator<>(entries.iterator());
 		}
 	}
 
