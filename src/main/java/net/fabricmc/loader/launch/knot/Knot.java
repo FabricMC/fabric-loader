@@ -203,8 +203,12 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public byte[] getClassByteArray(String name) throws IOException {
-		return classLoader.getDelegate().getClassByteArray(name, false);
+	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
+		if (runTransformers) {
+			return classLoader.getDelegate().getPreMixinClassByteArray(name, false);
+		} else {
+			return classLoader.getDelegate().getRawClassByteArray(name, false);
+		}
 	}
 
 	@Override

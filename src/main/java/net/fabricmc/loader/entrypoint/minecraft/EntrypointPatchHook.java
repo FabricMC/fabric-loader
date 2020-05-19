@@ -301,7 +301,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 		}
 
 		try {
-			byte[] bytes = launcher.getClassByteArray(cls);
+			byte[] bytes = launcher.getClassByteArray(cls, false);
 			ClassReader reader = new ClassReader(bytes);
 			return reader.getSuperName().equals(superCls);
 		} catch (IOException e) {
