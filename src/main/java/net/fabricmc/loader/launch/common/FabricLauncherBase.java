@@ -117,6 +117,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 						TinyRemapper remapper = TinyRemapper.newRemapper()
 							.withMappings(TinyRemapperMappingsHelper.create(mappings, originNamespace, targetNamespace))
 							.rebuildSourceFilenames(true)
+							.fixPackageAccess(!launcher.isDevelopment())
 							.build();
 
 						Set<Path> depPaths = new HashSet<>();
