@@ -40,11 +40,12 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	}
 
 	public byte[] getClassBytes(String name, String transformedName) throws IOException {
-		return FabricLauncherBase.getLauncher().getClassByteArray(name);
+		return FabricLauncherBase.getLauncher().getClassByteArray(name, true);
 	}
 
 	public byte[] getClassBytes(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
-		byte[] classBytes = FabricLauncherBase.getLauncher().getClassByteArray(name);
+		byte[] classBytes = FabricLauncherBase.getLauncher().getClassByteArray(name, runTransformers);
+
 		if (classBytes != null) {
 			return classBytes;
 		} else {
@@ -54,8 +55,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public ClassNode getClassNode(String name) throws ClassNotFoundException, IOException {
-		// TODO: is this the correct default?
-		return getClassNode(name, false);
+		return getClassNode(name, true);
 	}
 
 	@Override

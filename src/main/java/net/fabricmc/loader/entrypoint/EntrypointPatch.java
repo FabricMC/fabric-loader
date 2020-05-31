@@ -44,7 +44,7 @@ public abstract class EntrypointPatch {
 
 	protected boolean classExists(FabricLauncher launcher, String className) {
 		try {
-			return launcher.getClassByteArray(className) != null;
+			return launcher.getClassByteArray(className, false) != null;
 		} catch (IOException e) {
 			return false;
 		}

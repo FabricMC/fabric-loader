@@ -149,42 +149,57 @@ class KnotClassDelegate {
 		return Metadata.EMPTY;
 	}
 
-	public byte[] loadClassData(String name, boolean resolve) {
-		if (!transformInitialized) {
+	public byte[] getPostMixinClassByteArray(String name) {
+		byte[] transformedClassArray = getPreMixinClassByteArray(name, true);
+		if (!transformInitialized || !canTransformClass(name)) {
+			return transformedClassArray;
+		}
+
+		return getMixinTransformer().transformClassBytes(name, name, transformedClassArray);
+	}
+
+	/**
+	 * Runs all the class transformers except mixin
+	 */
+	public byte[] getPreMixinClassByteArray(String name, boolean skipOriginalLoader) {
+		// some of the transformers rely on dot notation
+		name = name.replace('/', '.');
+
+		if (!transformInitialized || !canTransformClass(name)) {
 			try {
-				return getClassByteArray(name, true);
+				return getRawClassByteArray(name, skipOriginalLoader);
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}
 		}
 
-		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
-		if (/* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j")) {
-			byte[] input = provider.getEntrypointTransformer().transform(name);
-			if (input == null) {
-				try {
-					input = getClassByteArray(name, true);
-				} catch (IOException e) {
-					throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
-				}
-			}
-
-			if (input != null) {
-				byte[] b = FabricTransformer.transform(isDevelopment, envType, name, input);
-				b = getMixinTransformer().transformClassBytes(name, name, b);
-				return b;
+		byte[] input = provider.getEntrypointTransformer().transform(name);
+		if (input == null) {
+			try {
+				input = getRawClassByteArray(name, skipOriginalLoader);
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}
 		}
 
-		// We haven't found a class by now, but it could be injected by Mixin
-		return getMixinTransformer().transformClassBytes(name, name, null);
+		if (input != null) {
+			return FabricTransformer.transform(isDevelopment, envType, name, input);
+		}
+
+		return null;
+	}
+
+	private static boolean canTransformClass(String name) {
+		name = name.replace('/', '.');
+		// Blocking Fabric Loader classes is no longer necessary here as they don't exist on the modding class loader
+		return /* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j");
 	}
 
 	String getClassFileName(String name) {
 		return name.replace('.', '/') + ".class";
 	}
 
-	public byte[] getClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
+	public byte[] getRawClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
 		String classFile = getClassFileName(name);
 		InputStream inputStream = itf.getResourceAsStream(classFile, skipOriginalLoader);
 		if (inputStream == null) {
