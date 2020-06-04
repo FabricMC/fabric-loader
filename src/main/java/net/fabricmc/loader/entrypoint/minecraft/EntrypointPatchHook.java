@@ -120,6 +120,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					// Detect 20w22a by searching for a specific log message
 					if(type == EnvType.SERVER && hasStrInMethod(mainClass.name, mainMethod.name, mainMethod.desc, "Safe mode active, only vanilla datapack will be loaded", launcher)) {
 						is20w22aServerOrHigher = true;
+						gameEntrypoint = mainClass.name;
 					}
 
 					if (newGameInsn != null) {
