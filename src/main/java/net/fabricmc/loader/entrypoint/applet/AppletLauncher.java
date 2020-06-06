@@ -24,7 +24,6 @@ import java.applet.AppletStub;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -65,12 +64,12 @@ public class AppletLauncher extends Applet implements AppletStub {
 				.getDeclaredConstructor().newInstance();
 			//noinspection ConstantConditions
 			if (mcApplet == null) {
-				throw new RuntimeException("Could not instantiate MinecraftApplet - is null?");
+				throw new IllegalStateException("Could not instantiate MinecraftApplet - is null?");
 			}
 
 			this.add(mcApplet, "Center");
-		} catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException | ClassNotFoundException e) {
-			throw new RuntimeException(e);
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException("Error creating " + EntrypointTransformer.appletMainClass + " instance", e);
 		}
 	}
 
