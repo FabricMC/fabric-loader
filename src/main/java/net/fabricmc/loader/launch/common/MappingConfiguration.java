@@ -20,10 +20,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Maps;
+
+import net.fabricmc.mapping.reader.v2.TinyMetadata;
+import net.fabricmc.mapping.tree.ClassDef;
+import net.fabricmc.mapping.tree.FieldDef;
+import net.fabricmc.mapping.tree.MethodDef;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
 import net.fabricmc.mapping.tree.TinyTree;
 
@@ -33,6 +42,58 @@ public class MappingConfiguration {
 	private static TinyTree mappings;
 	private static boolean checkedMappings;
 
+	private static TinyTree wrapTree(TinyTree mappings) {
+		return new TinyTree() {
+			private ClassDef wrap(ClassDef mapping) {
+				return new ClassDef() {
+					@Override
+					public String getRawName(String namespace) {
+						try {
+							return mapping.getRawName(namespace);
+						} catch (ArrayIndexOutOfBoundsException e) {
+							return mapping.getName(namespace);
+						}
+					}
+
+					@Override
+					public String getName(String namespace) {
+						return mapping.getName(namespace);
+					}
+
+					@Override
+					public String getComment() {
+						return mapping.getComment();
+					}
+
+					@Override
+					public Collection<MethodDef> getMethods() {
+						return mapping.getMethods();
+					}
+
+					@Override
+					public Collection<FieldDef> getFields() {
+						return mapping.getFields();
+					}
+				};
+			}
+
+			@Override
+			public TinyMetadata getMetadata() {
+				return mappings.getMetadata();
+			}
+
+			@Override
+			public Map<String, ClassDef> getDefaultNamespaceClassMap() {
+				return Maps.transformValues(mappings.getDefaultNamespaceClassMap(), this::wrap);
+			}
+
+			@Override
+			public Collection<ClassDef> getClasses() {
+				return Collections2.transform(mappings.getClasses(), this::wrap);
+			}
+		};
+	}
+
 	public TinyTree getMappings() {
 		if (!checkedMappings) {
 			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
@@ -40,7 +101,7 @@ public class MappingConfiguration {
 			if (mappingStream != null) {
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
 					long time = System.currentTimeMillis();
-					mappings = TinyMappingFactory.loadWithDetection(reader);
+					mappings = wrapTree(TinyMappingFactory.loadWithDetection(reader));
 					LOGGER.debug("Loading mappings took " + (System.currentTimeMillis() - time) + " ms");
 				} catch (IOException ee) {
 					ee.printStackTrace();
