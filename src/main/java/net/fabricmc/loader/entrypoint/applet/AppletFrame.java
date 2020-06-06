@@ -113,6 +113,11 @@ public class AppletFrame extends Frame implements WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
+		ensureClosed();
+	}
+
+	/** Ensures that {@link #applet} is cleaned up if it exists, and that the JVM shuts down within half a minute */
+	void ensureClosed() {
 		Thread shutdownListenerThread = new Thread(new AppletForcedShutdownListener(30000L));
 		shutdownListenerThread.setDaemon(true);
 		shutdownListenerThread.start();

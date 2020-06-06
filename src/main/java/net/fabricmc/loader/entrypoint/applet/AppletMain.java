@@ -34,6 +34,11 @@ public final class AppletMain {
 
 	public static void main(String[] args) {
 		AppletFrame me = new AppletFrame("Minecraft", null);
-		me.launch(args);
+		try {
+			me.launch(args);
+		} catch (Throwable t) {
+			me.ensureClosed();
+			throw t;
+		}
 	}
 }
