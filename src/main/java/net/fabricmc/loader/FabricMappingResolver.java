@@ -24,7 +24,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import com.google.common.base.Strings;
+
 import net.fabricmc.loader.api.MappingResolver;
+import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.Descriptored;
 import net.fabricmc.mapping.tree.TinyTree;
@@ -51,25 +54,25 @@ class FabricMappingResolver implements MappingResolver {
 
 	protected final NamespaceData getNamespaceData(String namespace) {
 		return namespaceDataMap.computeIfAbsent(namespace, (fromNamespace) -> {
-			if (!namespaces.contains(namespace)) {
-				throw new IllegalArgumentException("Unknown namespace: " + namespace);
+			if (!namespaces.contains(fromNamespace)) {
+				throw new IllegalArgumentException("Unknown namespace: " + fromNamespace);
 			}
 
 			NamespaceData data = new NamespaceData();
 			TinyTree mappings = mappingsSupplier.get();
-			Map<String, String> classNameMap = new HashMap<>();
 
 			for (ClassDef classEntry : mappings.getClasses()) {
-				String fromClass = mapClassName(classNameMap, classEntry.getName(fromNamespace));
-				String toClass = mapClassName(classNameMap, classEntry.getName(targetNamespace));
+				String fromClass = replaceSlashesWithDots(Strings.nullToEmpty(classEntry.getRawName(fromNamespace)));
+				if (fromClass.isEmpty()) continue; //Class not present
+
+				String toClass = replaceSlashesWithDots(Strings.nullToEmpty(classEntry.getRawName(targetNamespace)));
+				if (toClass.isEmpty()) toClass = fromClass;
 
 				data.classNames.put(fromClass, toClass);
 				data.classNamesInverse.put(toClass, fromClass);
 
-				String mappedClassName = mapClassName(classNameMap, fromClass);
-
-				recordMember(fromNamespace, classEntry.getFields(), data.fieldNames, mappedClassName);
-				recordMember(fromNamespace, classEntry.getMethods(), data.methodNames, mappedClassName);
+				recordMember(fromNamespace, classEntry.getFields(), data.fieldNames, fromClass);
+				recordMember(fromNamespace, classEntry.getMethods(), data.methodNames, fromClass);
 			}
 
 			return data;
@@ -80,14 +83,13 @@ class FabricMappingResolver implements MappingResolver {
 		return cname.replace('/', '.');
 	}
 
-	private String mapClassName(Map<String, String> classNameMap, String s) {
-		return classNameMap.computeIfAbsent(s, FabricMappingResolver::replaceSlashesWithDots);
-	}
-
 	private <T extends Descriptored> void recordMember(String fromNamespace, Collection<T> descriptoredList, Map<EntryTriple, String> putInto, String fromClass) {
 		for (T descriptored : descriptoredList) {
-			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace), descriptored.getDescriptor(fromNamespace));
-			putInto.put(fromEntry, descriptored.getName(targetNamespace));
+			String memberName = descriptored.getRawName(fromNamespace);
+			if (Strings.isNullOrEmpty(memberName)) continue;
+
+			EntryTriple fromEntry = new EntryTriple(fromClass, memberName, descriptored.getDescriptor(fromNamespace));
+			putInto.put(fromEntry, TinyRemapperMappingsHelper.tryName(descriptored, targetNamespace, memberName));
 		}
 	}
 

@@ -16,8 +16,11 @@
 
 package net.fabricmc.loader.util.mappings;
 
+import com.google.common.base.Strings;
+
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.FieldDef;
+import net.fabricmc.mapping.tree.Mapped;
 import net.fabricmc.mapping.tree.MethodDef;
 import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.tinyremapper.IMappingProvider;
@@ -31,19 +34,28 @@ public class TinyRemapperMappingsHelper {
 		return new IMappingProvider.Member(className, memberName, descriptor);
 	}
 
+	public static String tryName(Mapped mapping, String namespace, String fallback) {
+		String name = mapping.getRawName(namespace);
+		return !Strings.isNullOrEmpty(name) ? name : fallback;
+	}
+
 	public static IMappingProvider create(TinyTree mappings, String from, String to) {
 		return (acceptor) -> {
 			for (ClassDef classDef : mappings.getClasses()) {
-				String className = classDef.getName(from);
-				acceptor.acceptClass(className, classDef.getName(to));
+				String className = classDef.getRawName(from);
+				if (Strings.isNullOrEmpty(className)) continue; //Class not present
+				acceptor.acceptClass(className, tryName(classDef, to, className));
 
 				for (FieldDef field : classDef.getFields()) {
-					acceptor.acceptField(memberOf(className, field.getName(from), field.getDescriptor(from)), field.getName(to));
+					String fieldName = field.getRawName(from);
+					if (Strings.isNullOrEmpty(fieldName)) continue; //Field not present
+					acceptor.acceptField(memberOf(className, fieldName, field.getDescriptor(from)), tryName(field, to, fieldName));
 				}
 
 				for (MethodDef method : classDef.getMethods()) {
-					IMappingProvider.Member methodIdentifier = memberOf(className, method.getName(from), method.getDescriptor(from));
-					acceptor.acceptMethod(methodIdentifier, method.getName(to));
+					String methodName = method.getRawName(from);
+					if (Strings.isNullOrEmpty(methodName)) continue; //Method not present
+					acceptor.acceptMethod(memberOf(className, methodName, method.getDescriptor(from)), tryName(method, to, methodName));
 				}
 			}
 		};

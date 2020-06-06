@@ -22,6 +22,8 @@ import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.mapping.util.MixinRemapper;
 import org.spongepowered.asm.mixin.transformer.ClassInfo;
 
+import com.google.common.base.Strings;
+
 import java.util.*;
 
 public class MixinIntermediaryDevRemapper extends MixinRemapper {
@@ -37,19 +39,22 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 		super(mappings, from, to);
 
 		for (ClassDef classDef : mappings.getClasses()) {
-			allPossibleClassNames.add(classDef.getName(from));
-			allPossibleClassNames.add(classDef.getName(to));
+			allPossibleClassNames.add(Strings.emptyToNull(classDef.getRawName(from)));
+			allPossibleClassNames.add(Strings.emptyToNull(classDef.getRawName(to)));
 
 			putMemberInLookup(from, to, classDef.getFields(), nameFieldLookup, nameDescFieldLookup);
 			putMemberInLookup(from, to, classDef.getMethods(), nameMethodLookup, nameDescMethodLookup);
 		}
+
+		allPossibleClassNames.remove(null); //Just in case it got in
 	}
 
 	private <T extends Descriptored> void putMemberInLookup(String from, String to, Collection<T> descriptored, Map<String, String> nameMap, Map<String, String> nameDescMap) {
 		for (T field : descriptored) {
-			String nameFrom = field.getName(from);
+			String nameFrom = field.getRawName(from);
+			if (Strings.isNullOrEmpty(nameFrom)) continue;
 			String descFrom = field.getDescriptor(from);
-			String nameTo = field.getName(to);
+			String nameTo = TinyRemapperMappingsHelper.tryName(field, to, nameFrom);
 
 			String prev = nameMap.putIfAbsent(nameFrom, nameTo);
 
