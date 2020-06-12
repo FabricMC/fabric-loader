@@ -135,7 +135,7 @@ public class MinecraftGameProvider implements GameProvider {
 		if (envType == EnvType.CLIENT) {
 			entrypointClasses = Arrays.asList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
 		} else {
-			entrypointClasses = Arrays.asList("net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
+			entrypointClasses = Arrays.asList("net.minecraft.server.Main", "net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
 		}
 
 		Optional<GameProviderHelper.EntrypointResult> entrypointResult = GameProviderHelper.findFirstClass(loader, entrypointClasses);

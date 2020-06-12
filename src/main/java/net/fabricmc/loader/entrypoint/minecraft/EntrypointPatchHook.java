@@ -36,7 +36,6 @@ public class EntrypointPatchHook extends EntrypointPatch {
 	}
 
 	private void finishEntrypoint(EnvType type, ListIterator<AbstractInsnNode> it) {
-		it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 		it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/minecraft/hooks/Entrypoint" + (type == EnvType.CLIENT ? "Client" : "Server"), "start", "(Ljava/io/File;Ljava/lang/Object;)V", false));
 	}
 
@@ -66,14 +65,18 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			// 1.6.1+: [client].start() [INVOKEVIRTUAL]
 			// 19w04a: [client].<init> [INVOKESPECIAL] -> Thread.start()
 			// -- SERVER --
-			// (1.5-1.7?)-: Just find it instantiating itself.
-			// (1.6-1.8?)+: an <init> starting with java.io.File can be assumed to be definite
+			// (1.5-1.7?)-:     Just find it instantiating itself.
+			// (1.6-1.8?)+:     an <init> starting with java.io.File can be assumed to be definite
+			// (20w20b-20w21a): Now has its own main class, that constructs the server class. Find a specific regex string in the class.
+			// (20w22a)+:       Datapacks are now reloaded in main. To ensure that mods load correctly, inject into Main after --safeMode check.
+
+			boolean is20w22aServerOrHigher = false;
 
 			if (type == EnvType.CLIENT) {
 				// pre-1.6 route
 				List<FieldNode> newGameFields = findFields(mainClass,
-					(f) -> !isStatic(f.access) && f.desc.startsWith("L") && !f.desc.startsWith("Ljava/")
-				);
+						(f) -> !isStatic(f.access) && f.desc.startsWith("L") && !f.desc.startsWith("Ljava/")
+						);
 
 				if (newGameFields.size() == 1) {
 					gameEntrypoint = Type.getType(newGameFields.get(0).desc).getClassName();
@@ -90,9 +93,9 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				if (type == EnvType.SERVER) {
 					// pre-1.6 method search route
 					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
-						(insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).owner.equals(mainClass.name),
-						false
-					);
+							(insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && ((MethodInsnNode) insn).owner.equals(mainClass.name),
+							false
+							);
 
 					if (newGameInsn != null) {
 						gameEntrypoint = newGameInsn.owner.replace('/', '.');
@@ -103,11 +106,22 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				if (gameEntrypoint == null) {
 					// modern method search routes
 					MethodInsnNode newGameInsn = (MethodInsnNode) findInsn(mainMethod,
-						type == EnvType.CLIENT
-						? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
-						: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && hasSuperClass(((MethodInsnNode) insn).owner, mainClass.name, launcher),
-						true
-					);
+							type == EnvType.CLIENT
+							? (insn) -> (insn.getOpcode() == Opcodes.INVOKESPECIAL || insn.getOpcode() == Opcodes.INVOKEVIRTUAL) && !((MethodInsnNode) insn).owner.startsWith("java/")
+									: (insn) -> insn.getOpcode() == Opcodes.INVOKESPECIAL && ((MethodInsnNode) insn).name.equals("<init>") && hasSuperClass(((MethodInsnNode) insn).owner, mainClass.name, launcher),
+									true
+							);
+
+					// New 20w20b way of finding the server constructor
+					if (newGameInsn == null && type == EnvType.SERVER) {
+						newGameInsn = (MethodInsnNode) findInsn(mainMethod, insn -> (insn instanceof MethodInsnNode) && insn.getOpcode() == Opcodes.INVOKESPECIAL && hasStrInMethod(((MethodInsnNode)insn).owner, "<clinit>", "()V", "^[a-fA-F0-9]{40}$", launcher), false);
+					}
+
+					// Detect 20w22a by searching for a specific log message
+					if(type == EnvType.SERVER && hasStrInMethod(mainClass.name, mainMethod.name, mainMethod.desc, "Safe mode active, only vanilla datapack will be loaded", launcher)) {
+						is20w22aServerOrHigher = true;
+						gameEntrypoint = mainClass.name;
+					}
 
 					if (newGameInsn != null) {
 						gameEntrypoint = newGameInsn.owner.replace('/', '.');
@@ -121,7 +135,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			}
 
 			debug("Found game constructor: " + entrypoint + " -> " + gameEntrypoint);
-			ClassNode gameClass = gameEntrypoint.equals(entrypoint) ? mainClass : loadClass(launcher, gameEntrypoint);
+			ClassNode gameClass = gameEntrypoint.equals(entrypoint) || is20w22aServerOrHigher ? mainClass : loadClass(launcher, gameEntrypoint);
 			if (gameClass == null) {
 				throw new RuntimeException("Could not load game class " + gameEntrypoint + "!");
 			}
@@ -131,46 +145,50 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			AbstractInsnNode lwjglLogNode = null;
 			int gameMethodQuality = 0;
 
-			for (MethodNode gmCandidate : gameClass.methods) {
-				if (gmCandidate.name.equals("<init>")) {
-					gameConstructor = gmCandidate;
-					if (gameMethodQuality < 1) {
-						gameMethod = gmCandidate;
-						gameMethodQuality = 1;
+			if(!is20w22aServerOrHigher) {
+				for (MethodNode gmCandidate : gameClass.methods) {
+					if (gmCandidate.name.equals("<init>")) {
+						gameConstructor = gmCandidate;
+						if (gameMethodQuality < 1) {
+							gameMethod = gmCandidate;
+							gameMethodQuality = 1;
+						}
 					}
-				}
-				if (type == EnvType.CLIENT && !isApplet && gameMethodQuality < 2) {
-					// Try to find a method with an LDC string "LWJGL Version: ".
-					// This is the "init()" method, or as of 19w38a is the constructor, or called somewhere in that vicinity,
-					// and is by far superior in hooking into for a well-off mod start.
+					if (type == EnvType.CLIENT && !isApplet && gameMethodQuality < 2) {
+						// Try to find a method with an LDC string "LWJGL Version: ".
+						// This is the "init()" method, or as of 19w38a is the constructor, or called somewhere in that vicinity,
+						// and is by far superior in hooking into for a well-off mod start.
 
-					int qual = 2;
-					boolean hasLwjglLog = false;
-					ListIterator<AbstractInsnNode> it = gmCandidate.instructions.iterator();
-					while (it.hasNext()) {
-						AbstractInsnNode insn = it.next();
-						if (insn instanceof LdcInsnNode) {
-							Object cst = ((LdcInsnNode) insn).cst;
-							if (cst instanceof String) {
-								String s = (String) cst;
-								//This log output was renamed to Backend library in 19w34a
-								if (s.startsWith("LWJGL Version: ") || s.startsWith("Backend library: ")) {
-									hasLwjglLog = true;
-									if ("LWJGL Version: ".equals(s) || "LWJGL Version: {}".equals(s) || "Backend library: {}".equals(s)) {
-										qual = 3;
-										lwjglLogNode = insn;
+						int qual = 2;
+						boolean hasLwjglLog = false;
+						ListIterator<AbstractInsnNode> it = gmCandidate.instructions.iterator();
+						while (it.hasNext()) {
+							AbstractInsnNode insn = it.next();
+							if (insn instanceof LdcInsnNode) {
+								Object cst = ((LdcInsnNode) insn).cst;
+								if (cst instanceof String) {
+									String s = (String) cst;
+									//This log output was renamed to Backend library in 19w34a
+									if (s.startsWith("LWJGL Version: ") || s.startsWith("Backend library: ")) {
+										hasLwjglLog = true;
+										if ("LWJGL Version: ".equals(s) || "LWJGL Version: {}".equals(s) || "Backend library: {}".equals(s)) {
+											qual = 3;
+											lwjglLogNode = insn;
+										}
+										break;
 									}
-									break;
 								}
 							}
 						}
-					}
 
-					if (hasLwjglLog) {
-						gameMethod = gmCandidate;
-						gameMethodQuality = qual;
+						if (hasLwjglLog) {
+							gameMethod = gmCandidate;
+							gameMethodQuality = qual;
+						}
 					}
 				}
+			} else {
+				gameMethod = findMethod(mainClass, (method) -> method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V") && isPublicStatic(method.access));
 			}
 
 			if (gameMethod == null) {
@@ -182,12 +200,38 @@ public class EntrypointPatchHook extends EntrypointPatch {
 
 			if (type == EnvType.SERVER) {
 				ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
-				// Server-side: first argument (or null!) is runDirectory, run at end of init
-				moveBefore(it, Opcodes.RETURN);
-				// runDirectory
-				if (serverHasFile) {
-					it.add(new VarInsnNode(Opcodes.ALOAD, 1));
+				if(!is20w22aServerOrHigher) {
+					// Server-side: first argument (or null!) is runDirectory, run at end of init
+					moveBefore(it, Opcodes.RETURN);
+					// runDirectory
+					if (serverHasFile) {
+						it.add(new VarInsnNode(Opcodes.ALOAD, 1));
+					} else {
+						it.add(new InsnNode(Opcodes.ACONST_NULL));
+					}
+					it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 				} else {
+					// Server-side: Run before datapack reload and before the safe mode warning message
+					// ----------------
+					// iload 30
+					// ifeq L74
+					// getstatic net/minecraft/server/Main.LOGGER:org.apache.logging.log4j.Logger
+					// ldc "Safe mode active, only vanilla datapack will be loaded"
+					// ----------------
+					debug("20w22a+ detected, patching main method...");
+					LdcInsnNode safeModeLdc = (LdcInsnNode) findInsn(gameMethod, insn -> insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst.equals("Safe mode active, only vanilla datapack will be loaded"), false);
+					JumpInsnNode safeModeIfEq;
+					AbstractInsnNode node = safeModeLdc.getPrevious();
+					while(!(node instanceof JumpInsnNode)) {
+						node = node.getPrevious();
+					}
+					safeModeIfEq = (JumpInsnNode) node;
+					moveBefore(it, safeModeIfEq.getPrevious());
+					it.add(new InsnNode(Opcodes.ACONST_NULL));
+
+					// Currently, fabric doesn't actually do anything with the gameInstance other than verification
+					// Passing the correct gameInstance object would involve moving around several lines of code
+					// in a way that is complicated and probably not version independent.
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
 				}
 				finishEntrypoint(type, it);
@@ -210,12 +254,13 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						moveBefore(it, Opcodes.RETURN);
 					}
 
-/*							it.add(new TypeInsnNode(Opcodes.NEW, "java/io/File"));
+					/*							it.add(new TypeInsnNode(Opcodes.NEW, "java/io/File"));
 					it.add(new InsnNode(Opcodes.DUP));
 					it.add(new LdcInsnNode("."));
 					it.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/io/File", "<init>", "(Ljava/lang/String;)V", false)); */
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
 					it.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "net/fabricmc/loader/entrypoint/applet/AppletMain", "hookGameDir", "(Ljava/io/File;)Ljava/io/File;", false));
+					it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 					finishEntrypoint(type, it);
 				} else {
 					// Indev and above.
@@ -230,6 +275,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						moveBefore(it, Opcodes.RETURN);
 					}
 					it.add(new FieldInsnNode(Opcodes.GETSTATIC, gameClass.name, runDirectory.name, runDirectory.desc));
+					it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 					finishEntrypoint(type, it);
 				}
 				patched = true;
@@ -246,7 +292,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				while (consIt.hasNext()) {
 					AbstractInsnNode insn = consIt.next();
 					if (insn.getOpcode() == Opcodes.PUTFIELD
-						&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
+							&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
 						debug("Run directory field is thought to be " + ((FieldInsnNode) insn).owner + "/" + ((FieldInsnNode) insn).name);
 
 						ListIterator<AbstractInsnNode> it;
@@ -263,6 +309,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						}
 						it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 						it.add(new FieldInsnNode(Opcodes.GETFIELD, ((FieldInsnNode) insn).owner, ((FieldInsnNode) insn).name, ((FieldInsnNode) insn).desc));
+						it.add(new VarInsnNode(Opcodes.ALOAD, 0));
 						finishEntrypoint(type, it);
 
 						patched = true;
@@ -295,11 +342,44 @@ public class EntrypointPatchHook extends EntrypointPatch {
 		}
 
 		try {
-			byte[] bytes = launcher.getClassByteArray(cls);
+			byte[] bytes = launcher.getClassByteArray(cls, false);
 			ClassReader reader = new ClassReader(bytes);
 			return reader.getSuperName().equals(superCls);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to check superclass of " + cls, e);
+		}
+	}
+
+	private boolean hasStrInMethod(String cls, String methodName, String methodDesc, String str, FabricLauncher launcher) {
+		if (cls.contains("$") || (!cls.startsWith("net/minecraft") && cls.contains("/"))) {
+			return false;
+		}
+
+		try {
+			byte[] bytes = launcher.getClassByteArray(cls, false);
+			ClassReader reader = new ClassReader(bytes);
+			ClassNode node = new ClassNode();
+			reader.accept(node, 0);
+
+			for (MethodNode method : node.methods) {
+				if (method.name.equals(methodName) && method.desc.equals(methodDesc)) {
+					for (AbstractInsnNode insn : method.instructions) {
+						if (insn instanceof LdcInsnNode) {
+							Object cst = ((LdcInsnNode) insn).cst;
+							if (cst instanceof String) {
+								if (cst.equals(str)) {
+									return true;
+								}
+							}
+						}
+					}
+					break;
+				}
+			}
+
+			return false;
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to find string in " + cls + methodName + methodDesc, e);
 		}
 	}
 }

@@ -17,6 +17,7 @@
 package net.fabricmc.loader.metadata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -124,7 +125,7 @@ abstract class CustomValueImpl implements CustomValue {
 		private final Map<String, CustomValue> entries;
 
 		public ObjectImpl(Map<String, CustomValue> entries) {
-			this.entries = entries;
+			this.entries = Collections.unmodifiableMap(entries);
 		}
 
 		@Override
@@ -157,7 +158,7 @@ abstract class CustomValueImpl implements CustomValue {
 		private final List<CustomValue> entries;
 
 		public ArrayImpl(List<CustomValue> entries) {
-			this.entries = entries;
+			this.entries = Collections.unmodifiableList(entries);
 		}
 
 		@Override
