@@ -290,7 +290,12 @@ public final class McVersionLookup {
 				matcher = PRE_RELEASE_PATTERN.matcher(name);
 
 				if (matcher.matches()) {
-					name = String.format("rc.%s", matcher.group(1));
+					// Mark pre-releases as beta expect for legacy versions where these were previously marked as rc
+					if (release.startsWith("1.14") || release.startsWith("1.15") || release.equals("1.16")) {
+						name = String.format("rc.%s", matcher.group(1));
+					} else {
+						name = String.format("beta.%s", matcher.group(1));
+					}
 				}
 			}
 		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {
