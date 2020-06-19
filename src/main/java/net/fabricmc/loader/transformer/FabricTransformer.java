@@ -25,7 +25,7 @@ import org.objectweb.asm.*;
 
 public final class FabricTransformer {
 
-	public static byte[] fixGuava(byte[] bytes) {
+	public static byte[] fixLegacyGuava(byte[] bytes) {
 		ClassWriter writer = new ClassWriter(0);
 		new ClassReader(bytes).accept(new ClassVisitor(Opcodes.ASM7, writer) {
 			@Override
@@ -53,7 +53,7 @@ public final class FabricTransformer {
 	}
 
 	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
-		bytes = fixGuava(bytes);
+		bytes = fixLegacyGuava(bytes);
 
 		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
 		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
@@ -72,7 +72,7 @@ public final class FabricTransformer {
 	}
 
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
-		bytes = fixGuava(bytes);
+		bytes = fixLegacyGuava(bytes);
 
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();

@@ -17,7 +17,6 @@
 package net.fabricmc.loader.discovery;
 
 import net.fabricmc.loader.api.Version;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
