@@ -9,23 +9,16 @@ plugins {
 	id 'idea'
 	id 'eclipse'
 	id("fabric-loom") version "0.2.7-SNAPSHOT"
-	id 'maven'
-	id 'signing'
-	id 'com.jfrog.bintray' version '1.8.4'
 }
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = "fabric-loader-1.8.9"
+archivesBaseName = "fabric-loader"
 
-version = version + "+build." + buildTime()
-
-static def buildTime() {
-	def df = new java.text.SimpleDateFormat("yyyyMMddHHmm")
-	df.setTimeZone(TimeZone.getTimeZone("UTC"))
-	return df.format(new Date())
-}
+// Fetch build number from Jenkins
+def ENV = System.getenv()
+version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
 
 repositories {
 	mavenCentral()
@@ -42,15 +35,11 @@ repositories {
 		name = 'mojang'
 		url = 'https://libraries.minecraft.net/'
 	}
-	maven {
-		name = 'legacy-fabric'
-		url = 'https://dl.bintray.com/legacy-fabric/Legacy-Fabric-Maven'
-	}
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.8.9"
-	mappings "net.fabricmc:yarn:1.8.9+build.202004210746"
+	minecraft "com.mojang:minecraft:1.14.4"
+	mappings "net.fabricmc:yarn:1.14.4+build.1"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
@@ -141,31 +130,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
-bintray {
-	user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-	key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_KEY')
-	publications = ["mavenJava"]
-	publish = true
-	pkg {
-		repo = "Legacy-Fabric-Maven"
-		name = "fabric-loader-1.8.9"
-		userOrg = "legacy-fabric"
-		licenses = ["CC0-1.0"]
-		version {
-			name = project.version
-			vcsTag = project.version
-			released = new Date()
-			githubRepo = 'Legacy-Fabric/fabric-loader-1.8.9'
-			websiteUrl = 'https://github.com/Legacy-Fabric/fabric-loader-1.8.9'
-			issueTrackerUrl = 'https://github.com/Legacy-Fabric/fabric-loader-1.8.9/issues'
-			vcsUrl = 'https://github.com/Legacy-Fabric/fabric-loader-1.8.9.git'
-			gpg {
-				sign = true
-			}
-		}
-	}
-}
-
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
@@ -188,8 +152,15 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-//		mavenLocal()
-	}
+		if (project.hasProperty('mavenPass')) {
+			maven {
+				url = "http://mavenupload.modmuss50.me/"
+				credentials {
+					username = "buildslave"
+					password = project.getProperty('mavenPass')
+				}
+			}
+		}
 }
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
