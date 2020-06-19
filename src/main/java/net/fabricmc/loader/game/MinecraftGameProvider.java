@@ -52,6 +52,7 @@ public class MinecraftGameProvider implements GameProvider {
 	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
 		new EntrypointPatchHook(it),
 		new EntrypointPatchBranding(it),
+		new EntrypointPatchFML125(it),
 		new EntrypointPatchBranding_1_8_9(it)
 	));
 
