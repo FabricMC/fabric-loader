@@ -77,7 +77,7 @@ public class EntrypointPatchBranding189 extends EntrypointPatch {
 						if (node instanceof LdcInsnNode) {
 							String constant = String.valueOf(((LdcInsnNode) node).cst);
 
-							if (constant.startsWith("Minecraft ") && constant.contains("1.8.9")) {
+							if (constant.startsWith("Minecraft ")) {
 								instructions2.set(new LdcInsnNode(constant + "/Fabric"));
 							}
 						}
