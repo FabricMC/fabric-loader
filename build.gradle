@@ -3,6 +3,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 
 plugins {
+	id 'com.github.johnrengelman.shadow' version '6.0.0'
 	id 'java'
 	id 'maven-publish'
 
@@ -51,8 +52,11 @@ dependencies {
 	compile 'org.ow2.asm:asm-tree:8.0'
 	compile 'org.ow2.asm:asm-util:8.0'
 
+	shadow 'com.google.guava:guava:28.0-jre'
+
 	compile('net.fabricmc:sponge-mixin:0.8+build.18') {
 		exclude module: 'launchwrapper'
+		exclude module: 'guava'
 	}
 	compile 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
 	compile 'net.fabricmc:tiny-remapper:0.2.2.64'
@@ -128,6 +132,12 @@ String getClasspathEntries(){
 task sourcesJar(type: Jar, dependsOn: classes) {
 	classifier = 'sources'
 	from sourceSets.main.allSource
+}
+
+shadowJar {
+	baseName = 'shadow'
+	classifier = ''
+	archiveVersion = ''
 }
 
 publishing {
