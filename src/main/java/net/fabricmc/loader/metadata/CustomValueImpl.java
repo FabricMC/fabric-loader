@@ -41,7 +41,7 @@ abstract class CustomValueImpl implements CustomValue {
 	public static CustomValue fromJsonElement(JsonElement e) {
 		if (e instanceof JsonObject) {
 			JsonObject o = (JsonObject) e;
-			Map<String, CustomValue> entries = new LinkedHashMap<>(o.entrySet().size());
+			Map<String, CustomValue> entries = new LinkedHashMap<>(o.size());
 
 			for (Map.Entry<String, JsonElement> entry : o.entrySet()) {
 				entries.put(entry.getKey(), fromJsonElement(entry.getValue()));

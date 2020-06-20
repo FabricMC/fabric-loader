@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.util.ListIterator;
 import java.util.function.Consumer;
 
-public class EntrypointPatchBranding189 extends EntrypointPatch {
+public class OneEightNineBrandingEntrypointPatch extends EntrypointPatch {
 
-	public EntrypointPatchBranding189(EntrypointTransformer transformer) {
+	public OneEightNineBrandingEntrypointPatch(EntrypointTransformer transformer) {
 		super(transformer);
 	}
 

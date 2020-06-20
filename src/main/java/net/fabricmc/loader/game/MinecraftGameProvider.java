@@ -20,7 +20,7 @@ import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding189;
+import net.fabricmc.loader.entrypoint.minecraft.OneEightNineBrandingEntrypointPatch;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
@@ -53,7 +53,7 @@ public class MinecraftGameProvider implements GameProvider {
 		new EntrypointPatchHook(it),
 		new EntrypointPatchBranding(it),
 		new EntrypointPatchFML125(it),
-		new EntrypointPatchBranding189(it)
+		new OneEightNineBrandingEntrypointPatch(it)
 	));
 
 	@Override

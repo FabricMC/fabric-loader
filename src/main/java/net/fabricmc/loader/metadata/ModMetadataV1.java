@@ -340,7 +340,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 					person.name = obj.get("name").getAsString();
 					if (obj.has("contact")) {
 						person.contact = new MapBackedContactInformation(
-							context.deserialize(obj.get("contact"), new TypeToken<HashMap<String, String>>(){}.getType())
+								context.deserialize(obj.get("contact"), TypeToken.getParameterized(HashMap.class, String.class, String.class).getType())
 						);
 					}
 				} else if (json.isJsonPrimitive()) {
