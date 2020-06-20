@@ -138,7 +138,7 @@ shadowJar {
 	baseName = 'shadow'
 	classifier = ''
 	archiveVersion = ''
-	relocate("com.google.gson", "net.fabricmc.shadow.gson")
+	relocate("com.google.gson", "net.fabricmc.loader.libraries.gson")
 }
 
 publishing {
