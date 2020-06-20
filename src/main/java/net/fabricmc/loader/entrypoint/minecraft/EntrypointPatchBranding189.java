@@ -40,7 +40,7 @@ public class EntrypointPatchBranding189 extends EntrypointPatch {
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
 		if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT){
-			loadClass(launcher, "net/minecraft/client/MinecraftClient").methods.forEach(m -> {
+			loadClass(launcher, "net/minecraft/ave").methods.forEach(m -> {
 				String titleScreen = null;
 
 				ListIterator<AbstractInsnNode> instructions = m.instructions.iterator();
