@@ -52,7 +52,7 @@ public class MappingConfiguration {
 			private ClassDef wrap(ClassDef mapping) {
 				return new ClassDef() {
 					private Optional<String> remap(String name, String namespace) {
-						return Optional.ofNullable(mappings.getDefaultNamespaceClassMap().get(name)).map(mapping -> mapping.getRawName(namespace)).map(Strings::emptyToNull);
+						return Optional.ofNullable(getDefaultNamespaceClassMap().get(name)).map(mapping -> mapping.getRawName(namespace)).map(Strings::emptyToNull);
 					}
 
 					private String remapDesc(String desc, String namespace) {
