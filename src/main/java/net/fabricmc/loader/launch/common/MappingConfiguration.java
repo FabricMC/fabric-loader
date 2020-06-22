@@ -22,17 +22,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.Type;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 
 import net.fabricmc.mapping.reader.v2.TinyMetadata;
 import net.fabricmc.mapping.tree.ClassDef;
 import net.fabricmc.mapping.tree.FieldDef;
+import net.fabricmc.mapping.tree.LocalVariableDef;
 import net.fabricmc.mapping.tree.MethodDef;
+import net.fabricmc.mapping.tree.ParameterDef;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
 import net.fabricmc.mapping.tree.TinyTree;
 
@@ -46,12 +51,54 @@ public class MappingConfiguration {
 		return new TinyTree() {
 			private ClassDef wrap(ClassDef mapping) {
 				return new ClassDef() {
+					private Optional<String> remap(String name, String namespace) {
+						return Optional.ofNullable(mappings.getDefaultNamespaceClassMap().get(name)).map(mapping -> mapping.getRawName(namespace)).map(Strings::emptyToNull);
+					}
+
+					private String remapDesc(String desc, String namespace) {
+						Type type = Type.getType(desc);
+
+						switch (type.getSort()) {
+						case Type.ARRAY: {
+							StringBuilder remappedDescriptor = new StringBuilder(desc.substring(0, type.getDimensions() - 1));
+
+							remappedDescriptor.append(remapDesc(type.getElementType().getDescriptor(), namespace));
+
+							return remappedDescriptor.toString();
+						}
+
+						case Type.OBJECT:
+							return remap(type.getInternalName(), namespace).map(name -> 'L' + name + ';').orElse(desc);
+
+						case Type.METHOD: {
+							if ("()V".equals(desc)) return desc;
+
+							StringBuilder stringBuilder = new StringBuilder("(");
+							for (Type argumentType : type.getArgumentTypes()) {
+								stringBuilder.append(remapDesc(argumentType.getDescriptor(), namespace));
+							}
+
+							Type returnType = type.getReturnType();
+							if (returnType == Type.VOID_TYPE) {
+								stringBuilder.append(")V");
+							} else {
+								stringBuilder.append(')').append(remapDesc(returnType.getDescriptor(), namespace));
+							}
+
+							return stringBuilder.toString();
+						}
+
+						default:
+							return desc;
+						}
+					}
+
 					@Override
 					public String getRawName(String namespace) {
 						try {
 							return mapping.getRawName(namespace);
 						} catch (ArrayIndexOutOfBoundsException e) {
-							return mapping.getName(namespace);
+							return ""; //No name for the namespace
 						}
 					}
 
@@ -67,12 +114,74 @@ public class MappingConfiguration {
 
 					@Override
 					public Collection<MethodDef> getMethods() {
-						return mapping.getMethods();
+						return Collections2.transform(mapping.getMethods(), method -> new MethodDef() {
+							@Override
+							public String getRawName(String namespace) {
+								try {
+									return method.getRawName(namespace);
+								} catch (ArrayIndexOutOfBoundsException e) {
+									return ""; //No name for the namespace
+								}
+							}
+
+							@Override
+							public String getName(String namespace) {
+								return method.getName(namespace);
+							}
+
+							@Override
+							public String getComment() {
+								return method.getComment();
+							}
+
+							@Override
+							public String getDescriptor(String namespace) {
+								String primary = getMetadata().getNamespaces().get(0); //If the namespaces are empty we shouldn't exist
+								String desc = method.getDescriptor(primary);
+								return primary.equals(namespace) ? desc : remapDesc(desc, namespace);
+							}
+
+							@Override
+							public Collection<ParameterDef> getParameters() {
+								return method.getParameters();
+							}
+
+							@Override
+							public Collection<LocalVariableDef> getLocalVariables() {
+								return method.getLocalVariables();
+							}
+						});
 					}
 
 					@Override
 					public Collection<FieldDef> getFields() {
-						return mapping.getFields();
+						return Collections2.transform(mapping.getFields(), field -> new FieldDef() {
+							@Override
+							public String getRawName(String namespace) {
+								try {
+									return field.getRawName(namespace);
+								} catch (ArrayIndexOutOfBoundsException e) {
+									return ""; //No name for the namespace
+								}
+							}
+
+							@Override
+							public String getName(String namespace) {
+								return field.getName(namespace);
+							}
+
+							@Override
+							public String getComment() {
+								return field.getComment();
+							}
+
+							@Override
+							public String getDescriptor(String namespace) {
+								String primary = getMetadata().getNamespaces().get(0); //If the namespaces are empty we shouldn't exist
+								String desc = field.getDescriptor(primary);
+								return primary.equals(namespace) ? desc : remapDesc(desc, namespace);
+							}
+						});
 					}
 				};
 			}
