@@ -298,10 +298,10 @@ public final class McVersionLookup {
 					try {
 						legacyVersion = SemanticVersionPredicateParser.create("<=1.16").test(new SemanticVersionImpl(release, false));
 					} catch (VersionParsingException e) {
-						throw new RuntimeException("Failed to parse version");
+						throw new RuntimeException("Failed to parse version: " + release);
 					}
 
-					// Mark pre-releases as beta expect for legacy versions where these were previously marked as rc
+					// Mark pre-releases as 'beta' versions, except for version 1.16 and before, where they are 'rc'
 					if (legacyVersion) {
 						name = String.format("rc.%s", matcher.group(1));
 					} else {
