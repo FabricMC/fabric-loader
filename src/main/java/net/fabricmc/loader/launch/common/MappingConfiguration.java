@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.objectweb.asm.Type;
 
 import com.google.common.base.Strings;
@@ -49,54 +50,58 @@ public class MappingConfiguration {
 
 	private static TinyTree wrapTree(TinyTree mappings) {
 		return new TinyTree() {
+			final String primaryNamespace = getMetadata().getNamespaces().get(0); //If the namespaces are empty we shouldn't exist
+
+			private Optional<String> remap(String name, String namespace) {
+				return Optional.ofNullable(getDefaultNamespaceClassMap().get(name)).map(mapping -> mapping.getRawName(namespace)).map(Strings::emptyToNull);
+			}
+
+			String remapDesc(String desc, String namespace) {
+				Type type = Type.getType(desc);
+
+				switch (type.getSort()) {
+				case Type.ARRAY: {
+					StringBuilder remappedDescriptor = new StringBuilder(desc.substring(0, type.getDimensions()));
+
+					remappedDescriptor.append(remapDesc(type.getElementType().getDescriptor(), namespace));
+
+					return remappedDescriptor.toString();
+				}
+
+				case Type.OBJECT:
+					return remap(type.getInternalName(), namespace).map(name -> 'L' + name + ';').orElse(desc);
+
+				case Type.METHOD: {
+					if ("()V".equals(desc)) return desc;
+
+					StringBuilder stringBuilder = new StringBuilder("(");
+					for (Type argumentType : type.getArgumentTypes()) {
+						stringBuilder.append(remapDesc(argumentType.getDescriptor(), namespace));
+					}
+
+					Type returnType = type.getReturnType();
+					if (returnType == Type.VOID_TYPE) {
+						stringBuilder.append(")V");
+					} else {
+						stringBuilder.append(')').append(remapDesc(returnType.getDescriptor(), namespace));
+					}
+
+					return stringBuilder.toString();
+				}
+
+				default:
+					return desc;
+				}
+			}
+
 			private ClassDef wrap(ClassDef mapping) {
 				return new ClassDef() {
-					private Optional<String> remap(String name, String namespace) {
-						return Optional.ofNullable(getDefaultNamespaceClassMap().get(name)).map(mapping -> mapping.getRawName(namespace)).map(Strings::emptyToNull);
-					}
-
-					private String remapDesc(String desc, String namespace) {
-						Type type = Type.getType(desc);
-
-						switch (type.getSort()) {
-						case Type.ARRAY: {
-							StringBuilder remappedDescriptor = new StringBuilder(desc.substring(0, type.getDimensions() - 1));
-
-							remappedDescriptor.append(remapDesc(type.getElementType().getDescriptor(), namespace));
-
-							return remappedDescriptor.toString();
-						}
-
-						case Type.OBJECT:
-							return remap(type.getInternalName(), namespace).map(name -> 'L' + name + ';').orElse(desc);
-
-						case Type.METHOD: {
-							if ("()V".equals(desc)) return desc;
-
-							StringBuilder stringBuilder = new StringBuilder("(");
-							for (Type argumentType : type.getArgumentTypes()) {
-								stringBuilder.append(remapDesc(argumentType.getDescriptor(), namespace));
-							}
-
-							Type returnType = type.getReturnType();
-							if (returnType == Type.VOID_TYPE) {
-								stringBuilder.append(")V");
-							} else {
-								stringBuilder.append(')').append(remapDesc(returnType.getDescriptor(), namespace));
-							}
-
-							return stringBuilder.toString();
-						}
-
-						default:
-							return desc;
-						}
-					}
+					private final boolean common = getMetadata().getNamespaces().stream().skip(1).map(this::getRawName).allMatch(Strings::isNullOrEmpty);
 
 					@Override
 					public String getRawName(String namespace) {
 						try {
-							return mapping.getRawName(namespace);
+							return mapping.getRawName(common ? primaryNamespace : namespace);
 						} catch (ArrayIndexOutOfBoundsException e) {
 							return ""; //No name for the namespace
 						}
@@ -136,9 +141,8 @@ public class MappingConfiguration {
 
 							@Override
 							public String getDescriptor(String namespace) {
-								String primary = getMetadata().getNamespaces().get(0); //If the namespaces are empty we shouldn't exist
-								String desc = method.getDescriptor(primary);
-								return primary.equals(namespace) ? desc : remapDesc(desc, namespace);
+								String desc = method.getDescriptor(primaryNamespace);
+								return primaryNamespace.equals(namespace) ? desc : remapDesc(desc, namespace);
 							}
 
 							@Override
@@ -177,9 +181,8 @@ public class MappingConfiguration {
 
 							@Override
 							public String getDescriptor(String namespace) {
-								String primary = getMetadata().getNamespaces().get(0); //If the namespaces are empty we shouldn't exist
-								String desc = field.getDescriptor(primary);
-								return primary.equals(namespace) ? desc : remapDesc(desc, namespace);
+								String desc = field.getDescriptor(primaryNamespace);
+								return primaryNamespace.equals(namespace) ? desc : remapDesc(desc, namespace);
 							}
 						});
 					}
