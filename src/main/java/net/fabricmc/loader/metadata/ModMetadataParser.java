@@ -51,22 +51,17 @@ public class ModMetadataParser {
 	private static final JsonParser JSON_PARSER = new JsonParser();
 
 	private static LoaderModMetadata getMod(FabricLoader loader, JsonObject object) {
-		try {
-			if (!object.has("schemaVersion")) {
-				return GSON_V0.fromJson(object, ModMetadataV0.class);
-			} else {
-				//noinspection SwitchStatementWithTooFewBranches
-				switch (object.get("schemaVersion").getAsInt()) {
-					case 1:
-						return GSON_V1.fromJson(object, ModMetadataV1.class);
-					default:
-						loader.getLogger().warn("Mod ID " + (object.has("id") ? object.get("id").getAsString() : "<unknown>") + " has invalid schema version: " + object.get("schemaVersion").getAsInt());
-						return null;
-				}
+		if (!object.has("schemaVersion")) {
+			return GSON_V0.fromJson(object, ModMetadataV0.class);
+		} else {
+			//noinspection SwitchStatementWithTooFewBranches
+			switch (object.get("schemaVersion").getAsInt()) {
+				case 1:
+					return GSON_V1.fromJson(object, ModMetadataV1.class);
+				default:
+					loader.getLogger().warn("Mod ID " + (object.has("id") ? object.get("id").getAsString() : "<unknown>") + " has invalid schema version: " + object.get("schemaVersion").getAsInt());
+					return null;
 			}
-		} catch (Throwable t) {
-			// Catch all exceptions that could occur from parsing metadata and rethrow as JsonSyntaxException.
-			throw new JsonParseException(t);
 		}
 	}
 
