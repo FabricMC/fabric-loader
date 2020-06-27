@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,8 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
 
 import org.objectweb.asm.Opcodes;
 
+import static java.lang.Math.max;
+
 /**
  * The main class for mod loading operations.
  */
@@ -74,7 +77,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
+	protected static Logger LOGGER = LogManager.getLogger("Fabric|Loader");
 
 	protected final Map<String, ModContainer> modMap = new HashMap<>();
 	protected List<ModContainer> mods = new ArrayList<>();
@@ -210,22 +213,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir(), isDevelopmentEnvironment()));
 		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
-		String modText;
-		switch (candidateMap.values().size()) {
-			case 0:
-				modText = "Loading %d mods";
-				break;
-			case 1:
-				modText = "Loading %d mod: %s";
-				break;
-			default:
-				modText = "Loading %d mods: %s";
-				break;
-		}
-
-		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size(), candidateMap.values().stream()
-			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
-			.collect(Collectors.joining(", ")));
+		this.printModList(candidateMap);
 
 		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
 			LOGGER.info(String.format("Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides().keySet())));
@@ -246,6 +234,95 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			for (ModCandidate candidate : candidateMap.values()) {
 				addMod(candidate);
 			}
+		}
+	}
+
+	/**
+	 * Prints the mod list according to the setting specified by
+	 * {@code -Dfabric_loader_modlist_style}. Valid values for this setting are:
+	 * <ul>
+	 *     <li>
+	 *         {@code verbose}. Prints each mod id, version, and path to the jar
+	 *         (including nested jars).
+	 *     </li>
+	 *     <li>
+	 *         {@code col[ncols=120]}. Prints mod id and version, arranged in a
+	 *         table to take up less space than {@code verbose} and be more
+	 *         readable than {@code short}.
+	 *         <br>
+	 *         The {@code ncols} setting determines the maximum width each line
+	 *         can take up. Using {@code -Dfabric_loader_modlist_style=col80}
+	 *         for example means that it will auto-wrap the printed text after
+	 *         80 characters. If {@code ncols} is left away, it will default to
+	 *         120.
+	 *     </li>
+	 *     <li>
+	 *         {@code short}. The OG. Prints a comma-seperated list of mod id
+	 *         and version.
+	 *     </li>
+	 * </ul>
+	 * The default value for {@code -Dfabric_loader_modlist_style} is 'col'.
+	 * @param candidateMap the mod candidate map to print
+	 */
+	private void printModList(Map<String, ModCandidate> candidateMap) {
+		String modText;
+		switch (candidateMap.size()) {
+			case 0:
+				modText = "Loading 0 mods";
+				break;
+			case 1:
+				modText = "Loading 1 mod: ";
+				break;
+			default:
+				modText = String.format("Loading %d mods: ", candidateMap.size());
+				break;
+		}
+
+		String style = System.getProperty("fabric_loader_modlist_style", "col");
+		int maxWidth = 120;
+
+		if (style.startsWith("col")) {
+			String width = style.substring(3);
+			if (!width.isEmpty()) {
+				try {
+					maxWidth = Integer.parseInt(width);
+				} catch (NumberFormatException e) {
+					LOGGER.error("Invalid max width for mod list output, ignoring: '{}'", width);
+				}
+			}
+			style = style.substring(0, 3);
+		}
+
+		if ("verbose".equals(style)) {
+			LOGGER.info("{}\n{}", modText, candidateMap.values().stream()
+				.sorted(Comparator.comparing(c -> c.getInfo().getId()))
+				.map(info -> String.format(" - %s %s (%s)", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString(), ModResolver.getReadablePath(this, info)))
+				.collect(Collectors.joining("\n")));
+		} else if ("col".equals(style)) {
+			List<String> strs = candidateMap.values().stream()
+				.sorted(Comparator.comparing(c -> c.getInfo().getId()))
+				.map(info -> String.format(" %s %s ", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
+				.collect(Collectors.toList());
+			int columnWidth = strs.stream().mapToInt(String::length).max().orElse(0);
+			int columnsPerLine = max(1, (maxWidth + 1) / (columnWidth + 1));
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < strs.size(); i++) {
+				if (i > 0) {
+					sb.append(i % columnsPerLine == 0 ? "\n" : " ");
+				}
+				sb.append(strs.get(i));
+				sb.append(String.join("", Collections.nCopies(columnWidth - strs.get(i).length(), " ")));
+			}
+			LOGGER.info("{}\n{}", modText, sb.toString());
+		} else if ("short".equals(style)) {
+			LOGGER.info("{}{}", modText, candidateMap.values().stream()
+				.sorted(Comparator.comparing(c -> c.getInfo().getId()))
+				.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
+				.collect(Collectors.joining(", ")));
+		} else {
+			LOGGER.error("Invalid setting for fabric_loader_modlist_style: '{}'. Valid values are: verbose, col *, short", style);
+			LOGGER.error("* You can add the maximum width the output will have by adding it as a suffix to col, for example col80 for an 80 columns terminal. Default is 120.");
+			LOGGER.info("Not displaying mod list due to invalid configuration.");
 		}
 	}
 
@@ -349,9 +426,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	protected void postprocessModMetadata() {
 		for (ModContainer mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") does not respect SemVer - comparison support is limited.");
+				LOGGER.warn("Mod `{}` ({}) does not respect SemVer - comparison support is limited.", mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
-				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
+				LOGGER.warn("Mod `{}` ({}) uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.", mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
 			}
 		}
 	}

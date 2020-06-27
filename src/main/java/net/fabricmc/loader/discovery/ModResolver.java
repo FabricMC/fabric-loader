@@ -74,6 +74,7 @@ public class ModResolver {
 			.build()
 	);
 	private static final Map<String, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
+	private static final Map<URL, String> readableNestedJarPaths = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 	private static final Object launcherSyncObject = new Object();
 
@@ -88,6 +89,22 @@ public class ModResolver {
 
 	private static IVecInt toVecInt(IntStream stream) {
 		return new VecInt(stream.toArray());
+	}
+
+	public static String getReadablePath(FabricLoader loader, ModCandidate c) {
+		Path path;
+		try {
+			path = UrlUtil.asPath(c.getOriginUrl());
+		} catch (UrlConversionException e) {
+			throw new RuntimeException(e);
+		}
+
+		Path gameDir = loader.getGameDirectory().toPath();
+		if (path.startsWith(gameDir)) {
+			path = gameDir.relativize(path);
+		}
+
+		return readableNestedJarPaths.getOrDefault(c.getOriginUrl(), path.toString());
 	}
 
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
@@ -696,6 +713,12 @@ public class ModResolver {
 									}
 
 									list.add(dest);
+
+									try {
+										readableNestedJarPaths.put(UrlUtil.asUrl(dest), String.format("%s!%s", getReadablePath(loader, candidate), modPath));
+									} catch (UrlConversionException e) {
+										e.printStackTrace();
+									}
 								}
 							});
 
