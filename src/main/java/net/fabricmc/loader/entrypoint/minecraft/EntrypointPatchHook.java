@@ -277,7 +277,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					}, false);
 
 					if (dedicatedServerConstructor == null) {
-						throw new AssertionError("Could not find dedicated server constructor");
+						throw new RuntimeException("Could not find dedicated server constructor");
 					}
 
 					// Jump after the <init> call
