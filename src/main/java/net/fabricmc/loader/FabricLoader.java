@@ -181,7 +181,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		String modListText = candidateMap.values().stream()
 				.sorted(Comparator.comparing(candidate -> candidate.getInfo().getId()))
-				.map(candidate -> String.format("- %s@%s", candidate.getInfo().getId(), candidate.getInfo().getVersion().getFriendlyString()))
+				.map(candidate -> String.format("\t- %s@%s", candidate.getInfo().getId(), candidate.getInfo().getVersion().getFriendlyString()))
 				.collect(Collectors.joining("\n"));
 
 		String modText;
