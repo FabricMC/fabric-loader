@@ -210,6 +210,9 @@ public class EntrypointPatchHook extends EntrypointPatch {
 						it.add(new InsnNode(Opcodes.ACONST_NULL));
 					}
 					it.add(new VarInsnNode(Opcodes.ALOAD, 0));
+
+					finishEntrypoint(type, it);
+					patched = true;
 				} else {
 					// Server-side: Run before datapack reload and before the safe mode warning message
 					// ----------------
@@ -229,13 +232,64 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					moveBefore(it, safeModeIfEq.getPrevious());
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
 
-					// Currently, fabric doesn't actually do anything with the gameInstance other than verification
-					// Passing the correct gameInstance object would involve moving around several lines of code
-					// in a way that is complicated and probably not version independent.
+					// Pass null for now, we will set the game instance when the dedicated server is created.
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
+
+					finishEntrypoint(type, it); // Inject the hook entrypoint.
+
+					// Find the synthetic method where dedicated server instance is created so we can set the game instance.
+					// This cannot be the main method, must be static (all methods are static, so useless to check)
+					// Cannot return a void or boolean
+					// Is only method that returns a class instance
+					MethodNode serverStartMethod = findMethod(mainClass, method -> {
+						if (method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V")) {
+							return false;
+						}
+
+						final Type methodReturnType = Type.getReturnType(method.desc);
+
+						if (methodReturnType.getSort() != Type.BOOLEAN && methodReturnType.getSort() != Type.VOID && methodReturnType.getSort() == Type.OBJECT) {
+							return true;
+						}
+
+						return false;
+					});
+
+					if (serverStartMethod == null) {
+						throw new RuntimeException("Failed to find method where dedicated server is created");
+					}
+
+					final ListIterator<AbstractInsnNode> serverStartIt = serverStartMethod.instructions.iterator();
+
+					// Find the only constructor which takes a Thread as it's first parameter
+					MethodInsnNode dedicatedServerConstructor = (MethodInsnNode) findInsn(serverStartMethod, insn -> {
+						if (insn instanceof MethodInsnNode && ((MethodInsnNode) insn).name.equals("<init>")) {
+							Type constructorType = Type.getMethodType(((MethodInsnNode) insn).desc);
+
+							if (constructorType.getArgumentTypes().length <= 0) {
+								return false;
+							}
+
+							return constructorType.getArgumentTypes()[0].getDescriptor().equals("Ljava/lang/Thread;");
+						}
+
+						return false;
+					}, false);
+
+					if (dedicatedServerConstructor == null) {
+						throw new AssertionError("Could not find dedicated server constructor");
+					}
+
+					// Jump after the <init> call
+					moveAfter(serverStartIt, dedicatedServerConstructor);
+
+					// Duplicate dedicated server instance for loader
+					serverStartIt.add(new InsnNode(Opcodes.DUP));
+					serverStartIt.add(new FieldInsnNode(Opcodes.GETSTATIC, "net/fabricmc/loader/FabricLoader", "INSTANCE", "Lnet/fabricmc/loader/FabricLoader;"));
+					serverStartIt.add(new InsnNode(Opcodes.SWAP));
+					serverStartIt.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "net/fabricmc/loader/FabricLoader", "setGameInstance", "(Ljava/lang/Object;)V", false));
+					patched = true;
 				}
-				finishEntrypoint(type, it);
-				patched = true;
 			} else if (type == EnvType.CLIENT && isApplet) {
 				// Applet-side: field is private static File, run at end
 				// At the beginning, set file field (hook)
