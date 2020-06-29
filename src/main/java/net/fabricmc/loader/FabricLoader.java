@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,6 +179,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath()));
 		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
+		String modListText = candidateMap.values().stream()
+				.sorted(Comparator.comparing(candidate -> candidate.getInfo().getId()))
+				.map(candidate -> String.format("- %s@%s", candidate.getInfo().getId(), candidate.getInfo().getVersion().getFriendlyString()))
+				.collect(Collectors.joining("\n"));
+
 		String modText;
 		switch (candidateMap.values().size()) {
 			case 0:
@@ -191,14 +197,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				break;
 		}
 
-		LOGGER.info("[%s] " + modText, getClass().getSimpleName(), candidateMap.values().size());
-
-		List<ModCandidate> candidates = new ArrayList<>(candidateMap.values());
-		candidates.sort(Comparator.comparing(candidate -> candidate.getInfo().getId()));
-
-		for (ModCandidate candidate : candidates) {
-			LOGGER.info("- %s@%s", candidate.getInfo().getId(), candidate.getInfo().getVersion().getFriendlyString());
-		}
+		LOGGER.info("[%s] " + modText + "%n%s", getClass().getSimpleName(), candidateMap.values().size(), modListText);
 
 		for (ModCandidate candidate : candidateMap.values()) {
 			addMod(candidate);
