@@ -154,8 +154,11 @@ public interface FabricLoader {
 	 * server object. As such, the exact return is dependent on the
 	 * current environment type.
 	 *
+	 * <p>The game instance may not always be availible depending on the game version.
+	 *
 	 * @return A client or server instance object
 	 */
+	/* @Nullable */
 	Object getGameInstance();
 
 	/**
