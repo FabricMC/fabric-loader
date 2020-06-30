@@ -16,6 +16,11 @@
 
 package net.fabricmc.loader.api;
 
+/**
+ * Represents an exception that arises when obtaining entrypoints.
+ * 
+ * @see FabricLoader#getEntrypointContainers(String, Class) 
+ */
 public class EntrypointException extends RuntimeException {
 	private final String key;
 
@@ -55,6 +60,11 @@ public class EntrypointException extends RuntimeException {
 		this.key = "";
 	}
 
+	/**
+	 * Returns the key of entrypoint in which the exception arose.
+	 *
+	 * @return the key
+	 */
 	public String getKey() {
 		return key;
 	}
