@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.launch.knot;
 
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 
@@ -27,12 +29,16 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.service.*;
 import org.spongepowered.asm.util.ReEntranceLock;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider, ITransformerProvider, IClassTracker {
 	private final ReEntranceLock lock;
@@ -179,8 +185,26 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 			int secondColon = name.indexOf(":", FabricMixinBootstrap.MOD_PREFIX.length());
 
 			if (secondColon > 0) {
-				// TODO: Load the resource from the mod!
-				name = name.substring(secondColon + 1);
+				String modid = name.substring(FabricMixinBootstrap.MOD_PREFIX.length(), secondColon);
+				String path = name.substring(secondColon + 1);
+
+				Optional<ModContainer> mc = FabricLoader.getInstance().getModContainer(modid);
+				if (!mc.isPresent()) {
+					return null;
+				}
+				ModContainer mod = mc.get();
+				Path pathInMod = mod.getPath(path);
+				try {
+					InputStream stream = Files.newInputStream(pathInMod);
+					// FIXME: Unlike ClassLoader.getResourceAsStream() this
+					// won't auto-close the returned input stream.
+					// Which is a problem as MixinConfig doesn't close this itself.
+					return stream;
+				} catch (FileNotFoundException e) {
+					return null;
+				} catch (IOException e) {
+					throw new RuntimeException("Failed to read file '" + name + "' in mod " + modid + "!", e);
+				}
 			}
 		}
 		return FabricLauncherBase.getLauncher().getResourceAsStream(name);
