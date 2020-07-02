@@ -203,7 +203,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 				} catch (FileNotFoundException e) {
 					return null;
 				} catch (IOException e) {
-					throw new RuntimeException("Failed to read file '" + name + "' in mod " + modid + "!", e);
+					throw new RuntimeException("Failed to read file '" + path + "' in mod " + modid + "!", e);
 				}
 			}
 		}
