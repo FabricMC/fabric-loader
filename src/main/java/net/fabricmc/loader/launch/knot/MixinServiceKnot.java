@@ -180,7 +180,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 			if (secondColon > 0) {
 				// TODO: Load the resource from the mod!
-				name = name.substring(secondColon);
+				name = name.substring(secondColon + 1);
 			}
 		}
 		return FabricLauncherBase.getLauncher().getResourceAsStream(name);
