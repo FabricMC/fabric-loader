@@ -17,6 +17,8 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.launch.platform.container.ContainerHandleURI;
@@ -173,6 +175,14 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
+		if (name.startsWith(FabricMixinBootstrap.MOD_PREFIX)) {
+			int secondColon = name.indexOf(":", FabricMixinBootstrap.MOD_PREFIX.length());
+
+			if (secondColon > 0) {
+				// TODO: Load the resource from the mod!
+				name = name.substring(secondColon);
+			}
+		}
 		return FabricLauncherBase.getLauncher().getResourceAsStream(name);
 	}
 

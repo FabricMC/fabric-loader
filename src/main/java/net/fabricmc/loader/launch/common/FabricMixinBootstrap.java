@@ -19,6 +19,7 @@ package net.fabricmc.loader.launch.common;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
 import net.fabricmc.mapping.tree.TinyTree;
@@ -29,28 +30,22 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() {
 
 	}
 
+	/**
+	 * Internal. Mixin configs are added in the form "mod:&lt;modid&gt;:&lt;mixinname&gt;"
+	 */
+	public static final String MOD_PREFIX = "mod:";
+
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|MixinBootstrap");
 	private static boolean initialized = false;
 
-	static void addConfiguration(String configuration) {
-		Mixins.addConfiguration(configuration);
-	}
-
-	static Set<String> getMixinConfigs(FabricLoader loader, EnvType type) {
-		return loader.getAllMods().stream()
-			.map(ModContainer::getMetadata)
-			.filter((m) -> m instanceof LoaderModMetadata)
-			.flatMap((m) -> ((LoaderModMetadata) m).getMixinConfigs(type).stream())
-			.filter(s -> s != null && !s.isEmpty())
-			.collect(Collectors.toSet());
+	static void addConfiguration(String modId, String configuration) {
+		Mixins.addConfiguration(MOD_PREFIX + modId + ":" + configuration);
 	}
 
 	public static void init(EnvType side, FabricLoader loader) {
@@ -80,7 +75,17 @@ public final class FabricMixinBootstrap {
 		}
 
 		MixinBootstrap.init();
-		getMixinConfigs(loader, side).forEach(FabricMixinBootstrap::addConfiguration);
+
+		for (ModContainer mod : loader.getAllMods()) {
+			ModMetadata meta = mod.getMetadata();
+
+			if (meta instanceof LoaderModMetadata) {
+				for (String config : ((LoaderModMetadata) meta).getMixinConfigs(side)) {
+					addConfiguration(meta.getId(), config);
+				}
+			}
+		}
+
 		initialized = true;
 	}
 }
