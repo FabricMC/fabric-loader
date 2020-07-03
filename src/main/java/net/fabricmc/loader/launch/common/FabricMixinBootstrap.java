@@ -45,7 +45,9 @@ public final class FabricMixinBootstrap {
 	private static boolean initialized = false;
 
 	static void addConfiguration(String modId, String configuration) {
-		Mixins.addConfiguration(MOD_PREFIX + modId + ":" + configuration);
+		if (configuration != null && !configuration.isEmpty()) {
+			Mixins.addConfiguration(MOD_PREFIX + modId + ":" + configuration);
+		}
 	}
 
 	public static void init(EnvType side, FabricLoader loader) {
