@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -86,16 +85,11 @@ final class GameProviderHelper {
 	}
 
 	static Optional<EntrypointResult> findFirstClass(ClassLoader loader, List<String> classNames) {
-		List<String> entrypointFilenames = classNames.stream()
-			.map((ep) -> ep.replace('.', '/') + ".class")
-			.collect(Collectors.toList());
-
-		for (int i = 0; i < entrypointFilenames.size(); i++) {
-			String className = classNames.get(i);
-			String classFilename = entrypointFilenames.get(i);
+		for (String className : classNames) {
+			String classFilename = className.replace('.', '/').concat(".class");
 			Optional<Path> classSourcePath = getSource(loader, classFilename);
 			if (classSourcePath.isPresent()) {
-				return Optional.of(new EntrypointResult(className, classSourcePath.get()));
+				return classSourcePath.map(sourcePath -> new EntrypointResult(className, sourcePath));
 			}
 		}
 
