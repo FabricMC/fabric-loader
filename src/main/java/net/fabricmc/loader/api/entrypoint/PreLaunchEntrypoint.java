@@ -24,10 +24,15 @@ package net.fabricmc.loader.api.entrypoint;
  * on its own class to avoid running static initializers too early, e.g. because they were referenced in field or method
  * signatures in the same class.
  *
- * <p>The entrypoint is exposed as {@code preLaunch} in the mod json and runs for any environment. It usually executes
- * several seconds before the main/client/server entrypoints.
+ * <p>The entrypoint is exposed with {@code preLaunch} key in the mod json and runs for any environment. It usually
+ * executes several seconds before the {@code main}/{@code client}/{@code server} entrypoints.
+ * 
+ * @see net.fabricmc.loader.api.FabricLoader#getEntrypointContainers(String, Class) 
  */
 @FunctionalInterface
 public interface PreLaunchEntrypoint {
+	/**
+	 * Runs the entrypoint.
+	 */
 	void onPreLaunch();
 }

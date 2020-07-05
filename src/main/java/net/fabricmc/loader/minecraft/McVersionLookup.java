@@ -35,7 +35,10 @@ import org.objectweb.asm.Opcodes;
 
 import com.google.gson.stream.JsonReader;
 
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.version.SemanticVersionImpl;
+import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
 
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
@@ -290,7 +293,20 @@ public final class McVersionLookup {
 				matcher = PRE_RELEASE_PATTERN.matcher(name);
 
 				if (matcher.matches()) {
-					name = String.format("rc.%s", matcher.group(1));
+					boolean legacyVersion;
+
+					try {
+						legacyVersion = SemanticVersionPredicateParser.create("<=1.16").test(new SemanticVersionImpl(release, false));
+					} catch (VersionParsingException e) {
+						throw new RuntimeException("Failed to parse version: " + release);
+					}
+
+					// Mark pre-releases as 'beta' versions, except for version 1.16 and before, where they are 'rc'
+					if (legacyVersion) {
+						name = String.format("rc.%s", matcher.group(1));
+					} else {
+						name = String.format("beta.%s", matcher.group(1));
+					}
 				}
 			}
 		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {

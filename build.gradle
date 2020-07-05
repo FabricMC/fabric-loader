@@ -221,6 +221,37 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
+javadoc {
+	options {
+		if (file("README.html").exists()) {
+			overview = "README.html"
+		}
+		source = "8"
+		encoding = 'UTF-8'
+		charSet = 'UTF-8'
+		memberLevel = JavadocMemberLevel.PACKAGE
+		links(
+				'https://asm.ow2.io/javadoc/',
+				'https://docs.oracle.com/javase/8/docs/api/',
+				'https://logging.apache.org/log4j/2.x/log4j-api/apidocs/'
+		)
+		// Disable the crazy super-strict doclint tool in Java 8
+		addStringOption('Xdoclint:none', '-quiet')
+	}
+	source sourceSets.main.allJava.srcDirs
+	classpath = sourceSets.main.compileClasspath + sourceSets.main.output // compile impl stuff for dep as well
+	include("**/api/**")
+	// workaround as one of the api stuff use that package
+	failOnError false
+}
+
+task javadocJar(type: Jar) {
+	dependsOn javadoc
+	from javadoc.destinationDir
+	classifier = 'javadoc'
+}
+build.dependsOn javadocJar
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
@@ -231,6 +262,7 @@ publishing {
 			artifact(sourcesJar) {
 				builtBy sourcesJar
 			}
+			artifact javadocJar
 			artifact(createInstallerJSON.outputs.files.singleFile) {
 				builtBy copyJson
 			}

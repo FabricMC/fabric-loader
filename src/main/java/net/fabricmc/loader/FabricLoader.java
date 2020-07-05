@@ -396,6 +396,22 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		return LOGGER;
 	}
 
+	/**
+	 * Sets the game instance. This is only used in 20w22a+ by the dedicated server and should not be called by anything else.
+	 */
+	@Deprecated
+	public void setGameInstance(Object gameInstance) {
+		if (this.getEnvironmentType() != EnvType.SERVER) {
+			throw new UnsupportedOperationException("Cannot set game instance on a client!");
+		}
+
+		if (this.gameInstance != null) {
+			throw new UnsupportedOperationException("Cannot overwrite current game instance!");
+		}
+
+		this.gameInstance = gameInstance;
+	}
+
 	public static void preInit(File newRunDir, Object gameInstance) {
 		INSTANCE.prepareModInit(newRunDir, gameInstance);
 	}
