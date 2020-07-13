@@ -349,7 +349,7 @@ public class ModResolver {
 				// CONFLICTS WITH
 				errors.append("but the conflicting version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
 				errors.append("\n - While this won't prevent you from starting the game, the developer(s) of " + candidate.getInfo.getId());
-				errors.append("\n   have found that version " + depCandidate.getInfo().getVersion() + " of ");
+				errors.append("\n   have found that version " + depCandidate.getInfo().getVersion() + " of " + depModId);
 				errors.append("\n   conflicts with their mod. It is heavily recommended to remove one of the mods.");
 			} else {
 				errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
