@@ -341,27 +341,25 @@ public class ModResolver {
 
 			if (depCandidate == null) {
 				errors.append("which is missing!");
-				errors.append("\n     You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ").append(depModId).append(".");
+				errors.append("\nINFO:You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ").append(depModId).append(".");
 			} else {
 				final String depCandidateVer = depCandidate.getInfo().getVersion().getFriendlyString();
 				if (cond) {
 					errors.append("but a different version is present: ").append(depCandidateVer).append("!");
-					errors.append("\n     You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ").append(depModId).append(".");
+					errors.append("\nINFO:You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ").append(depModId).append(".");
 				} else if (errorType.contains("conf")) {
 					// CONFLICTS WITH
 					errors.append("but the conflicting version is present: ").append(depCandidateVer).append("!");
-					errors.append("\n     While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getId());
-					errors.append("\n     have found that version ").append(depCandidateVer).append(" of ").append(depModId);
-					errors.append("\n     conflicts with their mod. It is heavily recommended to remove one of the mods.");
+					errors.append("\nINFO:While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getId());
+					errors.append("\nINFO:have found that version ").append(depCandidateVer).append(" of ").append(depModId);
+					errors.append("\nINFO:conflicts with their mod. It is heavily recommended to remove one of the mods.");
 				} else {
 					errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
-					errors.append("\n     The developer(s) of ").append(candidate.getInfo().getId());
-					errors.append("\n     have found that version ").append(depCandidateVer).append(" of ").append(depModId);
-					errors.append("\n     critically conflicts with their mod. You must remove one of the mods.");
+					errors.append("\nINFO:The developer(s) of ").append(candidate.getInfo().getId());
+					errors.append("\nINFO:have found that version ").append(depCandidateVer).append(" of ").append(depModId);
+					errors.append("\nINFO:critically conflicts with their mod. You must remove one of the mods.");
 				}
 			}
-
-			//errors.append("!");
 		}
 	}
 
