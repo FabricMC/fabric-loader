@@ -341,28 +341,53 @@ public class ModResolver {
 
 			if (depCandidate == null) {
 				errors.append("which is missing!");
-				errors.append("\n - You must install ").append(depModId);
+				errors.append("\n     You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ").append(depModId).append(".");
 			} else {
 				final String depCandidateVer = depCandidate.getInfo().getVersion().getFriendlyString();
 				if (cond) {
 					errors.append("but a different version is present: ").append(depCandidateVer).append("!");
-					errors.append("\n - You must install version ").append(dependency).append(" of ").append(depModId);
+					errors.append("\n     You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ").append(depModId).append(".");
 				} else if (errorType.contains("conf")) {
 					// CONFLICTS WITH
 					errors.append("but the conflicting version is present: ").append(depCandidateVer).append("!");
-					errors.append("\n - While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getId());
-					errors.append("\n   have found that version ").append(depCandidateVer).append(" of ").append(depModId);
-					errors.append("\n   conflicts with their mod. It is heavily recommended to remove one of the mods.");
+					errors.append("\n     While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getId());
+					errors.append("\n     have found that version ").append(depCandidateVer).append(" of ").append(depModId);
+					errors.append("\n     conflicts with their mod. It is heavily recommended to remove one of the mods.");
 				} else {
 					errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
-					errors.append("\n - The developer(s) of ").append(candidate.getInfo().getId());
-					errors.append("\n   have found that version ").append(depCandidateVer).append(" of ").append(depModId);
-					errors.append("\n   critically conflicts with their mod. You must remove one of the mods.");
+					errors.append("\n     The developer(s) of ").append(candidate.getInfo().getId());
+					errors.append("\n     have found that version ").append(depCandidateVer).append(" of ").append(depModId);
+					errors.append("\n     critically conflicts with their mod. You must remove one of the mods.");
 				}
 			}
 
 			//errors.append("!");
 		}
+	}
+
+	// lord forgive me for what I must do
+	private static String horribleModDependencyToStringMethod(ModDependency dependency) {
+		String depStr = dependency.toString();
+		int verStart = depStr.indexOf('[');
+		if (verStart < 0)
+			return "unknown version";
+		int verEnd = depStr.indexOf(']');
+		if (verEnd < verStart)
+			return "unknown version";
+		String verStr = depStr.substring(verStart + 1, verEnd);
+		if ("*".equals(verStr))
+			return "any version";
+		if (verStr.startsWith(">="))
+			return "version " + verStr.substring(2) + " or higher";
+		if (verStr.startsWith("<="))
+			return "version " + verStr.substring(2) + " or lower";
+		if (verStr.startsWith(">"))
+			return "any version after " + verStr.substring(1);
+		if (verStr.startsWith("<"))
+			return "any version before " + verStr.substring(1);
+		if (verStr.startsWith("="))
+			return "version " + verStr.substring(1);
+		return "unknown version";
 	}
 
 	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */
