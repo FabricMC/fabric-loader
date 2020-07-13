@@ -154,11 +154,13 @@ public interface FabricLoader {
 	 * server object. As such, the exact return is dependent on the
 	 * current environment type.
 	 *
-	 * <p>The game instance may not always be availible depending on the game version.
+	 * <p>The game instance may not always be available depending on the game version and {@link EnvType environment}.
 	 *
 	 * @return A client or server instance object
+	 * @deprecated This method is experimental and it's use is discouraged.
 	 */
 	/* @Nullable */
+	@Deprecated
 	Object getGameInstance();
 
 	/**
