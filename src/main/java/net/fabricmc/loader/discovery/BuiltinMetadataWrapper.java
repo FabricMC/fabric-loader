@@ -22,15 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import net.fabricmc.loader.api.metadata.*;
 import org.apache.logging.log4j.Logger;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.metadata.AbstractModMetadata;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
@@ -49,6 +45,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public String getId() { return parent.getId(); }
 	@Override
 	public Version getVersion() { return parent.getVersion(); }
+	@Override
+	public ModEnvironment getEnvironment() { return parent.getEnvironment(); }
 	@Override
 	public Collection<ModDependency> getDepends() { return parent.getDepends(); }
 	@Override

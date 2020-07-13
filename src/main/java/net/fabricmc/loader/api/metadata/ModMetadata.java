@@ -54,6 +54,11 @@ public interface ModMetadata {
 	Version getVersion();
 
 	/**
+	 * Returns the mod's environment.
+	 */
+	ModEnvironment getEnvironment();
+
+	/**
 	 * Returns the mod's required dependencies, without which the Loader will terminate loading.
 	 */
 	Collection<ModDependency> getDepends();
