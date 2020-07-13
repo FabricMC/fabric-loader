@@ -341,13 +341,21 @@ public class ModResolver {
 
 			if (depCandidate == null) {
 				errors.append("which is missing");
+				errors.append("\n - You must install " + depModId);
 			} else if (cond) {
 				errors.append("but a different version is present: ").append(depCandidate.getInfo().getVersion());
+				errors.append("\n - You must install version " + dependency.getInfo().getVersion() + " of " + depModId);
 			} else if (errorType.contains("conf")) {
 				// CONFLICTS WITH
 				errors.append("but the conflicting version is present: ").append(depCandidate.getInfo().getVersion());
+				errors.append("\n - While this won't prevent you from starting the game, the developer(s) of " + candidate.getInfo.getId());
+				errors.append("\n   have found that version " + depCandidate.getInfo().getVersion() + " of ");
+				errors.append("\n   conflicts with their mod. It is heavily recommended to remove one of the mods.");
 			} else {
 				errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion());
+				errors.append("\n - The developer(s) of " + candidate.getInfo.getId())
+				errors.append("\n   have found that version " + depCandidate.getInfo().getVersion() + " of " + depModId);
+				errors.append("\n   critically conflicts with their mod. You must remove one of the mods.");
 			}
 
 			errors.append("!");
