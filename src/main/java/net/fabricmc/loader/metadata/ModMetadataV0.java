@@ -199,6 +199,9 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
+	public Map<String, CustomValue> getCustomValues() { return Collections.emptyMap(); }
+
+	@Override
 	public Version getVersion() {
 		return version;
 	}

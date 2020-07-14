@@ -38,6 +38,7 @@ public class ModMetadataParser {
 		.registerTypeAdapter(ModMetadataV1.MixinEntry.class, new ModMetadataV1.MixinEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.EntrypointContainer.class, new ModMetadataV1.EntrypointContainer.Deserializer())
 		.registerTypeAdapter(ModEnvironment.class, new ModMetadataV1.EnvironmentDeserializer())
+		.registerTypeAdapter(ModMetadataV1.CustomValueContainer.class, new ModMetadataV1.CustomValueContainer.Deserializer())
 		.create();
 
 	private static final Gson GSON_V0 = new GsonBuilder()

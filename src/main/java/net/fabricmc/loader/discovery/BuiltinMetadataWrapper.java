@@ -81,6 +81,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	@Override
 	public CustomValue getCustomValue(String key) { return parent.getCustomValue(key); }
 	@Override
+	public Map<String, CustomValue> getCustomValues() { return parent.getCustomValues(); }
+	@Override
 	public int getSchemaVersion() { return Integer.MAX_VALUE; }
 	@Override
 	public Map<String, String> getLanguageAdapterDefinitions() { return Collections.emptyMap(); }

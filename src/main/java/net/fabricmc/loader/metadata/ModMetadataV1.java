@@ -67,7 +67,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	private Map<String, String> languageAdapters = new HashMap<>();
 
 	// Optional (custom)
-	private Map<String, JsonElement> custom = new HashMap<>();
+	private CustomValueContainer custom = new CustomValueContainer();
 
 	// Happy little accidents
 	@Deprecated
@@ -192,16 +192,8 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
-	public boolean containsCustomValue(String key) {
-		return custom.containsKey(key);
-	}
-
-	@Override
-	public CustomValue getCustomValue(String key) {
-		JsonElement e = custom.get(key);
-		if (e == null) return null;
-
-		return CustomValueImpl.fromJsonElement(e);
+	public Map<String, CustomValue> getCustomValues() {
+		return custom.getCustomValues();
 	}
 
 	@Override
@@ -556,6 +548,40 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 				return ModEnvironment.SERVER;
 			} else {
 				throw new JsonParseException("Invalid environment type: " + s + "!");
+			}
+		}
+	}
+
+	public static class CustomValueContainer {
+		public CustomValueContainer() {
+			this.customValues = Collections.emptyMap();
+		}
+
+		public CustomValueContainer(Map<String, CustomValue> customValues) {
+			this.customValues = Collections.unmodifiableMap(customValues);
+		}
+
+		private final Map<String, CustomValue> customValues;
+
+		private Map<String, CustomValue> getCustomValues() {
+			return this.customValues;
+		}
+
+		public static class Deserializer implements JsonDeserializer<CustomValueContainer> {
+			@Override
+			public CustomValueContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				if (!json.isJsonObject()) {
+					throw new JsonParseException("Custom values must be in an object!");
+				}
+
+				final Map<String, CustomValue> customValues = new HashMap<>();
+				final Set<Map.Entry<String, JsonElement>> entries = json.getAsJsonObject().entrySet();
+
+				for (Map.Entry<String, JsonElement> entry : entries) {
+					customValues.put(entry.getKey(), CustomValueImpl.fromJsonElement(entry.getValue()));
+				}
+
+				return new CustomValueContainer(customValues);
 			}
 		}
 	}
