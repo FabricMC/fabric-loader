@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import net.fabricmc.loader.api.VersionParsingException;
+
 public final class SemanticVersionPredicateParser {
 	private static final Map<String, Function<SemanticVersionImpl, Predicate<SemanticVersionImpl>>> PREFIXES;
 
