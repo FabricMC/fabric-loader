@@ -21,6 +21,7 @@ def ENV = System.getenv()
 version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	jcenter()
 	maven {
@@ -59,7 +60,7 @@ dependencies {
 	compile 'net.fabricmc:tiny-remapper:0.2.2.64'
 
 	compile 'com.google.jimfs:jimfs:1.2-fabric'
-	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
+	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5-alexiil.1'
 
 	// launchwrapper + dependencies
 	compile ('net.minecraft:launchwrapper:1.12') {
