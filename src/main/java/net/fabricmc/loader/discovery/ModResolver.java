@@ -387,7 +387,7 @@ public class ModResolver {
 	}
 
 	private static String getCandidateName(ModCandidate candidate) {
-		return "'" + candidate.getInfo().getName() + "' (" + candidate.getInfo().getId() + ")";
+		return "\"" + candidate.getInfo().getName() + "\" (" + candidate.getInfo().getId() + ")";
 	}
 
 	private static String getCandidateFriendlyVersion(ModCandidate candidate) {
