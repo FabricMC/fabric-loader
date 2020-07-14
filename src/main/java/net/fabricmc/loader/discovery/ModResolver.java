@@ -461,12 +461,14 @@ public class ModResolver {
 
 			try (InputStream stream = Files.newInputStream(modJson)) {
 				info = ModMetadataParser.getMods(loader, stream);
-			} catch (JsonSyntaxException e) {
-				throw new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e);
+			} catch (JsonParseException e) {
+				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file!", path), e);
 			} catch (NoSuchFileException e) {
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
-				throw new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e);
+				throw new RuntimeException(String.format("Failed to open fabric.mod.json for mod at \"%s\"!", path), e);
+			} catch (Throwable t) {
+				throw new RuntimeException(String.format("Failed to parse mod metadata for mod at \"%s\"", path), t);
 			}
 
 			for (LoaderModMetadata i : info) {
