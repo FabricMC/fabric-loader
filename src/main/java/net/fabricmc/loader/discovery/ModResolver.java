@@ -361,23 +361,23 @@ public class ModResolver {
 	private void appendUnsatisfiedDependencyError(StringBuilder errors, ModDependency dependency, ModCandidate depCandidate) {
 		errors.append("but a different version is present: ").append(getCandidateFriendlyVersion(depCandidate)).append("!");
 		errors.append("\nINFO:You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ")
-				.append(dependency.getModId()).append(".");
+				.append(depCandidate.getInfo().getName()).append(".");
 	}
 
 	// TODO alternate instructions (downgrade/upgrade to version whatever) for these two
 	private void appendConflictError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
 		errors.append("but the conflicting version is present: ").append(depCandidateVer).append("!");
-		errors.append("\nINFO:While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getId());
-		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(dependency.getModId());
+		errors.append("\nINFO:While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getName());
+		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(depCandidate.getInfo().getName());
 		errors.append(" conflicts with their mod. It is heavily recommended to remove one of the mods.");
 	}
 
 	private void appendBreakingError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
 		errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
-		errors.append("\nINFO:The developer(s) of ").append(candidate.getInfo().getId());
-		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(dependency.getModId());
+		errors.append("\nINFO:The developer(s) of ").append(candidate.getInfo().getName());
+		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(depCandidate.getInfo().getName());
 		errors.append(" critically conflicts with their mod. You must remove one of the mods.");
 	}
 

@@ -204,9 +204,18 @@ public final class FabricStatusTree {
 		}
 
 		public FabricStatusNode addChild(String string) {
-			FabricStatusNode child = new FabricStatusNode(this, string);
-			children.add(child);
-			return child;
+			if (string.startsWith("INFO:")) {
+				FabricStatusNode lastChild = children.get(children.size() - 1);
+				if (lastChild == null)
+					throw new RuntimeException("INFO node requires at least one standard node");
+				lastChild.addChild(string.substring(5));
+				lastChild.expandByDefault = true;
+				return lastChild;
+			} else {
+				FabricStatusNode child = new FabricStatusNode(this, string);
+				children.add(child);
+				return child;
+			}
 		}
 
 		public FabricStatusNode addException(Throwable exception) {
