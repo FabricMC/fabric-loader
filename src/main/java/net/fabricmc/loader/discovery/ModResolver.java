@@ -321,7 +321,7 @@ public class ModResolver {
 
 		if (!isModIdValid(depModId, errorList)) {
 			if (errorList.size() == 1) {
-				errors.append(prefix).append(" which has an invalid mod id because it ").append(errorList.get(0));
+				errors.append(prefix).append(" which has an invalid mod ID because it ").append(errorList.get(0));
 			} else {
 				errors.append(prefix).append(" which has an invalid mod because:");
 
@@ -334,11 +334,12 @@ public class ModResolver {
 		}
 
 		ModCandidate depCandidate = result.get(depModId);
-		boolean isPresent = depCandidate == null ? false : dependency.matches(depCandidate.getInfo().getVersion());
+		boolean isPresent = depCandidate != null && dependency.matches(depCandidate.getInfo().getVersion());
 
 		if (isPresent != cond) {
 			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
-					.append(dependency.getFriendlyVersionString()).append(" of mod ").append(depModId).append(", ");
+					.append(dependency.getFriendlyVersionString()).append(" of mod ")
+					.append(depCandidate == null ? depModId : getCandidateName(depCandidate)).append(", ");
 
 			if (depCandidate == null) {
 				appendMissingDependencyError(errors, dependency);
@@ -353,6 +354,7 @@ public class ModResolver {
 		}
 	}
 
+	// TODO alternate instructions (downgrade/upgrade to version whatever)
 	private void appendMissingDependencyError(StringBuilder errors, ModDependency dependency) {
 		errors.append("which is missing!");
 		errors.append("\n\t - You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
@@ -365,7 +367,6 @@ public class ModResolver {
 				.append(getCandidateName(depCandidate)).append(".");
 	}
 
-	// TODO alternate instructions (downgrade/upgrade to version whatever) for these two
 	private void appendConflictError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
 		errors.append("but a matching version is present: ").append(depCandidateVer).append("!");

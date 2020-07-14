@@ -208,18 +208,28 @@ public final class FabricStatusTree {
 				if (children.size() == 0)
 					throw new RuntimeException("Tried to add indented node without having a root node");
 				FabricStatusNode lastChild = children.get(children.size() - 1);
-				lastChild.addChild(string.substring(1));
+				FabricStatusNode subChild = new FabricStatusNode(lastChild, emboldenForNode(string.substring(1)));
+				subChild.warningLevel = FabricTreeWarningLevel.INFO;
+				lastChild.children.add(subChild);
 				lastChild.expandByDefault = true;
 				return lastChild;
 			} else {
-				int dashIndex = string.indexOf('-');
-				if (dashIndex > 0)
-					string = string.substring(dashIndex + 1);
-				string = string.trim();
-				FabricStatusNode child = new FabricStatusNode(this, string);
+				FabricStatusNode child = new FabricStatusNode(this, cleanForNode(string));
 				children.add(child);
 				return child;
 			}
+		}
+
+		private String cleanForNode(String string) {
+			int dashIndex = string.indexOf('-');
+			if (dashIndex > 0)
+				string = string.substring(dashIndex + 1);
+			string = string.trim();
+			return string;
+		}
+
+		private String emboldenForNode(String string) {
+			return "<html><b>" + cleanForNode(string) + "</b></html>";
 		}
 
 		public FabricStatusNode addException(Throwable exception) {
