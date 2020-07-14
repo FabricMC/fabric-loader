@@ -25,7 +25,7 @@ repositories {
 	jcenter()
 	maven {
 		name = 'Fabric'
-		url = 'http://maven.modmuss50.me/'
+		url = 'https://maven.fabricmc.net/'
 	}
 	maven {
 		name = 'SpongePowered'
@@ -58,7 +58,7 @@ dependencies {
 	compile 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
 	compile 'net.fabricmc:tiny-remapper:0.2.2.64'
 
-	compile 'com.google.jimfs:jimfs:1.1'
+	compile 'com.google.jimfs:jimfs:1.2-fabric'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
 	// launchwrapper + dependencies

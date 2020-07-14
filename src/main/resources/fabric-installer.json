@@ -22,7 +22,7 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "com.google.jimfs:jimfs:1.1",
+        "name": "com.google.jimfs:jimfs:1.2-fabric",
         "url": "https://maven.fabricmc.net/"
       },
       {
