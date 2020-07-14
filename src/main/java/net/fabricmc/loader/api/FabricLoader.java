@@ -16,19 +16,26 @@
 
 package net.fabricmc.loader.api;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+
 /**
  * The public-facing FabricLoader instance.
+ *
+ * <p>To obtain a working instance, call {@link #getInstance()}.</p>
+ *
  * @since 0.4.0
  */
 public interface FabricLoader {
+	/**
+	 * Returns the public-facing Fabric Loader instance.
+	 */
 	@SuppressWarnings("deprecation")
 	static FabricLoader getInstance() {
 		if (net.fabricmc.loader.FabricLoader.INSTANCE == null) {
@@ -38,49 +45,108 @@ public interface FabricLoader {
 		return net.fabricmc.loader.FabricLoader.INSTANCE;
 	}
 
+	/**
+	 * Returns all entrypoints declared under a {@code key}, assuming they are of a specific type.
+	 *
+	 * @param key  the key in entrypoint declaration in {@code fabric.mod.json}
+	 * @param type the type of entrypoints
+	 * @param <T>  the type of entrypoints
+	 * @return the obtained entrypoints
+	 * @see #getEntrypointContainers(String, Class)
+	 */
 	<T> List<T> getEntrypoints(String key, Class<T> type);
 
+	/**
+	 * Returns all entrypoints declared under a {@code key}, assuming they are of a specific type.
+	 *
+	 * <p>The entrypoint is declared in the {@code fabric.mod.json} as following:
+	 * <pre><blockquote>
+	 *   "entrypoints": {
+	 *     "&lt;a key&gt;": [
+	 *       &lt;a list of entrypoint declarations&gt;
+	 *     ]
+	 *   }
+	 * </blockquote></pre>
+	 * Multiple keys can be present in the {@code entrypoints} section.</p>
+	 *
+	 * <p>An entrypoint declaration indicates that an arbitrary notation is sent
+	 * to a {@link LanguageAdapter} to offer an instance of entrypoint. It is
+	 * either a string, or an object. An object declaration
+	 * is of this form:<pre><blockquote>
+	 *   {
+	 *     "adapter": "&lt;a custom adatper&gt;"
+	 *     "value": "&lt;an arbitrary notation&gt;"
+	 *   }
+	 * </blockquote></pre>
+	 * A string declaration {@code <an arbitrary notation>} is equivalent to
+	 * <pre><blockquote>
+	 *   {
+	 *     "adapter": "default"
+	 *     "value": "&lt;an arbitrary notation&gt;"
+	 *   }
+	 * </blockquote></pre>
+	 * where the {@code default} adapter is the {@linkplain LanguageAdapter adapter}
+	 * offered by Fabric Loader. </p>
+	 *
+	 * @param key  the key in entrypoint declaration in {@code fabric.mod.json}
+	 * @param type the type of entrypoints
+	 * @param <T>  the type of entrypoints
+	 * @return the entrypoint containers related to this key
+	 * @throws EntrypointException if a problem arises during entrypoint creation
+	 * @see LanguageAdapter
+	 */
 	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
 
 	/**
 	 * Get the current mapping resolver.
-	 * @return The current mapping resolver instance.
+	 *
+	 * <p>When performing reflection, a mod should always query the mapping resolver for
+	 * the remapped names of members than relying on other heuristics.</p>
+	 *
+	 * @return the current mapping resolver instance
 	 * @since 0.4.1
 	 */
 	MappingResolver getMappingResolver();
 
 	/**
 	 * Gets the container for a given mod.
-	 * @param id The ID of the mod.
-	 * @return The mod container, if present.
+	 *
+	 * @param id the ID of the mod
+	 * @return the mod container, if present
 	 */
 	Optional<ModContainer> getModContainer(String id);
 
 	/**
 	 * Gets all mod containers.
-	 * @return A collection of all loaded mod containers.
+	 *
+	 * @return a collection of all loaded mod containers
 	 */
 	Collection<ModContainer> getAllMods();
 
 	/**
 	 * Checks if a mod with a given ID is loaded.
-	 * @param id The ID of the mod, as defined in fabric.mod.json.
-	 * @return Whether or not the mod is present in this FabricLoader instance.
+	 *
+	 * @param id the ID of the mod, as defined in {@code fabric.mod.json}
+	 * @return whether or not the mod is present in this Fabric Loader instance
 	 */
 	boolean isModLoaded(String id);
 
 	/**
 	 * Checks if Fabric Loader is currently running in a "development"
 	 * environment. Can be used for enabling debug mode or additional checks.
-	 * Should not be used to make assumptions about f.e. mappings.
-	 * @return Whether or not Loader is currently in a "development"
-	 * environment.
+	 *
+	 * <p>This should not be used to make assumptions on certain features,
+	 * such as mappings, but as a toggle for certain functionalities.</p>
+	 *
+	 * @return whether or not Loader is currently in a "development"
+	 * environment
 	 */
 	boolean isDevelopmentEnvironment();
 
 	/**
 	 * Get the current environment type.
-	 * @return The current environment type.
+	 *
+	 * @return the current environment type
 	 */
 	EnvType getEnvironmentType();
 
@@ -88,19 +154,33 @@ public interface FabricLoader {
 	 * Get the current game instance. Can represent a game client or
 	 * server object. As such, the exact return is dependent on the
 	 * current environment type.
-	 * @return A client or server instance object.
+	 *
+	 * <p>The game instance may not always be available depending on the game version and {@link EnvType environment}.
+	 *
+	 * @return A client or server instance object
+	 * @deprecated This method is experimental and it's use is discouraged.
 	 */
+	/* @Nullable */
+	@Deprecated
 	Object getGameInstance();
 
 	/**
 	 * Get the current game working directory.
-	 * @return The directory.
+	 *
+	 * @return the working directory
 	 */
+	Path getGameDir();
+
+	@Deprecated
 	File getGameDirectory();
 
 	/**
 	 * Get the current directory for game configuration files.
-	 * @return The directory.
+	 *
+	 * @return the configuration directory
 	 */
+	Path getConfigDir();
+
+	@Deprecated
 	File getConfigDirectory();
 }

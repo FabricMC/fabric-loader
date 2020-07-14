@@ -16,12 +16,27 @@
 
 package net.fabricmc.loader.api;
 
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.util.version.VersionDeserializer;
-import net.fabricmc.loader.util.version.VersionParsingException;
 
+/**
+ * Represents a version of a mod.
+ * 
+ * @see ModMetadata#getVersion() 
+ */
 public interface Version {
+	/**
+	 * Returns the user-friendly representation of this version.
+	 */
 	String getFriendlyString();
 
+	/**
+	 * Parses a version from a string notation.
+	 * 
+	 * @param string the string notation of the version
+	 * @return the parsed version
+	 * @throws VersionParsingException if a problem arises during version parsing
+	 */
 	static Version parse(String string) throws VersionParsingException {
 		return VersionDeserializer.deserialize(string);
 	}

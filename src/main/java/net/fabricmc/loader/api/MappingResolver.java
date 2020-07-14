@@ -21,31 +21,36 @@ import java.util.Collection;
 /**
  * Helper class for performing mapping resolution.
  *
- * Note: The target namespace (the one being mapped to) for mapping (or the
+ * <p><strong>Note</strong>: The target namespace (the one being mapped to) for mapping (or the
  * source one for unmapping) is always implied to be the one Loader is
- * currently operating in.
+ * currently operating in.</p>
+ *
+ * <p>All the {@code className} used in this resolver are in <a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-13.html#jls-13.1">binary names</a>,
+ * such as {@code "mypackage.MyClass$Inner"}.</p>
  *
  * @since 0.4.1
  */
 public interface MappingResolver {
 	/**
 	 * Get the list of all available mapping namespaces in the loaded instance.
+	 *
 	 * @return The list of all available namespaces.
 	 */
 	Collection<String> getNamespaces();
 
 	/**
 	 * Get the current namespace being used at runtime.
-	 * @return The current namespace being used at runtime.
+	 *
+	 * @return the runtime namespace
 	 */
 	String getCurrentRuntimeNamespace();
 
 	/**
 	 * Map a class name to the mapping currently used at runtime.
 	 *
-	 * @param namespace The namespace of the provided class name.
-	 * @param className The provided class name, in dot-format ("mypackage.MyClass$Inner").
-	 * @return The mapped class name, or className if such a mapping is not present.
+	 * @param namespace the namespace of the provided class name
+	 * @param className the provided binary class name
+	 * @return the mapped class name, or {@code className} if no such mapping is present
 	 */
 	String mapClassName(String namespace, String className);
 
@@ -53,31 +58,30 @@ public interface MappingResolver {
 	 * Unmap a class name to the mapping currently used at runtime.
 	 *
 	 * @param targetNamespace The target namespace for unmapping.
-	 * @param className The provided class name, in dot-format ("mypackage.MyClass$Inner"),
-	 *                  of the mapping form currently used at runtime.
-	 * @return The mapped class name, or className if such a mapping is not present.
+	 * @param className the provided binary class name of the mapping form currently used at runtime
+	 * @return the mapped class name, or {@code className} if no such mapping is present
 	 */
 	String unmapClassName(String targetNamespace, String className);
 
 	/**
 	 * Map a field name to the mapping currently used at runtime.
 	 *
-	 * @param namespace The namespace of the provided field name.
-	 * @param owner The owner of the field, in dot-format ("mypackage.MyClass$Inner").
-	 * @param name The name of the field.
-	 * @param descriptor The descriptor of the field.
-	 * @return The mapped field name, or name if such a mapping is not present.
+	 * @param namespace the namespace of the provided field name and descriptor
+	 * @param owner the binary name of the owner class of the field
+	 * @param name the name of the field
+	 * @param descriptor the descriptor of the field
+	 * @return the mapped field name, or {@code name} if no such mapping is present
 	 */
 	String mapFieldName(String namespace, String owner, String name, String descriptor);
 
 	/**
 	 * Map a method name to the mapping currently used at runtime.
 	 *
-	 * @param namespace The namespace of the provided method name.
-	 * @param owner The owner of the method, in dot-format ("mypackage.MyClass$Inner").
-	 * @param name The name of the method.
-	 * @param descriptor The descriptor of the method.
-	 * @return The mapped method name, or name if such a mapping is not present.
+	 * @param namespace the namespace of the provided method name and descriptor
+	 * @param owner the binary name of the owner class of the method
+	 * @param name the name of the method
+	 * @param descriptor the descriptor of the method
+	 * @return the mapped method name, or {@code name} if no such mapping is present
 	 */
 	String mapMethodName(String namespace, String owner, String name, String descriptor);
 }

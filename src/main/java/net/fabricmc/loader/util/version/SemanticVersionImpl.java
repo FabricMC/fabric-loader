@@ -17,6 +17,7 @@
 package net.fabricmc.loader.util.version;
 
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.VersionParsingException;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -77,9 +78,9 @@ public class SemanticVersionImpl implements SemanticVersion {
 						throw new VersionParsingException("Pre-release versions are not allowed to use X-ranges!");
 					}
 
-					components[i] = Integer.MIN_VALUE;
+					components[i] = COMPONENT_WILDCARD;
 					continue;
-				} else if (i > 0 && components[i - 1] == Integer.MIN_VALUE) {
+				} else if (i > 0 && components[i - 1] == COMPONENT_WILDCARD) {
 					throw new VersionParsingException("Interjacent wildcard (1.x.2) are disallowed!");
 				}
 			}
@@ -98,7 +99,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 			}
 		}
 
-		if (storeX && components.length == 1 && components[0] == Integer.MIN_VALUE) {
+		if (storeX && components.length == 1 && components[0] == COMPONENT_WILDCARD) {
 			throw new VersionParsingException("Versions of form 'x' or 'X' not allowed!");
 		}
 
@@ -116,7 +117,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 				fnBuilder.append('.');
 			}
 
-			if (i == Integer.MIN_VALUE) {
+			if (i == COMPONENT_WILDCARD) {
 				fnBuilder.append('x');
 			} else {
 				fnBuilder.append(i);
@@ -145,7 +146,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 			throw new RuntimeException("Tried to access negative version number component!");
 		} else if (pos >= components.length) {
 			// Repeat "x" if x-range, otherwise repeat "0".
-			return components[components.length - 1] == Integer.MIN_VALUE ? Integer.MIN_VALUE : 0;
+			return components[components.length - 1] == COMPONENT_WILDCARD ? COMPONENT_WILDCARD : 0;
 		} else {
 			return components[pos];
 		}

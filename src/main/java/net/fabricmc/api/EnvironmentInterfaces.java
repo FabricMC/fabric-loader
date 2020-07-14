@@ -23,13 +23,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Applied to declare that interface implementations are present only in the specified environment.
- * Use with caution, as Fabric-loader will completely remove interface implementations in a mismatched environment!
- * Implemented methods are not removed. To remove implemented methods, use {@link Environment}.
+ * A container of multiple {@link EnvironmentInterface} annotations on a class, often defined implicitly.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Documented
 public @interface EnvironmentInterfaces {
+	/**
+	 * Returns the {@link EnvironmentInterface} annotations it holds.
+	 */
 	EnvironmentInterface[] value();
 }
