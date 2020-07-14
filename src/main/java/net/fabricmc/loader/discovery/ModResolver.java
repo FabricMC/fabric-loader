@@ -257,7 +257,7 @@ public class ModResolver {
 			// verify result: dependencies
 			for (ModCandidate candidate : result.values()) {
 				for (ModDependency dependency : candidate.getInfo().getDepends()) {
-					addErrorToList(candidate, dependency, result, errorsHard, "depends on", true);
+					addErrorToList(candidate, dependency, result, errorsHard, "requires", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getRecommends()) {
@@ -265,7 +265,7 @@ public class ModResolver {
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getBreaks()) {
-					addErrorToList(candidate, dependency, result, errorsHard, "breaks", false);
+					addErrorToList(candidate, dependency, result, errorsHard, "is incompatible with", false);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getConflicts()) {
@@ -337,7 +337,8 @@ public class ModResolver {
 		boolean isPresent = depCandidate == null ? false : dependency.matches(depCandidate.getInfo().getVersion());
 
 		if (isPresent != cond) {
-			errors.append("\n - Mod ").append(candidate.getInfo().getId()).append(" ").append(errorType).append(" mod ").append(dependency).append(", ");
+			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
+					.append(dependency.getFriendlyVersionString()).append(" of mod ").append(depModId).append(", ");
 
 			if (depCandidate == null) {
 				appendMissingDependencyError(errors, dependency);
@@ -354,31 +355,38 @@ public class ModResolver {
 
 	private void appendMissingDependencyError(StringBuilder errors, ModDependency dependency) {
 		errors.append("which is missing!");
-		errors.append("\nINFO:You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
+		errors.append("\n\t - You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
 				.append(dependency.getModId()).append(".");
 	}
 
 	private void appendUnsatisfiedDependencyError(StringBuilder errors, ModDependency dependency, ModCandidate depCandidate) {
-		errors.append("but a different version is present: ").append(getCandidateFriendlyVersion(depCandidate)).append("!");
-		errors.append("\nINFO:You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
-				.append(depCandidate.getInfo().getName()).append(".");
+		errors.append("but a non-matching version is present: ").append(getCandidateFriendlyVersion(depCandidate)).append("!");
+		errors.append("\n\t - You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
+				.append(getCandidateName(depCandidate)).append(".");
 	}
 
 	// TODO alternate instructions (downgrade/upgrade to version whatever) for these two
 	private void appendConflictError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
-		errors.append("but the conflicting version is present: ").append(depCandidateVer).append("!");
-		errors.append("\nINFO:While this won't prevent you from starting the game, the developer(s) of ").append(candidate.getInfo().getName());
-		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(depCandidate.getInfo().getName());
-		errors.append(" conflicts with their mod. It is heavily recommended to remove one of the mods.");
+		errors.append("but a matching version is present: ").append(depCandidateVer).append("!");
+		errors.append("\n\t - While this won't prevent you from starting the game,");
+		errors.append(" the developer(s) of ").append(getCandidateName(candidate));
+		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(getCandidateName(depCandidate));
+		errors.append(" conflicts with their mod.");
+		errors.append("\n\t - It is heavily recommended to remove one of the mods.");
 	}
 
 	private void appendBreakingError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
-		errors.append("but the breaking version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
-		errors.append("\nINFO:The developer(s) of ").append(candidate.getInfo().getName());
-		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(depCandidate.getInfo().getName());
-		errors.append(" critically conflicts with their mod. You must remove one of the mods.");
+		errors.append("but a matching version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
+		errors.append("\n\t - The developer(s) of ").append(getCandidateName(candidate));
+		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(getCandidateName(depCandidate));
+		errors.append(" critically conflicts with their mod.");
+		errors.append("\n\t - You must remove one of the mods.");
+	}
+
+	private static String getCandidateName(ModCandidate candidate) {
+		return "'" + candidate.getInfo().getName() + "' (" + candidate.getInfo().getId() + ")";
 	}
 
 	private static String getCandidateFriendlyVersion(ModCandidate candidate) {

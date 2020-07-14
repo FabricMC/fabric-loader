@@ -204,14 +204,18 @@ public final class FabricStatusTree {
 		}
 
 		public FabricStatusNode addChild(String string) {
-			if (string.startsWith("INFO:")) {
+			if (string.startsWith("\t")) {
+				if (children.size() == 0)
+					throw new RuntimeException("Tried to add indented node without having a root node");
 				FabricStatusNode lastChild = children.get(children.size() - 1);
-				if (lastChild == null)
-					throw new RuntimeException("INFO node requires at least one standard node");
-				lastChild.addChild(string.substring(5));
+				lastChild.addChild(string.substring(1));
 				lastChild.expandByDefault = true;
 				return lastChild;
 			} else {
+				int dashIndex = string.indexOf('-');
+				if (dashIndex > 0)
+					string = string.substring(dashIndex + 1);
+				string = string.trim();
 				FabricStatusNode child = new FabricStatusNode(this, string);
 				children.add(child);
 				return child;
