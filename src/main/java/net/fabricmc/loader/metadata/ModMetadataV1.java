@@ -19,6 +19,7 @@ package net.fabricmc.loader.metadata;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
@@ -40,7 +41,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	private Version version;
 
 	// Optional (mod loading)
-	private Environment environment = Environment.UNIVERSAL;
+	private ModEnvironment environment = ModEnvironment.UNIVERSAL;
 	private EntrypointContainer entrypoints = new EntrypointContainer();
 	private JarEntry[] jars = new JarEntry[0];
 	private MixinEntry[] mixins = new MixinEntry[0];
@@ -206,6 +207,11 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	@Override
 	public Version getVersion() {
 		return version;
+	}
+
+	@Override
+	public ModEnvironment getEnvironment() {
+		return environment;
 	}
 
 	@Override
@@ -490,7 +496,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 
 	public static class MixinEntry {
 		private String config;
-		private Environment environment = Environment.UNIVERSAL;
+		private ModEnvironment environment = ModEnvironment.UNIVERSAL;
 
 		public static class Deserializer implements JsonDeserializer<MixinEntry> {
 			@Override
@@ -506,48 +512,13 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 
 					entry.config = obj.get("config").getAsString();
 					if (obj.has("environment")) {
-						entry.environment = context.deserialize(obj.get("environment"), Environment.class);
+						entry.environment = context.deserialize(obj.get("environment"), ModEnvironment.class);
 					}
 				} else {
 					throw new JsonParseException("Invalid type for mixin entry!");
 				}
 
 				return entry;
-			}
-		}
-	}
-
-	public enum Environment {
-		CLIENT,
-		SERVER,
-		UNIVERSAL;
-
-		public boolean matches(EnvType type) {
-			switch (this) {
-				case CLIENT:
-					return type == EnvType.CLIENT;
-				case SERVER:
-					return type == EnvType.SERVER;
-				case UNIVERSAL:
-					return true;
-				default:
-					return false;
-			}
-		}
-
-		public static class Deserializer implements JsonDeserializer<Environment> {
-			@Override
-			public Environment deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-				String s = element.getAsString().toLowerCase(Locale.ROOT);
-				if (s.isEmpty() || s.equals("*")) {
-					return UNIVERSAL;
-				} else if (s.equals("client")) {
-					return CLIENT;
-				} else if (s.equals("server")) {
-					return SERVER;
-				} else {
-					throw new JsonParseException("Invalid environment type: " + s + "!");
-				}
 			}
 		}
 	}
@@ -569,6 +540,22 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 				}
 
 				return entry;
+			}
+		}
+	}
+
+	public static class EnvironmentDeserializer implements JsonDeserializer<ModEnvironment> {
+		@Override
+		public ModEnvironment deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+			String s = element.getAsString().toLowerCase(Locale.ROOT);
+			if (s.isEmpty() || s.equals("*")) {
+				return ModEnvironment.UNIVERSAL;
+			} else if (s.equals("client")) {
+				return ModEnvironment.CLIENT;
+			} else if (s.equals("server")) {
+				return ModEnvironment.SERVER;
+			} else {
+				throw new JsonParseException("Invalid environment type: " + s + "!");
 			}
 		}
 	}
