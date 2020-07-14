@@ -354,13 +354,13 @@ public class ModResolver {
 
 	private void appendMissingDependencyError(StringBuilder errors, ModDependency dependency) {
 		errors.append("which is missing!");
-		errors.append("\nINFO:You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ")
+		errors.append("\nINFO:You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
 				.append(dependency.getModId()).append(".");
 	}
 
 	private void appendUnsatisfiedDependencyError(StringBuilder errors, ModDependency dependency, ModCandidate depCandidate) {
 		errors.append("but a different version is present: ").append(getCandidateFriendlyVersion(depCandidate)).append("!");
-		errors.append("\nINFO:You must install ").append(horribleModDependencyToStringMethod(dependency)).append(" of ")
+		errors.append("\nINFO:You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
 				.append(depCandidate.getInfo().getName()).append(".");
 	}
 
@@ -383,31 +383,6 @@ public class ModResolver {
 
 	private static String getCandidateFriendlyVersion(ModCandidate candidate) {
 		return candidate.getInfo().getVersion().getFriendlyString();
-	}
-
-	// lord forgive me for what I must do
-	private static String horribleModDependencyToStringMethod(ModDependency dependency) {
-		String depStr = dependency.toString();
-		int verStart = depStr.indexOf('[');
-		if (verStart < 0)
-			return "unknown version";
-		int verEnd = depStr.indexOf(']');
-		if (verEnd < verStart)
-			return "unknown version";
-		String verStr = depStr.substring(verStart + 1, verEnd);
-		if ("*".equals(verStr))
-			return "any version";
-		if (verStr.startsWith(">="))
-			return "version " + verStr.substring(2) + " or higher";
-		if (verStr.startsWith("<="))
-			return "version " + verStr.substring(2) + " or lower";
-		if (verStr.startsWith(">"))
-			return "any version after " + verStr.substring(1);
-		if (verStr.startsWith("<"))
-			return "any version before " + verStr.substring(1);
-		if (verStr.startsWith("="))
-			return "version " + verStr.substring(1);
-		return "unknown version";
 	}
 
 	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */

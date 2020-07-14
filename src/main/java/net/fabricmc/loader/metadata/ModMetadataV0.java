@@ -330,6 +330,19 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 							return DependencyMap.this.get(s).satisfiedBy(version);
 						}
 
+						// TODO possibly improve this somewhat?
+						@Override
+						public String getFriendlyVersionString() {
+							String[] matchers = DependencyMap.this.get(s).versionMatchers;
+							if (matchers.length == 0) {
+								return "any version";
+							} else if (matchers.length == 1) {
+								return "version " + matchers[0];
+							} else {
+								return "versions " + String.join(", ", matchers);
+							}
+						}
+
 						@Override
 						public String toString() {
 							String[] matchers = DependencyMap.this.get(s).versionMatchers;

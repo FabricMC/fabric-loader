@@ -33,4 +33,11 @@ public interface ModDependency {
 	 * @param version the version to check
 	 */
 	boolean matches(Version version);
+
+	/**
+	 * Converts this dependency's version range to a user-friendly text representation.
+	 *
+	 * @return a user-friendly representation of this dependency's version range
+	 */
+	String getFriendlyVersionString();
 }

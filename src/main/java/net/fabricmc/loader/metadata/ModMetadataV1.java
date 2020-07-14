@@ -301,6 +301,44 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 						}
 
 						@Override
+						public String getFriendlyVersionString() {
+							StringBuilder sb = new StringBuilder();
+							for (int i = 0; i < matcherStringList.size(); i++) {
+								String verStr = matcherStringList.get(i);
+								char firstChar = verStr.charAt(0);
+								char secondChar = 0;
+								if (verStr.length() > 1)
+									secondChar = verStr.charAt(1);
+								switch (firstChar) {
+									case '*':
+										sb.append("any version");
+										break;
+									case '>':
+										if (secondChar == '=')
+											sb.append("version ").append(verStr.substring(2)).append(" or higher");
+										else
+											sb.append("any version after ").append(verStr.substring(1));
+										break;
+									case '<':
+										if (secondChar == '=')
+											sb.append("version ").append(verStr.substring(2)).append(" or lower");
+										else
+											sb.append("any version before ").append(verStr.substring(1));
+										break;
+									case '=':
+										sb.append("version ").append(verStr.substring(1));
+										break;
+									default:
+										sb.append("unknown version");
+										break;
+								}
+								if (i < matcherStringList.size() - 1)
+									sb.append(" or ");
+							}
+							return sb.toString();
+						}
+
+						@Override
 						public String toString() {
 							return depAsStr;
 						}
