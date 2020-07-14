@@ -206,7 +206,7 @@ public final class FabricStatusTree {
 		public FabricStatusNode addChild(String string) {
 			if (string.startsWith("\t")) {
 				if (children.size() == 0)
-					throw new RuntimeException("Tried to add indented info node without having a root node");
+					throw new RuntimeException("Tried to add indented node without having a root node");
 				FabricStatusNode lastChild = children.get(children.size() - 1);
 				FabricStatusNode subChild = new FabricStatusNode(lastChild, emboldenForNode(string.substring(1)));
 				subChild.warningLevel = FabricTreeWarningLevel.INFO;
