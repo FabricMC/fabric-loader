@@ -203,7 +203,7 @@ public final class FabricStatusTree {
 			setWarningLevel(FabricTreeWarningLevel.INFO);
 		}
 
-		public FabricStatusNode addChild(String string) {
+		private FabricStatusNode addChild(String string, boolean info) {
 			if (string.startsWith("\t")) {
 				if (children.size() == 0) {
 					FabricStatusNode rootChild = new FabricStatusNode(this, "(indented node was added before root node - this is a bug!)");
@@ -211,16 +211,22 @@ public final class FabricStatusTree {
 					children.add(rootChild);
 				}
 				FabricStatusNode lastChild = children.get(children.size() - 1);
-				FabricStatusNode subChild = new FabricStatusNode(lastChild, emboldenForNode(string.substring(1)));
-				subChild.setInfo();
-				lastChild.children.add(subChild);
-				lastChild.expandByDefault = true;
+				lastChild.addChild(string.substring(1), true);
 				return lastChild;
 			} else {
-				FabricStatusNode child = new FabricStatusNode(this, cleanForNode(string));
+				FabricStatusNode child = new FabricStatusNode(this, info ? emboldenForNode(string) : cleanForNode(string));
+				if (info) {
+					// don't use setInfo/setWarningLevel, it'll set this node's warning level too!
+					child.warningLevel = FabricTreeWarningLevel.INFO;
+					expandByDefault = true;
+				}
 				children.add(child);
 				return child;
 			}
+		}
+
+		public FabricStatusNode addChild(String string) {
+			return addChild(string, false);
 		}
 
 		private String cleanForNode(String string) {
