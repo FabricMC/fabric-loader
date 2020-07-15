@@ -9,6 +9,8 @@ public class VersionRange {
 		LESSER_THAN,
 		GREATER_THAN_OR_EQUAL,
 		LESSER_THAN_OR_EQUAL,
+		SAME_MAJOR,
+		SAME_MAJOR_AND_MINOR
 	}
 
 	private final Type type;

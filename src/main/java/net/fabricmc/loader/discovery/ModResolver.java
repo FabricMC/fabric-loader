@@ -422,6 +422,13 @@ public class ModResolver {
 				case LESSER_THAN_OR_EQUAL:
 					parts.add("version " + range.getVersion() + " or earlier");
 					break;
+				// TODO improve these two
+				case SAME_MAJOR:
+					parts.add("any version that shares major component with " + range.getVersion());
+					break;
+				case SAME_MAJOR_AND_MINOR:
+					parts.add("any version that shares major and minor components with " + range.getVersion());
+					break;
 			}
 		}
 		return String.join(" or ", parts.toArray(new String[0]));

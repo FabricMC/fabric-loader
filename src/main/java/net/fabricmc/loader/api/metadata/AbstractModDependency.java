@@ -30,7 +30,10 @@ public abstract class AbstractModDependency implements ModDependency {
 				secondChar = matcher.charAt(1);
 			switch (firstChar) {
 				case '*':
-					ranges.add(new VersionRange(VersionRange.Type.ANY, ""));
+					if (matcher.length() == 1)
+						ranges.add(new VersionRange(VersionRange.Type.ANY, ""));
+					else
+						ranges.add(new VersionRange(VersionRange.Type.INVALID, ""));
 					break;
 				case '>':
 					if (secondChar == '=')
@@ -47,8 +50,14 @@ public abstract class AbstractModDependency implements ModDependency {
 				case '=':
 					ranges.add(new VersionRange(VersionRange.Type.EQUALS, matcher.substring(1)));
 					break;
-				default:
-					ranges.add(new VersionRange(VersionRange.Type.INVALID, ""));
+				case '^':
+					ranges.add(new VersionRange(VersionRange.Type.SAME_MAJOR, matcher.substring(1)));
+					break;
+				case '~':
+					ranges.add(new VersionRange(VersionRange.Type.SAME_MAJOR_AND_MINOR, matcher.substring(1)));
+					break;
+				default: // string version
+					ranges.add(new VersionRange(VersionRange.Type.EQUALS, matcher));
 					break;
 			}
 		}
