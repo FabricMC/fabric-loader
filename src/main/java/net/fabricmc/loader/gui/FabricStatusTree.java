@@ -205,11 +205,14 @@ public final class FabricStatusTree {
 
 		public FabricStatusNode addChild(String string) {
 			if (string.startsWith("\t")) {
-				if (children.size() == 0)
-					throw new RuntimeException("Tried to add indented node without having a root node");
+				if (children.size() == 0) {
+					FabricStatusNode rootChild = new FabricStatusNode(this, "(indented node was added before root node - this is a bug!)");
+					rootChild.setWarning();
+					children.add(rootChild);
+				}
 				FabricStatusNode lastChild = children.get(children.size() - 1);
 				FabricStatusNode subChild = new FabricStatusNode(lastChild, emboldenForNode(string.substring(1)));
-				subChild.warningLevel = FabricTreeWarningLevel.INFO;
+				subChild.setInfo();
 				lastChild.children.add(subChild);
 				lastChild.expandByDefault = true;
 				return lastChild;
@@ -221,10 +224,12 @@ public final class FabricStatusTree {
 		}
 
 		private String cleanForNode(String string) {
-			int dashIndex = string.indexOf('-');
-			if (dashIndex > 0)
-				string = string.substring(dashIndex + 1);
 			string = string.trim();
+			if (string.length() > 1) {
+				if (string.startsWith("-"))
+					string = string.substring(1);
+				string = string.trim();
+			}
 			return string;
 		}
 
