@@ -396,42 +396,7 @@ public class ModResolver {
 	}
 
 	private static String getDependencyVersionRanges(ModDependency dependency) {
-		Collection<VersionRange> ranges = dependency.getVersionRanges();
-		ArrayList<String> parts = new ArrayList<>(ranges.size());
-		for (VersionRange range : ranges) {
-			switch (range.getType()) {
-				default:
-				case INVALID:
-					parts.add("unknown version");
-					break;
-				case ANY:
-					parts.add("any version");
-					break;
-				case EQUALS:
-					parts.add("version " + range.getVersion());
-					break;
-				case GREATER_THAN:
-					parts.add("any version after " + range.getVersion());
-					break;
-				case LESSER_THAN:
-					parts.add("any version before " + range.getVersion());
-					break;
-				case GREATER_THAN_OR_EQUAL:
-					parts.add("version " + range.getVersion() + " or later");
-					break;
-				case LESSER_THAN_OR_EQUAL:
-					parts.add("version " + range.getVersion() + " or earlier");
-					break;
-				// TODO improve these two
-				case SAME_MAJOR:
-					parts.add("any version that shares major component with " + range.getVersion());
-					break;
-				case SAME_MAJOR_AND_MINOR:
-					parts.add("any version that shares major and minor components with " + range.getVersion());
-					break;
-			}
-		}
-		return String.join(" or ", parts.toArray(new String[0]));
+		return dependency.getVersionRanges().stream().map(VersionRange::toString).collect(Collectors.joining(" or "));
 	}
 
 	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */
