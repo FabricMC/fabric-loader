@@ -32,12 +32,10 @@ import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.sat4j.core.VecInt;
 import net.fabricmc.loader.util.sat4j.pb.SolverFactory;
 import net.fabricmc.loader.util.sat4j.pb.tools.DependencyHelper;
 import net.fabricmc.loader.util.sat4j.pb.tools.INegator;
 import net.fabricmc.loader.util.sat4j.specs.ContradictionException;
-import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
 import org.apache.logging.log4j.Logger;
 
@@ -53,7 +51,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.google.common.jimfs.Feature.FILE_CHANNEL;
 import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
@@ -81,10 +78,6 @@ public class ModResolver {
 
 	public void addCandidateFinder(ModCandidateFinder f) {
 		candidateFinders.add(f);
-	}
-
-	private static IVecInt toVecInt(IntStream stream) {
-		return new VecInt(stream.toArray());
 	}
 
 	public static String getReadablePath(FabricLoader loader, ModCandidate c) {
@@ -168,7 +161,7 @@ public class ModResolver {
 						List<ModLoadOption> cOptions = new ArrayList<>();
 						int index = 0;
 						for (ModCandidate m : candidates) {
-							ModLoadOption cOption = new ModLoadOption(m, index);
+							ModLoadOption cOption = new ModLoadOption(m, candidates.size() == 1 ? -1 : index);
 							modToLoadOption.put(m, cOption);
 							helper.addToObjectiveFunction(cOption, 1000 - index++);
 							cOptions.add(cOption);
@@ -221,71 +214,104 @@ public class ModResolver {
 
 					List<ModLink> why = new ArrayList<>(helper.why());
 
-		            Map<ModLoadOption, MandatoryModIdDefinition> roots = new HashMap<>();
-		            List<ModLink> causes = new ArrayList<>();
+					Map<ModLoadOption, MandatoryModIdDefinition> roots = new HashMap<>();
+					List<ModLink> causes = new ArrayList<>();
 
-		            // Find all of the problems
-		            for (Iterator<ModLink> iterator = why.iterator(); iterator.hasNext();) {
-		                ModLink link = iterator.next();
-		                if (link instanceof MandatoryModIdDefinition) {
-		                    MandatoryModIdDefinition mandatoryMod = (MandatoryModIdDefinition) link;
+					// Find all of the problems
+					for (Iterator<ModLink> iterator = why.iterator(); iterator.hasNext();) {
+						ModLink link = iterator.next();
+						if (link instanceof MandatoryModIdDefinition) {
+							MandatoryModIdDefinition mandatoryMod = (MandatoryModIdDefinition) link;
 							roots.put(mandatoryMod.candidate, mandatoryMod);
-		                    iterator.remove();
-		                }
-		            }
+							iterator.remove();
+						}
+					}
 
-		            causes.addAll(why);
+					causes.addAll(why);
 
-		            try {
-		            	findAndThrowError(roots, causes);
+					ModResolutionException ex = describeError(roots, causes);
+					if (ex == null) {
+						StringBuilder sb = new StringBuilder("Unhandled error involving:");
 
-		            	StringBuilder sb = new StringBuilder("Unhandled error involving:");
+						Map<String, Set<ModLoadOption>> mods = new HashMap<>();
+						for (ModLink link : why) {
+							if (link instanceof ModIdDefinition) {
+								ModIdDefinition def = (ModIdDefinition) link;
+								Set<ModLoadOption> set = mods.get(def.getModId());
+								if (set == null) {
+									mods.put(def.getModId(), set = new HashSet<>());
+								}
+								Collections.addAll(set, def.sources());
+								causes.remove(link);
+							} else if (link instanceof ModDep) {
+								ModDep dep = (ModDep) link;
+								mods.computeIfAbsent(dep.source.modId(), s -> new HashSet<>()).add(dep.source);
+								Set<ModLoadOption> set = mods.get(dep.on.getModId());
+								if (set == null) {
+									mods.put(dep.on.getModId(), set = new HashSet<>());
+								}
+								Collections.addAll(set, dep.on.sources());
+							} else if (link instanceof ModConflict) {
+								ModConflict c = (ModConflict) link;
+							}
+						}
 
-		            	for (MandatoryModIdDefinition root : roots.values()) {
-		            		sb.append("\n" + root);
-		            	}
+						for (Entry<String, Set<ModLoadOption>> entry : mods.entrySet()) {
+							String modid = entry.getKey();
+							Set<ModLoadOption> sources = entry.getValue();
+							if (sources.isEmpty()) {
+								sb.append("\nx unknown mod '" + modid + "'");
+							} else {
+								if (mandatoryMods.contains(modid)) {
+									sb.append("\nmandatory mod '" + modid + "'");
+								} else {
+									sb.append("\noptional mod '" + modid + "'");
+								}
+								for (ModLoadOption src : sources) {
+									sb.append("\n\t - " + src.getSpecificInfo());
+								}
+							}
+						}
 
-		            	for (ModLink link : causes) {
-		            		sb.append("\n" + link);
-		            	}
+						for (ModLink link : causes) {
+							sb.append("\n" + link);
+						}
+						ex = new ModResolutionException(sb.toString());
+					}
 
-		            	errors.add(new ModResolutionException(sb.toString()));
+					errors.add(ex);
 
-		            } catch (ModResolutionException ex) {
-		            	errors.add(ex);
-		            }
+					if (causes.isEmpty()) {
+						break;
+					} else {
 
-		            if (causes.isEmpty()) {
-		            	break;
-		            } else {
+						boolean removedAny = false;
 
-		            	boolean removedAny = false;
+						// Remove dependences and conflicts first
+						for (ModLink link : causes) {
+							if (link instanceof ModDep || link instanceof ModConflict) {
+								if (helper.removeConstraint(link)) {
+									removedAny = true;
+									break;
+								}
+							}
+						}
 
-		            	// Remove dependences and conflicts first
-		            	for (ModLink link : causes) {
-		            		if (link instanceof ModDep || link instanceof ModConflict) {
-		            			if (helper.removeConstraint(link)) {
-		            				removedAny = true;
-		            				break;
-		            			}
-		            		}
-		            	}
+						// If that failed... try removing anything else
+						if (!removedAny) {
+							for (ModLink link : causes) {
+								if (helper.removeConstraint(link)) {
+									removedAny = true;
+									break;
+								}
+							}
+						}
 
-		            	// If that failed... try removing anything else
-		            	if (!removedAny) {
-			            	for (ModLink link : causes) {
-		            			if (helper.removeConstraint(link)) {
-		            				removedAny = true;
-		            				break;
-		            			}
-			            	}
-		            	}
-
-		            	// If that failed... stop finding more errors
-		            	if (!removedAny) {
-		            		break;
-		            	}
-		            }
+						// If that failed... stop finding more errors
+						if (!removedAny) {
+							break;
+						}
+					}
 				}
 
 				if (!errors.isEmpty()) {
@@ -494,8 +520,9 @@ public class ModResolver {
 		return errorList.isEmpty();
 	}
 
-	private static void findAndThrowError(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) throws ModResolutionException {
+	private static ModResolutionException describeError(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
 		// TODO: Create a graph from roots to each other and then build the error through that!
+		return null;
 	}
 
 	static class UrlProcessAction extends RecursiveAction {
@@ -754,12 +781,16 @@ public class ModResolver {
 		}
 
 		String fullString() {
-			LoaderModMetadata info = candidate.getInfo();
-			return shortString() + " version " + info.getVersion() + " loaded from " + getLoadSource();
+			return shortString() + " " + getSpecificInfo();
 		}
 
 		String getLoadSource() {
 			return getReadablePath(FabricLoader.INSTANCE, candidate);
+		}
+
+		String getSpecificInfo() {
+			LoaderModMetadata info = candidate.getInfo();
+			return "version " + info.getVersion() + " loaded from " + getLoadSource();
 		}
 	}
 
@@ -897,7 +928,11 @@ public class ModResolver {
 
 		@Override
 		public String toString() {
-			return "optional mod '" + modid + "' (" + sources.length + " sources)";
+			switch (sources.length) {
+				case 0: return "unknown mod '" + modid + "'";
+				case 1: return "optional mod '" + modid + "' (1 source)";
+				default: return "optional mod '" + modid + "' (" + sources.length + " sources)";
+			}
 		}
 	}
 

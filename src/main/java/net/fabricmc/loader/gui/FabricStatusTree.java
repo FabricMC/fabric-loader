@@ -42,6 +42,17 @@ public final class FabricStatusTree {
 		public static FabricTreeWarningLevel getHighest(FabricTreeWarningLevel a, FabricTreeWarningLevel b) {
 			return a.isHigherThan(b) ? a : b;
 		}
+
+		/** @return The level to use, or null if the given char doesn't map to any level. */
+		public static FabricTreeWarningLevel fromChar(char c) {
+			switch (c) {
+				case '-': return NONE;
+				case '+': return INFO;
+				case '!': return WARN;
+				case 'x': return ERROR;
+				default: return null;
+			}
+		}
 	}
 
 	public enum FabricBasicButtonType {
@@ -175,7 +186,7 @@ public final class FabricStatusTree {
 		}
 
 		public void setWarningLevel(FabricTreeWarningLevel level) {
-			if (this.warningLevel == level) {
+			if (this.warningLevel == level || level == null) {
 				return;
 			}
 
@@ -204,8 +215,44 @@ public final class FabricStatusTree {
 		}
 
 		public FabricStatusNode addChild(String string) {
-			FabricStatusNode child = new FabricStatusNode(this, string);
-			children.add(child);
+			int indent = 0;
+			FabricTreeWarningLevel level = null;
+
+			while (string.startsWith("\t")) {
+				indent++;
+				string = string.substring(1);
+			}
+
+			string = string.trim();
+
+			if (string.length() > 1) {
+				if (Character.isWhitespace(string.charAt(1))) {
+					level = FabricTreeWarningLevel.fromChar(string.charAt(0));
+
+					if (level != null) {
+						string = string.substring(2);
+					}
+				}
+			}
+
+			string = string.trim();
+			FabricStatusNode to = this;
+
+			while (indent > 0) { // I never get to use this operator normally :p
+				indent--;
+				if (to.children.isEmpty()) {
+					FabricStatusNode node = new FabricStatusNode(to, "");
+					to.children.add(node);
+					to = node;
+				} else {
+					to = to.children.get(to.children.size() - 1);
+				}
+				to.expandByDefault = true;
+			}
+
+			FabricStatusNode child = new FabricStatusNode(to, string);
+			child.setWarningLevel(level);
+			to.children.add(child);
 			return child;
 		}
 
