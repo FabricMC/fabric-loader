@@ -537,6 +537,7 @@ public class ModResolver {
 			} catch (JsonParseException e) {
 				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file!", path), e);
 			} catch (NoSuchFileException e) {
+				loader.getLogger().warn(String.format("Non-Fabric mod JAR at \"%s\", ignoring", path));
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
 				throw new RuntimeException(String.format("Failed to open fabric.mod.json for mod at \"%s\"!", path), e);
