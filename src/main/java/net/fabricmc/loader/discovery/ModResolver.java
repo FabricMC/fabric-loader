@@ -99,7 +99,7 @@ public class ModResolver {
 			throw new RuntimeException(e);
 		}
 
-		Path gameDir = loader.getGameDirectory().toPath();
+		Path gameDir = loader.getGameDir();
 		if (path.startsWith(gameDir)) {
 			path = gameDir.relativize(path);
 		}
