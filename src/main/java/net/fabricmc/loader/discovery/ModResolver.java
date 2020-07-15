@@ -397,7 +397,7 @@ public class ModResolver {
 
 	private static String getDependencyVersionRanges(ModDependency dependency) {
 		Collection<VersionRange> ranges = dependency.getVersionRanges();
-		ArrayList<String> parts = new ArrayList<>();
+		ArrayList<String> parts = new ArrayList<>(ranges.size());
 		for (VersionRange range : ranges) {
 			switch (range.getType()) {
 				default:
