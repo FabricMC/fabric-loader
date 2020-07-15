@@ -1,6 +1,7 @@
 package net.fabricmc.loader.api.metadata;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,6 +57,12 @@ public abstract class AbstractModDependency implements ModDependency {
 						return new VersionRange(VersionRange.Type.EQUALS, matcher);
 				}
 			}).collect(Collectors.toCollection(HashSet::new));
+			// simplify: if one ANY range exists, only use that
+			if (ranges.stream().anyMatch(range -> range.getType() == VersionRange.Type.ANY)) {
+				ranges.clear();
+				ranges.add(new VersionRange(VersionRange.Type.ANY, ""));
+			}
+			ranges = Collections.unmodifiableCollection(ranges);
 		}
 		return ranges;
 	}
