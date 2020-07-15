@@ -18,6 +18,7 @@ package net.fabricmc.loader.metadata;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.AbstractModDependency;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
@@ -319,28 +320,15 @@ public class ModMetadataV0 extends AbstractModMetadata implements LoaderModMetad
 			if (modDepList == null) {
 				List<ModDependency> list = new ArrayList<>(this.size());
 				for (String s : this.keySet()) {
-					list.add(new ModDependency() {
-						@Override
-						public String getModId() {
-							return s;
-						}
-
+					list.add(new AbstractModDependency(s) {
 						@Override
 						public boolean matches(Version version) {
 							return DependencyMap.this.get(s).satisfiedBy(version);
 						}
 
-						// TODO possibly improve this somewhat?
 						@Override
-						public String getFriendlyVersionString() {
-							String[] matchers = DependencyMap.this.get(s).versionMatchers;
-							if (matchers.length == 0) {
-								return "any version";
-							} else if (matchers.length == 1) {
-								return "version " + matchers[0];
-							} else {
-								return "versions " + String.join(", ", matchers);
-							}
+						protected String[] getVersionMatchers() {
+							return DependencyMap.this.get(s).versionMatchers;
 						}
 
 						@Override

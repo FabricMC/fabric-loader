@@ -20,6 +20,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.metadata.AbstractModDependency;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
@@ -278,12 +279,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 						depAsStr = builder.toString();
 					}
 
-					ctr.dependencies.add(new ModDependency() {
-						@Override
-						public String getModId() {
-							return id;
-						}
-
+					ctr.dependencies.add(new AbstractModDependency(id) {
 						@Override
 						public boolean matches(Version version) {
 							for (String s : matcherStringList) {
@@ -301,41 +297,8 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 						}
 
 						@Override
-						public String getFriendlyVersionString() {
-							StringBuilder sb = new StringBuilder();
-							for (int i = 0; i < matcherStringList.size(); i++) {
-								String verStr = matcherStringList.get(i);
-								char firstChar = verStr.charAt(0);
-								char secondChar = 0;
-								if (verStr.length() > 1)
-									secondChar = verStr.charAt(1);
-								switch (firstChar) {
-									case '*':
-										sb.append("any version");
-										break;
-									case '>':
-										if (secondChar == '=')
-											sb.append("version ").append(verStr.substring(2)).append(" or higher");
-										else
-											sb.append("any version after ").append(verStr.substring(1));
-										break;
-									case '<':
-										if (secondChar == '=')
-											sb.append("version ").append(verStr.substring(2)).append(" or lower");
-										else
-											sb.append("any version before ").append(verStr.substring(1));
-										break;
-									case '=':
-										sb.append("version ").append(verStr.substring(1));
-										break;
-									default:
-										sb.append("unknown version");
-										break;
-								}
-								if (i < matcherStringList.size() - 1)
-									sb.append(" or ");
-							}
-							return sb.toString();
+						protected String[] getVersionMatchers() {
+							return matcherStringList.toArray(new String[0]);
 						}
 
 						@Override

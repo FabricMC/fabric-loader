@@ -22,6 +22,7 @@ import com.google.common.jimfs.PathType;
 import com.google.gson.*;
 
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.VersionRange;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.api.Version;
@@ -338,7 +339,7 @@ public class ModResolver {
 
 		if (isPresent != cond) {
 			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
-					.append(dependency.getFriendlyVersionString()).append(" of mod ")
+					.append(getDependencyVersionRanges(dependency)).append(" of mod ")
 					.append(depCandidate == null ? depModId : getCandidateName(depCandidate)).append(", ");
 
 			if (depCandidate == null) {
@@ -357,13 +358,13 @@ public class ModResolver {
 	// TODO alternate instructions (downgrade/upgrade to version whatever)
 	private void appendMissingDependencyError(StringBuilder errors, ModDependency dependency) {
 		errors.append("which is missing!");
-		errors.append("\n\t - You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
+		errors.append("\n\t - You must install ").append(getDependencyVersionRanges(dependency)).append(" of ")
 				.append(dependency.getModId()).append(".");
 	}
 
 	private void appendUnsatisfiedDependencyError(StringBuilder errors, ModDependency dependency, ModCandidate depCandidate) {
 		errors.append("but a non-matching version is present: ").append(getCandidateFriendlyVersion(depCandidate)).append("!");
-		errors.append("\n\t - You must install ").append(dependency.getFriendlyVersionString()).append(" of ")
+		errors.append("\n\t - You must install ").append(getDependencyVersionRanges(dependency)).append(" of ")
 				.append(getCandidateName(depCandidate)).append(".");
 	}
 
@@ -392,6 +393,38 @@ public class ModResolver {
 
 	private static String getCandidateFriendlyVersion(ModCandidate candidate) {
 		return candidate.getInfo().getVersion().getFriendlyString();
+	}
+
+	private static String getDependencyVersionRanges(ModDependency dependency) {
+		Collection<VersionRange> ranges = dependency.getVersionRanges();
+		ArrayList<String> parts = new ArrayList<>();
+		for (VersionRange range : ranges) {
+			switch (range.getType()) {
+				default:
+				case INVALID:
+					parts.add("unknown version");
+					break;
+				case ANY:
+					parts.add("any version");
+					break;
+				case EQUALS:
+					parts.add("version " + range.getVersion());
+					break;
+				case GREATER_THAN:
+					parts.add("any version after " + range.getVersion());
+					break;
+				case LESSER_THAN:
+					parts.add("any version before " + range.getVersion());
+					break;
+				case GREATER_THAN_OR_EQUAL:
+					parts.add("version " + range.getVersion() + " or later");
+					break;
+				case LESSER_THAN_OR_EQUAL:
+					parts.add("version " + range.getVersion() + " or earlier");
+					break;
+			}
+		}
+		return String.join(" or ", parts.toArray(new String[0]));
 	}
 
 	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */

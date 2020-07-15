@@ -16,7 +16,10 @@
 
 package net.fabricmc.loader.api.metadata;
 
+import java.util.Collection;
+
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionRange;
 
 /**
  * Represents a dependency.
@@ -35,9 +38,9 @@ public interface ModDependency {
 	boolean matches(Version version);
 
 	/**
-	 * Converts this dependency's version range to a user-friendly text representation.
+	 * Returns a representation of the dependency's version requirements.
 	 *
-	 * @return a user-friendly representation of this dependency's version range
+	 * @return representation of the dependency's version requirements
 	 */
-	String getFriendlyVersionString();
+	Collection<VersionRange> getVersionRanges();
 }
