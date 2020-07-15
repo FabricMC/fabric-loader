@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util.version;
+package net.fabricmc.loader.api.metadata;
 
-/** @deprecated Replaced by {@link net.fabricmc.loader.api.VersionParsingException} */
-@Deprecated
-public class VersionParsingException extends Exception {
-	public VersionParsingException() {
-		super();
-	}
+import net.fabricmc.api.EnvType;
 
-	public VersionParsingException(Throwable t) {
-		super(t);
-	}
+public enum ModEnvironment {
+	CLIENT,
+	SERVER,
+	UNIVERSAL;
 
-	public VersionParsingException(String s) {
-		super(s);
-	}
-
-	public VersionParsingException(String s, Throwable t) {
-		super(s, t);
+	public boolean matches(EnvType type) {
+		switch (this) {
+			case CLIENT:
+				return type == EnvType.CLIENT;
+			case SERVER:
+				return type == EnvType.SERVER;
+			case UNIVERSAL:
+				return true;
+			default:
+				return false;
+		}
 	}
 }

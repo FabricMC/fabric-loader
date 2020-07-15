@@ -19,12 +19,13 @@ package net.fabricmc.loader.metadata;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.AbstractModDependency;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.util.version.VersionParsingException;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 import org.apache.logging.log4j.Logger;
 
@@ -41,7 +42,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	private Version version;
 
 	// Optional (mod loading)
-	private Environment environment = Environment.UNIVERSAL;
+	private ModEnvironment environment = ModEnvironment.UNIVERSAL;
 	private EntrypointContainer entrypoints = new EntrypointContainer();
 	private JarEntry[] jars = new JarEntry[0];
 	private MixinEntry[] mixins = new MixinEntry[0];
@@ -67,7 +68,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	private Map<String, String> languageAdapters = new HashMap<>();
 
 	// Optional (custom)
-	private Map<String, JsonElement> custom = new HashMap<>();
+	private CustomValueContainer custom = new CustomValueContainer();
 
 	// Happy little accidents
 	@Deprecated
@@ -192,21 +193,18 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 	}
 
 	@Override
-	public boolean containsCustomValue(String key) {
-		return custom.containsKey(key);
-	}
-
-	@Override
-	public CustomValue getCustomValue(String key) {
-		JsonElement e = custom.get(key);
-		if (e == null) return null;
-
-		return CustomValueImpl.fromJsonElement(e);
+	public Map<String, CustomValue> getCustomValues() {
+		return custom.getCustomValues();
 	}
 
 	@Override
 	public Version getVersion() {
 		return version;
+	}
+
+	@Override
+	public ModEnvironment getEnvironment() {
+		return environment;
 	}
 
 	@Override
@@ -491,7 +489,7 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 
 	public static class MixinEntry {
 		private String config;
-		private Environment environment = Environment.UNIVERSAL;
+		private ModEnvironment environment = ModEnvironment.UNIVERSAL;
 
 		public static class Deserializer implements JsonDeserializer<MixinEntry> {
 			@Override
@@ -507,48 +505,13 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 
 					entry.config = obj.get("config").getAsString();
 					if (obj.has("environment")) {
-						entry.environment = context.deserialize(obj.get("environment"), Environment.class);
+						entry.environment = context.deserialize(obj.get("environment"), ModEnvironment.class);
 					}
 				} else {
 					throw new JsonParseException("Invalid type for mixin entry!");
 				}
 
 				return entry;
-			}
-		}
-	}
-
-	public enum Environment {
-		CLIENT,
-		SERVER,
-		UNIVERSAL;
-
-		public boolean matches(EnvType type) {
-			switch (this) {
-				case CLIENT:
-					return type == EnvType.CLIENT;
-				case SERVER:
-					return type == EnvType.SERVER;
-				case UNIVERSAL:
-					return true;
-				default:
-					return false;
-			}
-		}
-
-		public static class Deserializer implements JsonDeserializer<Environment> {
-			@Override
-			public Environment deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-				String s = element.getAsString().toLowerCase(Locale.ROOT);
-				if (s.isEmpty() || s.equals("*")) {
-					return UNIVERSAL;
-				} else if (s.equals("client")) {
-					return CLIENT;
-				} else if (s.equals("server")) {
-					return SERVER;
-				} else {
-					throw new JsonParseException("Invalid environment type: " + s + "!");
-				}
 			}
 		}
 	}
@@ -570,6 +533,56 @@ public class ModMetadataV1 extends AbstractModMetadata implements LoaderModMetad
 				}
 
 				return entry;
+			}
+		}
+	}
+
+	public static class EnvironmentDeserializer implements JsonDeserializer<ModEnvironment> {
+		@Override
+		public ModEnvironment deserialize(JsonElement element, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+			String s = element.getAsString().toLowerCase(Locale.ROOT);
+			if (s.isEmpty() || s.equals("*")) {
+				return ModEnvironment.UNIVERSAL;
+			} else if (s.equals("client")) {
+				return ModEnvironment.CLIENT;
+			} else if (s.equals("server")) {
+				return ModEnvironment.SERVER;
+			} else {
+				throw new JsonParseException("Invalid environment type: " + s + "!");
+			}
+		}
+	}
+
+	public static class CustomValueContainer {
+		public CustomValueContainer() {
+			this.customValues = Collections.emptyMap();
+		}
+
+		public CustomValueContainer(Map<String, CustomValue> customValues) {
+			this.customValues = Collections.unmodifiableMap(customValues);
+		}
+
+		private final Map<String, CustomValue> customValues;
+
+		private Map<String, CustomValue> getCustomValues() {
+			return this.customValues;
+		}
+
+		public static class Deserializer implements JsonDeserializer<CustomValueContainer> {
+			@Override
+			public CustomValueContainer deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+				if (!json.isJsonObject()) {
+					throw new JsonParseException("Custom values must be in an object!");
+				}
+
+				final Map<String, CustomValue> customValues = new HashMap<>();
+				final Set<Map.Entry<String, JsonElement>> entries = json.getAsJsonObject().entrySet();
+
+				for (Map.Entry<String, JsonElement> entry : entries) {
+					customValues.put(entry.getKey(), CustomValueImpl.fromJsonElement(entry.getValue()));
+				}
+
+				return new CustomValueContainer(customValues);
 			}
 		}
 	}

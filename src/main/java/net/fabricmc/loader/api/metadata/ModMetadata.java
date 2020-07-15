@@ -17,6 +17,7 @@
 package net.fabricmc.loader.api.metadata;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.gson.JsonElement;
@@ -52,6 +53,11 @@ public interface ModMetadata {
 	 * Returns the mod's version.
 	 */
 	Version getVersion();
+
+	/**
+	 * Returns the mod's environment.
+	 */
+	ModEnvironment getEnvironment();
 
 	/**
 	 * Returns the mod's required dependencies, without which the Loader will terminate loading.
@@ -140,6 +146,15 @@ public interface ModMetadata {
 	 * @return the custom value, or {@code null} if no such value is present
 	 */
 	CustomValue getCustomValue(String key);
+
+	/**
+	 * Gets all custom values defined by this mod.
+	 *
+	 * <p>Note this map is unmodifiable.
+	 *
+	 * @return a map containing the custom values this mod defines.
+	 */
+	Map<String, CustomValue> getCustomValues();
 
 	/**
 	 * @deprecated Use {@link #containsCustomValue} instead, this will be removed (can't expose GSON types)!

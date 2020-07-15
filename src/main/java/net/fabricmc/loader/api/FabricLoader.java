@@ -17,6 +17,7 @@
 package net.fabricmc.loader.api;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -154,8 +155,13 @@ public interface FabricLoader {
 	 * server object. As such, the exact return is dependent on the
 	 * current environment type.
 	 *
+	 * <p>The game instance may not always be available depending on the game version and {@link EnvType environment}.
+	 *
 	 * @return A client or server instance object
+	 * @deprecated This method is experimental and it's use is discouraged.
 	 */
+	/* @Nullable */
+	@Deprecated
 	Object getGameInstance();
 
 	/**
@@ -163,6 +169,9 @@ public interface FabricLoader {
 	 *
 	 * @return the working directory
 	 */
+	Path getGameDir();
+
+	@Deprecated
 	File getGameDirectory();
 
 	/**
@@ -170,5 +179,8 @@ public interface FabricLoader {
 	 *
 	 * @return the configuration directory
 	 */
+	Path getConfigDir();
+
+	@Deprecated
 	File getConfigDirectory();
 }

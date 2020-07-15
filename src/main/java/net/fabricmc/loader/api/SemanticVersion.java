@@ -19,7 +19,6 @@ package net.fabricmc.loader.api;
 import java.util.Optional;
 
 import net.fabricmc.loader.util.version.VersionDeserializer;
-import net.fabricmc.loader.util.version.VersionParsingException;
 
 /**
  * Represents a <a href="https://semver.org/">Sematic Version</a>.

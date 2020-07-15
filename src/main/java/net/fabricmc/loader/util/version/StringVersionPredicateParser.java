@@ -18,6 +18,8 @@ package net.fabricmc.loader.util.version;
 
 import java.util.function.Predicate;
 
+import net.fabricmc.loader.api.VersionParsingException;
+
 public final class StringVersionPredicateParser {
 	public static Predicate<StringVersion> create(String text) throws VersionParsingException {
 		final String compared = text.trim();

@@ -69,7 +69,7 @@ public class ModResolver {
 			.setSupportedFeatures(SECURE_DIRECTORY_STREAM, FILE_CHANNEL)
 			.build()
 	);
-	private static final Map<URL, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
+	private static final Map<String, List<Path>> inMemoryCache = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 	private static final Object launcherSyncObject = new Object();
 
@@ -534,12 +534,14 @@ public class ModResolver {
 
 			try (InputStream stream = Files.newInputStream(modJson)) {
 				info = ModMetadataParser.getMods(loader, stream);
-			} catch (JsonSyntaxException e) {
-				throw new RuntimeException("Mod at '" + path + "' has an invalid fabric.mod.json file!", e);
+			} catch (JsonParseException e) {
+				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file!", path), e);
 			} catch (NoSuchFileException e) {
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
-				throw new RuntimeException("Failed to open fabric.mod.json for mod at '" + path + "'!", e);
+				throw new RuntimeException(String.format("Failed to open fabric.mod.json for mod at \"%s\"!", path), e);
+			} catch (Throwable t) {
+				throw new RuntimeException(String.format("Failed to parse mod metadata for mod at \"%s\"", path), t);
 			}
 
 			for (LoaderModMetadata i : info) {
@@ -575,7 +577,7 @@ public class ModResolver {
 				} else {
 					loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
 
-					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl(), (u) -> {
+					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl().toString(), (u) -> {
 						loader.getLogger().debug("Searching for nested JARs in " + candidate);
 						Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
 						List<Path> list = new ArrayList<>(jars.size());

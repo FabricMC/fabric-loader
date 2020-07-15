@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util.version;
+package net.fabricmc.loader.api;
 
-/** @deprecated Replaced by {@link net.fabricmc.loader.api.VersionParsingException} */
-@Deprecated
-public class VersionParsingException extends Exception {
+@SuppressWarnings("deprecation") //Extending the deprecated one for backwards compatibility
+public class VersionParsingException extends net.fabricmc.loader.util.version.VersionParsingException {
 	public VersionParsingException() {
 		super();
 	}
