@@ -35,6 +35,7 @@ import org.objectweb.asm.Opcodes;
 
 import com.google.gson.stream.JsonReader;
 
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
@@ -393,7 +394,7 @@ public final class McVersionLookup {
 
 	private static final class FieldStringConstantVisitor extends ClassVisitor implements Analyzer {
 		public FieldStringConstantVisitor(String fieldName) {
-			super(Opcodes.ASM8);
+			super(FabricLoader.ASM_VERSION);
 
 			this.fieldName = fieldName;
 		}
@@ -464,7 +465,7 @@ public final class McVersionLookup {
 
 	private static final class MethodStringConstantContainsVisitor extends ClassVisitor implements Analyzer {
 		public MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
-			super(Opcodes.ASM8);
+			super(FabricLoader.ASM_VERSION);
 
 			this.methodOwner = methodOwner;
 			this.methodName = methodName;
@@ -519,7 +520,7 @@ public final class McVersionLookup {
 
 	private static final class MethodConstantRetVisitor extends ClassVisitor implements Analyzer {
 		public MethodConstantRetVisitor(String methodName) {
-			super(Opcodes.ASM8);
+			super(FabricLoader.ASM_VERSION);
 
 			this.methodName = methodName;
 		}
@@ -577,7 +578,7 @@ public final class McVersionLookup {
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
 		public MethodConstantVisitor(String methodNameHint) {
-			super(Opcodes.ASM8);
+			super(FabricLoader.ASM_VERSION);
 
 			this.methodNameHint = methodNameHint;
 		}
@@ -595,7 +596,7 @@ public final class McVersionLookup {
 				return null;
 			}
 
-			return new MethodVisitor(Opcodes.ASM8) {
+			return new MethodVisitor(FabricLoader.ASM_VERSION) {
 				@Override
 				public void visitLdcInsn(Object value) {
 					String str;
@@ -617,7 +618,7 @@ public final class McVersionLookup {
 
 	private static abstract class InsnFwdMethodVisitor extends MethodVisitor {
 		public InsnFwdMethodVisitor() {
-			super(Opcodes.ASM8);
+			super(FabricLoader.ASM_VERSION);
 		}
 
 		protected abstract void visitAnyInsn();

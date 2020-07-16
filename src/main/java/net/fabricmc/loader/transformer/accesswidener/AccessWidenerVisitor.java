@@ -21,6 +21,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.mappings.EntryTriple;
 
 public class AccessWidenerVisitor extends ClassVisitor {
@@ -82,7 +83,7 @@ public class AccessWidenerVisitor extends ClassVisitor {
 
 	private class AccessWidenerMethodVisitor extends MethodVisitor {
 		AccessWidenerMethodVisitor(MethodVisitor methodVisitor) {
-			super(Opcodes.ASM7, methodVisitor);
+			super(FabricLoader.ASM_VERSION, methodVisitor);
 		}
 
 		@Override
@@ -96,6 +97,15 @@ public class AccessWidenerVisitor extends ClassVisitor {
 			}
 
 			super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+		}
+	}
+
+	@Override
+	public void visitPermittedSubclass(String permittedSubclass) {
+		super.visitPermittedSubclass(permittedSubclass);
+
+		for (String permittedClass : accessWidener.getPermittedClasses(className)) {
+			super.visitPermittedSubclass(permittedClass);
 		}
 	}
 }

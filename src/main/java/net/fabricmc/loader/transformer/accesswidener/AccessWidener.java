@@ -20,7 +20,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -38,6 +40,7 @@ public class AccessWidener {
 	public Map<String, Access> classAccess = new HashMap<>();
 	public Map<EntryTriple, Access> methodAccess = new HashMap<>();
 	public Map<EntryTriple, Access> fieldAccess = new HashMap<>();
+	public Map<String, Set<String>> permittedClasses = new HashMap<>();
 	private Set<String> classes = new LinkedHashSet<>();
 
 	private final FabricLoader fabricLoader;
@@ -107,6 +110,15 @@ public class AccessWidener {
 			}
 
 			String access = split[0];
+
+			if (access.equals("permits")) {
+				if (split.length != 3) {
+					throw new RuntimeException(String.format("Expected (permits\t<targetClass>\t<childClass>) got (%s)", line));
+				}
+
+				permittedClasses.computeIfAbsent(split[1], s -> new HashSet<>()).add(split[2]);
+				continue;
+			}
 
 			targets.add(split[2].replaceAll("/", "."));
 
@@ -194,6 +206,10 @@ public class AccessWidener {
 
 	public Access getMethodAccess(EntryTriple entryTriple) {
 		return methodAccess.getOrDefault(entryTriple, MethodAccess.DEFAULT);
+	}
+
+	public Set<String> getPermittedClasses(String className) {
+		return permittedClasses.getOrDefault(className, Collections.emptySet());
 	}
 
 	public Set<String> getTargets() {
