@@ -247,9 +247,20 @@ public class SemanticVersionImpl implements SemanticVersion {
 
 						int compare;
 						try {
-							compare = Integer.compareUnsigned(Integer.parseUnsignedInt(partA), Integer.parseUnsignedInt(partB));
+							int numA = Integer.parseUnsignedInt(partA);
+							try {
+								int numB = Integer.parseUnsignedInt(partB);
+								compare = Integer.compareUnsigned(numA, numB);
+							} catch (NumberFormatException e) {
+								compare = -1;
+							}
 						} catch (NumberFormatException e) {
-							compare = partA.compareTo(partB);
+							try {
+								Integer.parseUnsignedInt(partB);
+								compare = 1;
+							} catch (NumberFormatException e2) {
+								compare = partA.compareTo(partB);
+							}
 						}
 						if (compare != 0)
 							return compare;
