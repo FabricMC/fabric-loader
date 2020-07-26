@@ -105,6 +105,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.ClientModInitializer");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.DedicatedServerModInitializer");
 
+		// FIXME: remove the GSON exclusion once loader stops using it (or repackages it)
+		launchClassLoader.addClassLoaderExclusion("com.google.gson.");
+
 		GameProvider provider = new MinecraftGameProvider();
 
 		if (!provider.locateGame(getEnvironmentType(), launchClassLoader)) {
