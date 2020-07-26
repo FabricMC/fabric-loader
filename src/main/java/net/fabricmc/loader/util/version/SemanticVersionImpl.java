@@ -22,6 +22,7 @@ import net.fabricmc.loader.api.VersionParsingException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 public class SemanticVersionImpl implements SemanticVersion {
@@ -214,5 +215,59 @@ public class SemanticVersionImpl implements SemanticVersion {
 
 	boolean isPrerelease() {
 		return prerelease != null;
+	}
+
+	@Override
+	public int compareTo(SemanticVersion o) {
+		for (int i = 0; i < Math.max(getVersionComponentCount(), o.getVersionComponentCount()); i++) {
+			int first = getVersionComponent(i);
+			int second = o.getVersionComponent(i);
+			if (first == COMPONENT_WILDCARD || second == COMPONENT_WILDCARD) {
+				continue;
+			}
+
+			int compare = Integer.compare(first, second);
+			if (compare != 0) {
+				return compare;
+			}
+		}
+
+		Optional<String> prereleaseA = getPrereleaseKey();
+		Optional<String> prereleaseB = o.getPrereleaseKey();
+
+		if (prereleaseA.isPresent() || prereleaseB.isPresent()) {
+			if (prereleaseA.isPresent() && prereleaseB.isPresent()) {
+				StringTokenizer prereleaseATokenizer = new StringTokenizer(prereleaseA.get(), ".");
+				StringTokenizer prereleaseBTokenizer = new StringTokenizer(prereleaseB.get(), ".");
+
+				while (prereleaseATokenizer.hasMoreElements()) {
+					if (prereleaseBTokenizer.hasMoreElements()) {
+						String partA = prereleaseATokenizer.nextToken();
+						String partB = prereleaseBTokenizer.nextToken();
+
+						int compare;
+						try {
+							compare = Integer.compareUnsigned(Integer.parseUnsignedInt(partA), Integer.parseUnsignedInt(partB));
+						} catch (NumberFormatException e) {
+							compare = partA.compareTo(partB);
+						}
+						if (compare != 0)
+							return compare;
+					} else {
+						return 1;
+					}
+				}
+				if (prereleaseBTokenizer.hasMoreElements()) {
+					return -1;
+				}
+				return 0;
+			} else if (prereleaseA.isPresent()) {
+				return o.hasWildcard() ? 0 : -1;
+			} else { // prereleaseB.isPresent()
+				return hasWildcard() ? 0 : 1;
+			}
+		} else {
+			return 0;
+		}
 	}
 }
