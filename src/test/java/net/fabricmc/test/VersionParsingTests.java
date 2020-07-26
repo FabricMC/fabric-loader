@@ -153,7 +153,7 @@ public class VersionParsingTests {
 			testFalse(predicate.test(new SemanticVersionImpl("1.4", false)));
 		}
 
-		// Test pre-release parts
+		// Test: pre-release parts
 		{
 			Predicate<SemanticVersionImpl> predicate = SemanticVersionPredicateParser.create(">=0.3.1-beta.8.d.10");
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.9", false)));
@@ -162,7 +162,9 @@ public class VersionParsingTests {
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.d.10", false)));
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.9.d.5", false)));
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.final", false)));
+			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-beta.7", false)));
 			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.d", false)));
+			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.a", false)));
 			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-alpha.9", false)));
 			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.8", false)));
 		}
