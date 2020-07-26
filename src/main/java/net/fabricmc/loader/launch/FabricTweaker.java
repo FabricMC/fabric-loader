@@ -37,14 +37,20 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.Proxy;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
@@ -126,7 +132,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
 
-				FabricLauncherBase.deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), jarFile.toPath(), this);
+				Path obfuscated = jarFile.toPath();
+				Path remapped = FabricLauncherBase.deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), obfuscated, this);
+				if (remapped != obfuscated) {
+					preloadRemappedJar(remapped);
+				}
 			} catch (IOException | UrlConversionException e) {
 				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);
 			}
@@ -189,6 +199,56 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		}
 
 		return classBytes;
+	}
+
+	// By default the remapped jar will be on the classpath after the obfuscated one.
+	// This will lead to us finding and the launching the obfuscated one when we search
+	// for the entrypoint.
+	// To work around that, we pre-popuplate the LaunchClassLoader's resource cache,
+	// which will then cause it to use the one we need it to.
+	private void preloadRemappedJar(Path remappedJarFile) throws IOException {
+		Map<String, byte[]> resourceCache = null;
+		try {
+			Field f = LaunchClassLoader.class.getDeclaredField("resourceCache");
+			f.setAccessible(true);
+			//noinspection unchecked
+			resourceCache = (Map<String, byte[]>) f.get(launchClassLoader);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (resourceCache == null) {
+			LOGGER.warn("Resource cache not pre-populated - this will probably cause issues...");
+			return;
+		}
+
+		try (FileInputStream jarFileStream = new FileInputStream(remappedJarFile.toFile());
+			 JarInputStream jarStream = new JarInputStream(jarFileStream)) {
+			JarEntry entry;
+
+			while ((entry = jarStream.getNextJarEntry()) != null) {
+				if (entry.getName().startsWith("net/minecraft/class_") || !entry.getName().endsWith(".class")) {
+					// These will never be in the obfuscated jar, so we can safely skip them
+					continue;
+				}
+				String className = entry.getName();
+				className = className.substring(0, className.length() - 6).replace('/', '.');
+				LOGGER.debug("Appending " + className + " to resource cache...");
+				resourceCache.put(className, toByteArray(jarStream));
+			}
+		}
+	}
+
+	private byte[] toByteArray(InputStream inputStream) throws IOException {
+		int estimate = inputStream.available();
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(estimate < 32 ? 32768 : estimate);
+		byte[] buffer = new byte[8192];
+		int len;
+		while ((len = inputStream.read(buffer)) > 0) {
+			outputStream.write(buffer, 0, len);
+		}
+
+		return outputStream.toByteArray();
 	}
 
 	@Override
