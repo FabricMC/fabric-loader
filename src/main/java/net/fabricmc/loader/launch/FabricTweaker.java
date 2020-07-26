@@ -88,6 +88,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.Environment");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.ModInitializer");
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.ClientModInitializer");
+		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.DedicatedServerModInitializer");
 
 		GameProvider provider = new MinecraftGameProvider();
 
