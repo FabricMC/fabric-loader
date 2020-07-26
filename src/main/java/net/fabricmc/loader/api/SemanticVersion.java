@@ -16,7 +16,9 @@
 
 package net.fabricmc.loader.api;
 
+import java.util.Enumeration;
 import java.util.Optional;
+import java.util.StringTokenizer;
 
 import net.fabricmc.loader.util.version.VersionDeserializer;
 
@@ -115,7 +117,30 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 
 		if (prereleaseA.isPresent() || prereleaseB.isPresent()) {
 			if (prereleaseA.isPresent() && prereleaseB.isPresent()) {
-				return prereleaseA.get().compareTo(prereleaseB.get());
+				StringTokenizer prereleaseATokenizer = new StringTokenizer(prereleaseA.get(), ".");
+				StringTokenizer prereleaseBTokenizer = new StringTokenizer(prereleaseB.get(), ".");
+
+				while (prereleaseATokenizer.hasMoreElements()) {
+					if (prereleaseBTokenizer.hasMoreElements()) {
+						String partA = prereleaseATokenizer.nextToken();
+						String partB = prereleaseBTokenizer.nextToken();
+
+						int compare;
+						try {
+							compare = Integer.compareUnsigned(Integer.parseUnsignedInt(partA), Integer.parseUnsignedInt(partB));
+						} catch (NumberFormatException e) {
+							compare = partA.compareTo(partB);
+						}
+						if (compare != 0)
+							return compare;
+					} else {
+						return 1;
+					}
+				}
+				if (prereleaseBTokenizer.hasMoreElements()) {
+					return -1;
+				}
+				return 0;
 			} else if (prereleaseA.isPresent()) {
 				return o.hasWildcard() ? 0 : -1;
 			} else { // prereleaseB.isPresent()
