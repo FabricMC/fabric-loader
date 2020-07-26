@@ -257,10 +257,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 						return 1;
 					}
 				}
-				if (prereleaseBTokenizer.hasMoreElements()) {
-					return -1;
-				}
-				return 0;
+				return prereleaseBTokenizer.hasMoreElements() ? -1 : 0;
 			} else if (prereleaseA.isPresent()) {
 				return o.hasWildcard() ? 0 : -1;
 			} else { // prereleaseB.isPresent()

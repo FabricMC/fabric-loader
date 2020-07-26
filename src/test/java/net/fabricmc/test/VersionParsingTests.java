@@ -161,7 +161,10 @@ public class VersionParsingTests {
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.e", false)));
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.d.10", false)));
 			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.9.d.5", false)));
+			testTrue(predicate.test(new SemanticVersionImpl("0.3.1-beta.final", false)));
+			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.d", false)));
 			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-alpha.9", false)));
+			testFalse(predicate.test(new SemanticVersionImpl("0.3.1-beta.8.8", false)));
 		}
 
 		// Test: x-range. "a.b.x" = ">=a.b.0- <a.(b+1).0-" (same major+minor, pre allowed)
