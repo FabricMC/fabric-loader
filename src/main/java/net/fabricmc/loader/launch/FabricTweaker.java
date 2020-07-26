@@ -90,11 +90,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.EnvType");
 
 		GameProvider provider = new MinecraftGameProvider();
-		provider.acceptArguments(arguments);
 
 		if (!provider.locateGame(getEnvironmentType(), launchClassLoader)) {
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
+		provider.acceptArguments(arguments.toArray());
 
 		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
