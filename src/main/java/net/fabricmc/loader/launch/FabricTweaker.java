@@ -24,6 +24,7 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.minecraft.launchwrapper.ITweaker;
@@ -41,12 +42,16 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
-	protected String[] arguments;
+	protected Arguments arguments;
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
+
+	@SuppressWarnings("unchecked")
+	private final boolean isPrimaryTweaker = ((List<ITweaker>) Launch.blackboard.get("Tweaks")).isEmpty();
 
 	@Override
 	public String getEntrypoint() {
@@ -61,8 +66,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public void acceptOptions(List<String> localArgs, File gameDir, File assetsDir, String profile) {
-		arguments = localArgs.toArray(new String[0]);
-		/*arguments.parse(localArgs);
+		arguments = new Arguments();
+		arguments.parse(localArgs);
 
 		if (!arguments.containsKey("gameDir") && gameDir != null) {
 			arguments.put("gameDir", gameDir.getAbsolutePath());
@@ -72,7 +77,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			arguments.put("assetsDir", assetsDir.getAbsolutePath());
 		}
 
-		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());*/
+		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());
 	}
 
 	@Override
@@ -139,7 +144,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public String[] getLaunchArguments() {
-		return arguments;
+		return isPrimaryTweaker ? arguments.toArray() : new String[0];
 	}
 
 	@Override
