@@ -47,11 +47,15 @@ public class VersionRange {
 				return "version " + version + " or later";
 			case LESSER_THAN_OR_EQUAL:
 				return "version " + version + " or earlier";
-			// TODO improve these two
 			case SAME_MAJOR:
-				return "any version that shares major component with " + version;
 			case SAME_MAJOR_AND_MINOR:
-				return "any version that shares major and minor components with " + version;
+				String[] parts = version.split("\\.");
+				int start = 1;
+				if (type == Type.SAME_MAJOR_AND_MINOR)
+					start = 2;
+				for (int i = start; i < parts.length; i++)
+					parts[i] = "x";
+				return "version " + String.join(".", parts);
 		}
 	}
 }
