@@ -1,5 +1,7 @@
 package net.fabricmc.loader.api;
 
+import java.util.Objects;
+
 public class VersionRange {
 	public enum Type {
 		INVALID,
@@ -57,5 +59,23 @@ public class VersionRange {
 					parts[i] = "x";
 				return "version " + String.join(".", parts);
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		VersionRange that = (VersionRange) o;
+		return type == that.type &&
+				version.equals(that.version);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, version);
 	}
 }
