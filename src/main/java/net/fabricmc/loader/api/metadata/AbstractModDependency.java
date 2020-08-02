@@ -56,7 +56,7 @@ public abstract class AbstractModDependency implements ModDependency {
 					default: // string version
 						return new VersionRange(VersionRange.Type.EQUALS, matcher);
 				}
-			}).collect(Collectors.toCollection(HashSet::new));
+			}).collect(Collectors.toSet());
 			// simplify: if one ANY range exists, only use that
 			if (ranges.stream().anyMatch(range -> range.getType() == VersionRange.Type.ANY)) {
 				ranges.clear();

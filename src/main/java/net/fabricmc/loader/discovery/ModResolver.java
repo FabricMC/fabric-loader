@@ -355,7 +355,6 @@ public class ModResolver {
 		}
 	}
 
-	// TODO alternate instructions (downgrade/upgrade to version whatever)
 	private void appendMissingDependencyError(StringBuilder errors, ModDependency dependency) {
 		errors.append("which is missing!");
 		errors.append("\n\t - You must install ").append(getDependencyVersionRanges(dependency)).append(" of ")

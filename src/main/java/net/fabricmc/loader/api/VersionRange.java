@@ -17,6 +17,7 @@ public class VersionRange {
 
 	private final Type type;
 	private final String version;
+	private String stringRepr;
 
 	public VersionRange(Type type, String version) {
 		this.type = type;
@@ -31,8 +32,7 @@ public class VersionRange {
 		return version;
 	}
 
-	@Override
-	public String toString() {
+	private String makeStringRepr() {
 		switch (type) {
 			default:
 			case INVALID:
@@ -59,6 +59,13 @@ public class VersionRange {
 					parts[i] = "x";
 				return "version " + String.join(".", parts);
 		}
+	}
+
+	@Override
+	public String toString() {
+		if (stringRepr == null)
+			stringRepr = makeStringRepr();
+		return stringRepr;
 	}
 
 	@Override
