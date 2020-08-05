@@ -378,8 +378,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private void setupMods() {
 		for (ModContainer mod : mods) {
 			try {
-				mod.setupRootPath();
-
 				for (String in : mod.getInfo().getOldInitializers()) {
 					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
 					entrypointStorage.addDeprecated(mod, adapter, in);
