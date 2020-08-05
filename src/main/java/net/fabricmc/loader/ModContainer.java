@@ -53,6 +53,8 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 				}
 
 				root = delegate.get().getRootDirectories().iterator().next();
+
+				// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
 			}
 		} catch (IOException | UrlConversionException e) {
 			throw new RuntimeException("Failed to find root directory for mod '" + info.getId() + "'!", e);
