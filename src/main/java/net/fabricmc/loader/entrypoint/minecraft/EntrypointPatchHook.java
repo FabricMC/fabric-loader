@@ -214,22 +214,19 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					finishEntrypoint(type, it);
 					patched = true;
 				} else {
-					// Server-side: Run before datapack reload and before the safe mode warning message
+					// Server-side: Run before `server.properties` is loaded so early logic like world generation is not broken due to being loaded by server properties before mods are initialized.
 					// ----------------
-					// iload 30
-					// ifeq L74
-					// getstatic net/minecraft/server/Main.LOGGER:org.apache.logging.log4j.Logger
-					// ldc "Safe mode active, only vanilla datapack will be loaded"
+					// ldc "server.properties"
+					// iconst_0
+					// anewarray java/lang/String
+					// invokestatic java/nio/file/Paths.get (Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
 					// ----------------
 					debug("20w22a+ detected, patching main method...");
-					LdcInsnNode safeModeLdc = (LdcInsnNode) findInsn(gameMethod, insn -> insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst.equals("Safe mode active, only vanilla datapack will be loaded"), false);
-					JumpInsnNode safeModeIfEq;
-					AbstractInsnNode node = safeModeLdc.getPrevious();
-					while(!(node instanceof JumpInsnNode)) {
-						node = node.getPrevious();
-					}
-					safeModeIfEq = (JumpInsnNode) node;
-					moveBefore(it, safeModeIfEq.getPrevious());
+					LdcInsnNode serverPropertiesLdc = (LdcInsnNode) findInsn(gameMethod, insn -> insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst.equals("server.properties"), false);
+
+					// Move before the `server.properties` ldc is pushed onto stack
+					moveBefore(it, serverPropertiesLdc);
+
 					it.add(new InsnNode(Opcodes.ACONST_NULL));
 
 					// Pass null for now, we will set the game instance when the dedicated server is created.
