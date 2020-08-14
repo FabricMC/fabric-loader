@@ -321,14 +321,10 @@ public class ModResolver {
 		List<String> errorList = new ArrayList<>();
 
 		if (!isModIdValid(depModId, errorList)) {
-			if (errorList.size() == 1) {
-				errors.append(prefix).append(" which has an invalid mod ID because it ").append(errorList.get(0));
-			} else {
-				errors.append(prefix).append(" which has an invalid mod because:");
+			errors.append(prefix).append(" which has an invalid mod ID because:");
 
-				for (String error : errorList) {
-					errors.append("\n   - It ").append(error);
-				}
+			for (String error : errorList) {
+				errors.append("\n\t - It ").append(error);
 			}
 
 			return;
@@ -415,7 +411,7 @@ public class ModResolver {
 		char first = modId.charAt(0);
 
 		if (first < 'a' || first > 'z') {
-			errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - upper case isn't allowed anywhere in the ID)");
+			errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - uppercase isn't allowed anywhere in the ID)");
 		}
 
 		Set<Character> invalidChars = null;
