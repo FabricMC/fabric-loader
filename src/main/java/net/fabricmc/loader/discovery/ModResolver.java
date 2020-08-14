@@ -339,7 +339,7 @@ public class ModResolver {
 
 		if (isPresent != cond) {
 			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
-					.append(getDependencyVersionRanges(dependency)).append(" of mod ")
+					.append(getDependencyVersionRequirements(dependency)).append(" of mod ")
 					.append(depCandidate == null ? depModId : getCandidateName(depCandidate)).append(", ");
 
 			if (depCandidate == null) {
@@ -357,13 +357,13 @@ public class ModResolver {
 
 	private void appendMissingDependencyError(StringBuilder errors, ModDependency dependency) {
 		errors.append("which is missing!");
-		errors.append("\n\t - You must install ").append(getDependencyVersionRanges(dependency)).append(" of ")
+		errors.append("\n\t - You must install ").append(getDependencyVersionRequirements(dependency)).append(" of ")
 				.append(dependency.getModId()).append(".");
 	}
 
 	private void appendUnsatisfiedDependencyError(StringBuilder errors, ModDependency dependency, ModCandidate depCandidate) {
 		errors.append("but a non-matching version is present: ").append(getCandidateFriendlyVersion(depCandidate)).append("!");
-		errors.append("\n\t - You must install ").append(getDependencyVersionRanges(dependency)).append(" of ")
+		errors.append("\n\t - You must install ").append(getDependencyVersionRequirements(dependency)).append(" of ")
 				.append(getCandidateName(depCandidate)).append(".");
 	}
 
@@ -394,8 +394,8 @@ public class ModResolver {
 		return candidate.getInfo().getVersion().getFriendlyString();
 	}
 
-	private static String getDependencyVersionRanges(ModDependency dependency) {
-		return dependency.getVersionRanges().stream().map(VersionRange::toString).collect(Collectors.joining(" or "));
+	private static String getDependencyVersionRequirements(ModDependency dependency) {
+		return dependency.getVersionRequirements().stream().map(VersionRange::toString).collect(Collectors.joining(" or "));
 	}
 
 	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */

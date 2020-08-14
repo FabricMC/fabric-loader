@@ -42,5 +42,5 @@ public interface ModDependency {
 	 *
 	 * @return representation of the dependency's version requirements
 	 */
-	Collection<VersionRange> getVersionRanges();
+	Collection<VersionRange> getVersionRequirements();
 }
