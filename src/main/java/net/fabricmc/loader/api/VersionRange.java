@@ -20,53 +20,45 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class VersionRange {
 	public enum Type {
-		INVALID,
-		ANY,
-		EQUALS,
-		GREATER_THAN,
-		LESSER_THAN,
-		GREATER_THAN_OR_EQUAL,
-		LESSER_THAN_OR_EQUAL,
-		SAME_MAJOR,
-		SAME_MAJOR_AND_MINOR;
+		INVALID(version -> "unknown version"),
+		ANY(version -> "any version"),
+		EQUALS(version -> "version " + version),
+		GREATER_THAN(version -> "any version after " + version),
+		LESSER_THAN(version -> "any version before " + version),
+		GREATER_THAN_OR_EQUAL(version -> "version " + version + " or later"),
+		LESSER_THAN_OR_EQUAL(version -> "version " + version + " or earlier"),
+		SAME_MAJOR(version -> {
+			String[] parts = version.split("\\.");
+
+			for (int i = 1; i < parts.length; i++) {
+				parts[i] = "x";
+			}
+
+			return "version " + String.join(".", parts);
+		}),
+		SAME_MAJOR_AND_MINOR(version -> {
+			String[] parts = version.split("\\.");
+
+			for (int i = 2; i < parts.length; i++) {
+				parts[i] = "x";
+			}
+
+			return "version " + String.join(".", parts);
+		});
+
+		private final UnaryOperator<String> reprOperator;
+
+		Type(UnaryOperator<String> reprOperator) {
+			this.reprOperator = reprOperator;
+		}
 
 		public String represent(String version) {
-			switch (this) {
-			case INVALID:
-				return "unknown version";
-			case ANY:
-				return "any version";
-			case EQUALS:
-				return "version " + version;
-			case GREATER_THAN:
-				return "any version after " + version;
-			case LESSER_THAN:
-				return "any version before " + version;
-			case GREATER_THAN_OR_EQUAL:
-				return "version " + version + " or later";
-			case LESSER_THAN_OR_EQUAL:
-				return "version " + version + " or earlier";
-			case SAME_MAJOR:
-			case SAME_MAJOR_AND_MINOR:
-				String[] parts = version.split("\\.");
-				int start = 1;
-
-				if (this == Type.SAME_MAJOR_AND_MINOR) {
-					start = 2;
-				}
-
-				for (int i = start; i < parts.length; i++) {
-					parts[i] = "x";
-				}
-
-				return "version " + String.join(".", parts);
-			default:
-				return "unhandled version range type " + this;
-			}
+			return reprOperator.apply(version);
 		}
 	}
 
