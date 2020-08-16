@@ -24,6 +24,8 @@ import net.fabricmc.loader.util.version.VersionDeserializer;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModMetadataParser {
 	public static final int LATEST_VERSION = 1;
@@ -74,6 +76,19 @@ public class ModMetadataParser {
 			if (metadata != null) {
 				return new LoaderModMetadata[] { metadata };
 			}
+		} else if (el.isJsonArray()) {
+			List<LoaderModMetadata> mods = new ArrayList<>();
+
+			for (JsonElement child : el.getAsJsonArray()) {
+				if (child.isJsonObject()) {
+					LoaderModMetadata metadata = getMod(loader, child.getAsJsonObject());
+					if (metadata != null) {
+						mods.add(metadata);
+					}
+				}
+			}
+
+			return mods.toArray(new LoaderModMetadata[0]);
 		}
 
 		return new LoaderModMetadata[0];
