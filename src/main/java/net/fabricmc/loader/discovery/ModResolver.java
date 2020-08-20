@@ -315,13 +315,12 @@ public class ModResolver {
 	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
-		StringBuilder prefix = new StringBuilder("\n - Mod ").append(candidate.getInfo().getId());
-		prefix.append(" ").append(errorType).append(" mod ").append(depModId);
+		errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ");
 
 		List<String> errorList = new ArrayList<>();
 
 		if (!isModIdValid(depModId, errorList)) {
-			errors.append(prefix).append(" which has an invalid mod ID because:");
+			errors.append(depModId).append(", which has an invalid mod ID because:");
 
 			for (String error : errorList) {
 				errors.append("\n\t - It ").append(error);
@@ -334,19 +333,17 @@ public class ModResolver {
 		boolean isPresent = depCandidate != null && dependency.matches(depCandidate.getInfo().getVersion());
 
 		if (isPresent != cond) {
-			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
-					.append(getDependencyVersionRequirements(dependency)).append(" of mod ")
+			errors.append(getDependencyVersionRequirements(dependency)).append(" of mod ")
 					.append(depCandidate == null ? depModId : getCandidateName(depCandidate)).append(", ");
-
 			if (depCandidate == null) {
 				appendMissingDependencyError(errors, dependency);
 			} else if (cond) {
 				appendUnsatisfiedDependencyError(errors, dependency, depCandidate);
 			} else if (errorType.contains("conf")) {
 				// CONFLICTS WITH
-				appendConflictError(errors, candidate, dependency, depCandidate);
+				appendConflictError(errors, candidate, depCandidate);
 			} else {
-				appendBreakingError(errors, candidate, dependency, depCandidate);
+				appendBreakingError(errors, candidate, depCandidate);
 			}
 		}
 	}
@@ -363,7 +360,7 @@ public class ModResolver {
 				.append(getCandidateName(depCandidate)).append(".");
 	}
 
-	private void appendConflictError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
+	private void appendConflictError(StringBuilder errors, ModCandidate candidate, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
 		errors.append("but a matching version is present: ").append(depCandidateVer).append("!");
 		errors.append("\n\t - While this won't prevent you from starting the game,");
@@ -373,7 +370,7 @@ public class ModResolver {
 		errors.append("\n\t - It is heavily recommended to remove one of the mods.");
 	}
 
-	private void appendBreakingError(StringBuilder errors, ModCandidate candidate, ModDependency dependency, ModCandidate depCandidate) {
+	private void appendBreakingError(StringBuilder errors, ModCandidate candidate, ModCandidate depCandidate) {
 		final String depCandidateVer = getCandidateFriendlyVersion(depCandidate);
 		errors.append("but a matching version is present: ").append(depCandidate.getInfo().getVersion()).append("!");
 		errors.append("\n\t - The developer(s) of ").append(getCandidateName(candidate));
