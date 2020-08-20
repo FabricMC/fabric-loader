@@ -428,15 +428,9 @@ public class ModResolver {
 		}
 
 		if (invalidChars != null) {
-			StringBuilder error = new StringBuilder("contains invalid characters: '");
-			Character[] chars = invalidChars.toArray(new Character[0]);
-			Arrays.sort(chars);
-
-			for (Character c : chars) {
-				error.append(c.charValue());
-			}
-
-			errorList.add(error.append("'!").toString());
+			StringBuilder error = new StringBuilder("contains invalid characters: ");
+			error.append(invalidChars.stream().map(value -> "'" + value + "'").collect(Collectors.joining(", ")));
+			errorList.add(error.append("!").toString());
 		}
 
 		assert errorList.isEmpty() == MOD_ID_PATTERN.matcher(modId).matches() : "Errors list " + errorList + " didn't match the mod ID pattern!";
