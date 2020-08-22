@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -156,6 +157,31 @@ public class MinecraftGameProvider implements GameProvider {
 		arguments.parse(argStrs);
 
 		FabricLauncherBase.processArgumentMap(arguments, envType);
+	}
+
+	@Override
+	public String[] getLaunchArguments(boolean sanitize) {
+		if (arguments != null) {
+			List<String> list = new ArrayList<>(Arrays.asList(arguments.toArray()));
+			if (sanitize) {
+				int remove = 0;
+				Iterator<String> iterator = list.iterator();
+				while (iterator.hasNext()) {
+					String next = iterator.next();
+					if ("--accessToken".equals(next)) {
+						remove = 2;
+					}
+
+					if (remove > 0) {
+						iterator.remove();
+						remove--;
+					}
+				}
+			}
+			return list.toArray(new String[0]);
+		} else {
+			return new String[0];
+		}
 	}
 
 	@Override

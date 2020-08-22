@@ -183,4 +183,11 @@ public interface FabricLoader {
 
 	@Deprecated
 	File getConfigDirectory();
+
+	/**
+	 * Get the launch arguments
+	 * @param sanitize Whether to remove sensitive information
+	 * @return the launch arguments
+	 */
+	String[] getLaunchArguments(boolean sanitize);
 }
