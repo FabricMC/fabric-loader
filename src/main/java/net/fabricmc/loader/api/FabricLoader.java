@@ -192,8 +192,7 @@ public interface FabricLoader {
 	String[] getLaunchArguments(boolean sanitize);
 
 	/**
-	 * Gets the command line arguments used to launch the game. This overload sets {@code sanitize} to {@code true}.
-	 * @return the launch arguments
+	 * @see FabricLoader#getLaunchArguments(boolean)
 	 */
 	default String[] getLaunchArguments() {
 		return getLaunchArguments(true);
