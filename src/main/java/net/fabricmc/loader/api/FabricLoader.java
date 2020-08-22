@@ -185,7 +185,7 @@ public interface FabricLoader {
 	File getConfigDirectory();
 
 	/**
-	 * Get the launch arguments
+	 * Gets the command line arguments used to launch the game.
 	 * @param sanitize Whether to remove sensitive information
 	 * @return the launch arguments
 	 */
