@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 public class EntrypointPatchFML125 extends EntrypointPatch {
-	private static final String FROM = "net.fabricmc.loader.entrypoint.patches.ModClassLoader_125_FML";
+	private static final String FROM = "net.fabricmc.loader.entrypoint.minecraft.ModClassLoader_125_FML";
 	private static final String TO = "cpw.mods.fml.common.ModClassLoader";
 	private static final String FROM_INTERNAL = "net/fabricmc/loader/entrypoint/minecraft/ModClassLoader_125_FML";
 	private static final String TO_INTERNAL = "cpw/mods/fml/common/ModClassLoader";
