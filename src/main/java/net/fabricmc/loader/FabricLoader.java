@@ -219,7 +219,14 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
 			.collect(Collectors.joining(", ")));
 
-		if (FabricLoader.INSTANCE.isDevelopmentEnvironment()) {
+		boolean runtimeModRemapping = isDevelopmentEnvironment();
+
+		if (runtimeModRemapping && System.getProperty("fabric.remapClasspathFile") == null) {
+			LOGGER.warn("Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
+			runtimeModRemapping = false;
+		}
+
+		if (runtimeModRemapping) {
 			RuntimeModRemapper modRemapper = new RuntimeModRemapper();
 			for (ModCandidate candidate : modRemapper.remap(candidateMap.values(), ModResolver.getInMemoryFs())) {
 				addMod(candidate);

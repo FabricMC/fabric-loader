@@ -19,7 +19,6 @@ package net.fabricmc.loader.discovery;
 import org.objectweb.asm.commons.Remapper;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
@@ -34,22 +33,21 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,29 +74,11 @@ public class RuntimeModRemapper {
 				.renameInvalidLocals(false)
 				.build();
 
-		Set<Path> depPaths = new HashSet<>();
-		MinecraftGameProvider minecraftGameProvider = (MinecraftGameProvider) FabricLoader.INSTANCE.getGameProvider();
-
-		for (URL url : launcher.getLoadTimeDependencies()) {
-			try {
-				Path path = UrlUtil.asPath(url);
-
-				if (!Files.exists(path)) {
-					throw new RuntimeException("Path does not exist: " + path);
-				}
-
-				if (!path.equals(minecraftGameProvider.getGameJar())) {
-					depPaths.add(path);
-				}
-			} catch (UrlConversionException e) {
-				throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
-			}
+		try {
+			remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to populate remap classpath", e);
 		}
-
-		//TODO pull this from DLI
-		depPaths.add(Paths.get("C:\\Users\\mark\\.gradle\\caches\\fabric-loom\\minecraft-1.15.2-intermediary-net.fabricmc.yarn-1.15.2+build.15-v2.jar"));
-
-		remapper.readClassPathAsync(depPaths.toArray(new Path[0]));
 
 		List<ModCandidate> remappedMods = new ArrayList<>();
 
@@ -195,6 +175,20 @@ public class RuntimeModRemapper {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private List<Path> getRemapClasspath() throws IOException {
+		String remapClasspathFile = System.getProperty("fabric.remapClasspathFile");
+
+		if (remapClasspathFile == null) {
+			throw new RuntimeException("No remapClasspathFile provided");
+		}
+
+		String content = new String(Files.readAllBytes(Paths.get(remapClasspathFile)), StandardCharsets.UTF_8);
+
+		return Arrays.stream(content.split(File.pathSeparator))
+				.map(Paths::get)
+				.collect(Collectors.toList());
 	}
 
 	private static class RemapInfo {
