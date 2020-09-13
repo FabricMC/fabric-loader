@@ -19,19 +19,19 @@ package net.fabricmc.loader.api.entrypoint;
 import net.fabricmc.loader.api.ModContainer;
 
 /**
- * Represents a container which holds both an entrypoint instance and the {@link ModContainer} which has provided the entrypoint,
+ * A container holding both an entrypoint instance and the {@link ModContainer} which has provided the entrypoint.
+ *
  * @param <T> The type of the entrypoint
+ * @see net.fabricmc.loader.api.FabricLoader#getEntrypointContainers(String, Class) 
  */
 public interface EntrypointContainer<T> {
 	/**
-	 * Gets the entrypoint.
-	 * @return An entrypoint instance.
+	 * Returns the entrypoint instance.
 	 */
 	T getEntrypoint();
 
 	/**
-	 * Gets the mod which has provided this entrypoint.
-	 * @return The mod which as provided this entrypoint.
+	 * Returns the mod that provided this entrypoint.
 	 */
 	ModContainer getProvider();
 }

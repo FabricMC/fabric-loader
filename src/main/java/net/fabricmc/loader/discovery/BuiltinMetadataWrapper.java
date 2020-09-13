@@ -29,6 +29,7 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.metadata.AbstractModMetadata;
@@ -49,6 +50,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public String getId() { return parent.getId(); }
 	@Override
 	public Version getVersion() { return parent.getVersion(); }
+	@Override
+	public ModEnvironment getEnvironment() { return parent.getEnvironment(); }
 	@Override
 	public Collection<ModDependency> getDepends() { return parent.getDepends(); }
 	@Override
@@ -77,6 +80,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public boolean containsCustomValue(String key) { return parent.containsCustomValue(key); }
 	@Override
 	public CustomValue getCustomValue(String key) { return parent.getCustomValue(key); }
+	@Override
+	public Map<String, CustomValue> getCustomValues() { return parent.getCustomValues(); }
 	@Override
 	public int getSchemaVersion() { return Integer.MAX_VALUE; }
 	@Override

@@ -16,37 +16,21 @@
 
 package net.fabricmc.loader.api;
 
-/**
- * An exception that occurs during a {@link LanguageAdapter}'s object creation.
- *
- * @see LanguageAdapter
- */
-public class LanguageAdapterException extends Exception {
-	/**
-	 * Creates a new language adapter exception.
-	 *
-	 * @param s the message
-	 */
-	public LanguageAdapterException(String s) {
-		super(s);
+@SuppressWarnings("deprecation") //Extending the deprecated one for backwards compatibility
+public class VersionParsingException extends net.fabricmc.loader.util.version.VersionParsingException {
+	public VersionParsingException() {
+		super();
 	}
 
-	/**
-	 * Creates a new language adapter exception.
-	 *
-	 * @param t the cause
-	 */
-	public LanguageAdapterException(Throwable t) {
+	public VersionParsingException(Throwable t) {
 		super(t);
 	}
 
-	/**
-	 * Creates a new language adapter exception.
-	 *
-	 * @param s the message
-	 * @param t the cause
-	 */
-	public LanguageAdapterException(String s, Throwable t) {
+	public VersionParsingException(String s) {
+		super(s);
+	}
+
+	public VersionParsingException(String s, Throwable t) {
 		super(s, t);
 	}
 }

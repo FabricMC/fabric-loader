@@ -16,26 +16,46 @@
 
 package net.fabricmc.loader.api;
 
-import net.fabricmc.loader.api.metadata.ModMetadata;
-
 import java.nio.file.Path;
 
+import net.fabricmc.loader.api.metadata.ModMetadata;
+
+/**
+ * Represents a mod.
+ */
 public interface ModContainer {
+	/**
+	 * Returns the metadata of this mod.
+	 */
 	ModMetadata getMetadata();
 
+	/**
+	 * Returns the root directory of the mod.
+	 *
+	 * @return the root directory
+	 * @deprecated use {@link #getRootPath()} instead
+	 */
 	@Deprecated
 	default Path getRoot() {
 		return getRootPath();
 	}
 
+	/**
+	 * Returns the root directory of the mod.
+	 * 
+	 * <p>It may be the root directory of the mod JAR or the folder of the mod.</p>
+	 *
+	 * @return the root directory of the mod
+	 */
 	Path getRootPath();
 
 	/**
-	 * Get an NIO reference to a file inside the JAR.
-	 * Does not guarantee existence!
+	 * Gets an NIO reference to a file inside the JAR.
+	 * 
+	 * <p>The path is not guaranteed to exist!</p>
 	 *
-	 * @param file The location from root, using "/" as a separator.
-	 * @return The Path to a given file.
+	 * @param file The location from root, using {@code /} as a separator.
+	 * @return the path to a given file
 	 */
 	default Path getPath(String file) {
 		Path root = getRootPath();

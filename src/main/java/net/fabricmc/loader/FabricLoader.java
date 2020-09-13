@@ -19,6 +19,8 @@ package net.fabricmc.loader;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,8 +81,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private MappingResolver mappingResolver;
 	private GameProvider provider;
-	private File gameDir;
-	private File configDir;
+	private Path gameDir;
+	private Path configDir;
 
 	protected FabricLoader() {
 	}
@@ -106,12 +108,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public void setGameProvider(GameProvider provider) {
 		this.provider = provider;
 
-		setGameDir(provider.getLaunchDirectory().toFile());
+		setGameDir(provider.getLaunchDirectory());
 	}
 
-	private void setGameDir(File gameDir) {
+	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir;
-		this.configDir = new File(gameDir, "config");
+		this.configDir = gameDir.resolve("config");
 	}
 
 	@Override
@@ -128,23 +130,44 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 * @return The game instance's root directory.
 	 */
 	@Override
-	public File getGameDirectory() {
+	public Path getGameDir() {
 		return gameDir;
+	}
+
+	@Override
+	@Deprecated
+	public File getGameDirectory() {
+		return getGameDir().toFile();
 	}
 
 	/**
 	 * @return The game instance's configuration directory.
 	 */
 	@Override
-	public File getConfigDirectory() {
-		if (!configDir.exists()) {
-			configDir.mkdirs();
+	public Path getConfigDir() {
+		if (!Files.exists(configDir)) {
+			try {
+				Files.createDirectories(configDir);
+			} catch (IOException e) {
+				throw new RuntimeException("Creating config directory", e);
+			}
 		}
 		return configDir;
 	}
 
+	@Override
+	@Deprecated
+	public File getConfigDirectory() {
+		return getConfigDir().toFile();
+	}
+
+	public Path getModsDir() {
+		return getGameDir().resolve("mods");
+	}
+
+	@Deprecated
 	public File getModsDirectory() {
-		return new File(getGameDirectory(), "mods");
+		return getModsDir().toFile();
 	}
 
 	private String join(Stream<String> strings, String joiner) {
@@ -176,7 +199,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private void setup() throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
-		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory().toPath(), isDevelopmentEnvironment()));
+		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir(), isDevelopmentEnvironment()));
 		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
 		String modText;
@@ -381,7 +404,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 	}
 
-	public void prepareModInit(File newRunDir, Object gameInstance) {
+	public void prepareModInit(Path newRunDir, Object gameInstance) {
 		if (!frozen) {
 			throw new RuntimeException("Cannot instantiate mods when not frozen!");
 		}
@@ -420,8 +443,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		if (gameDir != null) {
 			try {
-				if (!gameDir.getCanonicalFile().equals(newRunDir.getCanonicalFile())) {
-					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.getAbsolutePath() + ", while initializer says " + gameDir.getAbsolutePath() + "...");
+				if (!gameDir.toRealPath().equals(newRunDir.toRealPath())) {
+					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.toRealPath() + ", while initializer says " + gameDir.toRealPath() + "...");
 					setGameDir(newRunDir);
 				}
 			} catch (IOException e) {
@@ -438,5 +461,21 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public Logger getLogger() {
 		return LOGGER;
+	}
+
+	/**
+	 * Sets the game instance. This is only used in 20w22a+ by the dedicated server and should not be called by anything else.
+	 */
+	@Deprecated
+	public void setGameInstance(Object gameInstance) {
+		if (this.getEnvironmentType() != EnvType.SERVER) {
+			throw new UnsupportedOperationException("Cannot set game instance on a client!");
+		}
+
+		if (this.gameInstance != null) {
+			throw new UnsupportedOperationException("Cannot overwrite current game instance!");
+		}
+
+		this.gameInstance = gameInstance;
 	}
 }

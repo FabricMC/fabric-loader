@@ -13,7 +13,7 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:sponge-mixin:0.8+build.18",
+        "name": "net.fabricmc:sponge-mixin:0.8.1+build.21",
         "url": "https://maven.fabricmc.net/"
       },
       {
@@ -25,7 +25,7 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "com.google.jimfs:jimfs:1.1",
+        "name": "com.google.jimfs:jimfs:1.2-fabric",
         "url": "https://maven.fabricmc.net/"
       },
       {

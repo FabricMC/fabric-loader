@@ -22,6 +22,7 @@ import net.fabricmc.loader.util.UrlUtil;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
@@ -50,7 +51,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 		}
 
 		try {
-			Files.walk(path, 1).forEach((modPath) -> {
+			Files.walk(path, 1, FileVisitOption.FOLLOW_LINKS).forEach((modPath) -> {
 				if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
 					try {
 						urlProposer.accept(UrlUtil.asUrl(modPath), requiresRemap);

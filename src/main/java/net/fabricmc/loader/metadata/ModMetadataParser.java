@@ -18,6 +18,7 @@ package net.fabricmc.loader.metadata;
 
 import com.google.gson.*;
 import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.util.version.VersionDeserializer;
 
@@ -36,7 +37,8 @@ public class ModMetadataParser {
 		.registerTypeAdapter(ModMetadataV1.DependencyContainer.class, new ModMetadataV1.DependencyContainer.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.MixinEntry.class, new ModMetadataV1.MixinEntry.Deserializer())
 		.registerTypeAdapter(ModMetadataV1.EntrypointContainer.class, new ModMetadataV1.EntrypointContainer.Deserializer())
-		.registerTypeAdapter(ModMetadataV1.Environment.class, new ModMetadataV1.Environment.Deserializer())
+		.registerTypeAdapter(ModEnvironment.class, new ModMetadataV1.EnvironmentDeserializer())
+		.registerTypeAdapter(ModMetadataV1.CustomValueContainer.class, new ModMetadataV1.CustomValueContainer.Deserializer())
 		.create();
 
 	private static final Gson GSON_V0 = new GsonBuilder()

@@ -36,11 +36,15 @@ import org.objectweb.asm.Opcodes;
 import com.google.gson.stream.JsonReader;
 
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.version.SemanticVersionImpl;
+import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
+import net.fabricmc.loader.util.version.VersionParsingException;
 
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
 			"0\\.\\d+(\\.\\d+)?a?(_\\d+)?|" // match classic versions first: 0.1.2a_34
 			+ "\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
+			+ "\\d+\\.\\d+(\\.\\d+)?(-rc\\d+| Rr]elease Candidate \\d+)?|" // 1.16+ Release Candidate
 			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
 			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
 			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
@@ -50,6 +54,7 @@ public final class McVersionLookup {
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
+	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| [Rr]elease Candidate )(\\d+)");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
@@ -182,6 +187,9 @@ public final class McVersionLookup {
 		pos = version.indexOf(" Pre-release ");
 		if (pos >= 0) return version.substring(0, pos);
 
+		pos = version.indexOf(" Release Candidate ");
+		if (pos >= 0) return version.substring(0, pos);
+
 		Matcher matcher = SNAPSHOT_PATTERN.matcher(version);
 
 		if (matcher.matches()) {
@@ -270,10 +278,36 @@ public final class McVersionLookup {
 		Matcher matcher;
 
 		if (name.startsWith(release)) {
-			matcher = PRE_RELEASE_PATTERN.matcher(name);
-
+			matcher = RELEASE_CANDIDATE_PATTERN.matcher(name);
 			if (matcher.matches()) {
-				name = String.format("rc.%s", matcher.group(1));
+				String rcBuild = matcher.group(1);
+
+				// This is a hack to fake 1.16's new release candidates to follow on from the 8 pre releases.
+				if (release.equals("1.16")) {
+					int build = Integer.parseInt(rcBuild);
+					rcBuild = Integer.toString(8 + build);
+				}
+
+				name = String.format("rc.%s", rcBuild);
+			} else {
+				matcher = PRE_RELEASE_PATTERN.matcher(name);
+
+				if (matcher.matches()) {
+					boolean legacyVersion;
+
+					try {
+						legacyVersion = SemanticVersionPredicateParser.create("<=1.16").test(new SemanticVersionImpl(release, false));
+					} catch (VersionParsingException e) {
+						throw new RuntimeException("Failed to parse version: " + release);
+					}
+
+					// Mark pre-releases as 'beta' versions, except for version 1.16 and before, where they are 'rc'
+					if (legacyVersion) {
+						name = String.format("rc.%s", matcher.group(1));
+					} else {
+						name = String.format("beta.%s", matcher.group(1));
+					}
+				}
 			}
 		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {
 			name = String.format("alpha.%s.%s.%s", matcher.group(1), matcher.group(2), matcher.group(3));

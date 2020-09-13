@@ -17,6 +17,7 @@
 package net.fabricmc.loader.util.version;
 
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
 
 import java.util.function.Predicate;
 
