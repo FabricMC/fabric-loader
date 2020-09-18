@@ -66,7 +66,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	private static boolean emittedInfo = false;
 
-	protected static void deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
+	protected static Path deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
 		Path resultJarFile = jarFile;
 
 		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
@@ -206,6 +206,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		if (minecraftJar == null) {
 			minecraftJar = resultJarFile;
 		}
+
+		return resultJarFile;
 	}
 
 	public static void processArgumentMap(Arguments argMap, EnvType envType) {

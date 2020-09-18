@@ -78,6 +78,11 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	}
 
 	@Override
+	protected URL findResource(String name) {
+		return urlLoader.findResource(name);
+	}
+
+	@Override
 	public InputStream getResourceAsStream(String name) {
 		Objects.requireNonNull(name);
 
