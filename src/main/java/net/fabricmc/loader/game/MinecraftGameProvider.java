@@ -182,8 +182,10 @@ public class MinecraftGameProvider implements GameProvider {
 					}
 				}
 			}
+
 			return list.toArray(new String[0]);
 		}
+
 		return new String[0];
 	}
 
