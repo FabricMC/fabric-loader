@@ -193,6 +193,8 @@ public interface FabricLoader {
 
 	/**
 	 * @see FabricLoader#getLaunchArguments(boolean)
+	 * <p>
+	 * Does not contain any sensitive information.
 	 */
 	default String[] getLaunchArguments() {
 		return getLaunchArguments(true);

@@ -161,13 +161,16 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public String[] getLaunchArguments(boolean sanitize) {
+
 		if (arguments != null) {
 			List<String> list = new ArrayList<>(Arrays.asList(arguments.toArray()));
+
 			if (sanitize) {
 				int remove = 0;
 				Iterator<String> iterator = list.iterator();
 				while (iterator.hasNext()) {
 					String next = iterator.next();
+
 					if ("--accessToken".equals(next)) {
 						remove = 2;
 					}
@@ -179,9 +182,8 @@ public class MinecraftGameProvider implements GameProvider {
 				}
 			}
 			return list.toArray(new String[0]);
-		} else {
-			return new String[0];
 		}
+		return new String[0];
 	}
 
 	@Override
