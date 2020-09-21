@@ -168,6 +168,7 @@ public class MinecraftGameProvider implements GameProvider {
 			if (sanitize) {
 				int remove = 0;
 				Iterator<String> iterator = list.iterator();
+
 				while (iterator.hasNext()) {
 					String next = iterator.next();
 
