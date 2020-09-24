@@ -190,13 +190,4 @@ public interface FabricLoader {
 	 * @return the launch arguments
 	 */
 	String[] getLaunchArguments(boolean sanitize);
-
-	/**
-	 * @see FabricLoader#getLaunchArguments(boolean)
-	 * <p>
-	 * Does not contain any sensitive information.
-	 */
-	default String[] getLaunchArguments() {
-		return getLaunchArguments(true);
-	}
 }
