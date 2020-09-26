@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.transformer.accesswidener;
 
+import net.fabricmc.loader.FabricLoader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -82,7 +83,7 @@ public class AccessWidenerVisitor extends ClassVisitor {
 
 	private class AccessWidenerMethodVisitor extends MethodVisitor {
 		AccessWidenerMethodVisitor(MethodVisitor methodVisitor) {
-			super(Opcodes.ASM7, methodVisitor);
+			super(FabricLoader.ASM_VERSION, methodVisitor);
 		}
 
 		@Override

@@ -54,6 +54,7 @@ import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
+import org.objectweb.asm.Opcodes;
 
 /**
  * The main class for mod loading operations.
@@ -65,6 +66,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 */
 	@Deprecated
 	public static final FabricLoader INSTANCE = new FabricLoader();
+
+	public static final int ASM_VERSION = Opcodes.ASM9;
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 
