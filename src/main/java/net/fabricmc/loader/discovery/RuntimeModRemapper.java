@@ -52,11 +52,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class RuntimeModRemapper {
+public final class RuntimeModRemapper {
 
-	private final FabricLauncher launcher = FabricLauncherBase.getLauncher();
-
-	public Collection<ModCandidate> remap(Collection<ModCandidate> modCandidates, FileSystem fileSystem) {
+	public static Collection<ModCandidate> remap(Collection<ModCandidate> modCandidates, FileSystem fileSystem) {
 		List<ModCandidate> modsToRemap = modCandidates.stream()
 				.filter(ModCandidate::requiresRemap)
 				.collect(Collectors.toList());
@@ -68,6 +66,8 @@ public class RuntimeModRemapper {
 		List<ModCandidate> modsToSkip = modCandidates.stream()
 				.filter(mc -> !mc.requiresRemap())
 				.collect(Collectors.toList());
+
+		FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), "intermediary", launcher.getTargetNamespace()))
@@ -160,7 +160,7 @@ public class RuntimeModRemapper {
 				.collect(Collectors.toList());
 	}
 
-	private byte[] remapAccessWidener(byte[] input, Remapper remapper) {
+	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
 		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8))) {
 			AccessWidener accessWidener = new AccessWidener(FabricLoader.INSTANCE);
 			accessWidener.read(bufferedReader, null);
@@ -177,7 +177,7 @@ public class RuntimeModRemapper {
 		}
 	}
 
-	private List<Path> getRemapClasspath() throws IOException {
+	private static List<Path> getRemapClasspath() throws IOException {
 		String remapClasspathFile = System.getProperty("fabric.remapClasspathFile");
 
 		if (remapClasspathFile == null) {

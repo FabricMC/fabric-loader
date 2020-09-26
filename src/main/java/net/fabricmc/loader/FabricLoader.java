@@ -227,8 +227,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		if (runtimeModRemapping) {
-			RuntimeModRemapper modRemapper = new RuntimeModRemapper();
-			for (ModCandidate candidate : modRemapper.remap(candidateMap.values(), ModResolver.getInMemoryFs())) {
+			for (ModCandidate candidate : RuntimeModRemapper.remap(candidateMap.values(), ModResolver.getInMemoryFs())) {
 				addMod(candidate);
 			}
 		} else {
