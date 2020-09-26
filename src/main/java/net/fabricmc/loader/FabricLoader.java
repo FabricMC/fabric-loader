@@ -487,4 +487,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		this.gameInstance = gameInstance;
 	}
+
+	@Override
+	public String[] getLaunchArguments(boolean sanitize) {
+		return getGameProvider().getLaunchArguments(sanitize);
+	}
 }
