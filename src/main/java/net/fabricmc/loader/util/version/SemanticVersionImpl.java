@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 public class SemanticVersionImpl implements SemanticVersion {
 	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("|[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*");
+	private static final Pattern UNSIGNED_INTEGER = Pattern.compile("0|[1-9][0-9]*");
 	private final int[] components;
 	private final String prerelease;
 	private final String build;
@@ -245,25 +246,25 @@ public class SemanticVersionImpl implements SemanticVersion {
 						String partA = prereleaseATokenizer.nextToken();
 						String partB = prereleaseBTokenizer.nextToken();
 
-						int compare;
-						try {
-							int numA = Integer.parseUnsignedInt(partA);
-							try {
-								int numB = Integer.parseUnsignedInt(partB);
-								compare = Integer.compareUnsigned(numA, numB);
-							} catch (NumberFormatException e) {
-								compare = -1;
+						if (UNSIGNED_INTEGER.matcher(partA).matches()) {
+							if (UNSIGNED_INTEGER.matcher(partB).matches()) {
+								int compare = Integer.compare(partA.length(), partB.length());
+								if (compare != 0) {
+									return compare;
+								}
+							} else {
+								return -1;
 							}
-						} catch (NumberFormatException e) {
-							try {
-								Integer.parseUnsignedInt(partB);
-								compare = 1;
-							} catch (NumberFormatException e2) {
-								compare = partA.compareTo(partB);
+						} else {
+							if (UNSIGNED_INTEGER.matcher(partB).matches()) {
+								return 1;
 							}
 						}
-						if (compare != 0)
+
+						int compare = partA.compareTo(partB);
+						if (compare != 0) {
 							return compare;
+						}
 					} else {
 						return 1;
 					}
