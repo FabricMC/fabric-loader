@@ -47,14 +47,12 @@ public final class VersionPredicate {
 		}
 	}
 
-	private static final Type[] TYPES = Type.values();
-
 	private final Type type;
 	private final String version;
 
 	public VersionPredicate(Type type, String version) {
-		this.type = type;
-		this.version = version;
+		this.type = Objects.requireNonNull(type, "type == null!");
+		this.version = Objects.requireNonNull(version, "version == null!");
 	}
 
 	public Type getType() {
