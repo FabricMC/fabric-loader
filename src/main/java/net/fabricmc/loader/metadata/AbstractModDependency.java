@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api.metadata;
+package net.fabricmc.loader.metadata;
 
-import java.util.Collection;
+import java.util.Set;
 
-import net.fabricmc.loader.api.VersionRange;
+import net.fabricmc.loader.api.VersionPredicate;
+import net.fabricmc.loader.api.metadata.ModDependency;
 
-public abstract class AbstractModDependency implements ModDependency {
+abstract class AbstractModDependency implements ModDependency {
 	protected final String modId;
-	private Collection<VersionRange> ranges;
+	private Set<VersionPredicate> ranges;
 
 	protected AbstractModDependency(String modId) {
 		this.modId = modId;
@@ -36,9 +37,9 @@ public abstract class AbstractModDependency implements ModDependency {
 	protected abstract String[] getVersionMatchers();
 
 	@Override
-	public Collection<VersionRange> getVersionRequirements() {
+	public Set<VersionPredicate> getVersionRequirements() {
 		if (ranges == null) {
-			ranges = VersionRange.fromVersionMatchers(getVersionMatchers());
+			ranges = VersionPredicate.parse(getVersionMatchers());
 		}
 
 		return ranges;

@@ -22,7 +22,6 @@ import com.google.common.jimfs.PathType;
 import com.google.gson.*;
 
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.VersionRange;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.api.Version;
@@ -388,7 +387,42 @@ public class ModResolver {
 	}
 
 	private static String getDependencyVersionRequirements(ModDependency dependency) {
-		return dependency.getVersionRequirements().stream().map(VersionRange::toString).collect(Collectors.joining(" or "));
+		return dependency.getVersionRequirements().stream().map(predicate -> {
+			String version = predicate.getVersion();
+			String[] parts;
+			switch(predicate.getType()) {
+			case ANY:
+				return "any version";
+			case EQUALS:
+				return "version " + version;
+			case GREATER_THAN:
+				return "any version after " + version;
+			case LESSER_THAN:
+				return "any version before " + version;
+			case GREATER_THAN_OR_EQUAL:
+				return "version " + version + " or later";
+			case LESSER_THAN_OR_EQUAL:
+				return "version " + version + " or earlier";
+			case SAME_MAJOR:
+				parts = version.split("\\.");
+
+				for (int i = 1; i < parts.length; i++) {
+					parts[i] = "x";
+				}
+
+				return "version " + String.join(".", parts);
+			case SAME_MAJOR_AND_MINOR:
+				parts = version.split("\\.");
+
+				for (int i = 2; i < parts.length; i++) {
+					parts[i] = "x";
+				}
+
+				return "version " + String.join(".", parts);
+			default:
+				return "unknown version"; // should be unreachable
+			}
+		}).collect(Collectors.joining(" or "));
 	}
 
 	/** @param errorList The list of errors. The returned list of errors all need to be prefixed with "it " in order to make sense. */

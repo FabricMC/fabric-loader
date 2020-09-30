@@ -18,7 +18,6 @@ package net.fabricmc.loader.metadata;
 
 import com.google.gson.*;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.metadata.AbstractModDependency;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;

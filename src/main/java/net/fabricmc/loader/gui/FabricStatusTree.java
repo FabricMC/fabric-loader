@@ -203,43 +203,32 @@ public final class FabricStatusTree {
 			setWarningLevel(FabricTreeWarningLevel.INFO);
 		}
 
-		private FabricStatusNode addChild(String string, boolean info) {
+		private FabricStatusNode addChild(String string) {
 			if (string.startsWith("\t")) {
 				if (children.size() == 0) {
-					FabricStatusNode rootChild = new FabricStatusNode(this, "(indented node was added before root node - this is a bug!)");
-					rootChild.warningLevel = FabricTreeWarningLevel.WARN;
+					FabricStatusNode rootChild = new FabricStatusNode(this, "");
 					children.add(rootChild);
 				}
 				FabricStatusNode lastChild = children.get(children.size() - 1);
-				lastChild.addChild(string.substring(1), true);
+				lastChild.addChild(string.substring(1));
+				lastChild.expandByDefault = true;
 				return lastChild;
 			} else {
-				FabricStatusNode child = new FabricStatusNode(this, info ? emboldenForNode(string) : cleanForNode(string));
-				if (info) {
-					child.warningLevel = FabricTreeWarningLevel.INFO;
-					expandByDefault = true;
-				}
+				FabricStatusNode child = new FabricStatusNode(this, cleanForNode(string));
 				children.add(child);
 				return child;
 			}
 		}
 
-		public FabricStatusNode addChild(String string) {
-			return addChild(string, false);
-		}
-
 		private String cleanForNode(String string) {
 			string = string.trim();
 			if (string.length() > 1) {
-				if (string.startsWith("-"))
+				if (string.startsWith("-")) {
 					string = string.substring(1);
-				string = string.trim();
+					string = string.trim();
+				}
 			}
 			return string;
-		}
-
-		private String emboldenForNode(String string) {
-			return "<html><b>" + cleanForNode(string) + "</b></html>";
 		}
 
 		public FabricStatusNode addException(Throwable exception) {

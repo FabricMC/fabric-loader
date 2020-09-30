@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import java.util.Collection;
+import java.util.Set;
 
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionRange;
+import net.fabricmc.loader.api.VersionPredicate;
 
 /**
  * Represents a dependency.
@@ -42,5 +42,5 @@ public interface ModDependency {
 	 *
 	 * @return representation of the dependency's version requirements
 	 */
-	Collection<VersionRange> getVersionRequirements();
+	Set<VersionPredicate> getVersionRequirements();
 }
