@@ -22,7 +22,9 @@ import net.fabricmc.loader.api.EntrypointException;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.api.entrypoint.LazyEntrypointContainer;
 import net.fabricmc.loader.entrypoint.EntrypointContainerImpl;
+import net.fabricmc.loader.entrypoint.LazyEntrypointContainerImpl;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 
@@ -199,6 +201,25 @@ class EntrypointStorage {
 
 		if (exception != null) {
 			throw exception;
+		}
+
+		return results;
+	}
+
+	protected <T> List<LazyEntrypointContainer<T>> getLazyEntrypointContainers(String key, Class<T> type) {
+		List<Entry> entries = entryMap.get(key);
+		if (entries == null) return Collections.emptyList();
+
+		List<LazyEntrypointContainer<T>> results = new ArrayList<>(entries.size());
+
+		for (Entry entry : entries) {
+			results.add(new LazyEntrypointContainerImpl<>(entry.getModContainer(), () -> {
+				try {
+					return entry.getOrCreate(type);
+				} catch (Exception ex) {
+					throw new RuntimeException(ex);
+				}
+			}));
 		}
 
 		return results;
