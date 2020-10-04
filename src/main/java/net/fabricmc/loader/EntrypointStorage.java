@@ -217,7 +217,7 @@ class EntrypointStorage {
 				try {
 					return entry.getOrCreate(type);
 				} catch (Exception ex) {
-					throw new RuntimeException(ex);
+					throw new EntrypointException(key, entry.getModContainer().getMetadata().getId(), ex);
 				}
 			}));
 		}

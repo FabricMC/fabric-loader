@@ -10,8 +10,7 @@ public interface LazyEntrypointContainer<T> {
 	/**
 	 * Returns the entrypoint instance.
 	 */
-	T createEntrypoint() throws Exception;
-
+	T createEntrypoint();
 	/**
 	 * Returns the mod that provided this entrypoint.
 	 */

@@ -15,12 +15,8 @@ public class LazyEntrypointContainerImpl<T> implements LazyEntrypointContainer<T
 	}
 
 	@Override
-	public T createEntrypoint() throws Exception {
-		try {
-			return entrypointSupplier.get();
-		} catch (RuntimeException ex) {
-			throw (Exception) ex.getCause();
-		}
+	public T createEntrypoint() {
+		return entrypointSupplier.get();
 	}
 
 	@Override
