@@ -69,7 +69,7 @@ final class V1ModMetadataParser {
 		@Deprecated
 		Map<String, ModDependency> requires = new HashMap<>();
 
-		// Optional(metadata)
+		// Optional (metadata)
 		String name = null;
 		String description = null;
 		List<Person> authors = new ArrayList<>();

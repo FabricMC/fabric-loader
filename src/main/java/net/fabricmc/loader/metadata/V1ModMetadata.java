@@ -64,7 +64,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	/* @Nullable */
 	private final String name;
 	private final String description;
-	private final Collection<Person> authors; // Continue here and below
+	private final Collection<Person> authors;
 	private final Collection<Person> contributors;
 	private final ContactInformation contact;
 	private final Collection<String> license;
