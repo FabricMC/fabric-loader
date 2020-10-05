@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "v1-parsing-test",
+  "version": "1.0.0-SNAPSHOT",
+  "custom": {
+    "zero": false,
+    "one": null,
+    "two": 2,
+    "three": 3.3,
+    "four": [
+      "five",
+      "six",
+      "seven"
+    ],
+    "eight": {
+      "value": "nine",
+      "ten": {
+        "eleven": [
+          {
+            "value": "twelve",
+            "value2": "thirteen"
+          },
+          {
+            "value": "fourteen",
+            "value2": "fifteen"
+          }
+        ],
+        "sixteen": [
+          true,
+          true,
+          false,
+          true,
+          false
+        ]
+      }
+    }
+  }
+}

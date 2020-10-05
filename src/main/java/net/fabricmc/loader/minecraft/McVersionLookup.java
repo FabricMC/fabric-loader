@@ -19,7 +19,6 @@ package net.fabricmc.loader.minecraft;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,8 +34,9 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import com.google.gson.stream.JsonReader;
-
+import net.fabricmc.loader.lib.gson.JsonReader;
+import net.fabricmc.loader.lib.gson.JsonToken;
+import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
@@ -115,7 +115,7 @@ public final class McVersionLookup {
 	}
 
 	private static McVersion fromVersionJson(InputStream is) {
-		try (JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+		try(JsonReader reader = new JsonReader(new InputStreamReader(is))) {
 			String id = null;
 			String name = null;
 			String release = null;
@@ -124,10 +124,33 @@ public final class McVersionLookup {
 
 			while (reader.hasNext()) {
 				switch (reader.nextName()) {
-				case "id": id = reader.nextString(); break;
-				case "name": name = reader.nextString(); break;
-				case "release_target": release = reader.nextString(); break;
-				default: reader.skipValue();
+				case "id":
+					if (reader.peek() != JsonToken.STRING) {
+						// FIXME: Needs it's own type?
+						throw new ParseMetadataException("\"id\" in version json must be a string");
+					}
+
+					id = reader.nextString();
+					break;
+				case "name":
+					if (reader.peek() != JsonToken.STRING) {
+						// FIXME: Needs it's own type?
+						throw new ParseMetadataException("\"name\" in version json must be a string");
+					}
+
+					name = reader.nextString();
+					break;
+				case "release_target":
+					if (reader.peek() != JsonToken.STRING) {
+						// FIXME: Needs it's own type?
+						throw new ParseMetadataException("\"release_target\" in version json must be a string");
+					}
+
+					release = reader.nextString();
+					break;
+				default:
+					// There is typically other stuff in the file, just ignore anything we don't know
+					reader.skipValue();
 				}
 			}
 
@@ -140,7 +163,7 @@ public final class McVersionLookup {
 			}
 
 			if (name != null && release != null) return new McVersion(name, release);
-		} catch (IOException e) {
+		} catch (IOException | ParseMetadataException e) {
 			e.printStackTrace();
 		}
 

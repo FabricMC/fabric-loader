@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.game;
 
-import com.google.gson.Gson;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
@@ -40,8 +39,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class MinecraftGameProvider implements GameProvider {
-	private static final Gson GSON = new Gson();
-
 	private EnvType envType;
 	private String entrypoint;
 	private Arguments arguments;

@@ -16,17 +16,11 @@
 
 package net.fabricmc.loader.util.version;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 
-import java.lang.reflect.Type;
-
-public class VersionDeserializer implements JsonDeserializer<Version> {
+public final class VersionDeserializer {
 	public static SemanticVersion deserializeSemantic(String s) throws VersionParsingException {
 		if (s == null || s.isEmpty()) {
 			throw new VersionParsingException("Version must be a non-empty string!");
@@ -49,19 +43,5 @@ public class VersionDeserializer implements JsonDeserializer<Version> {
 		}
 
 		return version;
-	}
-
-	@Override
-	public Version deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-		if (!json.isJsonPrimitive()) {
-			throw new JsonParseException("Version must be a non-empty string!");
-		}
-
-		String s = json.getAsString();
-		try {
-			return deserialize(s);
-		} catch (VersionParsingException e) {
-			throw new JsonParseException(e);
-		}
 	}
 }
