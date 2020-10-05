@@ -24,7 +24,6 @@ import java.util.Optional;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.fabricmc.loader.api.entrypoint.LazyEntrypointContainer;
 
 /**
  * The public-facing FabricLoader instance.
@@ -97,17 +96,6 @@ public interface FabricLoader {
 	 * @see LanguageAdapter
 	 */
 	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
-
-	/**
-	 * Same as {@link FabricLoader#getEntrypointContainers(String, Class)}, except the actual instance of the type is
-	 * not constructed until {@link LazyEntrypointContainer#createEntrypoint()} is called
-	 * @param key  the key in entrypoint declaration in {@code fabric.mod.json}
-	 * @param type the type of entrypoints
-	 * @param <T>  the type of entrypoints
-	 * @return the lazy entrypoint containers related to this key
-	 * @see FabricLoader#getEntrypointContainers(String, Class)
-	 */
-	<T> List<LazyEntrypointContainer<T>> getLazyEntrypointContainers(String key, Class<T> type);
 
 	/**
 	 * Get the current mapping resolver.

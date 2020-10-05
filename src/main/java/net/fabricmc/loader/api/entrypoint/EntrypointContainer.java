@@ -26,7 +26,7 @@ import net.fabricmc.loader.api.ModContainer;
  */
 public interface EntrypointContainer<T> {
 	/**
-	 * Returns the entrypoint instance.
+	 * Returns the entrypoint instance. It will be constructed the first time you call this method.
 	 */
 	T getEntrypoint();
 

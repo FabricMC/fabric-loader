@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.fabricmc.loader.api.entrypoint.LazyEntrypointContainer;
 import net.fabricmc.loader.discovery.RuntimeModRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -267,11 +266,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	@Override
 	public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		return entrypointStorage.getEntrypointContainers(key, type);
-	}
-
-	@Override
-	public <T> List<LazyEntrypointContainer<T>> getLazyEntrypointContainers(String key, Class<T> type) {
-		return entrypointStorage.getLazyEntrypointContainers(key, type);
 	}
 
 	@Override
