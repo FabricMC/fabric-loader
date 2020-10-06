@@ -34,7 +34,6 @@ import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
@@ -44,8 +43,7 @@ final class V1ModMetadataParser {
 	/**
 	 * Reads a {@code fabric.mod.json} file of schema version {@code 1}.
 	 *
-	 *
-	 * @param logger
+	 * @param logger the logger to print warnings to
 	 * @param reader the json reader to read the file with
 	 * @return the metadata of this file, null if the file could not be parsed
 	 * @throws IOException         if there was any issue reading the file
