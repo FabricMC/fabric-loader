@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,10 +40,11 @@ abstract class CustomValueImpl implements CustomValue {
 		case BEGIN_OBJECT:
 			reader.beginObject();
 
-			final Map<String, CustomValue> values = new HashMap<>();
+			// To preserve insertion order
+			final Map<String, CustomValue> values = new LinkedHashMap<>();
 
 			while (reader.hasNext()) {
-				values.put(reader.nextName(), CustomValueImpl.readCustomValue(reader));
+				values.put(reader.nextName(), readCustomValue(reader));
 			}
 
 			reader.endObject();
@@ -54,7 +56,7 @@ abstract class CustomValueImpl implements CustomValue {
 			final List<CustomValue> entries = new ArrayList<>();
 
 			while (reader.hasNext()) {
-				entries.add(CustomValueImpl.readCustomValue(reader));
+				entries.add(readCustomValue(reader));
 			}
 
 			reader.endArray();
@@ -67,13 +69,13 @@ abstract class CustomValueImpl implements CustomValue {
 			return new NumberImpl(reader.nextDouble());
 		case BOOLEAN:
 			if (reader.nextBoolean()) {
-				return CustomValueImpl.BOOLEAN_TRUE;
+				return BOOLEAN_TRUE;
 			}
 
-			return CustomValueImpl.BOOLEAN_FALSE;
+			return BOOLEAN_FALSE;
 		case NULL:
 			reader.nextNull();
-			return CustomValueImpl.NULL;
+			return NULL;
 		default:
 			throw new ParseMetadataException(Objects.toString(reader.nextName()), reader);
 		}

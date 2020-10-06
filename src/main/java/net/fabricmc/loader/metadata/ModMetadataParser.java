@@ -17,11 +17,11 @@
 package net.fabricmc.loader.metadata;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +35,7 @@ public final class ModMetadataParser {
 
 	// Per the ECMA-404 (www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf), the JSON spec does not prohibit duplicate keys.
 	// For all intensive purposes of replicating the logic of Gson before we have migrated to Nanojson, duplicate keys will replace previous entries.
-	public static LoaderModMetadata parseMetadata(Path modJson) throws IOException, ParseMetadataException {
+	public static LoaderModMetadata parseMetadata(Logger logger, Path modJson) throws IOException, ParseMetadataException {
 		try {
 			// So some context:
 			// Per the json specification, ordering of fields is not typically enforced.
@@ -53,62 +53,49 @@ public final class ModMetadataParser {
 			// Re-read the JSON file.
 			int schemaVersion = 0;
 
-			try (InputStream stream = Files.newInputStream(modJson)) {
-				try (JsonReader reader = new JsonReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-					if (reader.peek() != JsonToken.BEGIN_OBJECT) {
-						throw new ParseMetadataException("Root of \"fabric.mod.json\" must be an object", reader);
-					}
+			try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(modJson), StandardCharsets.UTF_8))) {
+				if (reader.peek() != JsonToken.BEGIN_OBJECT) {
+					throw new ParseMetadataException("Root of \"fabric.mod.json\" must be an object", reader);
+				}
 
-					reader.beginObject();
+				reader.beginObject();
 
-					boolean firstField = true;
+				boolean firstField = true;
 
-					while (reader.hasNext()) {
-						// Try to read the schemaVersion
-						if (reader.nextName().equals("schemaVersion")) {
-							if (reader.peek() != JsonToken.NUMBER) {
-								throw new ParseMetadataException("\"schemaVersion\" must be a number.", reader);
-							}
-
-							schemaVersion = reader.nextInt();
-
-							if (firstField) {
-								// Finish reading the metadata
-								return ModMetadataParser.readModMetadata(reader, schemaVersion);
-							} else {
-								// schemaVersion found, but after some content -> start over to parse all data with the detected version
-								if (reader.hasNext()) {
-									while (reader.hasNext()) {
-										reader.skipValue();
-									}
-								}
-
-								break;
-							}
-						} else {
-							reader.skipValue();
+				while (reader.hasNext()) {
+					// Try to read the schemaVersion
+					if (reader.nextName().equals("schemaVersion")) {
+						if (reader.peek() != JsonToken.NUMBER) {
+							throw new ParseMetadataException("\"schemaVersion\" must be a number.", reader);
 						}
 
-						firstField = false;
+						schemaVersion = reader.nextInt();
+
+						if (firstField) {
+							// Finish reading the metadata
+							return readModMetadata(logger, reader, schemaVersion);
+						}
+
+						// schemaVersion found, but after some content -> start over to parse all data with the detected version
+					} else {
+						reader.skipValue();
 					}
 
-					reader.endObject();
+					firstField = false;
 				}
+
+				reader.endObject();
 			}
 
 			// Slow path, schema version wasn't specified early enough, re-read with detected/inferred version
-			try (InputStream stream = Files.newInputStream(modJson)) {
-				try (JsonReader reader = new JsonReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
-					if (reader.peek() != JsonToken.BEGIN_OBJECT) {
-						throw new ParseMetadataException("Root of \"fabric.mod.json\" must be an object", reader);
-					}
+			try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(modJson), StandardCharsets.UTF_8))) {
+				// No need to check if the start of the json file as it has already been checked
+				reader.beginObject();
+				final LoaderModMetadata ret = readModMetadata(logger, reader, schemaVersion);
+				reader.endObject();
 
-					reader.beginObject();
-					final LoaderModMetadata ret = ModMetadataParser.readModMetadata(reader, schemaVersion);
-
-					LOGGER.warn(String.format("\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId()));
-					return ret;
-				}
+				LOGGER.warn(String.format("\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId()));
+				return ret;
 			}
 		} catch (IllegalStateException e) {
 			// Rethrow Gson's IllegalStateException as a parse exception
@@ -116,15 +103,40 @@ public final class ModMetadataParser {
 		}
 	}
 
-	private static LoaderModMetadata readModMetadata(JsonReader reader, int schemaVersion) throws IOException, ParseMetadataException {
+	private static LoaderModMetadata readModMetadata(Logger logger, JsonReader reader, int schemaVersion) throws IOException, ParseMetadataException {
 		switch (schemaVersion) {
 		case 1:
-			return V1ModMetadataParser.parse(reader);
+			return V1ModMetadataParser.parse(logger, reader);
 		case 0:
-			return V0ModMetadataParser.parse(reader);
+			return V0ModMetadataParser.parse(logger, reader);
 		default:
 			throw new ParseMetadataException(String.format("Invalid/Unsupported schema version \"%s\" was found", schemaVersion));
 		}
+	}
+
+	static void logWarningMessages(Logger logger, String id, List<ParseWarning> warnings) {
+		if (warnings.isEmpty()) {
+			return;
+		}
+
+		final StringBuilder message = new StringBuilder();
+
+		message.append("The mod \"")
+				.append(id)
+				.append("\" contains invalid entries in its mod json:");
+
+		for (ParseWarning warning : warnings) {
+			message.append("\n- ")
+					.append(warning.getReason())
+					.append(" \"")
+					.append(warning.getKey())
+					.append("\" at line ")
+					.append(warning.getLine())
+					.append(" column ")
+					.append(warning.getColumn());
+		}
+
+		logger.warn(message.toString());
 	}
 
 	private ModMetadataParser() {

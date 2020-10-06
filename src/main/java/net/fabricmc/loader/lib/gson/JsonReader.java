@@ -1584,4 +1584,14 @@ public class JsonReader implements Closeable {
 		// we consumed a security token!
 		pos += 5;
 	}
+
+	// Fabric - added methods for warning messages
+
+	public int getLineNumber() {
+		return this.lineNumber + 1;
+	}
+
+	public int getColumn() {
+		return this.pos - this.lineStart + 1;
+	}
 }

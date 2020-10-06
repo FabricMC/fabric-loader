@@ -26,26 +26,10 @@ import net.fabricmc.loader.util.version.VersionPredicateParser;
 final class ModDependencyImpl implements ModDependency {
 	private final String modId;
 	private final List<String> matcherStringList;
-	private final String depAsStr;
 
 	ModDependencyImpl(String modId, List<String> matcherStringList) {
 		this.modId = modId;
 		this.matcherStringList = matcherStringList;
-
-		final StringBuilder builder = new StringBuilder("{");
-		builder.append(this.modId);
-		builder.append(" @ [");
-
-		for (int i = 0; i < matcherStringList.size(); i++) {
-			if (i > 0) {
-				builder.append(" || ");
-			}
-
-			builder.append(matcherStringList.get(i));
-		}
-
-		builder.append("]}");
-		this.depAsStr = builder.toString();
 	}
 
 	@Override
@@ -71,6 +55,19 @@ final class ModDependencyImpl implements ModDependency {
 
 	@Override
 	public String toString() {
-		return this.depAsStr;
+		final StringBuilder builder = new StringBuilder("{");
+		builder.append(this.modId);
+		builder.append(" @ [");
+
+		for (int i = 0; i < matcherStringList.size(); i++) {
+			if (i > 0) {
+				builder.append(" || ");
+			}
+
+			builder.append(matcherStringList.get(i));
+		}
+
+		builder.append("]}");
+		return builder.toString();
 	}
 }
