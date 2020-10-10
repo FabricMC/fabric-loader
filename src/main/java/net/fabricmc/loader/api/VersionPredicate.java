@@ -101,8 +101,7 @@ public final class VersionPredicate {
 			switch (firstChar) {
 			case '*':
 				if (matcher.length() == 1) {
-					predicates.clear();
-					predicates.add(new VersionPredicate(Type.ANY, ""));
+					return Collections.singleton(new VersionPredicate(Type.ANY, ""));
 				} else {
 					predicates.add(new VersionPredicate(Type.EQUALS, matcher));
 				}
