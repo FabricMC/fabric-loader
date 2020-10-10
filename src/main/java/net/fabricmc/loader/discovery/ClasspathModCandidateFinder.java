@@ -68,8 +68,8 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 								// Fabric being supposedly uninitialized.
 								// This heuristic could probably be better, but I doubt that any sane
 								// mod would include a second FabricLoader.
-								if (!(net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment()
-										&& new File(file, "net/fabricmc/loader/FabricLoader.class".replace('/', File.separatorChar)).exists())) {
+								if (!FabricLoader.INSTANCE.isDevelopmentEnvironment()
+										|| !new File(file, "net/fabricmc/loader/FabricLoader.class".replace('/', File.separatorChar)).exists()) {
 									FabricLauncherBase.getLauncher().propose(url);
 								}
 							}
