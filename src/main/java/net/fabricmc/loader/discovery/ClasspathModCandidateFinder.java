@@ -24,7 +24,9 @@ import net.fabricmc.loader.util.UrlUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -59,7 +61,17 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 						try {
 							URL url = UrlUtil.asUrl(file);
 							if (!modsList.contains(url)) {
-								FabricLauncherBase.getLauncher().propose(url);
+								// Fix running fabric-loader itself in a developmental environment.
+								// By proposing loader classes to KnotClassLoader, we setup a
+								// situation where the entrypoint hooks are loaded on KnotClassLoader
+								// rather than AppClassLoader. This crashes the game due to
+								// Fabric being supposedly uninitialized.
+								// This heuristic could probably be better, but I doubt that any sane
+								// mod would include a second FabricLoader.
+								if (!(net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment()
+										&& new File(file, "net/fabricmc/loader/FabricLoader.class".replace('/', File.separatorChar)).exists())) {
+									FabricLauncherBase.getLauncher().propose(url);
+								}
 							}
 						} catch (UrlConversionException e) {
 							loader.getLogger().warn("[ClasspathModCandidateFinder] Failed to add dev directory " + file.getAbsolutePath() + " to classpath!", e);
