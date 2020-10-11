@@ -127,7 +127,7 @@ public final class McVersionLookup {
 				switch (reader.nextName()) {
 				case "id":
 					if (reader.peek() != JsonToken.STRING) {
-						// FIXME: Needs it's own type?
+						// FIXME: Needs its own type?
 						throw new ParseMetadataException("\"id\" in version json must be a string");
 					}
 
@@ -135,7 +135,7 @@ public final class McVersionLookup {
 					break;
 				case "name":
 					if (reader.peek() != JsonToken.STRING) {
-						// FIXME: Needs it's own type?
+						// FIXME: Needs its own type?
 						throw new ParseMetadataException("\"name\" in version json must be a string");
 					}
 
@@ -143,7 +143,7 @@ public final class McVersionLookup {
 					break;
 				case "release_target":
 					if (reader.peek() != JsonToken.STRING) {
-						// FIXME: Needs it's own type?
+						// FIXME: Needs its own type?
 						throw new ParseMetadataException("\"release_target\" in version json must be a string");
 					}
 
