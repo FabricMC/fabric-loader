@@ -35,6 +35,14 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 	public void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> appender) {
 		Stream<URL> urls;
 
+		URL fabricCodeSource;
+		try {
+			fabricCodeSource = FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation();
+		} catch (Throwable t) {
+			loader.getLogger().debug("Could not retrieve launcher code source!", t);
+			fabricCodeSource = null;
+		}
+
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			// Search for URLs which point to 'fabric.mod.json' entries, to be considered as mods.
 			try {
@@ -68,8 +76,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 								// Fabric being supposedly uninitialized.
 								// This heuristic could probably be better, but I doubt that any sane
 								// mod would include a second FabricLoader.
-								if (!FabricLoader.INSTANCE.isDevelopmentEnvironment()
-										|| !new File(file, "net/fabricmc/loader/FabricLoader.class".replace('/', File.separatorChar)).exists()) {
+								if (!FabricLoader.INSTANCE.isDevelopmentEnvironment() || !url.equals(fabricCodeSource)) {
 									FabricLauncherBase.getLauncher().propose(url);
 								}
 							}
@@ -84,10 +91,10 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 				throw new RuntimeException(e);
 			}
 		} else {
-			try {
-				urls = Stream.of(FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation());
-			} catch (Throwable t) {
-				loader.getLogger().debug("Could not fallback to itself for mod candidate lookup!", t);
+			if(fabricCodeSource != null) {
+				urls = Stream.of(fabricCodeSource);
+			} else {
+				loader.getLogger().debug("Could not fallback to itself for mod candidate lookup!");
 				urls = Stream.empty();
 			}
 		}
