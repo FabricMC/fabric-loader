@@ -38,11 +38,9 @@ repositories {
 }
 
 dependencies {
-	// TODO: Stop depending on Minecraft in main build.gradle
 	minecraft "com.mojang:minecraft:1.16.3"
 	mappings "net.fabricmc:yarn:1.16.3+build.27:v2"
 
-	// TODO: Jetbrains annotations
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 
@@ -206,7 +204,6 @@ publishing {
 	}
 }
 
-// TODO: Integrate these into the buildscript?
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
 
