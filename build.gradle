@@ -1,14 +1,10 @@
-import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-
 plugins {
 	id 'java'
 	id 'maven-publish'
 
 	id 'idea'
 	id 'eclipse'
-	id("fabric-loom") version "0.2.7-SNAPSHOT"
+	id("fabric-loom") version "0.5-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -28,56 +24,53 @@ repositories {
 		url = 'https://maven.fabricmc.net/'
 	}
 	maven {
-		name = 'SpongePowered'
-		url = 'http://repo.spongepowered.org/maven'
-	}
-	maven {
 		name = 'mojang'
 		url = 'https://libraries.minecraft.net/'
 	}
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.14.4"
-	mappings "net.fabricmc:yarn:1.14.4+build.1"
-
-	// Minecraft's JAR uses these annotations
-	compile 'com.google.code.findbugs:jsr305:3.0.2'
+	minecraft "com.mojang:minecraft:1.16.3"
+	mappings "net.fabricmc:yarn:1.16.3+build.47:v2"
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:9.0'
-	compile 'org.ow2.asm:asm-analysis:9.0'
-	compile 'org.ow2.asm:asm-commons:9.0'
-	compile 'org.ow2.asm:asm-tree:9.0'
-	compile 'org.ow2.asm:asm-util:9.0'
+	implementation "org.ow2.asm:asm:${project.asm_version}"
+	implementation "org.ow2.asm:asm-analysis:${project.asm_version}"
+	implementation "org.ow2.asm:asm-commons:${project.asm_version}"
+	implementation "org.ow2.asm:asm-tree:${project.asm_version}"
+	implementation "org.ow2.asm:asm-util:${project.asm_version}"
 
-	compile('net.fabricmc:sponge-mixin:0.8.2+build.23') {
+	// Required for mixin annotation processor
+	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-analysis:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+
+	implementation('net.fabricmc:sponge-mixin:0.8.2+build.23') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	compile 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	compile 'net.fabricmc:tiny-remapper:0.3.0.70'
+	implementation 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
+	implementation 'net.fabricmc:tiny-remapper:0.3.0.70'
 
-	compile 'com.google.jimfs:jimfs:1.2-fabric'
-	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
+	implementation 'com.google.jimfs:jimfs:1.2-fabric'
+	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
 	// launchwrapper + dependencies
-	compile ('net.minecraft:launchwrapper:1.12') {
+	implementation ('net.minecraft:launchwrapper:1.12') {
 		transitive = false
 	}
-	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+	implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
+
+	testCompileOnly 'org.jetbrains:annotations:19.0.0'
 }
 
 processResources {
-	inputs.property "version", version
+	inputs.property "version", project.version
 
-	from(sourceSets.main.resources.srcDirs) {
-		include 'fabric.mod.json'
-		expand 'version':version
-	}
-
-	from(sourceSets.main.resources.srcDirs) {
-		exclude 'fabric.mod.json'
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
 	}
 }
 
@@ -105,23 +98,6 @@ task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
 
 tasks.build.dependsOn "copyJson"
 tasks.build.dependsOn "copyJsonLw"
-
-String getClasspathEntries(){
-	String classPath = ""
-	File installerFile = file("src/main/resources/fabric-installer.json")
-	JsonObject object = Gson.newInstance().fromJson(new InputStreamReader(new FileInputStream(installerFile)), JsonObject.class)
-
-	["common", "server"].forEach { l ->
-		for (JsonElement element : object.getAsJsonObject("libraries").getAsJsonArray(l)) {
-			String dep = element.getAsJsonObject().get("name").getAsString()
-			String[] depSplit = dep.split(":")
-			if (depSplit.length != 3) throw new RuntimeException("Invalid dependency " + dep);
-			classPath = classPath + " libs/" + depSplit[1] + "-" + depSplit[2] + ".jar"
-		}
-	}
-
-	return classPath;
-}
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
