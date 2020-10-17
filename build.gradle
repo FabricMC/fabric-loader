@@ -38,8 +38,8 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.14.4"
-	mappings "net.fabricmc:yarn:1.14.4+build.1"
+	minecraft "com.mojang:minecraft:1.16.3"
+	mappings "net.fabricmc:yarn:1.16.3+build.27:v2"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
@@ -66,6 +66,13 @@ dependencies {
 		transitive = false
 	}
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+
+	// Unit testing for mod metadata
+	testImplementation('org.junit.jupiter:junit-jupiter:5.6.2')
+}
+
+test {
+	useJUnitPlatform()
 }
 
 processResources {
@@ -196,5 +203,14 @@ publishing {
 		}
 	}
 }
+
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
+
+license {
+	// Exclude gson since it is google's code, we just modify and bundle it
+	exclude '**/JsonReader.java'
+	exclude '**/JsonScope.java'
+	exclude '**/JsonToken.java'
+	exclude '**/MalformedJsonException.java'
+}

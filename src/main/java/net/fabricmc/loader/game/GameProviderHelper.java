@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.game;
 
-import com.google.gson.Gson;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 
