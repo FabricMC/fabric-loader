@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.api;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -87,8 +88,8 @@ public final class VersionPredicate {
 		return Objects.hash(type, version);
 	}
 
-	public static Set<VersionPredicate> parse(String... matchers) {
-		Set<VersionPredicate> predicates = new HashSet<>(matchers.length);
+	public static Set<VersionPredicate> parse(Collection<String> matchers) {
+		Set<VersionPredicate> predicates = new HashSet<>(matchers.size());
 
 		for (String matcher : matchers) {
 			char firstChar = matcher.charAt(0);
