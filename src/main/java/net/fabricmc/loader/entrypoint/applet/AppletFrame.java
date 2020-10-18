@@ -123,8 +123,11 @@ public class AppletFrame extends Frame implements WindowListener {
 		shutdownListenerThread.start();
 
 		if (applet != null) {
-			applet.stop();
-			applet.destroy();
+			try {
+				applet.stop();
+			} finally {
+				applet.destroy();
+			}
 		}
 	}
 

@@ -37,7 +37,11 @@ public final class AppletMain {
 		try {
 			me.launch(args);
 		} catch (Throwable t) {
-			me.ensureClosed();
+			try {
+				me.ensureClosed();
+			} catch (Throwable tAgain) {
+				t.addSuppressed(tAgain);
+			}
 			throw t;
 		}
 	}
