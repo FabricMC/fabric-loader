@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.discovery;
+package net.fabricmc.loader.api.metadata;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.api.EnvType;
 
-import java.net.URL;
-import java.util.function.BiConsumer;
+public enum ModEnvironment {
+	CLIENT,
+	SERVER,
+	UNIVERSAL;
 
-@FunctionalInterface
-public interface ModCandidateFinder {
-	void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> urlProposer);
+	public boolean matches(EnvType type) {
+		switch (this) {
+			case CLIENT:
+				return type == EnvType.CLIENT;
+			case SERVER:
+				return type == EnvType.SERVER;
+			case UNIVERSAL:
+				return true;
+			default:
+				return false;
+		}
+	}
 }

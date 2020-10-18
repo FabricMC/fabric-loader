@@ -18,10 +18,13 @@ package net.fabricmc.loader.transformer.accesswidener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -149,6 +152,100 @@ public class AccessWidener {
 
 		classes.addAll(targets);
 		classes.addAll(parentClasses);
+	}
+
+	public void write(StringWriter writer) {
+		writer.write("accessWidener\tv1\t");
+		writer.write(namespace);
+		writer.write("\n");
+
+		for (Map.Entry<String, Access> entry : classAccess.entrySet()) {
+			for (String s : getAccesses(entry.getValue())) {
+				writer.write(s);
+				writer.write("\tclass\t");
+				writer.write(entry.getKey());
+				writer.write("\n");
+			}
+		}
+
+		for (Map.Entry<EntryTriple, Access> entry : methodAccess.entrySet()) {
+			writeEntry(writer, "method", entry.getKey(), entry.getValue());
+		}
+
+		for (Map.Entry<EntryTriple, Access> entry : fieldAccess.entrySet()) {
+			writeEntry(writer, "field", entry.getKey(), entry.getValue());
+		}
+	}
+
+	private void writeEntry(StringWriter writer, String type, EntryTriple entryTriple, Access access) {
+		for (String s : getAccesses(access)) {
+			writer.write(s);
+			writer.write("\t");
+			writer.write(type);
+			writer.write("\t");
+			writer.write(entryTriple.getOwner());
+			writer.write("\t");
+			writer.write(entryTriple.getName());
+			writer.write("\t");
+			writer.write(entryTriple.getDesc());
+			writer.write("\n");
+		}
+	}
+
+	private List<String> getAccesses(Access access) {
+		List<String> accesses = new ArrayList<>();
+
+		if (access == ClassAccess.ACCESSIBLE || access == MethodAccess.ACCESSIBLE || access == FieldAccess.ACCESSIBLE || access == MethodAccess.ACCESSIBLE_EXTENDABLE || access == ClassAccess.ACCESSIBLE_EXTENDABLE || access == FieldAccess.ACCESSIBLE_MUTABLE) {
+			accesses.add("accessible");
+		}
+
+		if (access == ClassAccess.EXTENDABLE || access == MethodAccess.EXTENDABLE || access == MethodAccess.ACCESSIBLE_EXTENDABLE || access == ClassAccess.ACCESSIBLE_EXTENDABLE) {
+			accesses.add("extendable");
+		}
+
+		if (access == FieldAccess.MUTABLE || access == FieldAccess.ACCESSIBLE_MUTABLE) {
+			accesses.add("mutable");
+		}
+
+		return accesses;
+	}
+
+	void addOrMerge(Map<EntryTriple, Access> map, EntryTriple entry, Access access) {
+		if (entry == null || access == null) {
+			throw new RuntimeException("Input entry or access is null");
+		}
+
+		Access merged = null;
+
+		if (access instanceof ClassAccess) {
+			merged = ClassAccess.DEFAULT;
+		} else if (access instanceof MethodAccess) {
+			merged = MethodAccess.DEFAULT;
+		} else if (access instanceof FieldAccess) {
+			merged = FieldAccess.DEFAULT;
+		}
+
+		merged = mergeAccess(merged, access);
+
+		map.put(entry, merged);
+	}
+
+	private static Access mergeAccess(Access a, Access b) {
+		Access access = a;
+
+		if (b == ClassAccess.ACCESSIBLE || b == MethodAccess.ACCESSIBLE || b == FieldAccess.ACCESSIBLE || b == MethodAccess.ACCESSIBLE_EXTENDABLE || b == ClassAccess.ACCESSIBLE_EXTENDABLE || b == FieldAccess.ACCESSIBLE_MUTABLE) {
+			access = access.makeAccessible();
+		}
+
+		if (b == ClassAccess.EXTENDABLE || b == MethodAccess.EXTENDABLE || b == MethodAccess.ACCESSIBLE_EXTENDABLE || b == ClassAccess.ACCESSIBLE_EXTENDABLE) {
+			access = access.makeExtendable();
+		}
+
+		if (b == FieldAccess.MUTABLE || b == FieldAccess.ACCESSIBLE_MUTABLE) {
+			access = access.makeMutable();
+		}
+
+		return access;
 	}
 
 	void addOrMerge(Map<EntryTriple, Access> map, EntryTriple entry, String access, Access defaultAccess) {

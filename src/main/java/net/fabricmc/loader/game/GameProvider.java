@@ -43,6 +43,8 @@ public interface GameProvider {
 	EntrypointTransformer getEntrypointTransformer();
 	void launch(ClassLoader loader);
 
+	String[] getLaunchArguments(boolean sanitize);
+
 	default boolean canOpenErrorGui() {
 		return true;
 	}

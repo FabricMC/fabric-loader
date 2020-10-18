@@ -35,7 +35,7 @@ repositories {
 	jcenter()
 	maven {
 		name = 'Fabric'
-		url = 'http://maven.modmuss50.me/'
+		url = 'https://maven.fabricmc.net/'
 	}
 	maven {
 		name = 'SpongePowered'
@@ -65,20 +65,20 @@ dependencies {
 	compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	installed 'org.ow2.asm:asm:8.0'
-	installed 'org.ow2.asm:asm-analysis:8.0'
-	installed 'org.ow2.asm:asm-commons:8.0'
-	installed 'org.ow2.asm:asm-tree:8.0'
-	installed 'org.ow2.asm:asm-util:8.0'
+	installed 'org.ow2.asm:asm:9.0'
+	installed 'org.ow2.asm:asm-analysis:9.0'
+	installed 'org.ow2.asm:asm-commons:9.0'
+	installed 'org.ow2.asm:asm-tree:9.0'
+	installed 'org.ow2.asm:asm-util:9.0'
 
-	installed('net.fabricmc:sponge-mixin:0.8+build.18') {
+	installed('net.fabricmc:sponge-mixin:0.8.1+build.21') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
 	installed 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	installed 'net.fabricmc:tiny-remapper:0.2.2.64'
+	installed 'net.fabricmc:tiny-remapper:0.3.0.70'
 
-	installed 'com.google.jimfs:jimfs:1.1'
+	installed 'com.google.jimfs:jimfs:1.2-fabric'
 	installed 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
 	// launchwrapper + dependencies
