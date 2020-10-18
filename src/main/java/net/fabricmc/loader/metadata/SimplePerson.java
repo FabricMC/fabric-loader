@@ -14,14 +14,28 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.discovery;
+package net.fabricmc.loader.metadata;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.Person;
 
-import java.net.URL;
-import java.util.function.BiConsumer;
+/**
+ * Represents a simple implementation of person which is only identified by name.
+ */
+class SimplePerson implements Person {
+	private final String name;
 
-@FunctionalInterface
-public interface ModCandidateFinder {
-	void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> urlProposer);
+	SimplePerson(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public ContactInformation getContact() {
+		return ContactInformation.EMPTY;
+	}
 }

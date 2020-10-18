@@ -16,8 +16,10 @@
 
 package net.fabricmc.loader.metadata;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,54 +27,57 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-
 import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.lib.gson.JsonReader;
 
 abstract class CustomValueImpl implements CustomValue {
 	static final CustomValue BOOLEAN_TRUE = new BooleanImpl(true);
 	static final CustomValue BOOLEAN_FALSE = new BooleanImpl(false);
 	static final CustomValue NULL = new NullImpl();
 
-	public static CustomValue fromJsonElement(JsonElement e) {
-		if (e instanceof JsonObject) {
-			JsonObject o = (JsonObject) e;
-			Map<String, CustomValue> entries = new LinkedHashMap<>(o.size());
+	public static CustomValue readCustomValue(JsonReader reader) throws IOException, ParseMetadataException {
+		switch (reader.peek()) {
+		case BEGIN_OBJECT:
+			reader.beginObject();
 
-			for (Map.Entry<String, JsonElement> entry : o.entrySet()) {
-				entries.put(entry.getKey(), fromJsonElement(entry.getValue()));
+			// To preserve insertion order
+			final Map<String, CustomValue> values = new LinkedHashMap<>();
+
+			while (reader.hasNext()) {
+				values.put(reader.nextName(), readCustomValue(reader));
 			}
 
-			return new ObjectImpl(entries);
-		} else if (e instanceof JsonArray) {
-			JsonArray o = (JsonArray) e;
-			List<CustomValue> entries = new ArrayList<>(o.size());
+			reader.endObject();
 
-			for (int i = 0, max = o.size(); i < max; i++) {
-				entries.add(fromJsonElement(o.get(i)));
+			return new ObjectImpl(values);
+		case BEGIN_ARRAY:
+			reader.beginArray();
+
+			final List<CustomValue> entries = new ArrayList<>();
+
+			while (reader.hasNext()) {
+				entries.add(readCustomValue(reader));
 			}
+
+			reader.endArray();
 
 			return new ArrayImpl(entries);
-		} else if (e instanceof JsonPrimitive) {
-			JsonPrimitive o = (JsonPrimitive) e;
-
-			if (o.isString()) {
-				return new StringImpl(o.getAsString());
-			} else if (o.isNumber()) {
-				return new NumberImpl(o.getAsNumber());
-			} else if (o.isBoolean()) {
-				return o.getAsBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE;
-			} else {
-				throw new IllegalStateException();
+		case STRING:
+			return new StringImpl(reader.nextString());
+		case NUMBER:
+			// TODO: Parse this somewhat more smartly?
+			return new NumberImpl(reader.nextDouble());
+		case BOOLEAN:
+			if (reader.nextBoolean()) {
+				return BOOLEAN_TRUE;
 			}
-		} else if (e instanceof JsonNull) {
+
+			return BOOLEAN_FALSE;
+		case NULL:
+			reader.nextNull();
 			return NULL;
-		} else {
-			throw new IllegalArgumentException(Objects.toString(e));
+		default:
+			throw new ParseMetadataException(Objects.toString(reader.nextName()), reader);
 		}
 	}
 

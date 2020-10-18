@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.discovery.RuntimeModRemapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,6 +54,7 @@ import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
+import org.objectweb.asm.Opcodes;
 
 /**
  * The main class for mod loading operations.
@@ -64,6 +66,8 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 */
 	@Deprecated
 	public static final FabricLoader INSTANCE = new FabricLoader();
+
+	public static final int ASM_VERSION = Opcodes.ASM9;
 
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 
@@ -198,7 +202,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private void setup() throws ModResolutionException {
 		ModResolver resolver = new ModResolver();
 		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
-		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir()));
+		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir(), isDevelopmentEnvironment()));
 		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
 		String modText;
@@ -218,8 +222,21 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
 			.collect(Collectors.joining(", ")));
 
-		for (ModCandidate candidate : candidateMap.values()) {
-			addMod(candidate);
+		boolean runtimeModRemapping = isDevelopmentEnvironment();
+
+		if (runtimeModRemapping && System.getProperty("fabric.remapClasspathFile") == null) {
+			LOGGER.warn("Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
+			runtimeModRemapping = false;
+		}
+
+		if (runtimeModRemapping) {
+			for (ModCandidate candidate : RuntimeModRemapper.remap(candidateMap.values(), ModResolver.getInMemoryFs())) {
+				addMod(candidate);
+			}
+		} else {
+			for (ModCandidate candidate : candidateMap.values()) {
+				addMod(candidate);
+			}
 		}
 	}
 
@@ -469,5 +486,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		}
 
 		this.gameInstance = gameInstance;
+	}
+
+	@Override
+	public String[] getLaunchArguments(boolean sanitize) {
+		return getGameProvider().getLaunchArguments(sanitize);
 	}
 }

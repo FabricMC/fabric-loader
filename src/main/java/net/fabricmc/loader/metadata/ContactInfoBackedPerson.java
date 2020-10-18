@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.discovery;
+package net.fabricmc.loader.metadata;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.metadata.ContactInformation;
 
-import java.net.URL;
-import java.util.function.BiConsumer;
+final class ContactInfoBackedPerson extends SimplePerson {
+	private final ContactInformation contact;
 
-@FunctionalInterface
-public interface ModCandidateFinder {
-	void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> urlProposer);
+	ContactInfoBackedPerson(String name, ContactInformation contact) {
+		super(name);
+		this.contact = contact;
+	}
+
+	@Override
+	public ContactInformation getContact() {
+		return this.contact;
+	}
 }

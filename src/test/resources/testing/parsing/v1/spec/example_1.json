@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "v1-parsing-test",
+  "version": "1.0.0-SNAPSHOT",
+  "name": "Example mod 1",
+  "description": "A simple unit test for parsing a \"fabric.mod.json\"",
+  "authors": [
+    {
+      "name": "FabricMC",
+      "contact": {
+        "homepage": "https://fabricmc.net/",
+        "sources": "https://github.com/FabricMC",
+        "discord_link": "https://discord.gg/v6v4pMv"
+      }
+    },
+    "Another author"
+  ],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.fabricmc.test.mod.ClientEntrypoint",
+      "net.fabricmc.test.mod.ClientEntrypoint2"
+    ],
+    "custom_entrypoint": [
+      {
+        "value": "net.fabricmc.test.mod.extension.CustomEntrypoint",
+        "adapter": "default"
+      }
+    ]
+  },
+  "icon": "assets/test/mod/icon.png",
+  "contact": {
+    "homepage": "https://fabricmc.net/"
+  },
+  "depends": {
+    "fabricloader": ">=0.4.0"
+  },
+  "custom": {
+    "execute_order_66": true
+  }
+}

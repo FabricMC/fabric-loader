@@ -38,25 +38,25 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.14.4"
-	mappings "net.fabricmc:yarn:1.14.4+build.1"
+	minecraft "com.mojang:minecraft:1.16.3"
+	mappings "net.fabricmc:yarn:1.16.3+build.27:v2"
 
 	// Minecraft's JAR uses these annotations
 	compile 'com.google.code.findbugs:jsr305:3.0.2'
 
 	// fabric-loader dependencies
-	compile 'org.ow2.asm:asm:8.0'
-	compile 'org.ow2.asm:asm-analysis:8.0'
-	compile 'org.ow2.asm:asm-commons:8.0'
-	compile 'org.ow2.asm:asm-tree:8.0'
-	compile 'org.ow2.asm:asm-util:8.0'
+	compile 'org.ow2.asm:asm:9.0'
+	compile 'org.ow2.asm:asm-analysis:9.0'
+	compile 'org.ow2.asm:asm-commons:9.0'
+	compile 'org.ow2.asm:asm-tree:9.0'
+	compile 'org.ow2.asm:asm-util:9.0'
 
-	compile('net.fabricmc:sponge-mixin:0.8.1+build.21') {
+	compile('net.fabricmc:sponge-mixin:0.8.2+build.23') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
 	compile 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	compile 'net.fabricmc:tiny-remapper:0.2.2.64'
+	compile 'net.fabricmc:tiny-remapper:0.3.0.70'
 
 	compile 'com.google.jimfs:jimfs:1.2-fabric'
 	compile 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
@@ -66,6 +66,13 @@ dependencies {
 		transitive = false
 	}
 	compile 'net.sf.jopt-simple:jopt-simple:5.0.3'
+
+	// Unit testing for mod metadata
+	testImplementation('org.junit.jupiter:junit-jupiter:5.6.2')
+}
+
+test {
+	useJUnitPlatform()
 }
 
 processResources {
@@ -196,5 +203,14 @@ publishing {
 		}
 	}
 }
+
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
 apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
+
+license {
+	// Exclude gson since it is google's code, we just modify and bundle it
+	exclude '**/JsonReader.java'
+	exclude '**/JsonScope.java'
+	exclude '**/JsonToken.java'
+	exclude '**/MalformedJsonException.java'
+}

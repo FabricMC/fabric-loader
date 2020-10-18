@@ -19,16 +19,17 @@ package net.fabricmc.loader.discovery;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
-import com.google.gson.*;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.lib.gson.MalformedJsonException;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.NestedJarEntry;
+import net.fabricmc.loader.metadata.ModMetadataParser;
+import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -39,10 +40,10 @@ import net.fabricmc.loader.util.sat4j.specs.IProblem;
 import net.fabricmc.loader.util.sat4j.specs.ISolver;
 import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
+
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -476,12 +477,14 @@ public class ModResolver {
 		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
 		private final int depth;
+		private final boolean requiresRemap;
 
-		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth) {
+		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth, boolean requiresRemap) {
 			this.loader = loader;
 			this.candidatesById = candidatesById;
 			this.url = url;
 			this.depth = depth;
+			this.requiresRemap = requiresRemap;
 		}
 
 		@Override
@@ -524,9 +527,11 @@ public class ModResolver {
 
 			LoaderModMetadata[] info;
 
-			try (InputStream stream = Files.newInputStream(modJson)) {
-				info = ModMetadataParser.getMods(loader, stream);
-			} catch (JsonParseException e) {
+			try {
+				info = new LoaderModMetadata[] { ModMetadataParser.parseMetadata(loader.getLogger(), modJson) };
+			} catch (ParseMetadataException.MissingRequired e){
+				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file! The mod is missing the following required field!", path), e);
+			} catch (MalformedJsonException | ParseMetadataException e) {
 				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file!", path), e);
 			} catch (NoSuchFileException e) {
 				loader.getLogger().warn(String.format("Non-Fabric mod JAR at \"%s\", ignoring", path));
@@ -538,7 +543,7 @@ public class ModResolver {
 			}
 
 			for (LoaderModMetadata i : info) {
-				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth);
+				ModCandidate candidate = new ModCandidate(i, normalizedUrl, depth, requiresRemap);
 				boolean added;
 
 				if (candidate.getInfo().getId() == null || candidate.getInfo().getId().isEmpty()) {
@@ -601,7 +606,7 @@ public class ModResolver {
 							jarInJars.stream()
 								.map((p) -> {
 									try {
-										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1);
+										return new UrlProcessAction(loader, candidatesById, UrlUtil.asUrl(p.normalize()), depth + 1, requiresRemap);
 									} catch (UrlConversionException e) {
 										throw new RuntimeException("Failed to turn path '" + p.normalize() + "' into URL!", e);
 									}
@@ -621,12 +626,11 @@ public class ModResolver {
 		ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
-
 		Queue<UrlProcessAction> allActions = new ConcurrentLinkedQueue<>();
 		ForkJoinPool pool = new ForkJoinPool(Math.max(1, Runtime.getRuntime().availableProcessors() - 1));
 		for (ModCandidateFinder f : candidateFinders) {
-			f.findCandidates(loader, (u) -> {
-				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0);
+			f.findCandidates(loader, (u, requiresRemap) -> {
+				UrlProcessAction action = new UrlProcessAction(loader, candidatesById, u, 0, requiresRemap);
 				allActions.add(action);
 				pool.execute(action);
 			});
@@ -634,13 +638,14 @@ public class ModResolver {
 
 		// add builtin mods
 		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
-			candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0));
+			candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, false));
 		}
 
 		boolean tookTooLong = false;
 		Throwable exception = null;
 		try {
 			pool.shutdown();
+			// Comment out for debugging
 			pool.awaitTermination(30, TimeUnit.SECONDS);
 			for (UrlProcessAction action : allActions) {
 				if (!action.isDone()) {
@@ -682,5 +687,9 @@ public class ModResolver {
 		}
 
 		return result;
+	}
+
+	public static FileSystem getInMemoryFs() {
+		return inMemoryFs;
 	}
 }
