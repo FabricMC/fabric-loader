@@ -71,7 +71,7 @@ dependencies {
 	installed 'org.ow2.asm:asm-tree:9.0'
 	installed 'org.ow2.asm:asm-util:9.0'
 
-	installed('net.fabricmc:sponge-mixin:0.8.1+build.21') {
+	installed('net.fabricmc:sponge-mixin:0.8.2+build.23') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
