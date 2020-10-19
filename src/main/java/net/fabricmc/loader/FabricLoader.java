@@ -54,6 +54,8 @@ import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
+import net.fabricmc.loader.util.SystemProperties;
+
 import org.objectweb.asm.Opcodes;
 
 /**
@@ -224,7 +226,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		boolean runtimeModRemapping = isDevelopmentEnvironment();
 
-		if (runtimeModRemapping && System.getProperty("fabric.remapClasspathFile") == null) {
+		if (runtimeModRemapping && System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
 			LOGGER.warn("Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			runtimeModRemapping = false;
 		}
