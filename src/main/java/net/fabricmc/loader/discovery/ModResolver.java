@@ -44,6 +44,7 @@ import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -188,7 +189,7 @@ public class ModResolver {
 								solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
 							}
 						} catch (ContradictionException e) {
-							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " breaks " + dep, e);
+							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " conflicts with " + dep, e);
 						}
 					}
 				}
@@ -345,6 +346,9 @@ public class ModResolver {
 			} else {
 				appendBreakingError(errors, candidate, depCandidate);
 			}
+			if (depCandidate != null) {
+				appendJiJInfo(errors, result, depCandidate);
+			}
 		}
 	}
 
@@ -377,6 +381,58 @@ public class ModResolver {
 		errors.append(" have found that version ").append(depCandidateVer).append(" of ").append(getCandidateName(depCandidate));
 		errors.append(" critically conflicts with their mod.");
 		errors.append("\n\t - You must remove one of the mods.");
+	}
+
+	private void appendJiJInfo(StringBuilder errors, Map<String, ModCandidate> result, ModCandidate candidate) {
+		if (candidate.getDepth() < 1) {
+			errors.append("\n\t - Mod ").append(getCandidateName(candidate))
+					.append(" v").append(getCandidateFriendlyVersion(candidate))
+					.append(" is being loaded from the user's mod directory.");
+			return;
+		}
+		URL originUrl = candidate.getOriginUrl();
+		// step 1: try to find source mod's URL
+		URL sourceUrl = null;
+		try {
+			for (Map.Entry<String, List<Path>> entry : inMemoryCache.entrySet()) {
+				for (Path path : entry.getValue()) {
+					URL url = UrlUtil.asUrl(path.normalize());
+					if (originUrl.equals(url)) {
+						sourceUrl = new URL(entry.getKey());
+						break;
+					}
+				}
+			}
+		} catch (UrlConversionException | MalformedURLException e) {
+			e.printStackTrace();
+		}
+		if (sourceUrl == null) {
+			errors.append("\n\t - Mod ").append(getCandidateName(candidate))
+					.append(" v").append(getCandidateFriendlyVersion(candidate))
+					.append(" is being provided by <unknown mod>.");
+			return;
+		}
+		// step 2: try to find source mod candidate
+		ModCandidate srcCandidate = null;
+		for (Map.Entry<String, ModCandidate> entry : result.entrySet()) {
+			if (sourceUrl.equals(entry.getValue().getOriginUrl())) {
+				srcCandidate = entry.getValue();
+				break;
+			}
+		}
+		if (srcCandidate == null) {
+			errors.append("\n\t - Mod ").append(getCandidateName(candidate))
+					.append(" v").append(getCandidateFriendlyVersion(candidate))
+					.append(" is being provided by <unknown mod: ")
+					.append(sourceUrl).append(">.");
+			return;
+		}
+		// now we have the proper data, yay
+		errors.append("\n\t - Mod ").append(getCandidateName(candidate))
+				.append(" v").append(getCandidateFriendlyVersion(candidate))
+				.append(" is being provided by ").append(getCandidateName(srcCandidate))
+				.append(" v").append(getCandidateFriendlyVersion(candidate))
+				.append('.');
 	}
 
 	private static String getCandidateName(ModCandidate candidate) {
@@ -577,6 +633,7 @@ public class ModResolver {
 
 					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl().toString(), (u) -> {
 						loader.getLogger().debug("Searching for nested JARs in " + candidate);
+						loader.getLogger().debug(u);
 						Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
 						List<Path> list = new ArrayList<>(jars.size());
 
