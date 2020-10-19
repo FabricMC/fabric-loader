@@ -315,12 +315,11 @@ public class ModResolver {
 	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
-		errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ");
-
 		List<String> errorList = new ArrayList<>();
 
 		if (!isModIdValid(depModId, errorList)) {
-			errors.append(depModId).append(", which has an invalid mod ID because:");
+			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
+					.append(depModId).append(", which has an invalid mod ID because:");
 
 			for (String error : errorList) {
 				errors.append("\n\t - It ").append(error);
@@ -333,7 +332,8 @@ public class ModResolver {
 		boolean isPresent = depCandidate != null && dependency.matches(depCandidate.getInfo().getVersion());
 
 		if (isPresent != cond) {
-			errors.append(getDependencyVersionRequirements(dependency)).append(" of mod ")
+			errors.append("\n - Mod ").append(getCandidateName(candidate)).append(" ").append(errorType).append(" ")
+					.append(getDependencyVersionRequirements(dependency)).append(" of mod ")
 					.append(depCandidate == null ? depModId : getCandidateName(depCandidate)).append(", ");
 			if (depCandidate == null) {
 				appendMissingDependencyError(errors, dependency);
