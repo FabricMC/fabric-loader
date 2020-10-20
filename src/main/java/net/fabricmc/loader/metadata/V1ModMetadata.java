@@ -263,7 +263,13 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 			return Collections.emptyList();
 		}
 
-		return this.entrypoints.get(type);
+		final List<EntrypointMetadata> entrypoints = this.entrypoints.get(type);
+
+		if (entrypoints != null) {
+			return entrypoints;
+		}
+
+		return Collections.emptyList();
 	}
 
 	@Override
