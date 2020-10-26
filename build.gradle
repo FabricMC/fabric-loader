@@ -55,7 +55,7 @@ dependencies {
 	implementation 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
 	implementation 'net.fabricmc:tiny-remapper:0.3.0.70'
 
-    implementation 'com.google.jimfs:jimfs:1.2-fabric'
+	implementation 'com.google.jimfs:jimfs:1.2-fabric'
 	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5-alexiil.1'
 
 	// launchwrapper + dependencies
