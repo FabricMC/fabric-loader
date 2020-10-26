@@ -3,7 +3,6 @@
     "package": "net.fabricmc.test.mixin",
     "compatibilityLevel": "JAVA_8",
     "mixins": [
-        "MixinGuiMain"
     ],
     "injectors": {
         "defaultRequire": 1

@@ -25,12 +25,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public class ClasspathModCandidateFinder implements ModCandidateFinder {
 	@Override
-	public void findCandidates(FabricLoader loader, Consumer<URL> appender) {
+	public void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> appender) {
 		Stream<URL> urls;
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
@@ -92,7 +92,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 
 			if (f.exists()) {
 				if (f.isDirectory() || f.getName().endsWith(".jar")) {
-					appender.accept(url);
+					appender.accept(url, false);
 				}
 			}
 		});

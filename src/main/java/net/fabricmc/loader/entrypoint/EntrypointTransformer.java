@@ -42,7 +42,7 @@ public class EntrypointTransformer {
 	}
 
 	ClassNode loadClass(FabricLauncher launcher, String className) throws IOException {
-		byte[] data = patchedClasses.containsKey(className) ? patchedClasses.get(className) : launcher.getClassByteArray(className, false);
+		byte[] data = patchedClasses.containsKey(className) ? patchedClasses.get(className) : launcher.getClassByteArray(className, true);
 		if (data != null) {
 			ClassReader reader = new ClassReader(data);
 			ClassNode node = new ClassNode();

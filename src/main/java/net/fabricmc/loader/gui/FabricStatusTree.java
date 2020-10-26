@@ -63,22 +63,22 @@ public final class FabricStatusTree {
 	/** No icon is displayed. */
 	public static final String ICON_TYPE_DEFAULT = "";
 
-	/** Generic folder */
+	/** Generic folder. */
 	public static final String ICON_TYPE_FOLDER = "folder";
 
-	/** Generic (unknown contents) file */
+	/** Generic (unknown contents) file. */
 	public static final String ICON_TYPE_UNKNOWN_FILE = "file";
 
-	/** Generic non-fabric jar file. */
+	/** Generic non-Fabric jar file. */
 	public static final String ICON_TYPE_JAR_FILE = "jar";
 
-	/** Generic fabric-related jar file. */
+	/** Generic Fabric-related jar file. */
 	public static final String ICON_TYPE_FABRIC_JAR_FILE = "jar+fabric";
 
-	/** Something related to fabric. (It's not defined what exactly this is for, but it uses the main fabric logo). */
+	/** Something related to Fabric (It's not defined what exactly this is for, but it uses the main Fabric logo). */
 	public static final String ICON_TYPE_FABRIC = "fabric";
 
-	/** Generic json file */
+	/** Generic JSON file. */
 	public static final String ICON_TYPE_JSON = "json";
 
 	/** A file called "fabric.mod.json". */
@@ -87,16 +87,16 @@ public final class FabricStatusTree {
 	/** Java bytecode class file. */
 	public static final String ICON_TYPE_JAVA_CLASS = "java_class";
 
-	/** A folder inside of a java jar. */
+	/** A folder inside of a Java JAR. */
 	public static final String ICON_TYPE_PACKAGE = "package";
 
-	/** A folder that contains java class files. */
+	/** A folder that contains Java class files. */
 	public static final String ICON_TYPE_JAVA_PACKAGE = "java_package";
 
 	/** A tick symbol, used to indicate that something matched. */
 	public static final String ICON_TYPE_TICK = "tick";
 
-	/** A cross symbol, used to indicate that something didn't match. (Although it's not an error). Used as the opposite
+	/** A cross symbol, used to indicate that something didn't match (although it's not an error). Used as the opposite
 	 * of {@link #ICON_TYPE_TICK} */
 	public static final String ICON_TYPE_LESSER_CROSS = "lesser_cross";
 
@@ -238,8 +238,7 @@ public final class FabricStatusTree {
 			string = string.trim();
 			FabricStatusNode to = this;
 
-			while (indent > 0) { // I never get to use this operator normally :p
-				indent--;
+			for (; indent > 0; indent--) {
 				if (to.children.isEmpty()) {
 					FabricStatusNode node = new FabricStatusNode(to, "");
 					to.children.add(node);
@@ -247,6 +246,7 @@ public final class FabricStatusTree {
 				} else {
 					to = to.children.get(to.children.size() - 1);
 				}
+
 				to.expandByDefault = true;
 			}
 
