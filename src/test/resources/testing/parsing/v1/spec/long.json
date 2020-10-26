@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "id": "v1-parsing-test",
+  "version": "1.0.0-SNAPSHOT",
+  "name": "Example mod 1",
+  "description": "A simple unit test for parsing a \"fabric.mod.json\"",
+  "license": [
+    "MIT",
+    "Unlicense"
+  ],
+  "authors": [
+    {
+      "name": "FabricMC",
+      "contact": {
+        "homepage": "https://fabricmc.net/",
+        "sources": "https://github.com/FabricMC",
+        "discord": "https://discord.gg/v6v4pMv",
+        "irc": "irc://irc.esper.net/fabric"
+      }
+    },
+    {
+      "name": "Author 2",
+      "contact": {
+        "discord": "Author2#1234"
+      }
+    },
+    {
+      "name": "Person"
+    },
+    "Author 3",
+    "Author 4",
+    "Author 5",
+    "Author 6",
+    "Author 7",
+    "Author 8"
+  ],
+  "contributors": [
+    {
+      "name": "Jon Doe",
+      "contact": {
+        "homepage": "jondoe.com",
+        "email": "mail@jondoe.com",
+        "sources": "git.jondoe.com"
+      }
+    },
+    {
+      "name": "Example mod project",
+      "contact": {
+        "homepage": "examplemod.net",
+        "sources": "examplemod.net/sources"
+      }
+    },
+    "50 Cats",
+    "Pineapples",
+    "Aged Milk"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "net.fabricmc.test.mod.ClientEntrypoint"
+    ],
+    "main": [
+      "net.fabricmc.test.mod.MainEntrypoint"
+    ],
+    "custom_entrypoint": [
+      {
+        "value": "net.fabricmc.test.mod.extension.CustomEntrypoint",
+        "adapter": "default"
+      }
+    ],
+    "another_entrypoint": [
+      "net.fabricmc.test.mod.extension.AnotherEntrypoint"
+    ]
+  },
+  "icon": "assets/test/mod/icon.png",
+  "contact": {
+    "homepage": "https://fabricmc.net/"
+  },
+  "mixins": [
+    "mixins.test.accessors.json",
+    "mixins.test.json",
+    {
+      "config": "mixins.test.client.json",
+      "environment": "client"
+    }
+  ],
+  "accessWidener": "examplemod.accessWidener",
+  "depends": {
+    "fabricloader": ">=0.4.0"
+  },
+  "suggests": {
+    "goodmod": [
+      "~2.8.7",
+      ">=3.0"
+    ]
+  },
+  "conflicts": {
+    "conflictingmod": "*"
+  },
+  "breaks": {
+    "breakingmod": "*"
+  },
+  "custom": {
+    "execute_order_66": true,
+    "other_mod:options": {
+      "use_overzealous_loading": false,
+      "preferred_dispatch_order": null
+    },
+    "long_values": {
+      "other_value": {
+        "another_value": {
+          "array_of_values": [
+            {
+              "name": "A name",
+              "value": {
+
+              }
+            },
+            {
+              "name": "Another name",
+              "value": {
+                "a": "r"
+              }
+            },
+            {
+              "name": "A third name",
+              "value": {
+                "a": "c"
+              }
+            },
+            {
+              "name": "A fourth name",
+              "value": {
+                "a": "b"
+              }
+            }
+          ],
+          "null_value": null,
+          "int_val": 3,
+          "double_val": 2.34,
+          "negative_large_number": -3.343443E22,
+          "array_two": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "array_three": [
+            {
+              "values": [
+                2,
+                4,
+                6,
+                8
+              ]
+            },
+            {
+              "values": [
+                1,
+                3,
+                5,
+                7
+              ]
+            }
+          ]
+        },
+        "string": "A string value"
+      }
+    },
+    "blep": true
+  }
+}
