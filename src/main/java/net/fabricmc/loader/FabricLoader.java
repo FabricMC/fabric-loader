@@ -269,6 +269,11 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	@Override
+	public <T> List<EntrypointContainer<Class<? extends T>>> getEntrypointClassContainers(String key, Class<T> type) {
+		return entrypointStorage.getEntrypointClassContainers(key, type);
+	}
+
+	@Override
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
 			mappingResolver = new FabricMappingResolver(
