@@ -97,16 +97,6 @@ public interface FabricLoader {
 	 */
 	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
 
-
-	/**
-	 * Returns the classes of all entrypoints declared under a {@code key}, assuming they are of a specific type.
-	 * @param key  the key in entrypoint declaration in {@code fabric.mod.json}
-	 * @param type the type of entrypoints
-	 * @param <T>  the type of entrypoints
-	 * @return the entrypoint containers related to this key
-	 */
-	<T> List<EntrypointContainer<Class<? extends T>>> getEntrypointClassContainers(String key, Class<T> type);
-
 	/**
 	 * Get the current mapping resolver.
 	 *

@@ -47,6 +47,11 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 			throw new LanguageAdapterException(e);
 		}
 
+		if (type == Class.class) {
+			//noinspection unchecked
+			return (T) c;
+		}
+
 		if (methodSplit.length == 1) {
 			if (type.isAssignableFrom(c)) {
 				try {
