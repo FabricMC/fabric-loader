@@ -235,7 +235,7 @@ public class JsonReader implements Closeable {
 	 * We decode literals directly out of this buffer, so it must be at least as
 	 * long as the longest token that can be reported as a number.
 	 */
-	private final char[] buffer = new char[1024];
+	private final char[] buffer = new char[8192];
 	private int pos = 0;
 	private int limit = 0;
 

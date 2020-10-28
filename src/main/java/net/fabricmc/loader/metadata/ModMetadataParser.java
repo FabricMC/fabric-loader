@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -94,7 +95,8 @@ public final class ModMetadataParser {
 				final LoaderModMetadata ret = readModMetadata(logger, reader, schemaVersion);
 				reader.endObject();
 
-				LOGGER.warn(String.format("\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId()));
+				if (FabricLoader.getInstance().isDevelopmentEnvironment())
+					LOGGER.warn(String.format("\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId()));
 				return ret;
 			}
 		} catch (IllegalStateException e) {
