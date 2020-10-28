@@ -127,7 +127,7 @@ public final class Knot extends FabricLauncherBase {
 		loader.load();
 		loader.freeze();
 
-		FabricLoader.INSTANCE.getAccessWidener().loadFromMods();
+		FabricLoader.INSTANCE.loadAccessWideners();
 
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
