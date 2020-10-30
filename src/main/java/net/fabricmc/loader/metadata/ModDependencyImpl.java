@@ -17,15 +17,18 @@
 package net.fabricmc.loader.metadata;
 
 import java.util.List;
+import java.util.Set;
 
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.VersionPredicate;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 
 final class ModDependencyImpl implements ModDependency {
 	private final String modId;
 	private final List<String> matcherStringList;
+	private Set<VersionPredicate> ranges;
 
 	ModDependencyImpl(String modId, List<String> matcherStringList) {
 		this.modId = modId;
@@ -69,5 +72,14 @@ final class ModDependencyImpl implements ModDependency {
 
 		builder.append("]}");
 		return builder.toString();
+	}
+
+	@Override
+	public Set<VersionPredicate> getVersionRequirements() {
+		if (ranges == null) {
+			ranges = VersionPredicate.parse(matcherStringList);
+		}
+
+		return ranges;
 	}
 }
