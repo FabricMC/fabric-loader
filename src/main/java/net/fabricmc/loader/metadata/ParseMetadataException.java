@@ -19,6 +19,8 @@ package net.fabricmc.loader.metadata;
 import net.fabricmc.loader.lib.gson.JsonReader;
 
 public class ParseMetadataException extends Exception {
+	private static final long serialVersionUID = 6287803041221495612L;
+
 	public ParseMetadataException(String message) {
 		super(message);
 	}
@@ -36,6 +38,8 @@ public class ParseMetadataException extends Exception {
 	}
 
 	public static class MissingRequired extends ParseMetadataException {
+		private static final long serialVersionUID = -7528311115675830878L;
+
 		public MissingRequired(String field) {
 			super(String.format("Missing required field \"%s\".", field));
 		}
