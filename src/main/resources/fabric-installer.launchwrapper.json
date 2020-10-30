@@ -21,6 +21,10 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
+        "name": "net.fabricmc:access-widener:1.0.0",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
         "name": "net.fabricmc:fabric-loader-sat4j:2.3.5.4",
         "url": "https://maven.fabricmc.net/"
       },
