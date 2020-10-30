@@ -34,10 +34,11 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import com.google.gson.stream.JsonReader;
-
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.lib.gson.JsonReader;
+import net.fabricmc.loader.lib.gson.JsonToken;
+import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
@@ -124,10 +125,33 @@ public final class McVersionLookup {
 
 			while (reader.hasNext()) {
 				switch (reader.nextName()) {
-				case "id": id = reader.nextString(); break;
-				case "name": name = reader.nextString(); break;
-				case "release_target": release = reader.nextString(); break;
-				default: reader.skipValue();
+				case "id":
+					if (reader.peek() != JsonToken.STRING) {
+						// FIXME: Needs its own type?
+						throw new ParseMetadataException("\"id\" in version json must be a string");
+					}
+
+					id = reader.nextString();
+					break;
+				case "name":
+					if (reader.peek() != JsonToken.STRING) {
+						// FIXME: Needs its own type?
+						throw new ParseMetadataException("\"name\" in version json must be a string");
+					}
+
+					name = reader.nextString();
+					break;
+				case "release_target":
+					if (reader.peek() != JsonToken.STRING) {
+						// FIXME: Needs its own type?
+						throw new ParseMetadataException("\"release_target\" in version json must be a string");
+					}
+
+					release = reader.nextString();
+					break;
+				default:
+					// There is typically other stuff in the file, just ignore anything we don't know
+					reader.skipValue();
 				}
 			}
 
@@ -140,7 +164,7 @@ public final class McVersionLookup {
 			}
 
 			if (name != null && release != null) return new McVersion(name, release);
-		} catch (IOException e) {
+		} catch (IOException | ParseMetadataException e) {
 			e.printStackTrace();
 		}
 

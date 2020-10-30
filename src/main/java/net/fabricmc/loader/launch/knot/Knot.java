@@ -24,6 +24,7 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import org.spongepowered.asm.launch.MixinBootstrap;
@@ -55,7 +56,7 @@ public final class Knot extends FabricLauncherBase {
 
 		// configure fabric vars
 		if (envType == null) {
-			String side = System.getProperty("fabric.side");
+			String side = System.getProperty(SystemProperties.SIDE);
 			if (side == null) {
 				throw new RuntimeException("Please specify side or use a dedicated Knot!");
 			}
@@ -97,7 +98,7 @@ public final class Knot extends FabricLauncherBase {
 
 		provider.acceptArguments(args);
 
-		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
+		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
 
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
@@ -127,7 +128,7 @@ public final class Knot extends FabricLauncherBase {
 		loader.load();
 		loader.freeze();
 
-		loader.getAccessWidener().loadFromMods();
+		loader.loadAccessWideners();
 
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);

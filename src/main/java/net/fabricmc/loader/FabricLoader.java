@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -52,8 +53,10 @@ import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
+import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.accesswidener.AccessWidenerReader;
 
 /**
  * The main class for mod loading operations.
@@ -75,7 +78,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
-	private final AccessWidener accessWidener = new AccessWidener(this);
+	private final AccessWidener accessWidener = new AccessWidener();
 
 	private boolean frozen = false;
 
@@ -208,7 +211,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		boolean runtimeModRemapping = isDevelopmentEnvironment();
 
-		if (runtimeModRemapping && System.getProperty("fabric.remapClasspathFile") == null) {
+		if (runtimeModRemapping && System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
 			LOGGER.warn("Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			runtimeModRemapping = false;
 		}
@@ -374,6 +377,24 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				}
 			} catch (Exception e) {
 				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getInfo().getName(), mod.getOriginUrl().getFile()), e);
+			}
+		}
+	}
+
+	public void loadAccessWideners() {
+		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
+		for (net.fabricmc.loader.api.ModContainer modContainer : getAllMods()) {
+			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
+			String accessWidener = modMetadata.getAccessWidener();
+
+			if (accessWidener != null) {
+				Path path = modContainer.getPath(accessWidener);
+
+				try (BufferedReader reader = Files.newBufferedReader(path)) {
+					accessWidenerReader.read(reader, getMappingResolver().getCurrentRuntimeNamespace());
+				} catch (Exception e) {
+					throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
+				}
 			}
 		}
 	}

@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch.knot;
+package net.fabricmc.loader.metadata;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.loader.api.metadata.ContactInformation;
 
-import java.io.File;
+final class ContactInfoBackedPerson extends SimplePerson {
+	private final ContactInformation contact;
 
-public class KnotServer {
-	public static void main(String[] args) {
-		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
-		new Knot(EnvType.SERVER, gameJarPath != null ? new File(gameJarPath) : null).init(args);
+	ContactInfoBackedPerson(String name, ContactInformation contact) {
+		super(name);
+		this.contact = contact;
+	}
+
+	@Override
+	public ContactInformation getContact() {
+		return this.contact;
 	}
 }

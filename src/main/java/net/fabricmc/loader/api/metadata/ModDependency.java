@@ -16,7 +16,10 @@
 
 package net.fabricmc.loader.api.metadata;
 
+import java.util.Set;
+
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionPredicate;
 
 /**
  * Represents a dependency.
@@ -33,4 +36,11 @@ public interface ModDependency {
 	 * @param version the version to check
 	 */
 	boolean matches(Version version);
+
+	/**
+	 * Returns a representation of the dependency's version requirements.
+	 *
+	 * @return representation of the dependency's version requirements
+	 */
+	Set<VersionPredicate> getVersionRequirements();
 }

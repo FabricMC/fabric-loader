@@ -143,6 +143,7 @@ public interface ModMetadata {
 	 * @param key the key
 	 * @return the custom value, or {@code null} if no such value is present
 	 */
+	/* @Nullable */
 	CustomValue getCustomValue(String key);
 
 	/**
