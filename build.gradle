@@ -73,7 +73,7 @@ dependencies {
 
 	installed('net.fabricmc:sponge-mixin:0.8.2+build.23') {
 		exclude module: 'launchwrapper'
-		exclude module: 'guava'
+		//exclude module: 'guava'
 	}
 	installed 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
 	installed 'net.fabricmc:tiny-remapper:0.3.0.70'
