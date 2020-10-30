@@ -26,6 +26,7 @@ import net.fabricmc.accesswidener.AccessWidenerWriter;
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
@@ -182,7 +183,7 @@ public final class RuntimeModRemapper {
 	}
 
 	private static List<Path> getRemapClasspath() throws IOException {
-		String remapClasspathFile = System.getProperty("fabric.remapClasspathFile");
+		String remapClasspathFile = System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE);
 
 		if (remapClasspathFile == null) {
 			throw new RuntimeException("No remapClasspathFile provided");
