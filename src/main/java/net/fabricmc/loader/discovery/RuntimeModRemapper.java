@@ -166,7 +166,7 @@ public final class RuntimeModRemapper {
 		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8))) {
 			AccessWidener accessWidener = new AccessWidener();
 			AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
-			accessWidenerReader.read(bufferedReader);
+			accessWidenerReader.read(bufferedReader, "intermediary");
 
 			AccessWidenerRemapper accessWidenerRemapper = new AccessWidenerRemapper(accessWidener, remapper, "named");
 			AccessWidener remapped = accessWidenerRemapper.remap();
