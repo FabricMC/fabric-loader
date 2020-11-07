@@ -104,7 +104,7 @@ public class ModResolver {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
 		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();
-		Set<String> mandatoryMods = new HashSet<>();
+		Map<String, ModCandidate> mandatoryMods = new HashMap<>();
 
 		List<ModResolutionException> errors = new ArrayList<>();
 
@@ -115,7 +115,7 @@ public class ModResolver {
 				isAdvanced |= (s.size() > 1) || (s.iterator().next().getDepth() > 0);
 
 				if (mcs.isUserProvided()) {
-					mandatoryMods.add(mcs.getModId());
+					mandatoryMods.put(mcs.getModId(), s.iterator().next());
 				}
 			} catch (ModResolutionException e) {
 				errors.add(e);
@@ -153,26 +153,42 @@ public class ModResolver {
 				for (Entry<String, Collection<ModCandidate>> entry : modCandidateMap.entrySet()) {
 					String modId = entry.getKey();
 					Collection<ModCandidate> candidates = entry.getValue();
+					ModCandidate mandatedCandidate = mandatoryMods.get(modId);
+					MandatoryModIdDefinition mandatedDefinition = null;
 
-					if (mandatoryMods.contains(modId)) {
-						assert candidates.size() == 1;
-						ModCandidate c = candidates.iterator().next();
-						ModLoadOption cOption = new ModLoadOption(c, -1);
-						modToLoadOption.put(c, cOption);
-						modDefs.put(modId, new MandatoryModIdDefinition(cOption).put(helper));
-					} else {
-						List<ModLoadOption> cOptions = new ArrayList<>();
-						int index = 0;
-						for (ModCandidate m : candidates) {
-							ModLoadOption cOption = new ModLoadOption(m, candidates.size() == 1 ? -1 : index);
-							modToLoadOption.put(m, cOption);
-							helper.addToObjectiveFunction(cOption, 1000 - index++);
-							cOptions.add(cOption);
-						}
-						modDefs.put(
-							modId, new OptionalModIdDefintion(modId, cOptions.toArray(new ModLoadOption[0])).put(helper)
-						);
+					if (mandatedCandidate != null) {
+						ModLoadOption cOption = new ModLoadOption(mandatedCandidate, -1);
+						modToLoadOption.put(mandatedCandidate, cOption);
+						mandatedDefinition = new MandatoryModIdDefinition(cOption);
 					}
+
+					List<ModLoadOption> cOptions = new ArrayList<>();
+					int index = 0;
+					for (ModCandidate m : candidates) {
+						if (m == mandatedCandidate) {
+							continue;
+						}
+
+						ModLoadOption cOption = new ModLoadOption(m, candidates.size() == 1 ? -1 : index);
+						modToLoadOption.put(m, cOption);
+						helper.addToObjectiveFunction(cOption, 1000 - index++);
+						cOptions.add(cOption);
+					}
+
+					ModIdDefinition def;
+					ModLoadOption[] optionArray = cOptions.toArray(new ModLoadOption[0]);
+
+					if (mandatedCandidate != null) {
+						def = mandatedDefinition;
+						if (optionArray.length > 0) {
+							new OverridenModIdDefintion(mandatedDefinition, optionArray).put(helper);
+						}
+					} else {
+						def = new OptionalModIdDefintion(modId, optionArray);
+					}
+
+					def.put(helper);
+					modDefs.put(modId, def);
 				}
 
 				for (Entry<ModCandidate, ModLoadOption> entry : modToLoadOption.entrySet()) {
@@ -265,7 +281,7 @@ public class ModResolver {
 							if (sources.isEmpty()) {
 								sb.append("\nx unknown mod '" + modid + "'");
 							} else {
-								if (mandatoryMods.contains(modid)) {
+								if (mandatoryMods.containsKey(modid)) {
 									sb.append("\nmandatory mod '" + modid + "'");
 								} else {
 									sb.append("\noptional mod '" + modid + "'");
@@ -359,7 +375,7 @@ public class ModResolver {
 
 		// verify result: all mandatory mods
 		Set<String> missingMods = new HashSet<>();
-		for (String m : mandatoryMods) {
+		for (String m : mandatoryMods.keySet()) {
 			if (!result.keySet().contains(m)) {
 				missingMods.add(m);
 			}
@@ -1068,6 +1084,39 @@ public class ModResolver {
 				case 1: return "optional mod '" + modid + "' (1 source)";
 				default: return "optional mod '" + modid + "' (" + sources.length + " sources)";
 			}
+		}
+	}
+
+	/** A variant of {@link OptionalModIdDefintion} but which is overriden by a {@link MandatoryModIdDefinition} (and so
+	 * none of these candidates can load). */
+	static final class OverridenModIdDefintion extends ModIdDefinition {
+		final MandatoryModIdDefinition overrider;
+		final ModLoadOption[] sources;
+
+		public OverridenModIdDefintion(MandatoryModIdDefinition overrider, ModLoadOption[] sources) {
+			this.overrider = overrider;
+			this.sources = sources;
+		}
+
+		@Override
+		String getModId() {
+			return overrider.getModId();
+		}
+
+		@Override
+		ModLoadOption[] sources() {
+			return sources;
+		}
+
+		@Override
+		OverridenModIdDefintion put(DependencyHelper<LoadOption, ModLink> helper) throws ContradictionException {
+			helper.atMost(this, 0, sources);
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return "overriden mods '" + overrider.getModId() + "' of " + sources.length + " by " + overrider;
 		}
 	}
 
