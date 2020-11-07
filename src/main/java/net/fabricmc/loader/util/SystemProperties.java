@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.launch.knot;
+package net.fabricmc.loader.util;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.util.SystemProperties;
+public final class SystemProperties {
+	public static final String DEVELOPMENT = "fabric.development";
+	public static final String SIDE = "fabric.side";
+	public static final String GAME_JAR_PATH = "fabric.gameJarPath";
+	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
 
-import java.io.File;
-
-public class KnotServer {
-	public static void main(String[] args) {
-		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
-		new Knot(EnvType.SERVER, gameJarPath != null ? new File(gameJarPath) : null).init(args);
+	private SystemProperties() {
 	}
 }

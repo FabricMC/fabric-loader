@@ -18,12 +18,15 @@ package net.fabricmc.loader.discovery;
 
 import org.objectweb.asm.commons.Remapper;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.accesswidener.AccessWidenerReader;
+import net.fabricmc.accesswidener.AccessWidenerRemapper;
+import net.fabricmc.accesswidener.AccessWidenerWriter;
+
 import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.transformer.accesswidener.AccessWidener;
-import net.fabricmc.loader.transformer.accesswidener.AccessWidenerRemapper;
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
@@ -162,14 +165,16 @@ public final class RuntimeModRemapper {
 
 	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
 		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8))) {
-			AccessWidener accessWidener = new AccessWidener(FabricLoader.INSTANCE);
-			accessWidener.read(bufferedReader, null);
+			AccessWidener accessWidener = new AccessWidener();
+			AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
+			accessWidenerReader.read(bufferedReader, "intermediary");
 
 			AccessWidenerRemapper accessWidenerRemapper = new AccessWidenerRemapper(accessWidener, remapper, "named");
 			AccessWidener remapped = accessWidenerRemapper.remap();
+			AccessWidenerWriter accessWidenerWriter = new AccessWidenerWriter(remapped);
 
 			try (StringWriter writer = new StringWriter()) {
-				remapped.write(writer);
+				accessWidenerWriter.write(writer);
 				return writer.toString().getBytes(StandardCharsets.UTF_8);
 			}
 		} catch (IOException e) {
@@ -178,7 +183,7 @@ public final class RuntimeModRemapper {
 	}
 
 	private static List<Path> getRemapClasspath() throws IOException {
-		String remapClasspathFile = System.getProperty("fabric.remapClasspathFile");
+		String remapClasspathFile = System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE);
 
 		if (remapClasspathFile == null) {
 			throw new RuntimeException("No remapClasspathFile provided");
