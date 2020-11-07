@@ -28,6 +28,11 @@ repositories {
 		name = 'mojang'
 		url = 'https://libraries.minecraft.net/'
 	}
+	maven {
+	   // Temp for alexiil's fork
+	   name = "alexiil"
+	   url = "https://alexiil.uk/maven/"
+	}
 }
 
 dependencies {
@@ -57,7 +62,7 @@ dependencies {
 	implementation 'net.fabricmc:access-widener:1.0.0'
 
 	implementation 'com.google.jimfs:jimfs:1.2-fabric'
-	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5-alexiil.1'
+	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5-alexiil.2'
 
 	// launchwrapper + dependencies
 	implementation ('net.minecraft:launchwrapper:1.12') {
