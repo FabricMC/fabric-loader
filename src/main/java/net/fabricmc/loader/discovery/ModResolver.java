@@ -31,6 +31,7 @@ import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.sat4j.pb.SolverFactory;
@@ -73,6 +74,7 @@ public class ModResolver {
 	private static final Map<String, String> readableNestedJarPaths = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 	private static final Object launcherSyncObject = new Object();
+	private static final boolean DEBUG_PRINT_STATE = Boolean.getBoolean(SystemProperties.PRINT_MOD_RESOLVING);
 
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
 
@@ -164,6 +166,7 @@ public class ModResolver {
 
 					List<ModLoadOption> cOptions = new ArrayList<>();
 					int index = 0;
+
 					for (ModCandidate m : candidates) {
 						if (m == mandatedCandidate) {
 							cOptions.add(mandatedDefinition.candidate);
@@ -172,7 +175,7 @@ public class ModResolver {
 
 						ModLoadOption cOption = new ModLoadOption(m, candidates.size() == 1 ? -1 : index);
 						modToLoadOption.put(m, cOption);
-						helper.addToObjectiveFunction(cOption, 1000 - index++);
+						helper.addToObjectiveFunction(cOption, -1000 + index++);
 						cOptions.add(cOption);
 					}
 
@@ -205,7 +208,7 @@ public class ModResolver {
 							def.put(helper);
 						}
 
-						new ModDep(option, dep, def).put(helper);
+						new ModDep(logger, option, dep, def).put(helper);
 					}
 
 					for (ModDependency conflict : mc.getInfo().getConflicts()) {
@@ -218,7 +221,7 @@ public class ModResolver {
 						}
 
 						for (ModLoadOption op : def.sources()) {
-							new ModConflict(option, op).put(helper);
+							new ModConflict(logger, option, op).put(helper);
 						}
 					}
 				}
@@ -1129,18 +1132,31 @@ public class ModResolver {
 		final List<ModLoadOption> validOptions;
 		final List<ModLoadOption> invalidOptions;
 
-		public ModDep(ModLoadOption source, ModDependency publicDep, ModIdDefinition on) {
+		public ModDep(Logger logger, ModLoadOption source, ModDependency publicDep, ModIdDefinition on) {
 			this.source = source;
 			this.publicDep = publicDep;
 			this.on = on;
 			validOptions = new ArrayList<>();
 			invalidOptions = new ArrayList<>();
 
+			if (DEBUG_PRINT_STATE) {
+				logger.info("[ModResolver] Adding a mod depencency from " + source + " to " + on.getModId());
+				logger.info("[ModResolver]   from " + source.fullString());
+			}
+
 			for (ModLoadOption option : on.sources()) {
 				if (publicDep.matches(option.candidate.getInfo().getVersion())) {
 					validOptions.add(option);
+
+					if (DEBUG_PRINT_STATE) {
+						logger.info("[ModResolver]  +  valid option: " + option.fullString());
+					}
 				} else {
 					invalidOptions.add(option);
+
+					if (DEBUG_PRINT_STATE) {
+						logger.info("[ModResolver]  x  mismatching option: " + option.fullString());
+					}
 				}
 			}
 		}
@@ -1174,9 +1190,15 @@ public class ModResolver {
 		final ModLoadOption source;
 		final ModLoadOption with;
 
-		public ModConflict(ModLoadOption source, ModLoadOption with) {
+		public ModConflict(Logger logger, ModLoadOption source, ModLoadOption with) {
 			this.source = source;
 			this.with = with;
+
+			if (DEBUG_PRINT_STATE) {
+				logger.info("[ModResolver] Adding a mod conflict:");
+				logger.info("[ModResolver]   from " + source.fullString());
+				logger.info("[ModResolver]   with " + with.fullString());
+			}
 		}
 
 		@Override
