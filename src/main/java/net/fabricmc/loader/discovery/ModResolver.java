@@ -166,6 +166,7 @@ public class ModResolver {
 					int index = 0;
 					for (ModCandidate m : candidates) {
 						if (m == mandatedCandidate) {
+							cOptions.add(mandatedDefinition.candidate);
 							continue;
 						}
 
@@ -178,10 +179,11 @@ public class ModResolver {
 					ModIdDefinition def;
 					ModLoadOption[] optionArray = cOptions.toArray(new ModLoadOption[0]);
 
-					if (mandatedCandidate != null) {
+					if (mandatedDefinition != null) {
 						def = mandatedDefinition;
-						if (optionArray.length > 0) {
-							new OverridenModIdDefintion(mandatedDefinition, optionArray).put(helper);
+						if (optionArray.length > 1) {
+							def = new OverridenModIdDefintion(mandatedDefinition, optionArray);
+							mandatedDefinition.put(helper);
 						}
 					} else {
 						def = new OptionalModIdDefintion(modId, optionArray);
@@ -1110,7 +1112,7 @@ public class ModResolver {
 
 		@Override
 		OverridenModIdDefintion put(DependencyHelper<LoadOption, ModLink> helper) throws ContradictionException {
-			helper.atMost(this, 0, sources);
+			helper.atMost(this, 1, sources);
 			return this;
 		}
 
