@@ -216,7 +216,7 @@ public class ModResolver {
 						}
 
 						for (ModLoadOption op : def.sources()) {
-							new ModConflict(option, op).put(helper);
+							new ModConflict(option, conflict, op).put(helper);
 						}
 					}
 				}
@@ -384,6 +384,7 @@ public class ModResolver {
 		StringBuilder errorsHard = new StringBuilder();
 		StringBuilder errorsSoft = new StringBuilder();
 
+		// TODO: Convert to new error syntax
 		if (!missingMods.isEmpty()) {
 			errorsHard.append("\n - Missing mods: ").append(String.join(", ", missingMods));
 		} else {
@@ -444,6 +445,7 @@ public class ModResolver {
 		return result;
 	}
 
+	// TODO: Convert all these methods to new error syntax
 	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
@@ -661,7 +663,80 @@ public class ModResolver {
 
 	private static ModResolutionException describeError(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
 		// TODO: Create a graph from roots to each other and then build the error through that!
-		return null;
+		// implementor's note: IDK how to graph, have this mess instead
+		StringBuilder errors = new StringBuilder("Error");
+		if (causes.size() > 1) {
+			errors.append('s');
+		}
+		errors.append(" involving mod");
+		if (roots.size() > 1) {
+			errors.append('s');
+		}
+		errors.append(' ').append(roots.keySet().stream()
+				.map(ModResolver::getLoadOptionDescription)
+				.collect(Collectors.joining(", ")))
+				.append(':');
+		for (ModLink cause : causes) {
+			errors.append('\n');
+			if (cause instanceof ModDep) {
+				ModDep dep = (ModDep) cause;
+				errors.append("x Mod ").append(getLoadOptionDescription(dep.source))
+						.append(" requires ").append(getDependencyVersionRequirements(dep.publicDep))
+						.append(" of ");
+				ModIdDefinition def = dep.on;
+				MandatoryModIdDefinition manDef = null;
+				if (def instanceof MandatoryModIdDefinition) {
+					manDef = (MandatoryModIdDefinition) def;
+				} else if (def instanceof OverridenModIdDefintion) {
+					manDef = ((OverridenModIdDefintion) def).overrider;
+				}
+				if (manDef == null) {
+					errors.append("unknown mod '").append(def.getModId()).append("'\n")
+							.append("\t+ You must install ").append(getDependencyVersionRequirements(dep.publicDep))
+							.append(" of '").append(def.getModId()).append("'.");
+				} else {
+					errors.append("mod ").append(getCandidateName(manDef.candidate))
+							.append("\n\t+ You must install ").append(getDependencyVersionRequirements(dep.publicDep))
+							.append(" of ").append(getCandidateName(manDef.candidate)).append('.')
+							.append("\n\t+ Your current version of ").append(getCandidateName(manDef.candidate))
+							.append(" is ").append(getCandidateFriendlyVersion(manDef.candidate)).append(".");
+				}
+			} else if (cause instanceof ModConflict) {
+				ModConflict conflict = (ModConflict) cause;
+				errors.append("x Mod ").append(getLoadOptionDescription(conflict.source))
+						.append(" conflicts with ").append(getDependencyVersionRequirements(conflict.publicDep))
+						.append(" of mod ").append(getLoadOptionDescription(conflict.with))
+						.append("\n\t+ The developer(s) of ").append(getCandidateName(conflict.source))
+						.append(" have found that version ").append(getCandidateFriendlyVersion(conflict.with))
+						.append(" of ").append(getCandidateName(conflict.with))
+						.append(" critically conflicts with their mod.")
+						.append("\n\t+ You must remove one of the mods.");
+			} else {
+				errors.append("x Unknown error type?")
+						.append("\n\t+ cause.getClass() =>")
+						.append("\n\t\t").append(cause.getClass().getName())
+						.append("\n\t+ cause.toString() =>")
+						.append("\n\t\t").append(cause.toString());
+			}
+		}
+		for (ModLoadOption involvedMod : roots.keySet()) {
+			// TODO: See if I can get a result similar to appendJiJInfo (which requires a complete "mod ID -> candidate" map)
+			errors.append("\n+ Mod ").append(getLoadOptionDescription(involvedMod)).append(" is being loaded from \"")
+					.append(involvedMod.getLoadSource()).append("\".");
+		}
+		return new ModResolutionException(errors.toString());
+	}
+
+	private static String getLoadOptionDescription(ModLoadOption loadOption) {
+		return getCandidateName(loadOption) + " v" + getCandidateFriendlyVersion(loadOption);
+	}
+
+	private static String getCandidateName(ModLoadOption candidate) {
+		return getCandidateName(candidate.candidate);
+	}
+
+	private static String getCandidateFriendlyVersion(ModLoadOption candidate) {
+		return getCandidateFriendlyVersion(candidate.candidate);
 	}
 
 	static class UrlProcessAction extends RecursiveAction {
@@ -1170,10 +1245,12 @@ public class ModResolver {
 
 	static final class ModConflict extends ModLink {
 		final ModLoadOption source;
+		final ModDependency publicDep;
 		final ModLoadOption with;
 
-		public ModConflict(ModLoadOption source, ModLoadOption with) {
+		public ModConflict(ModLoadOption source, ModDependency publicDep, ModLoadOption with) {
 			this.source = source;
+			this.publicDep = publicDep;
 			this.with = with;
 		}
 
@@ -1185,7 +1262,7 @@ public class ModResolver {
 
 		@Override
 		public String toString() {
-			return source + " conflicts with " + with;
+			return source + " conflicts with " + with + " version " + publicDep;
 		}
 
 		@Override
