@@ -220,7 +220,7 @@ public class ModResolver {
 						}
 
 						for (ModLoadOption op : def.sources()) {
-							new ModConflict(logger, option, op).put(helper);
+							new ModConflict(logger, option, conflict, op).put(helper);
 						}
 					}
 				}
@@ -1186,10 +1186,12 @@ public class ModResolver {
 
 	static final class ModConflict extends ModLink {
 		final ModLoadOption source;
+		final ModDependency publicDep;
 		final ModLoadOption with;
 
-		public ModConflict(Logger logger, ModLoadOption source, ModLoadOption with) {
+		public ModConflict(Logger logger, ModLoadOption source, ModDependency publicDep, ModLoadOption with) {
 			this.source = source;
+			this.publicDep = publicDep;
 			this.with = with;
 
 			if (DEBUG_PRINT_STATE) {
@@ -1207,7 +1209,7 @@ public class ModResolver {
 
 		@Override
 		public String toString() {
-			return source + " conflicts with " + with;
+			return source + " conflicts with " + with + " version " + publicDep;
 		}
 
 		@Override
