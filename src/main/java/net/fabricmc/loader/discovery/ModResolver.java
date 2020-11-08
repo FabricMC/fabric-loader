@@ -107,7 +107,6 @@ public class ModResolver {
 		boolean isAdvanced = false;
 		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();
 		Map<String, ModCandidate> mandatoryMods = new HashMap<>();
-
 		List<ModResolutionException> errors = new ArrayList<>();
 
 		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
@@ -211,7 +210,7 @@ public class ModResolver {
 						new ModDep(logger, option, dep, def).put(helper);
 					}
 
-					for (ModDependency conflict : mc.getInfo().getConflicts()) {
+					for (ModDependency conflict : mc.getInfo().getBreaks()) {
 						ModIdDefinition def = modDefs.get(conflict.getModId());
 						if (def == null) {
 							def = new OptionalModIdDefintion(conflict.getModId(), new ModLoadOption[0]);
@@ -240,9 +239,10 @@ public class ModResolver {
 
 					Map<ModLoadOption, MandatoryModIdDefinition> roots = new HashMap<>();
 					List<ModLink> causes = new ArrayList<>();
+					causes.addAll(why);
 
-					// Find all of the problems
-					for (Iterator<ModLink> iterator = why.iterator(); iterator.hasNext();) {
+					// Separate out mandatory mods (roots) from other causes
+					for (Iterator<ModLink> iterator = causes.iterator(); iterator.hasNext();) {
 						ModLink link = iterator.next();
 						if (link instanceof MandatoryModIdDefinition) {
 							MandatoryModIdDefinition mandatoryMod = (MandatoryModIdDefinition) link;
@@ -250,8 +250,6 @@ public class ModResolver {
 							iterator.remove();
 						}
 					}
-
-					causes.addAll(why);
 
 					ModResolutionException ex = describeError(roots, causes);
 					if (ex == null) {
