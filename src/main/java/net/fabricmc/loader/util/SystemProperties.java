@@ -21,6 +21,7 @@ public final class SystemProperties {
 	public static final String SIDE = "fabric.side";
 	public static final String GAME_JAR_PATH = "fabric.gameJarPath";
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
+	public static final String PRINT_MOD_RESOLVING = "fabric.debug.mod_resolving";
 
 	private SystemProperties() {
 	}
