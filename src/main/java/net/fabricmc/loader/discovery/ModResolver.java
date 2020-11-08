@@ -220,7 +220,9 @@ public class ModResolver {
 						}
 
 						for (ModLoadOption op : def.sources()) {
-							new ModConflict(logger, option, conflict, op).put(helper);
+							if (conflict.matches(op.candidate.getInfo().getVersion())) {
+								new ModConflict(logger, option, conflict, op).put(helper);
+							}
 						}
 					}
 				}
@@ -1184,6 +1186,10 @@ public class ModResolver {
 		}
 	}
 
+	/**
+	 * Actually MOD BREAK
+	 */
+	// TODO: Rename to "ModBreak"
 	static final class ModConflict extends ModLink {
 		final ModLoadOption source;
 		final ModDependency publicDep;
