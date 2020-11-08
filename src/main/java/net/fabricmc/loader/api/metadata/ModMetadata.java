@@ -85,6 +85,11 @@ public interface ModMetadata {
 	Collection<ModDependency> getBreaks();
 
 	/**
+	 * Returns every other modid that this mod provides. (But doesn't include any other information for - unlike siblings).
+	 */
+	Collection<String> getProvides();
+
+	/**
 	 * Returns the mod's display name.
 	 */
 	String getName();

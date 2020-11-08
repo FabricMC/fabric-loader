@@ -138,6 +138,8 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	@Override
 	public Collection<ModDependency> getBreaks() { return Collections.emptyList(); }
 	@Override
+	public Collection<String> getProvides() { return Collections.emptyList(); }
+	@Override
 	public boolean containsCustomValue(String key) { return false; }
 	@Override
 	public CustomValue getCustomValue(String key) { return null; }

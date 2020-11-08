@@ -142,6 +142,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		return this.conflicts.values();
 	}
 
+	@Override
+	public Collection<String> getProvides() {
+		return Collections.emptyList();
+	}
+
 	// General metadata
 
 	@Override

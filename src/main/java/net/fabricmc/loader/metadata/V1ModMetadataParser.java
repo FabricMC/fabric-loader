@@ -69,6 +69,7 @@ final class V1ModMetadataParser {
 		Map<String, ModDependency> suggests = new HashMap<>();
 		Map<String, ModDependency> conflicts = new HashMap<>();
 		Map<String, ModDependency> breaks = new HashMap<>();
+		List<String> provides = new ArrayList<>();
 
 		// Happy little accidents
 		@Deprecated
@@ -164,6 +165,9 @@ final class V1ModMetadataParser {
 			case "breaks":
 				readDependenciesContainer(reader, breaks);
 				break;
+			case "provides":
+				readStringList(reader, provides, key);
+				break;
 			case "requires":
 				readDependenciesContainer(reader, requires);
 				break;
@@ -220,7 +224,7 @@ final class V1ModMetadataParser {
 
 		ModMetadataParser.logWarningMessages(logger, id, warnings);
 
-		return new V1ModMetadata(id, version, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
+		return new V1ModMetadata(id, version, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, provides, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
 	}
 
 	private static ModEnvironment readEnvironment(JsonReader reader) throws ParseMetadataException, IOException {
@@ -536,25 +540,29 @@ final class V1ModMetadataParser {
 	}
 
 	private static void readLicense(JsonReader reader, List<String> license) throws IOException, ParseMetadataException {
+		readStringList(reader, license, "license");
+	}
+
+	private static void readStringList(JsonReader reader, List<String> dest, String name) throws IOException, ParseMetadataException {
 		switch (reader.peek()) {
 		case STRING:
-			license.add(reader.nextString());
+			dest.add(reader.nextString());
 			break;
 		case BEGIN_ARRAY:
 			reader.beginArray();
 
 			while (reader.hasNext()) {
 				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("List of licenses must only contain strings", reader);
+					throw new ParseMetadataException("List of '" + name + "' must only contain strings", reader);
 				}
 
-				license.add(reader.nextString());
+				dest.add(reader.nextString());
 			}
 
 			reader.endArray();
 			break;
 		default:
-			throw new ParseMetadataException("License must be a string or array of strings!", reader);
+			throw new ParseMetadataException("'" + name + "' must be a string or array of strings!", reader);
 		}
 	}
 
