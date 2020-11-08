@@ -722,12 +722,41 @@ public class ModResolver {
 						.append("\n\t\t").append(cause.toString());
 			}
 		}
+		// TODO: See if I can get results similar to appendJiJInfo (which requires a complete "mod ID -> candidate" map)
+		HashSet<String> listedSources = new HashSet<>();
 		for (ModLoadOption involvedMod : roots.keySet()) {
-			// TODO: See if I can get a result similar to appendJiJInfo (which requires a complete "mod ID -> candidate" map)
 			errors.append("\n+ Mod ").append(getLoadOptionDescription(involvedMod)).append(" is being loaded from \"")
 					.append(involvedMod.getLoadSource()).append("\".");
+			listedSources.add(involvedMod.modId());
+		}
+		for (ModLink involvedLink : causes) {
+			if (involvedLink instanceof ModDep) {
+				appendLoadSourceInfo(errors, listedSources, ((ModDep) involvedLink).on);
+			} else if (involvedLink instanceof ModConflict) {
+				appendLoadSourceInfo(errors, listedSources, ((ModConflict) involvedLink).with);
+			}
 		}
 		return new ModResolutionException(errors.toString());
+	}
+
+	private static void appendLoadSourceInfo(StringBuilder errors, HashSet<String> listedSources, ModIdDefinition def) {
+		MandatoryModIdDefinition manDef;
+		if (def instanceof MandatoryModIdDefinition) {
+			manDef = (MandatoryModIdDefinition) def;
+		} else if (def instanceof OverridenModIdDefintion) {
+			manDef = ((OverridenModIdDefintion) def).overrider;
+		} else {
+			return;
+		}
+		appendLoadSourceInfo(errors, listedSources, manDef.candidate);
+	}
+
+	private static void appendLoadSourceInfo(StringBuilder errors, HashSet<String> listedSources, ModLoadOption option) {
+		if (!listedSources.contains(option.modId())) {
+			errors.append("\n+ Mod ").append(getLoadOptionDescription(option))
+					.append(" is being loaded from \"").append(option.getLoadSource()).append("\".");
+			listedSources.add(option.modId());
+		}
 	}
 
 	private static String getLoadOptionDescription(ModLoadOption loadOption) {
