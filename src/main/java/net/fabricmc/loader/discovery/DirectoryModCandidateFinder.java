@@ -67,7 +67,9 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 					 * MacOS: Exclude hidden + startsWith "." since Mac OS names their metadata files in the form of `.mod.jar`
 					 */
 
-					if (!Files.isHidden(file) && !file.toString().startsWith(".") && file.toString().endsWith(".jar")) {
+					String fileName = file.getFileName().toString();
+
+					if (fileName.endsWith(".jar") && !fileName.startsWith(".") && !Files.isHidden(file)) {
 						try {
 							urlProposer.accept(UrlUtil.asUrl(file), requiresRemap);
 						} catch (UrlConversionException e) {
@@ -75,7 +77,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 						}
 					}
 
-					return super.visitFile(file, attrs);
+					return FileVisitResult.CONTINUE;
 
 				}
 			});
