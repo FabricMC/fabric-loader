@@ -59,7 +59,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 					/*
-					 * We only load propose a file as a possible mod in the following scenarios:
+					 * We only propose a file as a possible mod in the following scenarios:
 					 * General: Must be a jar file
 					 *
 					 * Some OSes Generate metadata so consider the following because of OSes:
