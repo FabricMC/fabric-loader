@@ -16,22 +16,12 @@
 
 package net.fabricmc.loader.metadata;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.api.metadata.*;
+import org.apache.logging.log4j.Logger;
+
+import java.util.*;
 
 final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetadata {
 	private static final Mixins EMPTY_MIXINS = new Mixins(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
@@ -100,6 +90,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public String getId() {
 		return this.id;
+	}
+
+	@Override
+	public Collection<String> getAliases() {
+		return Collections.emptyList();
 	}
 
 	@Override

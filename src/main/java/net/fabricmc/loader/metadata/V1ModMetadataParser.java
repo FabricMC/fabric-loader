@@ -16,28 +16,16 @@
 
 package net.fabricmc.loader.metadata;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.api.metadata.*;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
 import net.fabricmc.loader.util.version.VersionDeserializer;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.util.*;
 
 final class V1ModMetadataParser {
 	/**
@@ -55,6 +43,9 @@ final class V1ModMetadataParser {
 		// Required
 		String id = null;
 		Version version = null;
+
+		// Optional (id aliases)
+		List<String> aliases = new ArrayList<>();
 
 		// Optional (mod loading)
 		ModEnvironment environment = ModEnvironment.UNIVERSAL; // Default is always universal
@@ -107,63 +98,66 @@ final class V1ModMetadataParser {
 				}
 
 				break;
-			case "id":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Mod id must be a non-empty string with a length of 3-64 characters.", reader);
-				}
+				case "id":
+					if (reader.peek() != JsonToken.STRING) {
+						throw new ParseMetadataException("Mod id must be a non-empty string with a length of 3-64 characters.", reader);
+					}
 
-				id = reader.nextString();
-				break;
-			case "version":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Version must be a non-empty string", reader);
-				}
+					id = reader.nextString();
+					break;
+				case "aliases":
+					readAliases(reader, aliases);
+					break;
+				case "version":
+					if (reader.peek() != JsonToken.STRING) {
+						throw new ParseMetadataException("Version must be a non-empty string", reader);
+					}
 
-				try {
-					version = VersionDeserializer.deserialize(reader.nextString());
-				} catch (VersionParsingException e) {
-					throw new ParseMetadataException("Failed to parse version", e);
-				}
+					try {
+						version = VersionDeserializer.deserialize(reader.nextString());
+					} catch (VersionParsingException e) {
+						throw new ParseMetadataException("Failed to parse version", e);
+					}
 
-				break;
-			case "environment":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Environment must be a string", reader);
-				}
+					break;
+				case "environment":
+					if (reader.peek() != JsonToken.STRING) {
+						throw new ParseMetadataException("Environment must be a string", reader);
+					}
 
-				environment = readEnvironment(reader);
-				break;
-			case "entrypoints":
-				readEntrypoints(warnings, reader, entrypoints);
-				break;
-			case "jars":
-				readNestedJarEntries(warnings, reader, jars);
-				break;
-			case "mixins":
-				readMixinConfigs(warnings, reader, mixins);
-				break;
-			case "accessWidener":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Access Widener file must be a string", reader);
-				}
+					environment = readEnvironment(reader);
+					break;
+				case "entrypoints":
+					readEntrypoints(warnings, reader, entrypoints);
+					break;
+				case "jars":
+					readNestedJarEntries(warnings, reader, jars);
+					break;
+				case "mixins":
+					readMixinConfigs(warnings, reader, mixins);
+					break;
+				case "accessWidener":
+					if (reader.peek() != JsonToken.STRING) {
+						throw new ParseMetadataException("Access Widener file must be a string", reader);
+					}
 
-				accessWidener = reader.nextString();
-				break;
-			case "depends":
-				readDependenciesContainer(reader, depends);
-				break;
-			case "recommends":
-				readDependenciesContainer(reader, recommends);
-				break;
-			case "suggests":
-				readDependenciesContainer(reader, suggests);
-				break;
-			case "conflicts":
-				readDependenciesContainer(reader, conflicts);
-				break;
-			case "breaks":
-				readDependenciesContainer(reader, breaks);
-				break;
+					accessWidener = reader.nextString();
+					break;
+				case "depends":
+					readDependenciesContainer(reader, depends);
+					break;
+				case "recommends":
+					readDependenciesContainer(reader, recommends);
+					break;
+				case "suggests":
+					readDependenciesContainer(reader, suggests);
+					break;
+				case "conflicts":
+					readDependenciesContainer(reader, conflicts);
+					break;
+				case "breaks":
+					readDependenciesContainer(reader, breaks);
+					break;
 			case "requires":
 				readDependenciesContainer(reader, requires);
 				break;
@@ -220,7 +214,29 @@ final class V1ModMetadataParser {
 
 		ModMetadataParser.logWarningMessages(logger, id, warnings);
 
-		return new V1ModMetadata(id, version, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
+		return new V1ModMetadata(id, version, aliases, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
+	}
+
+	private static void readAliases(JsonReader reader, List<String> aliases) throws IOException, ParseMetadataException {
+		if (reader.peek() != JsonToken.BEGIN_ARRAY) {
+			throw new ParseMetadataException("Aliases must be in an array");
+		}
+
+		reader.beginArray();
+
+		while (reader.hasNext()) {
+			String alias;
+
+			if (reader.peek() == JsonToken.STRING) {
+				alias = reader.nextString();
+			} else {
+				throw new ParseMetadataException("Aliases must be a string", reader);
+			}
+
+			aliases.add(alias);
+		}
+
+		reader.endArray();
 	}
 
 	private static ModEnvironment readEnvironment(JsonReader reader) throws ParseMetadataException, IOException {

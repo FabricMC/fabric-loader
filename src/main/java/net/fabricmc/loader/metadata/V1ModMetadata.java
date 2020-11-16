@@ -16,23 +16,12 @@
 
 package net.fabricmc.loader.metadata;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.SortedMap;
-
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.api.metadata.*;
+import org.apache.logging.log4j.Logger;
+
+import java.util.*;
 
 final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetadata {
 	static final IconEntry NO_ICON = size -> Optional.empty();
@@ -40,6 +29,9 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	// Required values
 	private final String id;
 	private final Version version;
+
+	// Optional (id aliases)
+	private final Collection<String> aliases;
 
 	// Optional (mod loading)
 	private final ModEnvironment environment;
@@ -76,9 +68,10 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	// Optional (custom values)
 	private final Map<String, CustomValue> customValues;
 
-	V1ModMetadata(String id, Version version, ModEnvironment environment, Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars, Collection<MixinEntry> mixins, /* @Nullable */ String accessWidener, Map<String, ModDependency> depends, Map<String, ModDependency> recommends, Map<String, ModDependency> suggests, Map<String, ModDependency> conflicts, Map<String, ModDependency> breaks, Map<String, ModDependency> requires, /* @Nullable */ String name, /* @Nullable */String description, Collection<Person> authors, Collection<Person> contributors, /* @Nullable */ContactInformation contact, Collection<String> license, IconEntry icon, Map<String, String> languageAdapters, Map<String, CustomValue> customValues) {
+	V1ModMetadata(String id, Version version, Collection<String> aliases, ModEnvironment environment, Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars, Collection<MixinEntry> mixins, /* @Nullable */ String accessWidener, Map<String, ModDependency> depends, Map<String, ModDependency> recommends, Map<String, ModDependency> suggests, Map<String, ModDependency> conflicts, Map<String, ModDependency> breaks, Map<String, ModDependency> requires, /* @Nullable */ String name, /* @Nullable */String description, Collection<Person> authors, Collection<Person> contributors, /* @Nullable */ContactInformation contact, Collection<String> license, IconEntry icon, Map<String, String> languageAdapters, Map<String, CustomValue> customValues) {
 		this.id = id;
 		this.version = version;
+		this.aliases = aliases;
 		this.environment = environment;
 		this.entrypoints = Collections.unmodifiableMap(entrypoints);
 		this.jars = Collections.unmodifiableCollection(jars);
@@ -133,6 +126,11 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public String getId() {
 		return this.id;
+	}
+
+	@Override
+	public Collection<String> getAliases() {
+		return this.aliases;
 	}
 
 	@Override

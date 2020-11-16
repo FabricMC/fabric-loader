@@ -16,13 +16,12 @@
 
 package net.fabricmc.loader.api.metadata;
 
+import com.google.gson.JsonElement;
+import net.fabricmc.loader.api.Version;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-
-import com.google.gson.JsonElement;
-
-import net.fabricmc.loader.api.Version;
 
 /**
  * The metadata of a mod.
@@ -48,6 +47,15 @@ public interface ModMetadata {
 	 * @return the mod's ID.
 	 */
 	String getId();
+
+	/**
+	 * Returns the mod's ID aliases.
+	 *
+	 * <p>The aliases follow the same rules as ID</p>
+	 *
+	 * @return the mod's ID aliases
+	 */
+	Collection<String> getAliases();
 
 	/**
 	 * Returns the mod's version.
