@@ -338,6 +338,15 @@ public class ModResolver {
 		}
 
 		ModCandidate depCandidate = result.get(depModId);
+		// attempt searching aliases
+		if(depCandidate == null) {
+			for (ModCandidate value : result.values()) {
+				if (value.getInfo().getAliases().contains(depModId)) {
+					depCandidate = value;
+					break;
+				}
+			}
+		}
 		boolean isPresent = depCandidate != null && dependency.matches(depCandidate.getInfo().getVersion());
 
 		if (isPresent != cond) {
