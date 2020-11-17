@@ -17,11 +17,13 @@
 package net.fabricmc.loader.discovery;
 
 import net.fabricmc.loader.api.Version;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ModCandidateSet {
 	private final String modId;
+	private final List<String> modAliases = new ArrayList<>();
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
 	private final Map<String, ModCandidate> candidates = new HashMap<>();
 
@@ -45,6 +47,10 @@ public class ModCandidateSet {
 		return modId;
 	}
 
+	public List<String> getModAliases() {
+		return modAliases;
+	}
+
 	public boolean add(ModCandidate candidate) {
 		String version = candidate.getInfo().getVersion().getFriendlyString();
 		ModCandidate oldCandidate = candidates.get(version);
@@ -63,6 +69,7 @@ public class ModCandidateSet {
 		}
 
 		candidates.put(version, candidate);
+		modAliases.addAll(candidate.getInfo().getAliases());
 		if (candidate.getDepth() == 0) {
 			depthZeroCandidates.add(candidate);
 		}
