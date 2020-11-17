@@ -333,6 +333,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		ModContainer container = new ModContainer(info, originUrl);
 		mods.add(container);
 		modMap.put(info.getId(), container);
+		for (String alias : info.getAliases()) {
+			modMap.put(alias, container);
+		}
 	}
 
 	protected void postprocessModMetadata() {
