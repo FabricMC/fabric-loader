@@ -16,12 +16,23 @@
 
 package net.fabricmc.loader.metadata;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedMap;
+
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
+import net.fabricmc.loader.api.metadata.Person;
 
 final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetadata {
 	static final IconEntry NO_ICON = size -> Optional.empty();

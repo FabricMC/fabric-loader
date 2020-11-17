@@ -19,23 +19,28 @@ package net.fabricmc.loader.discovery;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
+
 import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.lib.gson.MalformedJsonException;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.NestedJarEntry;
+import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.sat4j.core.VecInt;
 import net.fabricmc.loader.util.sat4j.minisat.SolverFactory;
+import net.fabricmc.loader.util.sat4j.specs.ContradictionException;
+import net.fabricmc.loader.util.sat4j.specs.IProblem;
+import net.fabricmc.loader.util.sat4j.specs.ISolver;
+import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
-import net.fabricmc.loader.util.sat4j.specs.*;
+
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
@@ -248,7 +253,7 @@ public class ModResolver {
 		// verify result: all mandatory mods
 		Set<String> missingMods = new HashSet<>();
 		for (String m : mandatoryMods) {
-			if (!result.containsKey(m)) {
+			if (!result.keySet().contains(m)) {
 				missingMods.add(m);
 			}
 		}

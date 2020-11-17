@@ -16,16 +16,26 @@
 
 package net.fabricmc.loader.discovery;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.logging.log4j.Logger;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.*;
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.metadata.AbstractModMetadata;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.metadata.NestedJarEntry;
-import org.apache.logging.log4j.Logger;
-
-import java.util.*;
 
 class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMetadata {
 	private final ModMetadata parent;
@@ -35,120 +45,53 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	}
 
 	@Override
-	public String getType() {
-		return parent.getType();
-	}
+	public String getType() { return parent.getType(); }
+	@Override
+	public String getId() { return parent.getId(); }
 
 	@Override
-	public String getId() {
-		return parent.getId();
-	}
+	public Collection<String> getAliases() { return parent.getAliases(); }
 
 	@Override
-	public Collection<String> getAliases() {
-		return parent.getAliases();
-	}
-
+	public Version getVersion() { return parent.getVersion(); }
 	@Override
-	public Version getVersion() {
-		return parent.getVersion();
-	}
-
+	public ModEnvironment getEnvironment() { return parent.getEnvironment(); }
 	@Override
-	public ModEnvironment getEnvironment() {
-		return parent.getEnvironment();
-	}
-
+	public Collection<ModDependency> getDepends() { return parent.getDepends(); }
 	@Override
-	public Collection<ModDependency> getDepends() {
-		return parent.getDepends();
-	}
-
+	public Collection<ModDependency> getRecommends() { return parent.getRecommends(); }
 	@Override
-	public Collection<ModDependency> getRecommends() {
-		return parent.getRecommends();
-	}
-
+	public Collection<ModDependency> getSuggests() { return parent.getSuggests(); }
 	@Override
-	public Collection<ModDependency> getSuggests() {
-		return parent.getSuggests();
-	}
-
+	public Collection<ModDependency> getConflicts() { return parent.getConflicts(); }
 	@Override
-	public Collection<ModDependency> getConflicts() {
-		return parent.getConflicts();
-	}
-
+	public Collection<ModDependency> getBreaks() { return parent.getBreaks(); }
 	@Override
-	public Collection<ModDependency> getBreaks() {
-		return parent.getBreaks();
-	}
-
+	public String getName() { return parent.getName(); }
 	@Override
-	public String getName() {
-		return parent.getName();
-	}
-
+	public String getDescription() { return parent.getDescription(); }
 	@Override
-	public String getDescription() {
-		return parent.getDescription();
-	}
-
+	public Collection<Person> getAuthors() { return parent.getAuthors(); }
 	@Override
-	public Collection<Person> getAuthors() {
-		return parent.getAuthors();
-	}
-
+	public Collection<Person> getContributors() { return parent.getContributors(); }
 	@Override
-	public Collection<Person> getContributors() {
-		return parent.getContributors();
-	}
-
+	public ContactInformation getContact() { return parent.getContact(); }
 	@Override
-	public ContactInformation getContact() {
-		return parent.getContact();
-	}
-
+	public Collection<String> getLicense() { return parent.getLicense(); }
 	@Override
-	public Collection<String> getLicense() {
-		return parent.getLicense();
-	}
-
+	public Optional<String> getIconPath(int size) { return parent.getIconPath(size); }
 	@Override
-	public Optional<String> getIconPath(int size) {
-		return parent.getIconPath(size);
-	}
-
+	public boolean containsCustomValue(String key) { return parent.containsCustomValue(key); }
 	@Override
-	public boolean containsCustomValue(String key) {
-		return parent.containsCustomValue(key);
-	}
-
+	public CustomValue getCustomValue(String key) { return parent.getCustomValue(key); }
 	@Override
-	public CustomValue getCustomValue(String key) {
-		return parent.getCustomValue(key);
-	}
-
+	public Map<String, CustomValue> getCustomValues() { return parent.getCustomValues(); }
 	@Override
-	public Map<String, CustomValue> getCustomValues() {
-		return parent.getCustomValues();
-	}
-
+	public int getSchemaVersion() { return Integer.MAX_VALUE; }
 	@Override
-	public int getSchemaVersion() {
-		return Integer.MAX_VALUE;
-	}
-
+	public Map<String, String> getLanguageAdapterDefinitions() { return Collections.emptyMap(); }
 	@Override
-	public Map<String, String> getLanguageAdapterDefinitions() {
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public Collection<NestedJarEntry> getJars() {
-		return Collections.emptyList();
-	}
-
+	public Collection<NestedJarEntry> getJars() { return Collections.emptyList(); }
 	@Override
 	public Collection<String> getMixinConfigs(EnvType type) { return Collections.emptyList(); }
 	@Override

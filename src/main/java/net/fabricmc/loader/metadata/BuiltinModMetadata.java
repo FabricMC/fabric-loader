@@ -16,13 +16,24 @@
 
 package net.fabricmc.loader.metadata;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.TreeMap;
+
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.api.metadata.*;
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.util.version.VersionDeserializer;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final String id;

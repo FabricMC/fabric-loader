@@ -16,12 +16,13 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import com.google.gson.JsonElement;
-import net.fabricmc.loader.api.Version;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+
+import com.google.gson.JsonElement;
+
+import net.fabricmc.loader.api.Version;
 
 /**
  * The metadata of a mod.
