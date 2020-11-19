@@ -221,7 +221,7 @@ public class ModResolver {
 
 						for (ModLoadOption op : def.sources()) {
 							if (conflict.matches(op.candidate.getInfo().getVersion())) {
-								new ModConflict(logger, option, conflict, op).put(helper);
+								new ModBreakage(logger, option, conflict, op).put(helper);
 							}
 						}
 					}
@@ -275,8 +275,8 @@ public class ModResolver {
 									mods.put(dep.on.getModId(), set = new HashSet<>());
 								}
 								Collections.addAll(set, dep.on.sources());
-							} else if (link instanceof ModConflict) {
-								ModConflict c = (ModConflict) link;
+							} else if (link instanceof ModBreakage) {
+								ModBreakage c = (ModBreakage) link;
 							}
 						}
 
@@ -313,7 +313,7 @@ public class ModResolver {
 
 						// Remove dependences and conflicts first
 						for (ModLink link : causes) {
-							if (link instanceof ModDep || link instanceof ModConflict) {
+							if (link instanceof ModDep || link instanceof ModBreakage) {
 								if (helper.removeConstraint(link)) {
 									removedAny = true;
 									break;
@@ -706,14 +706,14 @@ public class ModResolver {
 							.append("\n\t+ Your current version of ").append(getCandidateName(manDef.candidate))
 							.append(" is ").append(getCandidateFriendlyVersion(manDef.candidate)).append(".");
 				}
-			} else if (cause instanceof ModConflict) {
-				ModConflict conflict = (ModConflict) cause;
-				errors.append("x Mod ").append(getLoadOptionDescription(conflict.source))
-						.append(" conflicts with ").append(getDependencyVersionRequirements(conflict.publicDep))
-						.append(" of mod ").append(getLoadOptionDescription(conflict.with))
-						.append("\n\t+ The developer(s) of ").append(getCandidateName(conflict.source))
-						.append(" have found that version ").append(getCandidateFriendlyVersion(conflict.with))
-						.append(" of ").append(getCandidateName(conflict.with))
+			} else if (cause instanceof ModBreakage) {
+				ModBreakage breakage = (ModBreakage) cause;
+				errors.append("x Mod ").append(getLoadOptionDescription(breakage.source))
+						.append(" conflicts with ").append(getDependencyVersionRequirements(breakage.publicDep))
+						.append(" of mod ").append(getLoadOptionDescription(breakage.with))
+						.append("\n\t+ The developer(s) of ").append(getCandidateName(breakage.source))
+						.append(" have found that version ").append(getCandidateFriendlyVersion(breakage.with))
+						.append(" of ").append(getCandidateName(breakage.with))
 						.append(" critically conflicts with their mod.")
 						.append("\n\t+ You must remove one of the mods.");
 			} else {
@@ -734,8 +734,8 @@ public class ModResolver {
 		for (ModLink involvedLink : causes) {
 			if (involvedLink instanceof ModDep) {
 				appendLoadSourceInfo(errors, listedSources, ((ModDep) involvedLink).on);
-			} else if (involvedLink instanceof ModConflict) {
-				appendLoadSourceInfo(errors, listedSources, ((ModConflict) involvedLink).with);
+			} else if (involvedLink instanceof ModBreakage) {
+				appendLoadSourceInfo(errors, listedSources, ((ModBreakage) involvedLink).with);
 			}
 		}
 		return new ModResolutionException(errors.toString());
@@ -1089,7 +1089,7 @@ public class ModResolver {
 			LINK_ORDER.add(MandatoryModIdDefinition.class);
 			LINK_ORDER.add(OptionalModIdDefintion.class);
 			LINK_ORDER.add(ModDep.class);
-			LINK_ORDER.add(ModConflict.class);
+			LINK_ORDER.add(ModBreakage.class);
 		}
 
 		abstract ModLink put(DependencyHelper<LoadOption, ModLink> helper) throws ContradictionException;
@@ -1097,6 +1097,23 @@ public class ModResolver {
 		/** @return A description of the link. */
 		@Override
 		public abstract String toString();
+
+		/**
+		 * TODO: Better name!
+		 */
+		public boolean isNode() {
+			return true;
+		}
+
+		/**
+		 * TODO: Better name!
+		 */
+		public abstract Collection<? extends LoadOption> getNodesFrom();
+
+		/**
+		 * TODO: Better name!
+		 */
+		public abstract Collection<? extends LoadOption> getNodesTo();
 
 		@Override
 		public final int compareTo(ModLink o) {
@@ -1120,6 +1137,21 @@ public class ModResolver {
 		/** @return An array of all the possible {@link LoadOption} instances that can define this modid. May be empty,
 		 *         but will never be null. */
 		abstract ModLoadOption[] sources();
+
+		@Override
+		public boolean isNode() {
+			return false;
+		}
+
+		@Override
+		public Collection<? extends LoadOption> getNodesFrom() {
+			return Collections.emptySet();
+		}
+
+		@Override
+		public Collection<? extends LoadOption> getNodesTo() {
+			return Collections.emptySet();
+		}
 
 		@Override
 		protected int compareToSelf(ModLink o) {
@@ -1235,6 +1267,7 @@ public class ModResolver {
 		final ModIdDefinition on;
 		final List<ModLoadOption> validOptions;
 		final List<ModLoadOption> invalidOptions;
+		final List<ModLoadOption> allOptions;
 
 		public ModDep(Logger logger, ModLoadOption source, ModDependency publicDep, ModIdDefinition on) {
 			this.source = source;
@@ -1242,6 +1275,7 @@ public class ModResolver {
 			this.on = on;
 			validOptions = new ArrayList<>();
 			invalidOptions = new ArrayList<>();
+			allOptions = new ArrayList<>();
 
 			if (DEBUG_PRINT_STATE) {
 				logger.info("[ModResolver] Adding a mod depencency from " + source + " to " + on.getModId());
@@ -1249,6 +1283,8 @@ public class ModResolver {
 			}
 
 			for (ModLoadOption option : on.sources()) {
+				allOptions.add(option);
+
 				if (publicDep.matches(option.candidate.getInfo().getVersion())) {
 					validOptions.add(option);
 
@@ -1280,6 +1316,16 @@ public class ModResolver {
 		}
 
 		@Override
+		public Collection<? extends LoadOption> getNodesFrom() {
+			return Collections.singleton(source);
+		}
+
+		@Override
+		public Collection<? extends LoadOption> getNodesTo() {
+			return allOptions;
+		}
+
+		@Override
 		protected int compareToSelf(ModLink o) {
 			ModDep other = (ModDep) o;
 			int c = source.modId().compareTo(other.source.modId());
@@ -1290,41 +1336,47 @@ public class ModResolver {
 		}
 	}
 
-	/**
-	 * Actually MOD BREAK
-	 */
-	// TODO: Rename to "ModBreak"
-	static final class ModConflict extends ModLink {
+	static final class ModBreakage extends ModLink {
 		final ModLoadOption source;
 		final ModDependency publicDep;
 		final ModLoadOption with;
 
-		public ModConflict(Logger logger, ModLoadOption source, ModDependency publicDep, ModLoadOption with) {
+		public ModBreakage(Logger logger, ModLoadOption source, ModDependency publicDep, ModLoadOption with) {
 			this.source = source;
 			this.publicDep = publicDep;
 			this.with = with;
 
 			if (DEBUG_PRINT_STATE) {
-				logger.info("[ModResolver] Adding a mod conflict:");
+				logger.info("[ModResolver] Adding a mod breakage:");
 				logger.info("[ModResolver]   from " + source.fullString());
 				logger.info("[ModResolver]   with " + with.fullString());
 			}
 		}
 
 		@Override
-		ModConflict put(DependencyHelper<LoadOption, ModLink> helper) throws ContradictionException {
+		ModBreakage put(DependencyHelper<LoadOption, ModLink> helper) throws ContradictionException {
 			helper.clause(this, new NegatedLoadOption(source), new NegatedLoadOption(with));
 			return this;
 		}
 
 		@Override
 		public String toString() {
-			return source + " conflicts with " + with + " version " + publicDep;
+			return source + " breaks " + with + " version " + publicDep;
+		}
+
+		@Override
+		public Collection<? extends LoadOption> getNodesFrom() {
+			return Collections.singleton(source);
+		}
+
+		@Override
+		public Collection<? extends LoadOption> getNodesTo() {
+			return Collections.singleton(with);
 		}
 
 		@Override
 		protected int compareToSelf(ModLink o) {
-			ModConflict other = (ModConflict) o;
+			ModBreakage other = (ModBreakage) o;
 			int c = source.modId().compareTo(other.source.modId());
 			if (c != 0) {
 				return c;
