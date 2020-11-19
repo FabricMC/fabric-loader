@@ -342,7 +342,7 @@ public class ModResolver {
 		if(depCandidate == null) {
 			for (ModCandidate value : result.values()) {
 				if (value.getInfo().getAliases().contains(depModId)) {
-					logger.warn("Mod " + candidate.getInfo().getId() + " is using the alias " + depModId + " in place of the mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a alias.");
+					if(FabricLoader.INSTANCE.isDevelopmentEnvironment()) logger.warn("Mod " + candidate.getInfo().getId() + " is using the alias " + depModId + " in place of the mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a alias.");
 					depCandidate = value;
 					break;
 				}
