@@ -267,19 +267,19 @@ public class ModResolver {
 			// verify result: dependencies
 			for (ModCandidate candidate : result.values()) {
 				for (ModDependency dependency : candidate.getInfo().getDepends()) {
-					addErrorToList(candidate, dependency, result, errorsHard, "requires", true);
+					addErrorToList(logger, candidate, dependency, result, errorsHard, "requires", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getRecommends()) {
-					addErrorToList(candidate, dependency, result, errorsSoft, "recommends", true);
+					addErrorToList(logger, candidate, dependency, result, errorsSoft, "recommends", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getBreaks()) {
-					addErrorToList(candidate, dependency, result, errorsHard, "is incompatible with", false);
+					addErrorToList(logger, candidate, dependency, result, errorsHard, "is incompatible with", false);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getConflicts()) {
-					addErrorToList(candidate, dependency, result, errorsSoft, "conflicts with", false);
+					addErrorToList(logger, candidate, dependency, result, errorsSoft, "conflicts with", false);
 				}
 
 				Version version = candidate.getInfo().getVersion();
@@ -321,7 +321,7 @@ public class ModResolver {
 		return result;
 	}
 
-	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
+	private void addErrorToList(Logger logger, ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
 		List<String> errorList = new ArrayList<>();
@@ -342,6 +342,7 @@ public class ModResolver {
 		if(depCandidate == null) {
 			for (ModCandidate value : result.values()) {
 				if (value.getInfo().getAliases().contains(depModId)) {
+					logger.warn("Mod " + candidate.getInfo().getId() + " is using the alias " + depModId + " in place of the mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a alias.");
 					depCandidate = value;
 					break;
 				}
