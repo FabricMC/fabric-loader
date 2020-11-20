@@ -334,6 +334,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		mods.add(container);
 		modMap.put(info.getId(), container);
 		for (String alias : info.getAliases()) {
+			if(modMap.containsKey(alias)) {
+				throw new ModResolutionException("Duplicate alias: " + alias + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			}
 			modMap.put(alias, container);
 		}
 	}
