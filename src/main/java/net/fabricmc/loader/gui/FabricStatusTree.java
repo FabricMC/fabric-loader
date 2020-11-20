@@ -21,6 +21,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class FabricStatusTree {
 	public enum FabricTreeWarningLevel {
@@ -236,6 +238,21 @@ public final class FabricStatusTree {
 			}
 
 			string = string.trim();
+			String icon = "";
+
+			if (string.length() > 3) {
+				if ('$' == string.charAt(0)) {
+					Pattern p = Pattern.compile("\\$([a-z.+-]+)\\$");
+					Matcher match = p.matcher(string);
+					if (match.find()) {
+						icon = match.group(1);
+						string = string.substring(icon.length() + 2);
+					}
+				}
+			}
+
+			string = string.trim();
+
 			FabricStatusNode to = this;
 
 			for (; indent > 0; indent--) {
@@ -252,6 +269,7 @@ public final class FabricStatusTree {
 
 			FabricStatusNode child = new FabricStatusNode(to, string);
 			child.setWarningLevel(level);
+			child.iconType = icon;
 			to.children.add(child);
 			return child;
 		}

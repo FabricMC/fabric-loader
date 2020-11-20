@@ -313,6 +313,15 @@ public class ModResolver {
 
 						// Remove dependences and conflicts first
 						for (ModLink link : causes) {
+
+							if (link instanceof ModDep) {
+								ModDep dep = (ModDep) link;
+
+								if (!dep.validOptions.isEmpty()) {
+									continue;
+								}
+							}
+
 							if (link instanceof ModDep || link instanceof ModBreakage) {
 								if (helper.removeConstraint(link)) {
 									removedAny = true;
@@ -691,7 +700,8 @@ public class ModResolver {
 
 			if (cause instanceof ModDep) {
 				ModDep dep = (ModDep) cause;
-				errors.append("x Mod ").append(getLoadOptionDescription(dep.source))
+				errors.append(dep.validOptions.isEmpty() ? "x" : "-");
+				errors.append(" Mod ").append(getLoadOptionDescription(dep.source))
 						.append(" requires ").append(getDependencyVersionRequirements(dep.publicDep))
 						.append(" of ");
 				ModIdDefinition def = dep.on;
@@ -699,18 +709,21 @@ public class ModResolver {
 
 				if (sources.length == 0) {
 					errors.append("unknown mod '").append(def.getModId()).append("'\n")
-							.append("\t+ You must install ").append(getDependencyVersionRequirements(dep.publicDep))
+							.append("\t- You must install ").append(getDependencyVersionRequirements(dep.publicDep))
 							.append(" of '").append(def.getModId()).append("'.");
 				} else {
-					errors.append("mod ").append(def.getFriendlyName())
-							.append("\n\t+ You must install ").append(getDependencyVersionRequirements(dep.publicDep))
-							.append(" of ").append(def.getFriendlyName()).append('.');
+					errors.append(def.getFriendlyName());
+
+					if (dep.validOptions.isEmpty()) {
+						errors.append("\n\t- You must install ").append(getDependencyVersionRequirements(dep.publicDep))
+								.append(" of ").append(def.getFriendlyName()).append('.');
+					}
 
 					if (sources.length == 1) {
-						errors.append("\n\t+ Your current version of ").append(getCandidateName(sources[0].candidate))
+						errors.append("\n\t- Your current version of ").append(getCandidateName(sources[0].candidate))
 							.append(" is ").append(getCandidateFriendlyVersion(sources[0].candidate)).append(".");
 					} else {
-						errors.append("\n\t+ You have the following versions available:");
+						errors.append("\n\t- You have the following versions available:");
 
 						for (ModLoadOption source : sources) {
 							errors.append("\n\t\t- ").append(getCandidateFriendlyVersion(source)).append(".");
@@ -735,13 +748,13 @@ public class ModResolver {
 						.append("\n\t\t").append(cause.toString());
 			}
 		}
+
 		// TODO: See if I can get results similar to appendJiJInfo (which requires a complete "mod ID -> candidate" map)
 		HashSet<String> listedSources = new HashSet<>();
 		for (ModLoadOption involvedMod : roots.keySet()) {
-			errors.append("\n+ Mod ").append(getLoadOptionDescription(involvedMod)).append(" is being loaded from \"")
-					.append(involvedMod.getLoadSource()).append("\".");
-			listedSources.add(involvedMod.modId());
+			appendLoadSourceInfo(errors, listedSources, involvedMod);
 		}
+
 		for (ModLink involvedLink : causes) {
 			if (involvedLink instanceof ModDep) {
 				appendLoadSourceInfo(errors, listedSources, ((ModDep) involvedLink).on);
@@ -749,26 +762,38 @@ public class ModResolver {
 				appendLoadSourceInfo(errors, listedSources, ((ModBreakage) involvedLink).with);
 			}
 		}
+
 		return new ModResolutionException(errors.toString());
 	}
 
 	private static void appendLoadSourceInfo(StringBuilder errors, HashSet<String> listedSources, ModIdDefinition def) {
-		MandatoryModIdDefinition manDef;
-		if (def instanceof MandatoryModIdDefinition) {
-			manDef = (MandatoryModIdDefinition) def;
-		} else if (def instanceof OverridenModIdDefintion) {
-			manDef = ((OverridenModIdDefintion) def).overrider;
-		} else {
+		if (!listedSources.add(def.getModId())) {
 			return;
 		}
-		appendLoadSourceInfo(errors, listedSources, manDef.candidate);
+
+		ModLoadOption[] sources = def.sources();
+
+		if (sources.length == 0) {
+			return;
+		}
+
+		if (sources.length == 1) {
+			errors.append("\n- $jar+fabric$ Mod ").append(getLoadOptionDescription(sources[0]))
+				.append(" is being loaded from \"").append(sources[0].getLoadSource()).append("\".");
+		} else {
+			errors.append("\n- $folder$ Mod ").append(def.getModId()).append(" can be loaded from:");
+
+			for (ModLoadOption source : sources) {
+				errors.append("\n\t- $jar+fabric$ ").append(getLoadOptionDescription(source))
+					.append(" \"").append(source.getLoadSource()).append("\".");
+			}
+		}
 	}
 
 	private static void appendLoadSourceInfo(StringBuilder errors, HashSet<String> listedSources, ModLoadOption option) {
-		if (!listedSources.contains(option.modId())) {
-			errors.append("\n+ Mod ").append(getLoadOptionDescription(option))
+		if (listedSources.add(option.modId())) {
+			errors.append("\n- $jar+fabric$ Mod ").append(getLoadOptionDescription(option))
 					.append(" is being loaded from \"").append(option.getLoadSource()).append("\".");
-			listedSources.add(option.modId());
 		}
 	}
 
@@ -1042,7 +1067,7 @@ public class ModResolver {
 		public String toString() {
 			return shortString();
 		}
-		
+
 		String shortString() {
 			if (index == -1) {
 				return "mod '" + modId() + "'";
@@ -1368,10 +1393,18 @@ public class ModResolver {
 		@Override
 		protected int compareToSelf(ModLink o) {
 			ModDep other = (ModDep) o;
-			int c = source.modId().compareTo(other.source.modId());
+
+			if (validOptions.isEmpty() != other.validOptions.isEmpty()) {
+				return validOptions.isEmpty() ? -1 : 1;
+			}
+
+			int c = source.candidate.getOriginUrl().toString()
+				.compareTo(other.source.candidate.getOriginUrl().toString());
+
 			if (c != 0) {
 				return c;
 			}
+
 			return on.compareTo(other.on);
 		}
 	}
