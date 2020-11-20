@@ -670,41 +670,52 @@ public class ModResolver {
 		// TODO: Create a graph from roots to each other and then build the error through that!
 		// implementor's note: IDK how to graph, have this mess instead
 		StringBuilder errors = new StringBuilder("Error");
+
 		if (causes.size() > 1) {
 			errors.append('s');
 		}
+
 		errors.append(" involving mod");
+
 		if (roots.size() > 1) {
 			errors.append('s');
 		}
+
 		errors.append(' ').append(roots.keySet().stream()
 				.map(ModResolver::getLoadOptionDescription)
 				.collect(Collectors.joining(", ")))
 				.append(':');
+
 		for (ModLink cause : causes) {
 			errors.append('\n');
+
 			if (cause instanceof ModDep) {
 				ModDep dep = (ModDep) cause;
 				errors.append("x Mod ").append(getLoadOptionDescription(dep.source))
 						.append(" requires ").append(getDependencyVersionRequirements(dep.publicDep))
 						.append(" of ");
 				ModIdDefinition def = dep.on;
-				MandatoryModIdDefinition manDef = null;
-				if (def instanceof MandatoryModIdDefinition) {
-					manDef = (MandatoryModIdDefinition) def;
-				} else if (def instanceof OverridenModIdDefintion) {
-					manDef = ((OverridenModIdDefintion) def).overrider;
-				}
-				if (manDef == null) {
+				ModLoadOption[] sources = def.sources();
+
+				if (sources.length == 0) {
 					errors.append("unknown mod '").append(def.getModId()).append("'\n")
 							.append("\t+ You must install ").append(getDependencyVersionRequirements(dep.publicDep))
 							.append(" of '").append(def.getModId()).append("'.");
 				} else {
-					errors.append("mod ").append(getCandidateName(manDef.candidate))
+					errors.append("mod ").append(def.getFriendlyName())
 							.append("\n\t+ You must install ").append(getDependencyVersionRequirements(dep.publicDep))
-							.append(" of ").append(getCandidateName(manDef.candidate)).append('.')
-							.append("\n\t+ Your current version of ").append(getCandidateName(manDef.candidate))
-							.append(" is ").append(getCandidateFriendlyVersion(manDef.candidate)).append(".");
+							.append(" of ").append(def.getFriendlyName()).append('.');
+
+					if (sources.length == 1) {
+						errors.append("\n\t+ Your current version of ").append(getCandidateName(sources[0].candidate))
+							.append(" is ").append(getCandidateFriendlyVersion(sources[0].candidate)).append(".");
+					} else {
+						errors.append("\n\t+ You have the following versions available:");
+
+						for (ModLoadOption source : sources) {
+							errors.append("\n\t\t- ").append(getCandidateFriendlyVersion(source)).append(".");
+						}
+					}
 				}
 			} else if (cause instanceof ModBreakage) {
 				ModBreakage breakage = (ModBreakage) cause;
@@ -1138,6 +1149,8 @@ public class ModResolver {
 		 *         but will never be null. */
 		abstract ModLoadOption[] sources();
 
+		abstract String getFriendlyName();
+
 		@Override
 		public boolean isNode() {
 			return false;
@@ -1187,6 +1200,11 @@ public class ModResolver {
 		}
 
 		@Override
+		String getFriendlyName() {
+			return getCandidateName(candidate);
+		}
+
+		@Override
 		public String toString() {
 			return "mandatory " + candidate.fullString();
 		}
@@ -1210,6 +1228,23 @@ public class ModResolver {
 		@Override
 		ModLoadOption[] sources() {
 			return sources;
+		}
+
+		@Override
+		String getFriendlyName() {
+			String name = null;
+
+			for (ModLoadOption option : sources) {
+				String opName = option.candidate.getInfo().getName();
+
+				if (name == null) {
+					name = opName;
+				} else if (!name.equals(opName)) {
+					// TODO!
+				}
+			}
+
+			return getCandidateName(sources[0]);
 		}
 
 		@Override
@@ -1247,6 +1282,11 @@ public class ModResolver {
 		@Override
 		ModLoadOption[] sources() {
 			return sources;
+		}
+
+		@Override
+		String getFriendlyName() {
+			return overrider.getFriendlyName();
 		}
 
 		@Override
