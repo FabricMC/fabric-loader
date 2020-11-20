@@ -255,52 +255,7 @@ public class ModResolver {
 
 					ModResolutionException ex = describeError(roots, causes);
 					if (ex == null) {
-						StringBuilder sb = new StringBuilder("Unhandled error involving:");
-
-						Map<String, Set<ModLoadOption>> mods = new HashMap<>();
-						for (ModLink link : why) {
-							if (link instanceof ModIdDefinition) {
-								ModIdDefinition def = (ModIdDefinition) link;
-								Set<ModLoadOption> set = mods.get(def.getModId());
-								if (set == null) {
-									mods.put(def.getModId(), set = new HashSet<>());
-								}
-								Collections.addAll(set, def.sources());
-								causes.remove(link);
-							} else if (link instanceof ModDep) {
-								ModDep dep = (ModDep) link;
-								mods.computeIfAbsent(dep.source.modId(), s -> new HashSet<>()).add(dep.source);
-								Set<ModLoadOption> set = mods.get(dep.on.getModId());
-								if (set == null) {
-									mods.put(dep.on.getModId(), set = new HashSet<>());
-								}
-								Collections.addAll(set, dep.on.sources());
-							} else if (link instanceof ModBreakage) {
-								ModBreakage c = (ModBreakage) link;
-							}
-						}
-
-						for (Entry<String, Set<ModLoadOption>> entry : mods.entrySet()) {
-							String modid = entry.getKey();
-							Set<ModLoadOption> sources = entry.getValue();
-							if (sources.isEmpty()) {
-								sb.append("\nx unknown mod '" + modid + "'");
-							} else {
-								if (mandatoryMods.containsKey(modid)) {
-									sb.append("\nmandatory mod '" + modid + "'");
-								} else {
-									sb.append("\noptional mod '" + modid + "'");
-								}
-								for (ModLoadOption src : sources) {
-									sb.append("\n\t - " + src.getSpecificInfo());
-								}
-							}
-						}
-
-						for (ModLink link : causes) {
-							sb.append("\n" + link);
-						}
-						ex = new ModResolutionException(sb.toString());
+						ex = fallbackErrorDescription(roots, causes);
 					}
 
 					errors.add(ex);
@@ -677,14 +632,12 @@ public class ModResolver {
 
 	private static ModResolutionException describeError(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
 		// TODO: Create a graph from roots to each other and then build the error through that!
+		return null;
+	}
+
+	private static ModResolutionException fallbackErrorDescription(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
 		// implementor's note: IDK how to graph, have this mess instead
-		StringBuilder errors = new StringBuilder("Error");
-
-		if (causes.size() > 1) {
-			errors.append('s');
-		}
-
-		errors.append(" involving mod");
+		StringBuilder errors = new StringBuilder("Unhandled error involving mod");
 
 		if (roots.size() > 1) {
 			errors.append('s');
