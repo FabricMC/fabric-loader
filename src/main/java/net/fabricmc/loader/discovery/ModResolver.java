@@ -92,14 +92,14 @@ public class ModResolver {
 	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
-		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();
+		Map<String, List<ModCandidate>> modCandidateMap = new HashMap<>();
 		Set<String> mandatoryMods = new HashSet<>();
 
 		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
 			Collection<ModCandidate> s = mcs.toSortedSet();
-			modCandidateMap.put(mcs.getModId(), s);
+			modCandidateMap.computeIfAbsent(mcs.getModId(), i -> new ArrayList<>()).addAll(s);
 			for (String modAlias : mcs.getModAliases()) {
-				modCandidateMap.put(modAlias, s);
+				modCandidateMap.computeIfAbsent(modAlias, i -> new ArrayList<>()).addAll(s);
 			}
 			isAdvanced |= (s.size() > 1) || (s.iterator().next().getDepth() > 0);
 
