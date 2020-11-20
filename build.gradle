@@ -16,8 +16,7 @@ archivesBaseName = "fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-// version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
-version += "+calexsat.10"
+version = version + (ENV.GITHUB_ACTIONS ? "" : "+calexsat.11")
 
 repositories {
 	mavenLocal()
@@ -120,6 +119,14 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
+}
+
 javadoc {
 	options {
 		if (file("README.html").exists()) {
@@ -174,12 +181,12 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-		if (project.hasProperty('mavenPass')) {
+		if (ENV.MAVEN_URL) {
 			maven {
-				url = "http://mavenupload.modmuss50.me/"
+				url ENV.MAVEN_URL
 				credentials {
-					username = "buildslave"
-					password = project.getProperty('mavenPass')
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
 				}
 			}
 		} else {
@@ -200,3 +207,17 @@ license {
 	exclude '**/JsonToken.java'
 	exclude '**/MalformedJsonException.java'
 }
+
+// A task to ensure that the version being released has not already been released.
+task checkVersion {
+	doFirst {
+		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml").text
+		def metadata = new XmlSlurper().parseText(xml)
+		def versions = metadata.versioning.versions.version*.text();
+		if (versions.contains(version)) {
+			throw new RuntimeException("${version} has already been released!")
+		}
+	}
+}
+
+publish.mustRunAfter checkVersion

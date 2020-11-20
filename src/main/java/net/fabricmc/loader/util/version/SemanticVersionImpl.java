@@ -22,10 +22,12 @@ import net.fabricmc.loader.api.VersionParsingException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 public class SemanticVersionImpl implements SemanticVersion {
 	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("|[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*");
+	private static final Pattern UNSIGNED_INTEGER = Pattern.compile("0|[1-9][0-9]*");
 	private final int[] components;
 	private final String prerelease;
 	private final String build;
@@ -214,5 +216,67 @@ public class SemanticVersionImpl implements SemanticVersion {
 
 	boolean isPrerelease() {
 		return prerelease != null;
+	}
+
+	@Override
+	public int compareTo(SemanticVersion o) {
+		for (int i = 0; i < Math.max(getVersionComponentCount(), o.getVersionComponentCount()); i++) {
+			int first = getVersionComponent(i);
+			int second = o.getVersionComponent(i);
+			if (first == COMPONENT_WILDCARD || second == COMPONENT_WILDCARD) {
+				continue;
+			}
+
+			int compare = Integer.compare(first, second);
+			if (compare != 0) {
+				return compare;
+			}
+		}
+
+		Optional<String> prereleaseA = getPrereleaseKey();
+		Optional<String> prereleaseB = o.getPrereleaseKey();
+
+		if (prereleaseA.isPresent() || prereleaseB.isPresent()) {
+			if (prereleaseA.isPresent() && prereleaseB.isPresent()) {
+				StringTokenizer prereleaseATokenizer = new StringTokenizer(prereleaseA.get(), ".");
+				StringTokenizer prereleaseBTokenizer = new StringTokenizer(prereleaseB.get(), ".");
+
+				while (prereleaseATokenizer.hasMoreElements()) {
+					if (prereleaseBTokenizer.hasMoreElements()) {
+						String partA = prereleaseATokenizer.nextToken();
+						String partB = prereleaseBTokenizer.nextToken();
+
+						if (UNSIGNED_INTEGER.matcher(partA).matches()) {
+							if (UNSIGNED_INTEGER.matcher(partB).matches()) {
+								int compare = Integer.compare(partA.length(), partB.length());
+								if (compare != 0) {
+									return compare;
+								}
+							} else {
+								return -1;
+							}
+						} else {
+							if (UNSIGNED_INTEGER.matcher(partB).matches()) {
+								return 1;
+							}
+						}
+
+						int compare = partA.compareTo(partB);
+						if (compare != 0) {
+							return compare;
+						}
+					} else {
+						return 1;
+					}
+				}
+				return prereleaseBTokenizer.hasMoreElements() ? -1 : 0;
+			} else if (prereleaseA.isPresent()) {
+				return o.hasWildcard() ? 0 : -1;
+			} else { // prereleaseB.isPresent()
+				return hasWildcard() ? 0 : 1;
+			}
+		} else {
+			return 0;
+		}
 	}
 }
