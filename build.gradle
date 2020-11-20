@@ -1,4 +1,4 @@
-// ALL CHANGES HERE MUST BE REMOVED BEFORE MERGE
+// ALL CHANGES MADE TO BUILD.GRADLE MUST BE REMOVED BEFORE MERGE
 // (except for version bumps for the sat4j dependency)
 plugins {
 	id 'java'
