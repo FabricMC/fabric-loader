@@ -16,10 +16,6 @@ archivesBaseName = "fabric-loader"
 def ENV = System.getenv()
 version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
-// For future: Migrate to checkstyle proper.
-// Migration is waiting on some other unmerged code so we can remove the auxiliary gradle file
-apply from: "ideconfig.gradle"
-
 repositories {
 	mavenCentral()
 	jcenter()
