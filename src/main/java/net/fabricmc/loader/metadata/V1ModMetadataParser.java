@@ -237,15 +237,11 @@ final class V1ModMetadataParser {
 		reader.beginArray();
 
 		while (reader.hasNext()) {
-			String alias;
-
 			if (reader.peek() != JsonToken.STRING) {
 				throw new ParseMetadataException("Aliases must be a string", reader);
 			}
 
-			alias = reader.nextString();
-
-			aliases.add(alias);
+			aliases.add(reader.nextString());
 		}
 
 		reader.endArray();
