@@ -167,7 +167,7 @@ abstract class CustomValueImpl implements CustomValue {
 			}
 
 			ObjectImpl object = (ObjectImpl) o;
-			return Objects.equals(this.entries, object.entries);
+			return this.entries.equals(object.entries);
 		}
 
 		@Override
