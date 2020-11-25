@@ -19,7 +19,6 @@ package net.fabricmc.loader.metadata;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -167,7 +166,7 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 
 		@Override
-		public Set<String> keys() {
+		public Set<String> keySet() {
 			return this.entries.keySet();
 		}
 
@@ -192,7 +191,7 @@ abstract class CustomValueImpl implements CustomValue {
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
 			sb.append("{");
-			Iterator<String> itr = this.keys().iterator();
+			Iterator<String> itr = this.keySet().iterator();
 
 			while (itr.hasNext()) {
 				String key = itr.next();

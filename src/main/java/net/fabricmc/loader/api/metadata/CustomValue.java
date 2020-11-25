@@ -104,7 +104,7 @@ public interface CustomValue {
 		/**
 		 * Returns the set of keys in this custom value.
 		 */
-		Set<String> keys();
+		Set<String> keySet();
 	}
 
 	/**
