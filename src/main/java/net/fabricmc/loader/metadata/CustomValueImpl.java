@@ -240,7 +240,7 @@ abstract class CustomValueImpl implements CustomValue {
 
 		@Override
 		public Stream<CustomValue> stream() {
-			return StreamSupport.stream(this.spliterator(), false);
+			return entries.stream();
 		}
 
 		@Override
