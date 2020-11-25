@@ -72,6 +72,23 @@ public interface CustomValue {
 	boolean getAsBoolean();
 
 	/**
+	 * Compares this custom value with another and returns whether they are equal.
+	 *
+	 * @param another The custom value to compare to.
+	 */
+	boolean equals(Object another);
+
+	/**
+	 * Returns the hash code for this custom value.
+	 */
+	int hashCode();
+
+	/**
+	 * Returns the value of this custom value as json.
+	 */
+	String toString();
+
+	/**
 	 * Represents an {@link CvType#OBJECT} value.
 	 */
 	interface CvObject extends CustomValue, Iterable<Map.Entry<String, CustomValue>> {
