@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.lib.gson.JsonReader;
@@ -159,6 +162,16 @@ abstract class CustomValueImpl implements CustomValue {
 		}
 
 		@Override
+		public Stream<Entry<String, CustomValue>> stream() {
+			return StreamSupport.stream(this.spliterator(), false);
+		}
+
+		@Override
+		public Set<String> keys() {
+			return this.entries.keySet();
+		}
+
+		@Override
 		public boolean equals(Object o) {
 			if (this == o) {
 				return true;
@@ -223,6 +236,11 @@ abstract class CustomValueImpl implements CustomValue {
 		@Override
 		public Iterator<CustomValue> iterator() {
 			return entries.iterator();
+		}
+
+		@Override
+		public Stream<CustomValue> stream() {
+			return StreamSupport.stream(this.spliterator(), false);
 		}
 
 		@Override

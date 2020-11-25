@@ -99,16 +99,12 @@ public interface CustomValue {
 		/**
 		 * Returns a sequential {@link Stream} with this iterable as its source.
 		 */
-		default Stream<Map.Entry<String, CustomValue>> stream() {
-			return StreamSupport.stream(this.spliterator(), false);
-		}
+		Stream<Map.Entry<String, CustomValue>> stream();
 
 		/**
 		 * Returns the set of keys in this custom value.
 		 */
-		default Set<String> keys() {
-			return this.stream().map(Map.Entry::getKey).collect(Collectors.toSet());
-		}
+		Set<String> keys();
 	}
 
 	/**
@@ -132,9 +128,7 @@ public interface CustomValue {
 		/**
 		 * Returns a sequential {@link Stream} with this iterable as its source.
 		 */
-		default Stream<CustomValue> stream() {
-			return StreamSupport.stream(this.spliterator(), false);
-		}
+		Stream<CustomValue> stream();
 	}
 
 	/**
