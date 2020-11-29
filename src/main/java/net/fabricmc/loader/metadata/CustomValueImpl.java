@@ -401,7 +401,7 @@ abstract class CustomValueImpl implements CustomValue {
 
 		@Override
 		public boolean equals(Object obj) {
-			return this == NULL;
+			return obj == NULL;
 		}
 
 		@Override
