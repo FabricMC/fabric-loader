@@ -113,7 +113,9 @@ public class ModResolver {
 		if (!isAdvanced) {
 			result = new HashMap<>();
 			for (String s : modCandidateMap.keySet()) {
-				result.put(s, modCandidateMap.get(s).iterator().next());
+				ModCandidate candidate = modCandidateMap.get(s).iterator().next();
+				// if the candidate isn't actually just a alias, then put it on
+				if(!candidate.getInfo().getAliases().contains(s)) result.put(s, candidate);
 			}
 		} else {
 			// Inspired by http://0install.net/solver.html

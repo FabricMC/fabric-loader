@@ -1,6 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "fabricloader",
+  "aliases": [
+    "testmod"
+  ],
   "name": "Fabric Loader",
   "version": "${version}",
   "environment": "*",
