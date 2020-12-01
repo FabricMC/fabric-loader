@@ -646,6 +646,26 @@ public class ModResolver {
 					throw new RuntimeException(fullError.toString());
 				}
 
+				for(String alias : candidate.getInfo().getAliases()) {
+					if (!MOD_ID_PATTERN.matcher(alias).matches()) {
+						List<String> errorList = new ArrayList<>();
+						isModIdValid(alias, errorList);
+						StringBuilder fullError = new StringBuilder("Mod id alias `");
+						fullError.append(alias).append("` does not match the requirements because");
+
+						if (errorList.size() == 1) {
+							fullError.append(" it ").append(errorList.get(0));
+						} else {
+							fullError.append(":");
+							for (String error : errorList) {
+								fullError.append("\n  - It ").append(error);
+							}
+						}
+
+						throw new RuntimeException(fullError.toString());
+					}
+				}
+
 				added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
 
 				if (!added) {
