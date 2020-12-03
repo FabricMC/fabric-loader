@@ -731,21 +731,38 @@ public class ModResolver {
 		}
 
 		if (sources.length == 1) {
-			errors.append("\n- $jar+fabric$ Mod ").append(getLoadOptionDescription(sources[0]))
+			errors.append("\n- $jar+fabric$ ").append(getLoadOptionDescription(sources[0]))
 				.append(" is being loaded from \"").append(sources[0].getLoadSource()).append("\".");
 		} else {
-			errors.append("\n- $folder$ Mod ").append(def.getModId()).append(" can be loaded from:");
+			String name = getCandidateName(sources[0].candidate);
+			for (ModLoadOption option : sources) {
+				if (!getCandidateName(option.candidate).equals(name)) {
+					name = null;
+					break;
+				}
+			}
 
-			for (ModLoadOption source : sources) {
-				errors.append("\n\t- $jar+fabric$ ").append(getLoadOptionDescription(source))
-					.append(" \"").append(source.getLoadSource()).append("\".");
+			if (name != null) {
+				errors.append("\n- $folder$ ").append(name).append(" can be loaded from:");
+
+				for (ModLoadOption source : sources) {
+					errors.append("\n\t- $jar+fabric$ v").append(getCandidateFriendlyVersion(source))
+						.append(" in \"").append(source.getLoadSource()).append("\".");
+				}
+			} else {
+				errors.append("\n- $folder$ Mod ").append(def.getModId()).append(" can be loaded from:");
+
+				for (ModLoadOption source : sources) {
+					errors.append("\n\t- $jar+fabric$ ").append(getLoadOptionDescription(source))
+						.append(" \"").append(source.getLoadSource()).append("\".");
+				}
 			}
 		}
 	}
 
 	private static void appendLoadSourceInfo(StringBuilder errors, HashSet<String> listedSources, ModLoadOption option) {
 		if (listedSources.add(option.modId())) {
-			errors.append("\n- $jar+fabric$ Mod ").append(getLoadOptionDescription(option))
+			errors.append("\n- $jar+fabric$ ").append(getLoadOptionDescription(option))
 					.append(" is being loaded from \"").append(option.getLoadSource()).append("\".");
 		}
 	}
