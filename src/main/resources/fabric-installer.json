@@ -1,5 +1,10 @@
 {
   "version": 1,
+  "loaderVersion": "${version}",
+  "loader": {
+    "name": "${group}:${artifact}:${version}",
+    "url": "https://maven.fabricmc.net/${group.replace('.', '/')}/${artifact}/${version}/${artifact}-${version}.jar"
+  },
   "libraries": {
     "client": [
 

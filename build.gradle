@@ -76,6 +76,10 @@ processResources {
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
+
+	filesMatching("fabric-installer.json") {
+		expand "group": project.group, "artifact": project.modid, "version": project.version
+	}
 }
 
 java {
