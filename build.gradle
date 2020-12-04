@@ -191,6 +191,7 @@ apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig
 license {
 	// Exclude gson since it is google's code, we just modify and bundle it
 	exclude '**/JsonReader.java'
+	exclude '**/JsonWriter.java'
 	exclude '**/JsonScope.java'
 	exclude '**/JsonToken.java'
 	exclude '**/MalformedJsonException.java'
