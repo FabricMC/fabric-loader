@@ -56,8 +56,8 @@ final class V1ModMetadataParser {
 		String id = null;
 		Version version = null;
 
-		// Optional (id aliases)
-		List<String> aliases = new ArrayList<>();
+		// Optional (id provides)
+		List<String> provides = new ArrayList<>();
 
 		// Optional (mod loading)
 		ModEnvironment environment = ModEnvironment.UNIVERSAL; // Default is always universal
@@ -129,8 +129,8 @@ final class V1ModMetadataParser {
 				}
 
 				break;
-			case "aliases":
-				readAliases(reader, aliases);
+			case "provides":
+				readProvides(reader, provides);
 				break;
 			case "environment":
 				if (reader.peek() != JsonToken.STRING) {
@@ -226,22 +226,22 @@ final class V1ModMetadataParser {
 
 		ModMetadataParser.logWarningMessages(logger, id, warnings);
 
-		return new V1ModMetadata(id, version, aliases, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
+		return new V1ModMetadata(id, version, provides, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
 	}
 
-	private static void readAliases(JsonReader reader, List<String> aliases) throws IOException, ParseMetadataException {
+	private static void readProvides(JsonReader reader, List<String> provides) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_ARRAY) {
-			throw new ParseMetadataException("Aliases must be in an array");
+			throw new ParseMetadataException("Provides must be an array");
 		}
 
 		reader.beginArray();
 
 		while (reader.hasNext()) {
 			if (reader.peek() != JsonToken.STRING) {
-				throw new ParseMetadataException("Alias must be a string", reader);
+				throw new ParseMetadataException("Provided id must be a string", reader);
 			}
 
-			aliases.add(reader.nextString());
+			provides.add(reader.nextString());
 		}
 
 		reader.endArray();
