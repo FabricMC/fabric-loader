@@ -2,10 +2,10 @@
 // (except for version bumps for the sat4j dependency)
 plugins {
 	id 'java'
-	id 'maven-publish'
-
 	id 'idea'
 	id 'eclipse'
+	id 'maven-publish'
+	id("org.cadixdev.licenser") version "0.5.0"
 	id("fabric-loom") version "0.5-SNAPSHOT"
 }
 
@@ -86,11 +86,22 @@ processResources {
 	}
 }
 
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this task, sources will not be generated.
+	withSourcesJar()
+}
+
 jar {
 	manifest {
 		attributes (
 			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
 		)
+	}
+
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}"}
 	}
 }
 
@@ -111,17 +122,12 @@ task copyJsonLw(type: Copy, dependsOn: ["remapJar"]) {
 tasks.build.dependsOn "copyJson"
 tasks.build.dependsOn "copyJsonLw"
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
-	from sourceSets.main.allSource
-}
-
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
 
+	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
+	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
+	// We'll use that if it's available, but otherwise we'll use the older option.
 	if (JavaVersion.current().isJava9Compatible()) {
 		it.options.release = 8
 	}
@@ -156,7 +162,16 @@ task javadocJar(type: Jar) {
 	from javadoc.destinationDir
 	classifier = 'javadoc'
 }
+
 build.dependsOn javadocJar
+
+license {
+	header file("HEADER")
+	include '**/*.java'
+
+	// Exclude gson since it is google's code, we just modify and bundle it
+	exclude '**/lib/gson/*.java'
+}
 
 publishing {
 	publications {
@@ -195,17 +210,6 @@ publishing {
             }
 		}
 	}
-}
-
-apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
-apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
-
-license {
-	// Exclude gson since it is google's code, we just modify and bundle it
-	exclude '**/JsonReader.java'
-	exclude '**/JsonScope.java'
-	exclude '**/JsonToken.java'
-	exclude '**/MalformedJsonException.java'
 }
 
 // A task to ensure that the version being released has not already been released.
