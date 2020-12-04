@@ -69,7 +69,7 @@ public final class FabricGuiEntry {
 			fork = shouldFork();
 		}
 
-		if (fork | true) {
+		if (fork) {
 			fork(tree, shouldWait);
 		} else {
 			openWindow(tree, shouldWait);
