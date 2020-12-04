@@ -1212,6 +1212,7 @@ public class JsonReader implements Closeable {
 	/**
 	 * Closes this JSON reader and the underlying {@link Reader}.
 	 */
+	@Override
 	public void close() throws IOException {
 		peeked = PEEKED_NONE;
 		stack[0] = JsonScope.CLOSED;

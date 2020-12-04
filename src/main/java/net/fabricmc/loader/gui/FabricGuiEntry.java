@@ -17,13 +17,31 @@
 package net.fabricmc.loader.gui;
 
 import java.awt.GraphicsEnvironment;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.ProcessBuilder.Redirect;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.lib.gson.JsonReader;
+import net.fabricmc.loader.lib.gson.JsonWriter;
 
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
@@ -31,7 +49,41 @@ public final class FabricGuiEntry {
 	 * 
 	 * @throws Exception if something went wrong while opening the window. */
 	public static void open(FabricStatusTree tree) throws Exception {
-		openWindow(tree, true);
+		open(tree, null, true);
+	}
+
+	/** Opens the given {@link FabricStatusTree} in a new swing window.
+	 * 
+	 * @param forceFork If true then this will create a new process to host the window, false will always use this
+	 *            process, and null will only fork if the current operating system doesn't support LWJGL + swing windows
+	 *            at the same time (such as mac osx).
+	 * @param shouldWait If true then this call will wait until either the user clicks the "continue" button or the
+	 *            window is closed before returning, otherwise this method will return as soon as the window has opened.
+	 * @throws Exception if something went wrong while opening the window. */
+	public static void open(FabricStatusTree tree, Boolean forceFork, boolean shouldWait) throws Exception {
+		final boolean fork;
+
+		if (forceFork != null) {
+			fork = forceFork;
+		} else {
+			fork = shouldFork();
+		}
+
+		if (fork | true) {
+			fork(tree, shouldWait);
+		} else {
+			openWindow(tree, shouldWait);
+		}
+	}
+
+	private static boolean shouldFork() {
+		String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+
+		if (osName.contains("mac")) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private static void openWindow(FabricStatusTree tree, boolean shouldWait) throws Exception {
@@ -107,6 +159,76 @@ public final class FabricGuiEntry {
 
 		for (Throwable t : e.getSuppressed()) {
 			addThrowable(sub, t, seen);
+		}
+	}
+
+	private static void fork(FabricStatusTree tree, boolean shouldWait) throws Exception {
+		List<String> commands = new ArrayList<>();
+		commands.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
+		commands.add("-cp");
+		// Is this a good idea?
+		// I don't think we actually care about most of the classes here
+		// just *this* jar file?
+		commands.add(System.getProperty("java.class.path"));
+		commands.add(FabricGuiEntry.class.getName());
+
+		File jsonFile = File.createTempFile("fabric-loader-tree", ".json.gz");
+
+		try (OutputStream out = new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(jsonFile)))) {
+			try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+				writer.setIndent(" ");
+				tree.write(writer);
+				writer.flush();
+			}
+		}
+		commands.add("--read-tree");
+		commands.add(jsonFile.getAbsolutePath());
+
+		ProcessBuilder pb = new ProcessBuilder(commands);
+		pb.redirectError(Redirect.PIPE);
+		// TODO: handle more complex button presses by sending data over sysout?
+		pb.redirectOutput(Redirect.PIPE);
+
+		Process p = pb.start();
+
+		// TODO: Handle input (like "Status: Correct tree", or "Status: Continue")
+
+		jsonFile.deleteOnExit();
+
+		if (!shouldWait) {
+			return;
+		}
+
+		int result = p.waitFor();
+
+		if (result != 0) {
+			throw new Exception("Failed to open the gui! (The error should be higher up in the log/output)");
+		}
+	}
+
+	/** The entry point after forking the main application over into a different process to get around incompatibilities
+	 * on OSX (and problems where some games switch swing over to use headless mode, which doesn't work very well for
+	 * us). */
+	public static void main(String[] args) throws Exception {
+		if (args.length == 2 && "--read-tree".equals(args[0])) {
+			System.out.println("Status:Reading");
+			File from = new File(args[1]);
+
+			try (InputStream is = new GZIPInputStream(new BufferedInputStream(new FileInputStream(from)))) {
+				JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+				FabricStatusTree tree = new FabricStatusTree(reader);
+				System.out.println("Status:Opening");
+				openWindow(tree, true);
+			}
+		} else {
+			System.err.println("Expected 2 arguments: '--read-tree' followed by the tree.");
+			System.err.println("Actually got " + args.length);
+
+			for (String arg : args) {
+				System.err.println(arg);
+			}
+
+			System.exit(-1);
 		}
 	}
 }

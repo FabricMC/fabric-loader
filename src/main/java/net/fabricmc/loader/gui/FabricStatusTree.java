@@ -16,11 +16,19 @@
 
 package net.fabricmc.loader.gui;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import net.fabricmc.loader.lib.gson.JsonReader;
+import net.fabricmc.loader.lib.gson.JsonToken;
+import net.fabricmc.loader.lib.gson.JsonWriter;
 
 public final class FabricStatusTree {
 	public enum FabricTreeWarningLevel {
@@ -29,7 +37,15 @@ public final class FabricStatusTree {
 		INFO,
 		NONE;
 
+		static final Map<String, FabricTreeWarningLevel> nameToValue = new HashMap<>();
+
 		public final String lowerCaseName = name().toLowerCase(Locale.ROOT);
+
+		static {
+			for (FabricTreeWarningLevel level : values()) {
+				nameToValue.put(level.lowerCaseName, level);
+			}
+		}
 
 		public boolean isHigherThan(FabricTreeWarningLevel other) {
 			return ordinal() < other.ordinal();
@@ -41,6 +57,19 @@ public final class FabricStatusTree {
 
 		public static FabricTreeWarningLevel getHighest(FabricTreeWarningLevel a, FabricTreeWarningLevel b) {
 			return a.isHigherThan(b) ? a : b;
+		}
+
+		static FabricTreeWarningLevel read(JsonReader reader) throws IOException {
+			String string = reader.nextString();
+			if (string.isEmpty()) {
+				return NONE;
+			}
+			FabricTreeWarningLevel level = nameToValue.get(string);
+			if (level != null) {
+				return level;
+			} else {
+				throw new IOException("Expected a valid FabricTreeWarningLevel, but got '" + string + "'");
+			}
 		}
 	}
 
@@ -94,6 +123,8 @@ public final class FabricStatusTree {
 
 	public String mainText = null;
 
+	public FabricStatusTree() {}
+
 	public FabricStatusTab addTab(String name) {
 		FabricStatusTab tab = new FabricStatusTab(name);
 		tabs.add(tab);
@@ -104,6 +135,63 @@ public final class FabricStatusTree {
 		FabricStatusButton button = new FabricStatusButton(text);
 		buttons.add(button);
 		return button;
+	}
+
+	public FabricStatusTree(JsonReader reader) throws IOException {
+		reader.beginObject();
+		// As we write ourselves we mandate the order
+		// (This also makes everything a lot simpler)
+		expectName(reader, "mainText");
+		mainText = reader.nextString();
+
+		expectName(reader, "tabs");
+		reader.beginArray();
+		while (reader.peek() != JsonToken.END_ARRAY) {
+			tabs.add(new FabricStatusTab(reader));
+		}
+		reader.endArray();
+
+		expectName(reader, "buttons");
+		reader.beginArray();
+		while (reader.peek() != JsonToken.END_ARRAY) {
+			buttons.add(new FabricStatusButton(reader));
+		}
+		reader.endArray();
+	
+		reader.endObject();
+	}
+
+	/** Writes this tree out as a single json object. */
+	public void write(JsonWriter writer) throws IOException {
+		writer.beginObject();
+		writer.name("mainText").value(mainText);
+		writer.name("tabs").beginArray();
+		for (FabricStatusTab tab : tabs) {
+			tab.write(writer);
+		}
+		writer.endArray();
+		writer.name("buttons").beginArray();
+		for (FabricStatusButton button : buttons) {
+			button.write(writer);
+		}
+		writer.endArray();
+		writer.endObject();
+	}
+
+	static void expectName(JsonReader reader, String expected) throws IOException {
+		String name = reader.nextName();
+		if (!expected.equals(name)) {
+			throw new IOException("Expected '" + expected + "', but read '" + name + "'");
+		}
+	}
+
+	static String readStringOrNull(JsonReader reader) throws IOException {
+		if (reader.peek() == JsonToken.STRING) {
+			return reader.nextString();
+		} else {
+			reader.nextNull();
+			return null;
+		}
 	}
 
 	public static final class FabricStatusButton {
@@ -123,6 +211,25 @@ public final class FabricStatusTree {
 			this.shouldContinue = true;
 			return this;
 		}
+
+		FabricStatusButton(JsonReader reader) throws IOException {
+			reader.beginObject();
+			expectName(reader, "text");
+			text = reader.nextString();
+			expectName(reader, "shouldClose");
+			shouldClose = reader.nextBoolean();
+			expectName(reader, "shouldContinue");
+			shouldContinue = reader.nextBoolean();
+			reader.endObject();
+		}
+
+		void write(JsonWriter writer) throws IOException {
+			writer.beginObject();
+			writer.name("text").value(text);
+			writer.name("shouldClose").value(shouldClose);
+			writer.name("shouldContinue").value(shouldContinue);
+			writer.endObject();
+		}
 	}
 
 	public static final class FabricStatusTab {
@@ -137,6 +244,23 @@ public final class FabricStatusTree {
 
 		public FabricStatusNode addChild(String name) {
 			return node.addChild(name);
+		}
+
+		FabricStatusTab(JsonReader reader) throws IOException {
+			reader.beginObject();
+			expectName(reader, "level");
+			filterLevel = FabricTreeWarningLevel.read(reader);
+			expectName(reader, "node");
+			node = new FabricStatusNode(null, reader);
+			reader.endObject();
+		}
+
+		void write(JsonWriter writer) throws IOException {
+			writer.beginObject();
+			writer.name("level").value(filterLevel.lowerCaseName);
+			writer.name("node");
+			node.write(writer);
+			writer.endObject();
 		}
 	}
 
@@ -162,6 +286,47 @@ public final class FabricStatusTree {
 		private FabricStatusNode(FabricStatusNode parent, String name) {
 			this.parent = parent;
 			this.name = name;
+		}
+
+		private FabricStatusNode(FabricStatusNode parent, JsonReader reader) throws IOException {
+			this.parent = parent;
+			reader.beginObject();
+			expectName(reader, "name");
+			name = reader.nextString();
+			expectName(reader, "icon");
+			iconType = reader.nextString();
+			expectName(reader, "level");
+			warningLevel = FabricTreeWarningLevel.read(reader);
+			expectName(reader, "expandByDefault");
+			expandByDefault = reader.nextBoolean();
+			expectName(reader, "details");
+			details = readStringOrNull(reader);
+			expectName(reader, "children");
+			reader.beginArray();
+
+			while (reader.peek() != JsonToken.END_ARRAY) {
+				children.add(new FabricStatusNode(this, reader));
+			}
+
+			reader.endArray();
+			reader.endObject();
+		}
+
+		void write(JsonWriter writer) throws IOException {
+			writer.beginObject();
+			writer.name("name").value(name);
+			writer.name("icon").value(iconType);
+			writer.name("level").value(warningLevel.lowerCaseName);
+			writer.name("expandByDefault").value(expandByDefault);
+			writer.name("details").value(details);
+			writer.name("children").beginArray();
+
+			for (FabricStatusNode node : children) {
+				node.write(writer);
+			}
+
+			writer.endArray();
+			writer.endObject();
 		}
 
 		public void moveTo(FabricStatusNode newParent) {
@@ -209,6 +374,7 @@ public final class FabricStatusTree {
 					FabricStatusNode rootChild = new FabricStatusNode(this, "");
 					children.add(rootChild);
 				}
+				
 				FabricStatusNode lastChild = children.get(children.size() - 1);
 				lastChild.addChild(string.substring(1));
 				lastChild.expandByDefault = true;
@@ -222,12 +388,14 @@ public final class FabricStatusTree {
 
 		private String cleanForNode(String string) {
 			string = string.trim();
+			
 			if (string.length() > 1) {
 				if (string.startsWith("-")) {
 					string = string.substring(1);
 					string = string.trim();
 				}
 			}
+			
 			return string;
 		}
 
