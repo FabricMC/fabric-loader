@@ -140,7 +140,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public Collection<String> getAliases() {
+	public Collection<String> getProvides() {
 		return this.aliases;
 	}
 

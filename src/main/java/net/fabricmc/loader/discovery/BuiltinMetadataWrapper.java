@@ -50,7 +50,7 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public String getId() { return parent.getId(); }
 
 	@Override
-	public Collection<String> getAliases() { return parent.getAliases(); }
+	public Collection<String> getProvides() { return parent.getProvides(); }
 
 	@Override
 	public Version getVersion() { return parent.getVersion(); }

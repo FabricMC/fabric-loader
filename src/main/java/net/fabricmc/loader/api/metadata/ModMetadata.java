@@ -50,13 +50,13 @@ public interface ModMetadata {
 	String getId();
 
 	/**
-	 * Returns the mod's ID aliases.
+	 * Returns the mod's ID provides.
 	 *
 	 * <p>The aliases follow the same rules as ID</p>
 	 *
-	 * @return the mod's ID aliases
+	 * @return the mod's ID provides
 	 */
-	Collection<String> getAliases();
+	Collection<String> getProvides();
 
 	/**
 	 * Returns the mod's version.

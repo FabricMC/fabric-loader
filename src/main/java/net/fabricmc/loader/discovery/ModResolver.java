@@ -98,8 +98,8 @@ public class ModResolver {
 		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
 			Collection<ModCandidate> s = mcs.toSortedSet();
 			modCandidateMap.computeIfAbsent(mcs.getModId(), i -> new ArrayList<>()).addAll(s);
-			for (String modAlias : mcs.getModAliases()) {
-				modCandidateMap.computeIfAbsent(modAlias, i -> new ArrayList<>()).addAll(s);
+			for (String modProvide : mcs.getModProvides()) {
+				modCandidateMap.computeIfAbsent(modProvide, i -> new ArrayList<>()).addAll(s);
 			}
 			isAdvanced |= (s.size() > 1) || (s.iterator().next().getDepth() > 0);
 
@@ -114,8 +114,8 @@ public class ModResolver {
 			result = new HashMap<>();
 			for (String s : modCandidateMap.keySet()) {
 				ModCandidate candidate = modCandidateMap.get(s).iterator().next();
-				// if the candidate isn't actually just a alias, then put it on
-				if(!candidate.getInfo().getAliases().contains(s)) result.put(s, candidate);
+				// if the candidate isn't actually just a provided alias, then put it on
+				if(!candidate.getInfo().getProvides().contains(s)) result.put(s, candidate);
 			}
 		} else {
 			// Inspired by http://0install.net/solver.html
@@ -340,11 +340,11 @@ public class ModResolver {
 		}
 
 		ModCandidate depCandidate = result.get(depModId);
-		// attempt searching aliases
+		// attempt searching provides
 		if(depCandidate == null) {
 			for (ModCandidate value : result.values()) {
-				if (value.getInfo().getAliases().contains(depModId)) {
-					if(FabricLoader.INSTANCE.isDevelopmentEnvironment()) logger.warn("Mod " + candidate.getInfo().getId() + " is using the alias " + depModId + " in place of the mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a alias.");
+				if (value.getInfo().getProvides().contains(depModId)) {
+					if(FabricLoader.INSTANCE.isDevelopmentEnvironment()) logger.warn("Mod " + candidate.getInfo().getId() + " is using the provided alias " + depModId + " in place of the real mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a provided alias.");
 					depCandidate = value;
 					break;
 				}
@@ -646,12 +646,12 @@ public class ModResolver {
 					throw new RuntimeException(fullError.toString());
 				}
 
-				for(String alias : candidate.getInfo().getAliases()) {
-					if (!MOD_ID_PATTERN.matcher(alias).matches()) {
+				for(String provides : candidate.getInfo().getProvides()) {
+					if (!MOD_ID_PATTERN.matcher(provides).matches()) {
 						List<String> errorList = new ArrayList<>();
-						isModIdValid(alias, errorList);
-						StringBuilder fullError = new StringBuilder("Mod id alias `");
-						fullError.append(alias).append("` does not match the requirements because");
+						isModIdValid(provides, errorList);
+						StringBuilder fullError = new StringBuilder("Mod id provides `");
+						fullError.append(provides).append("` does not match the requirements because");
 
 						if (errorList.size() == 1) {
 							fullError.append(" it ").append(errorList.get(0));

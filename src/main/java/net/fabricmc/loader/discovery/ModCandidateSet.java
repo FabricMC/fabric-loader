@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 public class ModCandidateSet {
 	private final String modId;
-	private final List<String> modAliases = new ArrayList<>();
+	private final List<String> modProvides = new ArrayList<>();
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
 	private final Map<String, ModCandidate> candidates = new HashMap<>();
 
@@ -46,8 +46,8 @@ public class ModCandidateSet {
 		return modId;
 	}
 
-	public List<String> getModAliases() {
-		return modAliases;
+	public List<String> getModProvides() {
+		return modProvides;
 	}
 
 	public boolean add(ModCandidate candidate) {
@@ -68,7 +68,7 @@ public class ModCandidateSet {
 		}
 
 		candidates.put(version, candidate);
-		modAliases.addAll(candidate.getInfo().getAliases());
+		modProvides.addAll(candidate.getInfo().getProvides());
 		if (candidate.getDepth() == 0) {
 			depthZeroCandidates.add(candidate);
 		}

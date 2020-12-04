@@ -77,7 +77,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	}
 
 	@Override
-	public Collection<String> getAliases() {
+	public Collection<String> getProvides() {
 		return Collections.emptyList();
 	}
 
