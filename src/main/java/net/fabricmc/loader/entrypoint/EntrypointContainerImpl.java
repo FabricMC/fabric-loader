@@ -32,7 +32,7 @@ public class EntrypointContainerImpl<T> implements EntrypointContainer<T> {
 	}
 
 	@Override
-	public T getEntrypoint() {
+	public synchronized T getEntrypoint() {
 		if (instance == null) {
 			this.instance = entrypointSupplier.get();
 		}
