@@ -26,9 +26,10 @@ import net.fabricmc.loader.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.lib.gson.MalformedJsonException;
+import net.fabricmc.loader.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.metadata.ModMetadataParser;
+import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
@@ -43,6 +44,7 @@ import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
 
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -702,7 +704,18 @@ public class ModResolver {
 
 		// add builtin mods
 		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
-			candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new).add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, false));
+			addBuiltinMod(candidatesById, mod);
+		}
+
+		// Add the current Java version
+		try {
+			addBuiltinMod(candidatesById, new BuiltinMod(
+					new File(System.getProperty("java.home")).toURI().toURL(),
+					new BuiltinModMetadata.Builder("java", System.getProperty("java.specification.version"))
+						.setName(System.getProperty("java.vm.name"))
+						.build()));
+		} catch (MalformedURLException e) {
+			throw new ModResolutionException("Could not add Java to the dependency constraints", e);
 		}
 
 		boolean tookTooLong = false;
@@ -751,6 +764,11 @@ public class ModResolver {
 		}
 
 		return result;
+	}
+
+	private void addBuiltinMod(ConcurrentMap<String, ModCandidateSet> candidatesById, BuiltinMod mod) {
+		candidatesById.computeIfAbsent(mod.metadata.getId(), ModCandidateSet::new)
+				.add(new ModCandidate(new BuiltinMetadataWrapper(mod.metadata), mod.url, 0, false));
 	}
 
 	public static FileSystem getInMemoryFs() {
