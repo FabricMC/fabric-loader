@@ -16,9 +16,9 @@
 
 package net.fabricmc.loader.game;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.stitch.annotation.EnvType;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -37,6 +37,11 @@ public interface GameProvider {
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
 	List<Path> getGameContextJars();
+
+	@Deprecated
+	default boolean locateGame(net.fabricmc.api.EnvType env, ClassLoader loader) {
+		return locateGame(env.getStitchEquivalent(), loader);
+	}
 
 	boolean locateGame(EnvType envType, ClassLoader loader);
 	void acceptArguments(String... arguments);

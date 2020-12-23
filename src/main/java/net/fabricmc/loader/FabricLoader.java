@@ -35,10 +35,10 @@ import java.util.stream.Stream;
 
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.discovery.RuntimeModRemapper;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -129,7 +129,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	}
 
 	@Override
-	public EnvType getEnvironmentType() {
+	public EnvType getEnvironment() {
 		return FabricLauncherBase.getLauncher().getEnvironmentType();
 	}
 
@@ -326,7 +326,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 		}
 
-		if (!info.loadsInEnvironment(getEnvironmentType())) {
+		if (!info.loadsInEnvironment(getEnvironment())) {
 			return;
 		}
 
@@ -499,7 +499,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 */
 	@Deprecated
 	public void setGameInstance(Object gameInstance) {
-		if (this.getEnvironmentType() != EnvType.SERVER) {
+		if (this.getEnvironment() != EnvType.SERVER) {
 			throw new UnsupportedOperationException("Cannot set game instance on a client!");
 		}
 

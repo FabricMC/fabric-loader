@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.stitch.annotation.EnvType;
 
 /**
  * The public-facing FabricLoader instance.
@@ -147,8 +147,19 @@ public interface FabricLoader {
 	 * Get the current environment type.
 	 *
 	 * @return the current environment type
+	 * @deprecated for removal, use {@link #getEnvironment()} instead.
 	 */
-	EnvType getEnvironmentType();
+	@Deprecated
+	default net.fabricmc.api.EnvType getEnvironmentType() {
+		return net.fabricmc.api.EnvType.fromStitch(getEnvironment());
+	}
+
+	/**
+	 * Get the current environment type.
+	 *
+	 * @return the active environment
+	 */
+	EnvType getEnvironment();
 
 	/**
 	 * Get the current game instance. Can represent a game client or

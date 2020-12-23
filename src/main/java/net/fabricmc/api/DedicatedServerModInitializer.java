@@ -17,7 +17,7 @@
 package net.fabricmc.api;
 
 /**
- * A mod initializer ran only on {@link EnvType#SERVER}.
+ * A mod initializer ran only on {@link net.fabricmc.stitch.annotation.EnvType#SERVER}.
  *
  * <p>In {@code fabric.mod.json}, the entrypoint is defined with {@code server} key.</p>
  *

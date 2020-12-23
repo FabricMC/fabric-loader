@@ -16,12 +16,17 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import net.fabricmc.api.EnvType;
+import net.fabricmc.stitch.annotation.EnvType;
 
 public enum ModEnvironment {
 	CLIENT,
 	SERVER,
 	UNIVERSAL;
+
+	@Deprecated
+	public boolean matches(net.fabricmc.api.EnvType type) {
+		return matches(type.getStitchEquivalent());
+	}
 
 	public boolean matches(EnvType type) {
 		switch (this) {

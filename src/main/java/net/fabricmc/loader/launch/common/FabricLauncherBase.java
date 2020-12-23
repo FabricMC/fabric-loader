@@ -16,12 +16,12 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.stitch.annotation.EnvType;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 import org.apache.logging.log4j.LogManager;

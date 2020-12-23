@@ -16,6 +16,9 @@
 
 package net.fabricmc.api;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * Represents a type of environment.
  *
@@ -34,7 +37,7 @@ public enum EnvType {
 	 * server logic), the data generator logic, and dedicated server logic. It encompasses
 	 * everything that is available on the {@linkplain #SERVER server environment type}.</p>
 	 */
-	CLIENT,
+	CLIENT(net.fabricmc.stitch.annotation.EnvType.CLIENT),
 	/**
 	 * Represents the server environment type, in which the {@code server.jar} for a
 	 * <i>Minecraft</i> version is the main game jar.
@@ -44,5 +47,41 @@ public enum EnvType {
 	 * However, the server environment type has its libraries embedded compared to the
 	 * client.</p>
 	 */
-	SERVER
+	SERVER(net.fabricmc.stitch.annotation.EnvType.SERVER);
+
+	private static final Map<net.fabricmc.stitch.annotation.EnvType, EnvType> FROM_STITCH =
+			new EnumMap<>(net.fabricmc.stitch.annotation.EnvType.class);
+	private final net.fabricmc.stitch.annotation.EnvType stitchType;
+
+	EnvType(final net.fabricmc.stitch.annotation.EnvType stitchType) {
+		this.stitchType = stitchType;
+	}
+
+	/**
+	 * Get the equivalent environment type in stitch-annotations.
+	 *
+	 * @return the equivalent type
+	 * @deprecated to be used for transitional purposes only
+	 */
+	@Deprecated
+	public net.fabricmc.stitch.annotation.EnvType getStitchEquivalent() {
+		return this.stitchType;
+	}
+
+	/**
+	 * Get an {@link EnvType} from the stitch equivalent.
+	 *
+	 * @return the equivalent type
+	 * @deprecated to be used for transitional purposes only
+	 */
+	@Deprecated
+	public static EnvType fromStitch(final net.fabricmc.stitch.annotation.EnvType envType) {
+		return FROM_STITCH.get(envType);
+	}
+
+	static {
+		for (final EnvType existing : EnvType.values()) {
+			FROM_STITCH.put(existing.stitchType, existing);
+		}
+	}
 }

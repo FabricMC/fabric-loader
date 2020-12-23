@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
@@ -27,6 +26,7 @@ import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import java.io.File;

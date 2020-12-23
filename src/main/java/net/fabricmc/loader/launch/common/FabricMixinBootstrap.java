@@ -16,12 +16,12 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
 import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;

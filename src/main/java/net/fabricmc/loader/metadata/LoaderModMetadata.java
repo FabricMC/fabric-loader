@@ -16,9 +16,9 @@
 
 package net.fabricmc.loader.metadata;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 
+import net.fabricmc.stitch.annotation.EnvType;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;

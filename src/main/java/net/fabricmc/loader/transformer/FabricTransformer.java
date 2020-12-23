@@ -17,10 +17,10 @@
 package net.fabricmc.loader.transformer;
 
 import net.fabricmc.accesswidener.AccessWidenerVisitor;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;

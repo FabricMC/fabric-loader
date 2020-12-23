@@ -16,13 +16,13 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.transformer.FabricTransformer;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
 
 import java.io.ByteArrayOutputStream;

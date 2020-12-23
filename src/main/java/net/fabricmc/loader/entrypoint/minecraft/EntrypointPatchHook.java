@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.entrypoint.EntrypointPatch;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

@@ -16,8 +16,8 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.stitch.annotation.EnvType;
 
 import java.io.File;
 

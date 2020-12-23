@@ -16,9 +16,9 @@
 
 package net.fabricmc.loader.language;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.stitch.annotation.EnvType;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -34,12 +34,12 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 		// TODO: Be a bit more involved
 		switch (itfString) {
 			case "net/fabricmc/api/ClientModInitializer":
-				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+				if (FabricLoader.getInstance().getEnvironment() == EnvType.SERVER) {
 					return false;
 				}
 				break;
 			case "net/fabricmc/api/DedicatedServerModInitializer":
-				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+				if (FabricLoader.getInstance().getEnvironment() == EnvType.CLIENT) {
 					return false;
 				}
 		}

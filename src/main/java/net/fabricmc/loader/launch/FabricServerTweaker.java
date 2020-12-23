@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.EnvType;
+import net.fabricmc.stitch.annotation.EnvType;
 
 public final class FabricServerTweaker extends FabricTweaker {
 	@Override

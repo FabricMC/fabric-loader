@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.api.EnvType;
+import net.fabricmc.stitch.annotation.EnvType;
 
 import java.io.IOException;
 import java.io.InputStream;

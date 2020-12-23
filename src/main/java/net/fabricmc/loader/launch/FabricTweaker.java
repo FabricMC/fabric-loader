@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
@@ -28,6 +27,7 @@ import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.stitch.annotation.EnvType;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;

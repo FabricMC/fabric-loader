@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 
+import net.fabricmc.stitch.annotation.EnvType;
 import org.apache.logging.log4j.Logger;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;

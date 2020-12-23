@@ -17,7 +17,7 @@
 package net.fabricmc.api;
 
 /**
- * A mod initializer ran only on {@link EnvType#CLIENT}.
+ * A mod initializer ran only on {@link net.fabricmc.stitch.annotation.EnvType#CLIENT}.
  *
  * <p>This entrypoint is suitable for setting up client-specific logic, such as rendering
  * or integrated server tweaks.</p>
