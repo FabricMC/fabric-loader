@@ -26,6 +26,10 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
+        "name": "net.fabricmc:stitch-annotations:0.5.1",
+        "url": "https://maven.fabricmc.net/"
+      },
+      {
         "name": "com.google.jimfs:jimfs:1.2-fabric",
         "url": "https://maven.fabricmc.net/"
       },

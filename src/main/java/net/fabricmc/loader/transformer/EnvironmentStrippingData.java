@@ -16,21 +16,29 @@
 
 package net.fabricmc.loader.transformer;
 
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvironmentInterface;
-import net.fabricmc.api.EnvironmentInterfaces;
+import com.google.common.collect.ImmutableSet;
+import net.fabricmc.stitch.annotation.Environment;
+import net.fabricmc.stitch.annotation.EnvironmentInterface;
+import net.fabricmc.stitch.annotation.EnvironmentInterfaces;
 import org.objectweb.asm.*;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Scans a class for Environment and EnvironmentInterface annotations to figure out what needs to be stripped.
  */
 public class EnvironmentStrippingData extends ClassVisitor {
-	private static final String ENVIRONMENT_DESCRIPTOR = Type.getDescriptor(Environment.class);
-	private static final String ENVIRONMENT_INTERFACE_DESCRIPTOR = Type.getDescriptor(EnvironmentInterface.class);
-	private static final String ENVIRONMENT_INTERFACES_DESCRIPTOR = Type.getDescriptor(EnvironmentInterfaces.class);
+	private static final Set<String> ENVIRONMENT_DESCRIPTORS = ImmutableSet.of(
+			Type.getDescriptor(Environment.class),
+			Type.getDescriptor(net.fabricmc.api.Environment.class));
+	private static final Set<String> ENVIRONMENT_INTERFACE_DESCRIPTORS = ImmutableSet.of(
+			Type.getDescriptor(EnvironmentInterface.class),
+			Type.getDescriptor(net.fabricmc.api.EnvironmentInterface.class));
+	private static final Set<String> ENVIRONMENT_INTERFACES_DESCRIPTORS = ImmutableSet.of(
+			Type.getDescriptor(EnvironmentInterfaces.class),
+			Type.getDescriptor(net.fabricmc.api.EnvironmentInterfaces.class));
 
 	private final String envType;
 
@@ -86,7 +94,7 @@ public class EnvironmentStrippingData extends ClassVisitor {
 	}
 
 	private AnnotationVisitor visitMemberAnnotation(String descriptor, boolean visible, Runnable onEnvMismatch) {
-		if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
+		if (ENVIRONMENT_DESCRIPTORS.contains(descriptor)) {
 			return new EnvironmentAnnotationVisitor(api, onEnvMismatch);
 		}
 		return null;
@@ -99,11 +107,11 @@ public class EnvironmentStrippingData extends ClassVisitor {
 
 	@Override
 	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-		if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
+		if (ENVIRONMENT_DESCRIPTORS.contains(descriptor)) {
 			return new EnvironmentAnnotationVisitor(api, () -> stripEntireClass = true);
-		} else if (ENVIRONMENT_INTERFACE_DESCRIPTOR.equals(descriptor)) {
+		} else if (ENVIRONMENT_INTERFACE_DESCRIPTORS.contains(descriptor)) {
 			return new EnvironmentInterfaceAnnotationVisitor(api);
-		} else if (ENVIRONMENT_INTERFACES_DESCRIPTOR.equals(descriptor)) {
+		} else if (ENVIRONMENT_INTERFACES_DESCRIPTORS.contains(descriptor)) {
 			return new AnnotationVisitor(api) {
 				@Override
 				public AnnotationVisitor visitArray(String name) {
