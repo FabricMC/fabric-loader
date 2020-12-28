@@ -91,7 +91,7 @@ public final class Knot extends FabricLauncherBase {
 		} else {
 			LOGGER.error("Could not find valid game provider!");
 			for (GameProvider p : providers) {
-				LOGGER.error("- " + p.getGameName()+ " " + p.getRawGameVersion());
+				LOGGER.error("- " + p.getGameName());
 			}
 			throw new RuntimeException("Could not find valid game provider!");
 		}
