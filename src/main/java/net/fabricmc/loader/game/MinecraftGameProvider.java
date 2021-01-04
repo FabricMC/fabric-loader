@@ -47,10 +47,10 @@ public class MinecraftGameProvider implements GameProvider {
 	private boolean hasModLoader = false;
 
 	public static final EntrypointTransformer TRANSFORMER = new EntrypointTransformer(it -> Arrays.asList(
-		new EntrypointPatchHook(it),
-		new EntrypointPatchBranding(it),
-		new EntrypointPatchFML125(it)
-	));
+			new EntrypointPatchHook(it),
+			new EntrypointPatchBranding(it),
+			new EntrypointPatchFML125(it)
+			));
 
 	@Override
 	public String getGameId() {
@@ -83,10 +83,10 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		return Arrays.asList(
-			new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
-				.setName(getGameName())
-				.build())
-		);
+				new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
+						.setName(getGameName())
+						.build())
+				);
 	}
 
 	public Path getGameJar() {
@@ -128,8 +128,11 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
-	public boolean locateGame(EnvType envType, ClassLoader loader) {
+	public boolean locateGame(EnvType envType, String[] args, ClassLoader loader) {
 		this.envType = envType;
+		this.arguments = new Arguments();
+		arguments.parse(args);
+
 		List<String> entrypointClasses;
 
 		if (envType == EnvType.CLIENT) {
@@ -139,6 +142,7 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		Optional<GameProviderHelper.EntrypointResult> entrypointResult = GameProviderHelper.findFirstClass(loader, entrypointClasses);
+
 		if (!entrypointResult.isPresent()) {
 			return false;
 		}
@@ -147,22 +151,17 @@ public class MinecraftGameProvider implements GameProvider {
 		gameJar = entrypointResult.get().entrypointPath;
 		realmsJar = GameProviderHelper.getSource(loader, "realmsVersion").orElse(null);
 		hasModLoader = GameProviderHelper.getSource(loader, "ModLoader.class").isPresent();
-		versionData = McVersionLookup.getVersion(gameJar);
+
+		String version = arguments.remove(Arguments.GAME_VERSION);
+		versionData = version != null ? McVersionLookup.getVersion(version) : McVersionLookup.getVersion(gameJar);
+
+		FabricLauncherBase.processArgumentMap(arguments, envType);
 
 		return true;
 	}
 
 	@Override
-	public void acceptArguments(String... argStrs) {
-		this.arguments = new Arguments();
-		arguments.parse(argStrs);
-
-		FabricLauncherBase.processArgumentMap(arguments, envType);
-	}
-
-	@Override
 	public String[] getLaunchArguments(boolean sanitize) {
-
 		if (arguments != null) {
 			List<String> list = new ArrayList<>(Arrays.asList(arguments.toArray()));
 
