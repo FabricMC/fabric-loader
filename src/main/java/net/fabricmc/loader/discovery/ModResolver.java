@@ -711,7 +711,7 @@ public class ModResolver {
 		try {
 			addBuiltinMod(candidatesById, new BuiltinMod(
 					new File(System.getProperty("java.home")).toURI().toURL(),
-					new BuiltinModMetadata.Builder("java", System.getProperty("java.specification.version"))
+					new BuiltinModMetadata.Builder("java", System.getProperty("java.specification.version").replaceFirst("^1\\.", ""))
 						.setName(System.getProperty("java.vm.name"))
 						.build()));
 		} catch (MalformedURLException e) {
