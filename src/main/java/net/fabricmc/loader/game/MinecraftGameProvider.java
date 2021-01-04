@@ -26,6 +26,8 @@ import net.fabricmc.loader.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.minecraft.McVersionLookup;
 import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
 import net.fabricmc.loader.util.Arguments;
+import net.fabricmc.loader.util.SystemProperties;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -153,6 +155,7 @@ public class MinecraftGameProvider implements GameProvider {
 		hasModLoader = GameProviderHelper.getSource(loader, "ModLoader.class").isPresent();
 
 		String version = arguments.remove(Arguments.GAME_VERSION);
+		if (version == null) version = System.getProperty(SystemProperties.GAME_VERSION);
 		versionData = version != null ? McVersionLookup.getVersion(version) : McVersionLookup.getVersion(gameJar);
 
 		FabricLauncherBase.processArgumentMap(arguments, envType);
