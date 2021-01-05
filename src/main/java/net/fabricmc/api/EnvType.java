@@ -39,7 +39,7 @@ public enum EnvType {
 	 * Represents the server environment type, in which the {@code server.jar} for a
 	 * <i>Minecraft</i> version is the main game jar.
 	 *
-	 * <p>A server environment type has the dedicated server lgoic and data generator
+	 * <p>A server environment type has the dedicated server logic and data generator
 	 * logic, which are all included in the {@linkplain #CLIENT client environment type}.
 	 * However, the server environment type has its libraries embedded compared to the
 	 * client.</p>
