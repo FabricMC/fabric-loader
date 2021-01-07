@@ -62,14 +62,14 @@ public final class Knot extends FabricLauncherBase {
 			}
 
 			switch (side.toLowerCase(Locale.ROOT)) {
-				case "client":
-					envType = EnvType.CLIENT;
-					break;
-				case "server":
-					envType = EnvType.SERVER;
-					break;
-				default:
-					throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
+			case "client":
+				envType = EnvType.CLIENT;
+				break;
+			case "server":
+				envType = EnvType.SERVER;
+				break;
+			default:
+				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
 			}
 		}
 
@@ -80,7 +80,7 @@ public final class Knot extends FabricLauncherBase {
 		provider = null;
 
 		for (GameProvider p : providers) {
-			if (p.locateGame(envType, this.getClass().getClassLoader())) {
+			if (p.locateGame(envType, args, this.getClass().getClassLoader())) {
 				provider = p;
 				break;
 			}
@@ -96,8 +96,6 @@ public final class Knot extends FabricLauncherBase {
 			throw new RuntimeException("Could not find valid game provider!");
 		}
 
-		provider.acceptArguments(args);
-
 		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
 
 		// Setup classloader
@@ -109,11 +107,11 @@ public final class Knot extends FabricLauncherBase {
 		if (provider.isObfuscated()) {
 			for (Path path : provider.getGameContextJars()) {
 				FabricLauncherBase.deobfuscate(
-					provider.getGameId(), provider.getNormalizedGameVersion(),
-					provider.getLaunchDirectory(),
-					path,
-					this
-				);
+						provider.getGameId(), provider.getNormalizedGameVersion(),
+						provider.getLaunchDirectory(),
+						path,
+						this
+						);
 			}
 		}
 
