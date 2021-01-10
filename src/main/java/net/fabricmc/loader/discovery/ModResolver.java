@@ -636,7 +636,6 @@ public class ModResolver {
 	}
 
 	private static ModResolutionException fallbackErrorDescription(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
-		// implementor's note: IDK how to graph, have this mess instead
 		StringBuilder errors = new StringBuilder("Unhandled error involving mod");
 
 		if (roots.size() > 1) {
@@ -1128,6 +1127,12 @@ public class ModResolver {
 			} else {
 				int i0 = LINK_ORDER.indexOf(getClass());
 				int i1 = LINK_ORDER.indexOf(o.getClass());
+				if (i0 < 0) {
+					throw new IllegalStateException("Unknown " + getClass() + " (It's not registered in ModLink.LINK_ORDER!)");
+				}
+				if (i1 < 0) {
+					throw new IllegalStateException("Unknown " + o.getClass() + " (It's not registered in ModLink.LINK_ORDER!)");
+				}
 				return Integer.compare(i1, i0);
 			}
 		}
