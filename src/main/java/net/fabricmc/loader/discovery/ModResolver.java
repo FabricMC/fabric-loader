@@ -119,6 +119,11 @@ public class ModResolver {
 					modCandidateMap.computeIfAbsent(modProvide, i -> new ArrayList<>()).addAll(s);
 				}
 				isAdvanced |= (s.size() > 1) || (s.iterator().next().getDepth() > 0);
+
+				for (ModCandidate c : s) {
+					isAdvanced |= !c.getInfo().getProvides().isEmpty();
+				}
+
 				if (mcs.isUserProvided()) {
 					mandatoryMods.put(mcs.getModId(), s.iterator().next());
 				}
@@ -151,12 +156,13 @@ public class ModResolver {
 			}
 		} else {
 			Map<String, ModIdDefinition> modDefs = new HashMap<>();
-			Map<ModCandidate, ModLoadOption> modToLoadOption = new HashMap<>();
+			Map<ModCandidate, MainModLoadOption> modToLoadOption = new HashMap<>();
 			DependencyHelper<LoadOption, ModLink> helper = new DependencyHelper<>(SolverFactory.newLight());
 			helper.setNegator(new LoadOptionNegator());
 
 			try {
 
+				// Put primary mod (first mod in jar)
 				for (Entry<String, List<ModCandidate>> entry : modCandidateMap.entrySet()) {
 					String modId = entry.getKey();
 					List<ModCandidate> candidates = entry.getValue();
@@ -164,7 +170,7 @@ public class ModResolver {
 					MandatoryModIdDefinition mandatedDefinition = null;
 
 					if (mandatedCandidate != null) {
-						ModLoadOption cOption = new ModLoadOption(mandatedCandidate, -1);
+						MainModLoadOption cOption = new MainModLoadOption(mandatedCandidate, -1);
 						modToLoadOption.put(mandatedCandidate, cOption);
 						mandatedDefinition = new MandatoryModIdDefinition(cOption);
 					}
@@ -178,10 +184,14 @@ public class ModResolver {
 							continue;
 						}
 
-						ModLoadOption cOption = new ModLoadOption(m, candidates.size() == 1 ? -1 : index);
+						MainModLoadOption cOption = new MainModLoadOption(m, candidates.size() == 1 ? -1 : index);
 						modToLoadOption.put(m, cOption);
 						helper.addToObjectiveFunction(cOption, -1000 + index++);
 						cOptions.add(cOption);
+
+						for (String provided : m.getInfo().getProvides()) {
+							ProvidedModOption pOption = new ProvidedModOption(cOption, provided);
+						}
 					}
 
 					ModIdDefinition def;
@@ -201,9 +211,12 @@ public class ModResolver {
 					modDefs.put(modId, def);
 				}
 
-				for (Entry<ModCandidate, ModLoadOption> entry : modToLoadOption.entrySet()) {
+				// secondary mods (siblings) and "provides" mods.
+
+				// Put dependencies and conflicts of everything
+				for (Entry<ModCandidate, MainModLoadOption> entry : modToLoadOption.entrySet()) {
 					ModCandidate mc = entry.getKey();
-					ModLoadOption option = entry.getValue();
+					MainModLoadOption option = entry.getValue();
 
 					for (ModDependency dep : mc.getInfo().getDepends()) {
 						ModIdDefinition def = modDefs.get(dep.getModId());
@@ -245,7 +258,7 @@ public class ModResolver {
 
 					List<ModLink> why = new ArrayList<>(helper.why());
 
-					Map<ModLoadOption, MandatoryModIdDefinition> roots = new HashMap<>();
+					Map<MainModLoadOption, MandatoryModIdDefinition> roots = new HashMap<>();
 					List<ModLink> causes = new ArrayList<>();
 					causes.addAll(why);
 
@@ -649,12 +662,12 @@ public class ModResolver {
 		return errorList.isEmpty();
 	}
 
-	private static ModResolutionException describeError(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
+	private static ModResolutionException describeError(Map<MainModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
 		// TODO: Create a graph from roots to each other and then build the error through that!
 		return null;
 	}
 
-	private static ModResolutionException fallbackErrorDescription(Map<ModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
+	private static ModResolutionException fallbackErrorDescription(Map<MainModLoadOption, MandatoryModIdDefinition> roots, List<ModLink> causes) {
 		StringBuilder errors = new StringBuilder("Unhandled error involving mod");
 
 		if (roots.size() > 1) {
@@ -1071,16 +1084,11 @@ public class ModResolver {
 	 * file, but in the future this might refer to something else that loader has control over). */
 	static abstract class LoadOption {}
 
-	static class ModLoadOption extends LoadOption {
+	static abstract class ModLoadOption extends LoadOption {
 		final ModCandidate candidate;
 
-		/** Used to identify this {@link ModLoadOption} against others with the same modid. A value of -1 indicates that
-		 * this is the only {@link LoadOption} for the given modid. */
-		final int index;
-
-		ModLoadOption(ModCandidate candidate, int index) {
+		ModLoadOption(ModCandidate candidate) {
 			this.candidate = candidate;
-			this.index = index;
 		}
 
 		String modId() {
@@ -1091,14 +1099,8 @@ public class ModResolver {
 		public String toString() {
 			return shortString();
 		}
-
-		String shortString() {
-			if (index == -1) {
-				return "mod '" + modId() + "'";
-			} else {
-				return "mod '" + modId() + "'#" + (index + 1);
-			}
-		}
+		
+		abstract String shortString();
 
 		String fullString() {
 			return shortString() + " " + getSpecificInfo();
@@ -1108,9 +1110,73 @@ public class ModResolver {
 			return getReadablePath(FabricLoader.INSTANCE, candidate);
 		}
 
+		abstract String getSpecificInfo();
+
+		abstract MainModLoadOption getRoot();
+	}
+
+	static class MainModLoadOption extends ModLoadOption {
+		/** Used to identify this {@link MainModLoadOption} against others with the same modid. A value of -1 indicates that
+		 * this is the only {@link LoadOption} for the given modid. */
+		final int index;
+
+		MainModLoadOption(ModCandidate candidate, int index) {
+			super(candidate);
+			this.index = index;
+		}
+		
+		@Override
+		String shortString() {
+			if (index == -1) {
+				return "mod '" + modId() + "'";
+			} else {
+				return "mod '" + modId() + "'#" + (index + 1);
+			}
+		}
+
+		@Override
 		String getSpecificInfo() {
 			LoaderModMetadata info = candidate.getInfo();
 			return "version " + info.getVersion() + " loaded from " + getLoadSource();
+		}
+
+		@Override
+		MainModLoadOption getRoot() {
+			return this;
+		}
+	}
+
+	/**
+	 * A mod that is provided from the jar of a different mod.
+	 */
+	static class ProvidedModOption extends ModLoadOption {
+		final MainModLoadOption provider;
+		final String providedModId;
+
+		public ProvidedModOption(MainModLoadOption provider, String providedModId) {
+			super(provider.candidate);
+			this.provider = provider;
+			this.providedModId = providedModId;
+		}
+
+		@Override
+		String modId() {
+			return providedModId;
+		}
+
+		@Override
+		String shortString() {
+			return "provided mod '" + modId() + "' from " + provider.shortString();
+		}
+
+		@Override
+		String getSpecificInfo() {
+			return provider.getSpecificInfo();
+		}
+
+		@Override
+		MainModLoadOption getRoot() {
+			return provider;
 		}
 	}
 
@@ -1232,9 +1298,9 @@ public class ModResolver {
 	 * and no others. (The resolver pre-validates that we don't have duplicate mandatory mods, so this is always valid
 	 * by the time this is used). */
 	static final class MandatoryModIdDefinition extends ModIdDefinition {
-		final ModLoadOption candidate;
+		final MainModLoadOption candidate;
 
-		public MandatoryModIdDefinition(ModLoadOption candidate) {
+		public MandatoryModIdDefinition(MainModLoadOption candidate) {
 			this.candidate = candidate;
 		}
 
@@ -1244,8 +1310,8 @@ public class ModResolver {
 		}
 
 		@Override
-		ModLoadOption[] sources() {
-			return new ModLoadOption[] { candidate };
+		MainModLoadOption[] sources() {
+			return new MainModLoadOption[] { candidate };
 		}
 
 		@Override
