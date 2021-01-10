@@ -41,6 +41,9 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final String id;
 	private final Version version;
 
+	// Optional (id provides)
+	private final Collection<String> provides;
+
 	// Optional (mod loading)
 	private final ModEnvironment environment;
 	private final Map<String, List<EntrypointMetadata>> entrypoints;
@@ -76,9 +79,10 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	// Optional (custom values)
 	private final Map<String, CustomValue> customValues;
 
-	V1ModMetadata(String id, Version version, ModEnvironment environment, Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars, Collection<MixinEntry> mixins, /* @Nullable */ String accessWidener, Map<String, ModDependency> depends, Map<String, ModDependency> recommends, Map<String, ModDependency> suggests, Map<String, ModDependency> conflicts, Map<String, ModDependency> breaks, Map<String, ModDependency> requires, /* @Nullable */ String name, /* @Nullable */String description, Collection<Person> authors, Collection<Person> contributors, /* @Nullable */ContactInformation contact, Collection<String> license, IconEntry icon, Map<String, String> languageAdapters, Map<String, CustomValue> customValues) {
+	V1ModMetadata(String id, Version version, Collection<String> provides, ModEnvironment environment, Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars, Collection<MixinEntry> mixins, /* @Nullable */ String accessWidener, Map<String, ModDependency> depends, Map<String, ModDependency> recommends, Map<String, ModDependency> suggests, Map<String, ModDependency> conflicts, Map<String, ModDependency> breaks, Map<String, ModDependency> requires, /* @Nullable */ String name, /* @Nullable */String description, Collection<Person> authors, Collection<Person> contributors, /* @Nullable */ContactInformation contact, Collection<String> license, IconEntry icon, Map<String, String> languageAdapters, Map<String, CustomValue> customValues) {
 		this.id = id;
 		this.version = version;
+		this.provides = Collections.unmodifiableCollection(provides);
 		this.environment = environment;
 		this.entrypoints = Collections.unmodifiableMap(entrypoints);
 		this.jars = Collections.unmodifiableCollection(jars);
@@ -133,6 +137,11 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public String getId() {
 		return this.id;
+	}
+
+	@Override
+	public Collection<String> getProvides() {
+		return this.provides;
 	}
 
 	@Override

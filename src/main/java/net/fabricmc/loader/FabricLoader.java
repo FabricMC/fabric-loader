@@ -333,6 +333,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		ModContainer container = new ModContainer(info, originUrl);
 		mods.add(container);
 		modMap.put(info.getId(), container);
+		for (String provides : info.getProvides()) {
+			if(modMap.containsKey(provides)) {
+				throw new ModResolutionException("Duplicate provided alias: " + provides + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			}
+			modMap.put(provides, container);
+		}
 	}
 
 	protected void postprocessModMetadata() {

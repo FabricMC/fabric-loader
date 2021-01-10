@@ -94,12 +94,15 @@ public class ModResolver {
 	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
-		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();
+		Map<String, List<ModCandidate>> modCandidateMap = new HashMap<>();
 		Set<String> mandatoryMods = new HashSet<>();
 
 		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
 			Collection<ModCandidate> s = mcs.toSortedSet();
-			modCandidateMap.put(mcs.getModId(), s);
+			modCandidateMap.computeIfAbsent(mcs.getModId(), i -> new ArrayList<>()).addAll(s);
+			for (String modProvide : mcs.getModProvides()) {
+				modCandidateMap.computeIfAbsent(modProvide, i -> new ArrayList<>()).addAll(s);
+			}
 			isAdvanced |= (s.size() > 1) || (s.iterator().next().getDepth() > 0);
 
 			if (mcs.isUserProvided()) {
@@ -112,7 +115,9 @@ public class ModResolver {
 		if (!isAdvanced) {
 			result = new HashMap<>();
 			for (String s : modCandidateMap.keySet()) {
-				result.put(s, modCandidateMap.get(s).iterator().next());
+				ModCandidate candidate = modCandidateMap.get(s).iterator().next();
+				// if the candidate isn't actually just a provided alias, then put it on
+				if(!candidate.getInfo().getProvides().contains(s)) result.put(s, candidate);
 			}
 		} else {
 			// Inspired by http://0install.net/solver.html
@@ -266,19 +271,19 @@ public class ModResolver {
 			// verify result: dependencies
 			for (ModCandidate candidate : result.values()) {
 				for (ModDependency dependency : candidate.getInfo().getDepends()) {
-					addErrorToList(candidate, dependency, result, errorsHard, "requires", true);
+					addErrorToList(logger, candidate, dependency, result, errorsHard, "requires", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getRecommends()) {
-					addErrorToList(candidate, dependency, result, errorsSoft, "recommends", true);
+					addErrorToList(logger, candidate, dependency, result, errorsSoft, "recommends", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getBreaks()) {
-					addErrorToList(candidate, dependency, result, errorsHard, "is incompatible with", false);
+					addErrorToList(logger, candidate, dependency, result, errorsHard, "is incompatible with", false);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getConflicts()) {
-					addErrorToList(candidate, dependency, result, errorsSoft, "conflicts with", false);
+					addErrorToList(logger, candidate, dependency, result, errorsSoft, "conflicts with", false);
 				}
 
 				Version version = candidate.getInfo().getVersion();
@@ -320,7 +325,7 @@ public class ModResolver {
 		return result;
 	}
 
-	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
+	private void addErrorToList(Logger logger, ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
 		List<String> errorList = new ArrayList<>();
@@ -337,6 +342,16 @@ public class ModResolver {
 		}
 
 		ModCandidate depCandidate = result.get(depModId);
+		// attempt searching provides
+		if(depCandidate == null) {
+			for (ModCandidate value : result.values()) {
+				if (value.getInfo().getProvides().contains(depModId)) {
+					if(FabricLoader.INSTANCE.isDevelopmentEnvironment()) logger.warn("Mod " + candidate.getInfo().getId() + " is using the provided alias " + depModId + " in place of the real mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a provided alias.");
+					depCandidate = value;
+					break;
+				}
+			}
+		}
 		boolean isPresent = depCandidate != null && dependency.matches(depCandidate.getInfo().getVersion());
 
 		if (isPresent != cond) {
@@ -631,6 +646,26 @@ public class ModResolver {
 					}
 
 					throw new RuntimeException(fullError.toString());
+				}
+
+				for(String provides : candidate.getInfo().getProvides()) {
+					if (!MOD_ID_PATTERN.matcher(provides).matches()) {
+						List<String> errorList = new ArrayList<>();
+						isModIdValid(provides, errorList);
+						StringBuilder fullError = new StringBuilder("Mod id provides `");
+						fullError.append(provides).append("` does not match the requirements because");
+
+						if (errorList.size() == 1) {
+							fullError.append(" it ").append(errorList.get(0));
+						} else {
+							fullError.append(":");
+							for (String error : errorList) {
+								fullError.append("\n  - It ").append(error);
+							}
+						}
+
+						throw new RuntimeException(fullError.toString());
+					}
 				}
 
 				added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
