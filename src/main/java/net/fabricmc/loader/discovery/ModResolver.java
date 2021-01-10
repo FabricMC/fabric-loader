@@ -1124,7 +1124,7 @@ public class ModResolver {
 			super(candidate);
 			this.index = index;
 		}
-		
+
 		@Override
 		String shortString() {
 			if (index == -1) {
