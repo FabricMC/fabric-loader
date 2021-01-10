@@ -82,8 +82,6 @@ public class ModCandidateSet {
 				sb.append("\n" + mc.getInfo().getVersion() + " from " + ModResolver.getReadablePath(FabricLoader.INSTANCE, mc));
 			}
 			throw new ModResolutionException(sb.toString());
-		} else if (depthZeroCandidates.size() == 1) {
-			return depthZeroCandidates;
 		} else if (candidates.size() > 1) {
 			List<ModCandidate> out = new ArrayList<>(candidates.values());
 			out.sort(ModCandidateSet::compare);

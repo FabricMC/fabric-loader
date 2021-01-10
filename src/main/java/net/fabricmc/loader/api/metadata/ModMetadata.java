@@ -75,12 +75,12 @@ public interface ModMetadata {
 	Collection<ModDependency> getSuggests();
 
 	/**
-	 * Returns the mod's conflicts, with which the Loader will terminate loading.
+	 * Returns the mod's conflicts, with which the Loader will emit a warning.
 	 */
 	Collection<ModDependency> getConflicts();
 
 	/**
-	 * Returns the mod's conflicts, with which the Loader will emit a warning.
+	 * Returns the mod's conflicts, with which the Loader will terminate loading.
 	 */
 	Collection<ModDependency> getBreaks();
 

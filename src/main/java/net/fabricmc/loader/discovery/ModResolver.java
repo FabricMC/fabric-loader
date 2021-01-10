@@ -31,6 +31,7 @@ import net.fabricmc.loader.metadata.NestedJarEntry;
 import net.fabricmc.loader.metadata.ModMetadataParser;
 import net.fabricmc.loader.metadata.ParseMetadataException;
 import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import net.fabricmc.loader.util.sat4j.pb.SolverFactory;
@@ -73,6 +74,7 @@ public class ModResolver {
 	private static final Map<String, String> readableNestedJarPaths = new ConcurrentHashMap<>();
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 	private static final Object launcherSyncObject = new Object();
+	private static final boolean DEBUG_PRINT_STATE = Boolean.getBoolean(SystemProperties.PRINT_MOD_RESOLVING);
 
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
 
@@ -105,7 +107,6 @@ public class ModResolver {
 		boolean isAdvanced = false;
 		Map<String, Collection<ModCandidate>> modCandidateMap = new HashMap<>();
 		Map<String, ModCandidate> mandatoryMods = new HashMap<>();
-
 		List<ModResolutionException> errors = new ArrayList<>();
 
 		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
@@ -169,6 +170,7 @@ public class ModResolver {
 
 					List<ModLoadOption> cOptions = new ArrayList<>();
 					int index = 0;
+
 					for (ModCandidate m : candidates) {
 						if (m == mandatedCandidate) {
 							cOptions.add(mandatedDefinition.candidate);
@@ -177,7 +179,7 @@ public class ModResolver {
 
 						MainModLoadOption cOption = new MainModLoadOption(m, candidates.size() == 1 ? -1 : index);
 						modToLoadOption.put(m, cOption);
-						helper.addToObjectiveFunction(cOption, 1000 - index++);
+						helper.addToObjectiveFunction(cOption, -1000 + index++);
 						cOptions.add(cOption);
 
 						for (String provided : m.getInfo().getProvides()) {
@@ -212,25 +214,27 @@ public class ModResolver {
 					for (ModDependency dep : mc.getInfo().getDepends()) {
 						ModIdDefinition def = modDefs.get(dep.getModId());
 						if (def == null) {
-							def = new OptionalModIdDefintion(dep.getModId(), new MainModLoadOption[0]);
+							def = new OptionalModIdDefintion(dep.getModId(), new ModLoadOption[0]);
 							modDefs.put(dep.getModId(), def);
 							def.put(helper);
 						}
 
-						new ModDep(option, dep, def).put(helper);
+						new ModDep(logger, option, dep, def).put(helper);
 					}
 
-					for (ModDependency conflict : mc.getInfo().getConflicts()) {
+					for (ModDependency conflict : mc.getInfo().getBreaks()) {
 						ModIdDefinition def = modDefs.get(conflict.getModId());
 						if (def == null) {
-							def = new OptionalModIdDefintion(conflict.getModId(), new MainModLoadOption[0]);
+							def = new OptionalModIdDefintion(conflict.getModId(), new ModLoadOption[0]);
 							modDefs.put(conflict.getModId(), def);
 
 							def.put(helper);
 						}
 
 						for (ModLoadOption op : def.sources()) {
-							new ModConflict(option, op).put(helper);
+							if (conflict.matches(op.candidate.getInfo().getVersion())) {
+								new ModConflict(logger, option, conflict, op).put(helper);
+							}
 						}
 					}
 				}
@@ -249,9 +253,10 @@ public class ModResolver {
 
 					Map<MainModLoadOption, MandatoryModIdDefinition> roots = new HashMap<>();
 					List<ModLink> causes = new ArrayList<>();
+					causes.addAll(why);
 
-					// Find all of the problems
-					for (Iterator<ModLink> iterator = why.iterator(); iterator.hasNext();) {
+					// Separate out mandatory mods (roots) from other causes
+					for (Iterator<ModLink> iterator = causes.iterator(); iterator.hasNext();) {
 						ModLink link = iterator.next();
 						if (link instanceof MandatoryModIdDefinition) {
 							MandatoryModIdDefinition mandatoryMod = (MandatoryModIdDefinition) link;
@@ -259,8 +264,6 @@ public class ModResolver {
 							iterator.remove();
 						}
 					}
-
-					causes.addAll(why);
 
 					ModResolutionException ex = describeError(roots, causes);
 					if (ex == null) {
@@ -1196,18 +1199,31 @@ public class ModResolver {
 		final List<ModLoadOption> validOptions;
 		final List<ModLoadOption> invalidOptions;
 
-		public ModDep(ModLoadOption source, ModDependency publicDep, ModIdDefinition on) {
+		public ModDep(Logger logger, ModLoadOption source, ModDependency publicDep, ModIdDefinition on) {
 			this.source = source;
 			this.publicDep = publicDep;
 			this.on = on;
 			validOptions = new ArrayList<>();
 			invalidOptions = new ArrayList<>();
 
+			if (DEBUG_PRINT_STATE) {
+				logger.info("[ModResolver] Adding a mod depencency from " + source + " to " + on.getModId());
+				logger.info("[ModResolver]   from " + source.fullString());
+			}
+
 			for (ModLoadOption option : on.sources()) {
 				if (publicDep.matches(option.candidate.getInfo().getVersion())) {
 					validOptions.add(option);
+
+					if (DEBUG_PRINT_STATE) {
+						logger.info("[ModResolver]  +  valid option: " + option.fullString());
+					}
 				} else {
 					invalidOptions.add(option);
+
+					if (DEBUG_PRINT_STATE) {
+						logger.info("[ModResolver]  x  mismatching option: " + option.fullString());
+					}
 				}
 			}
 		}
@@ -1237,13 +1253,25 @@ public class ModResolver {
 		}
 	}
 
+	/**
+	 * Actually MOD BREAK
+	 */
+	// TODO: Rename to "ModBreak"
 	static final class ModConflict extends ModLink {
 		final ModLoadOption source;
+		final ModDependency publicDep;
 		final ModLoadOption with;
 
-		public ModConflict(ModLoadOption source, ModLoadOption with) {
+		public ModConflict(Logger logger, ModLoadOption source, ModDependency publicDep, ModLoadOption with) {
 			this.source = source;
+			this.publicDep = publicDep;
 			this.with = with;
+
+			if (DEBUG_PRINT_STATE) {
+				logger.info("[ModResolver] Adding a mod conflict:");
+				logger.info("[ModResolver]   from " + source.fullString());
+				logger.info("[ModResolver]   with " + with.fullString());
+			}
 		}
 
 		@Override
@@ -1254,7 +1282,7 @@ public class ModResolver {
 
 		@Override
 		public String toString() {
-			return source + " conflicts with " + with;
+			return source + " conflicts with " + with + " version " + publicDep;
 		}
 
 		@Override
