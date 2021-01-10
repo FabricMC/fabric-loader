@@ -64,6 +64,10 @@ public final class McVersionLookup {
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
+	public static McVersion getVersion(String version) {
+		return new McVersion(version, getRelease(version));
+	}
+
 	public static McVersion getVersion(Path gameJar) {
 		McVersion ret;
 
@@ -519,10 +523,10 @@ public final class McVersionLookup {
 				@Override
 				public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean itf) {
 					if (result == null
-						&& lastLdc != null
-						&& owner.equals(methodOwner)
-						&& name.equals(methodName)
-						&& descriptor.startsWith("(" + STRING_DESC + ")")) {
+							&& lastLdc != null
+							&& owner.equals(methodOwner)
+							&& name.equals(methodName)
+							&& descriptor.startsWith("(" + STRING_DESC + ")")) {
 						result = lastLdc;
 					}
 
@@ -718,6 +722,11 @@ public final class McVersionLookup {
 		private McVersion(String name, String release) {
 			this.raw = name;
 			this.normalized = normalizeVersion(name, release);
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%s/%s", raw, normalized);
 		}
 
 		public final String raw; // raw version, e.g. 18w12a

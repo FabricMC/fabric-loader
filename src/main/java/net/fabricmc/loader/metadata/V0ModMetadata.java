@@ -103,6 +103,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
+	public Collection<String> getProvides() {
+		return Collections.emptyList();
+	}
+
+	@Override
 	public Version getVersion() {
 		return this.version;
 	}

@@ -111,10 +111,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		GameProvider provider = new MinecraftGameProvider();
 
-		if (!provider.locateGame(getEnvironmentType(), launchClassLoader)) {
+		if (!provider.locateGame(getEnvironmentType(), arguments.toArray(), launchClassLoader)) {
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
-		provider.acceptArguments(arguments.toArray());
 
 		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
@@ -227,7 +226,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		}
 
 		try (FileInputStream jarFileStream = new FileInputStream(remappedJarFile.toFile());
-			 JarInputStream jarStream = new JarInputStream(jarFileStream)) {
+				JarInputStream jarStream = new JarInputStream(jarFileStream)) {
 			JarEntry entry;
 
 			while ((entry = jarStream.getNextJarEntry()) != null) {
