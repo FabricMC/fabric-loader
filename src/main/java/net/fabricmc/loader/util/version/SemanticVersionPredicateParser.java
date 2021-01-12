@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.VersionParsingException;
 
 public final class SemanticVersionPredicateParser {
@@ -42,6 +43,11 @@ public final class SemanticVersionPredicateParser {
 					s = s.substring(prefix.length());
 					break;
 				}
+			}
+
+			// In dev environment, ignore groovy template placeholders - any version is satisfactory
+			if (FabricLoader.getInstance().isDevelopmentEnvironment() && s.matches("(\\$\\{\\w+})")) {
+				return (v) -> true;
 			}
 
 			SemanticVersionImpl version = new SemanticVersionImpl(s, true);
