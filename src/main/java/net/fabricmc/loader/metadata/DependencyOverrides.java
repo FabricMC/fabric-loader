@@ -178,4 +178,8 @@ public final class DependencyOverrides {
 
 		return Collections.unmodifiableMap(override);
 	}
+
+	public Map<String, Map<String, Map<String, ModDependency>>> getDependencyOverrides() {
+		return Collections.unmodifiableMap(dependencyOverrides);
+	}
 }
