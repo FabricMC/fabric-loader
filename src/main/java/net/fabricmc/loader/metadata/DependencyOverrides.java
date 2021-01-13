@@ -92,6 +92,7 @@ public final class DependencyOverrides {
 			}
 		}
 
+		reader.endObject();
 		return dependencyOverrides;
 	}
 
