@@ -180,6 +180,6 @@ public final class DependencyOverrides {
 	}
 
 	public Map<String, Map<String, Map<String, ModDependency>>> getDependencyOverrides() {
-		return Collections.unmodifiableMap(dependencyOverrides);
+		return dependencyOverrides;
 	}
 }
