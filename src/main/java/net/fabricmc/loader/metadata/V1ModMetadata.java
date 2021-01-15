@@ -88,11 +88,11 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		this.jars = Collections.unmodifiableCollection(jars);
 		this.mixins = Collections.unmodifiableCollection(mixins);
 		this.accessWidener = accessWidener;
-		this.depends = Collections.unmodifiableMap(depends);
-		this.recommends = Collections.unmodifiableMap(recommends);
-		this.suggests = Collections.unmodifiableMap(suggests);
-		this.conflicts = Collections.unmodifiableMap(conflicts);
-		this.breaks = Collections.unmodifiableMap(breaks);
+		this.depends = DependencyOverrides.INSTANCE.getActiveDependencyMap("depends", id, Collections.unmodifiableMap(depends));
+		this.recommends = DependencyOverrides.INSTANCE.getActiveDependencyMap("recommends", id, Collections.unmodifiableMap(recommends));
+		this.suggests = DependencyOverrides.INSTANCE.getActiveDependencyMap("suggests", id, Collections.unmodifiableMap(suggests));
+		this.conflicts = DependencyOverrides.INSTANCE.getActiveDependencyMap("conflicts", id, Collections.unmodifiableMap(conflicts));
+		this.breaks = DependencyOverrides.INSTANCE.getActiveDependencyMap("breaks", id, Collections.unmodifiableMap(breaks));
 		this.requires = Collections.unmodifiableMap(requires);
 		this.name = name;
 
