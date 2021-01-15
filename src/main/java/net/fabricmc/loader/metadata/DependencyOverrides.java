@@ -107,7 +107,7 @@ public final class DependencyOverrides {
 		while (reader.hasNext()) {
 			String key = reader.nextName();
 
-			if (!ALLOWED_KEYS.contains(key.replaceAll("^[+-]", ""))) {
+			if (!ALLOWED_KEYS.contains(key)) {
 				throw new ParseMetadataException(key + " is not an allowed dependency key, must be one of: " + String.join(", ", ALLOWED_KEYS), reader);
 			}
 
@@ -130,6 +130,14 @@ public final class DependencyOverrides {
 			final String modId = reader.nextName();
 			final List<String> matcherStringList = new ArrayList<>();
 
+			if (modId.length() < 2) {
+				throw new ParseMetadataException("Modid was too short! Must be either '-' or '+' followed by a valid mod id.");
+			}
+
+			if (modId.charAt(0) != '-' || modId.charAt(0) != '+') {
+				throw new ParseMetadataException("Modids must be prefixed with either '-' (to remove it) or '+' (to add/change it)");
+			}
+
 			switch (reader.peek()) {
 				case STRING:
 					matcherStringList.add(reader.nextString());
@@ -151,7 +159,7 @@ public final class DependencyOverrides {
 					throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
 			}
 
-			modDependencyMap.put(modId, new ModDependencyImpl(modId, matcherStringList));
+			modDependencyMap.put(modId, new ModDependencyImpl(modId.substring(1), matcherStringList));
 		}
 
 		reader.endObject();
@@ -168,12 +176,6 @@ public final class DependencyOverrides {
 		if (modOverrides == null) {
 			// No overrides return the default
 			return defaultMap;
-		}
-
-		Map<String, ModDependency> override = modOverrides.get(key);
-
-		if (override != null) {
-			return Collections.unmodifiableMap(override);
 		}
 
 		Map<String, ModDependency> removals = modOverrides.get("-" + key);
