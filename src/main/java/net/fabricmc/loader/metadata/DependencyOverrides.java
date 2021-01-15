@@ -107,7 +107,7 @@ public final class DependencyOverrides {
 		while (reader.hasNext()) {
 			String key = reader.nextName();
 
-			if (!ALLOWED_KEYS.contains(key)) {
+			if (!ALLOWED_KEYS.contains(key.replaceAll("^[+-]", ""))) {
 				throw new ParseMetadataException(key + " is not an allowed dependency key, must be one of: " + String.join(", ", ALLOWED_KEYS), reader);
 			}
 
@@ -172,11 +172,28 @@ public final class DependencyOverrides {
 
 		Map<String, ModDependency> override = modOverrides.get(key);
 
-		if (override == null) {
+		if (override != null) {
+			return Collections.unmodifiableMap(override);
+		}
+
+		Map<String, ModDependency> removals = modOverrides.get("-" + key);
+		Map<String, ModDependency> additions = modOverrides.get("+" + key);
+
+		if (additions == null && removals == null) {
 			return defaultMap;
 		}
 
-		return Collections.unmodifiableMap(override);
+		Map<String, ModDependency> modifiedMap = new HashMap<>(defaultMap);
+
+		if (removals != null) {
+			removals.keySet().forEach(modifiedMap::remove);
+		}
+
+		if (additions != null) {
+			modifiedMap.putAll(additions);
+		}
+
+		return Collections.unmodifiableMap(modifiedMap);
 	}
 
 	public Map<String, Map<String, Map<String, ModDependency>>> getDependencyOverrides() {
