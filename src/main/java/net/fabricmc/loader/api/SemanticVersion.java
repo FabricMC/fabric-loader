@@ -16,11 +16,11 @@
 
 package net.fabricmc.loader.api;
 
-import java.util.Enumeration;
-import java.util.Optional;
-import java.util.StringTokenizer;
-
+import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.VersionDeserializer;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Represents a <a href="https://semver.org/">Sematic Version</a>.
@@ -109,5 +109,32 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 	 */
 	static SemanticVersion parse(String s) throws VersionParsingException {
 		return VersionDeserializer.deserializeSemantic(s);
+	}
+
+	/**
+	 * Returns a semantic version built from the provided arguments.
+	 *
+	 * @param major the major component of the resulting version
+	 * @param minor the minor component of the resulting version
+	 * @param patch the patch component of the resulting version
+	 * @param prerelease the prerelease key of the resulting version
+	 * @param build the build key of the resulting version
+	 * @return a new {@link SemanticVersion} instance
+	 * @throws VersionParsingException if the prerelease or build parameters are invalid
+	 */
+	static SemanticVersion of(int major, int minor, int patch, @Nullable String prerelease, @Nullable String build) throws VersionParsingException {
+		return new SemanticVersionImpl(major, minor, patch, prerelease, build);
+	}
+
+	/**
+	 * Returns a semantic version built from the provided arguments.
+	 *
+	 * @param major the major component of the resulting version
+	 * @param minor the minor component of the resulting version
+	 * @param patch the patch component of the resulting version
+	 * @return a new {@link SemanticVersion} instance
+	 */
+	static SemanticVersion of(int major, int minor, int patch) {
+		return new SemanticVersionImpl(major, minor, patch);
 	}
 }

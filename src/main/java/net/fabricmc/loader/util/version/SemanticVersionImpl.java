@@ -18,6 +18,7 @@ package net.fabricmc.loader.util.version;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -32,6 +33,27 @@ public class SemanticVersionImpl implements SemanticVersion {
 	private final String prerelease;
 	private final String build;
 	private String friendlyName;
+
+	public SemanticVersionImpl(int major, int minor, int patch, @Nullable String prerelease, @Nullable String build) throws VersionParsingException {
+		this.components = new int[] {major, minor, patch};
+
+		if (prerelease != null && !DOT_SEPARATED_ID.matcher(prerelease).matches()) {
+			throw new VersionParsingException("Invalid prerelease string '" + prerelease + "'!");
+		}
+
+		if (build != null && !DOT_SEPARATED_ID.matcher(build).matches()) {
+			throw new VersionParsingException("Invalid build string '" + build + "'!");
+		}
+
+		this.prerelease = prerelease;
+		this.build = build;
+	}
+
+	public SemanticVersionImpl(int major, int minor, int patch) {
+		this.components = new int[] {major, minor, patch};
+		this.prerelease = null;
+		this.build = null;
+	}
 
 	public SemanticVersionImpl(String version, boolean storeX) throws VersionParsingException {
 		int buildDelimPos = version.indexOf('+');
