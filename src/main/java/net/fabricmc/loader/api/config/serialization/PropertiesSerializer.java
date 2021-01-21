@@ -1,15 +1,17 @@
 package net.fabricmc.loader.api.config.serialization;
 
 import net.fabricmc.loader.api.config.ConfigDefinition;
+import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
+import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.DataType;
+import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.config.value.ConfigValue;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.SemanticVersion;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,6 +19,11 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Default {@link ConfigSerializer} implementation.
+ *
+ * Supports serialization of comments, constraints, and data.
+ */
 public class PropertiesSerializer implements ConfigSerializer {
 	public static final ConfigSerializer INSTANCE = new PropertiesSerializer();
 	private final HashMap<Class<?>, ValueSerializer> serializableTypes = new HashMap<>();
@@ -98,12 +105,30 @@ public class PropertiesSerializer implements ConfigSerializer {
 				}
 			}
 
+			for (Flag flag : value.getFlags()) {
+				if (header) {
+					writer.write('\n');
+					header = false;
+				}
+
+				writer.write("# " + flag.toString() + '\n');
+			}
+
+			for (Constraint<?> constraint : value.getConstraints()) {
+				if (header) {
+					writer.write('\n');
+					header = false;
+				}
+
+				writer.write("# " + constraint.toString() + '\n');
+			}
+
 			ValueSerializer serializer = this.getSerializer(value);
 			writer.write(value.getKey().getPathString());
 			writer.write('=');
 			writer.write(serializer.serialize(value.get()));
 
-			if (iterator.hasNext()) writer.write("\n\n");
+			if (iterator.hasNext()) writer.write("\n");
 			header = false;
 		}
 
@@ -113,24 +138,31 @@ public class PropertiesSerializer implements ConfigSerializer {
 
 	@Override
 	public void deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
+		this.deserialize(configDefinition, Files.newInputStream(this.getPath(configDefinition, valueContainer)), valueContainer);
+	}
+
+	@Override
+	public void deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
 		Map<String, String> values = new HashMap<>();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-		Files.readAllLines(this.getPath(configDefinition, valueContainer)).forEach(line -> {
-			if (line.startsWith("!") || line.startsWith("#")) return;
+		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+			if (!line.startsWith("!") && !line.startsWith("#") && !line.trim().isEmpty()) {
+				String[] split = line.split("=", 2);
 
-			String[] split = line.split("=", 2);
-
-			values.put(split[0], split[1]);
-		});
+				values.put(split[0], split[1]);
+			}
+		}
 
 		for (ConfigValue value : configDefinition) {
 			String valueString = values.get(value.getKey().getPathString());
 
 			if (valueString == null) {
-				throw new RuntimeException("Failed to load config value '" + value.getKey() + "'");
+				ConfigManager.LOGGER.warn("Failed to load config value '{}'", value.getKey());
+				continue;
 			}
 
-			value.set(this.getSerializer(value).deserialize(valueString));
+			value.set(this.getSerializer(value).deserialize(valueString), valueContainer);
 		}
 	}
 

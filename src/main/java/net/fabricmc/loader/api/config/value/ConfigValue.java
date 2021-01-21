@@ -5,7 +5,7 @@ import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.config.exceptions.ConfigValueException;
-import net.fabricmc.loader.config.ConfigManager;
+import net.fabricmc.loader.config.ConfigManagerImpl;
 import net.fabricmc.loader.config.ValueContainerProviders;
 import net.fabricmc.loader.config.ValueKey;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -112,6 +112,22 @@ public class ConfigValue<T> implements Comparable<ConfigValue<?>> {
 		return oldValue;
 	}
 
+	public T set(T newValue, ValueContainer valueContainer) {
+		if (this.key == null) {
+			throw new ConfigValueException("Key not properly set for " + this.toString());
+		}
+
+		if (!isWithinConstraints(newValue)) {
+			throw new ConfigValueException("Value '" + newValue + "' is not within constraints for key '" + this.key.toString() + "'");
+		}
+
+		T oldValue = valueContainer.put(this, newValue);
+
+		this.listeners.forEach(listener -> listener.accept(oldValue, newValue));
+
+		return oldValue;
+	}
+
 	public boolean isWithinConstraints(T value) {
     	for (Constraint<T> constraint : this.constraints) {
     		if (!constraint.passes(value)) return false;
@@ -129,13 +145,13 @@ public class ConfigValue<T> implements Comparable<ConfigValue<?>> {
 	}
 
     @NotNull
-    public Iterator<Constraint<T>> getConstraints() {
-        return this.constraints.iterator();
+    public Iterable<Constraint<T>> getConstraints() {
+        return this.constraints;
     }
 
 	@NotNull
-	public Iterator<Flag> getFlags() {
-		return this.flags.iterator();
+	public Iterable<Flag> getFlags() {
+		return this.flags;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -155,7 +171,7 @@ public class ConfigValue<T> implements Comparable<ConfigValue<?>> {
 	 */
 	@ApiStatus.Internal
 	public ConfigValue<T> setKey(ValueKey valueKey) {
-		if (this.key != null || ConfigManager.isFinished()) {
+		if (this.key != null || ConfigManagerImpl.isFinished()) {
 			throw new ConfigValueException("Attempted to set key after configs have finished being registered");
 		}
 

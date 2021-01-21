@@ -7,7 +7,10 @@ import net.fabricmc.loader.api.config.value.ValueContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.Path;
 
 /**
@@ -16,11 +19,12 @@ import java.nio.file.Path;
  *
  * <p>The config serializer is responsible for serializing a config definition and its values to a config file reading
  * those same types of files, and handling several other format-specific behavior. Serializers are responsible for
- * serializing any {@link Flag}, {@link Constraint}, or </p>
+ * serializing any {@link Flag} or {@link Constraint} instances attached to the config definition and values.</p>
  */
 public interface ConfigSerializer {
     void serialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException;
     void deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException;
+    void deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
 
 	/**
 	 * @param configDefinition an intermediate representation for a config file

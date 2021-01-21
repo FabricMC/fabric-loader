@@ -15,4 +15,9 @@ public abstract class Constraint<T> extends Identifiable {
 	}
 
 	public abstract boolean passes(T value);
+
+	@Override
+	public String toString() {
+		return "@" + super.toString();
+	}
 }

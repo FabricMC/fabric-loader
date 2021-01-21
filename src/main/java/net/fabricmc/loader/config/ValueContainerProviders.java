@@ -1,5 +1,6 @@
 package net.fabricmc.loader.config;
 
+import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.SaveType;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.value.ValueContainerProvider;

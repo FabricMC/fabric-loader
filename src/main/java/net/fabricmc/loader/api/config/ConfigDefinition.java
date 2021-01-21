@@ -6,7 +6,6 @@ import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.value.ConfigValue;
-import net.fabricmc.loader.config.ConfigManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
