@@ -1,9 +1,8 @@
 package net.fabricmc.loader.config;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
@@ -22,12 +21,14 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConfigManagerImpl {
-    private static final Multimap<ConfigDefinition, ConfigValue<?>> CONFIGS = LinkedHashMultimap.create();
+    private static final Map<ConfigDefinition, Collection<ConfigValue<?>>> CONFIGS = new HashMap<>();
     private static final Map<String, ConfigDefinition> CONFIG_DEFINITIONS = new ConcurrentHashMap<>();
     private static final Map<String, ConfigValue<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
 
@@ -39,7 +40,7 @@ public class ConfigManagerImpl {
     }
 
     public static Collection<ConfigDefinition> getConfigKeys() {
-    	return CONFIGS.keys();
+    	return CONFIGS.keySet();
 	}
 
     public static Collection<ConfigValue<?>> getValues(ConfigDefinition configDefinition) {
@@ -58,7 +59,7 @@ public class ConfigManagerImpl {
     	if (FINISHED || STARTED) return;
     	STARTED = true;
 
-    	Multimap<String, ConfigInitializer> configInitializers = LinkedHashMultimap.create();
+    	Map<String, Collection<ConfigInitializer>> configInitializers = new HashMap<>();
 
         for (EntrypointContainer<ConfigInitializer> container : FabricLoader.getInstance().getEntrypointContainers("config", ConfigInitializer.class)) {
             String modId = container.getProvider().getMetadata().getId();
@@ -68,19 +69,20 @@ public class ConfigManagerImpl {
         }
 
         for (EntrypointContainer<ConfigProvider> container : FabricLoader.getInstance().getEntrypointContainers("configProvider", ConfigProvider.class)) {
-			container.getEntrypoint().addConfigs(configInitializers::put);
+			container.getEntrypoint().addConfigs((modId, initializer) ->
+					configInitializers.computeIfAbsent(modId, m -> new ArrayList<>()).add(initializer));
 		}
 
         for (String modId : configInitializers.keySet()) {
 			for (ConfigInitializer initializer : configInitializers.get(modId)) {
-				Multimap<DataType<?>, Object> data = LinkedHashMultimap.create();
+				Map<DataType<?>, Collection<Object>> data = new HashMap<>();
 
 				initializer.addConfigData(new DataCollector() {
 					@SafeVarargs
 					@Override
 					public final <T> void add(DataType<T> type, T... values) {
 						for (T object : values) {
-							data.put(type, object);
+							data.computeIfAbsent(type, t -> new ArrayList<>()).add(object);
 						}
 					}
 				});
@@ -101,7 +103,7 @@ public class ConfigManagerImpl {
 						return;
 					}
 
-					CONFIGS.put(configDefinition, configValue);
+					CONFIGS.computeIfAbsent(configDefinition, c -> new ArrayList<>()).add(configValue);
 					CONFIG_VALUES.put(configValue.toString(), configValue);
 					CONFIG_DEFINITIONS.put(configDefinition.toString(), configDefinition);
 				}));
@@ -125,18 +127,22 @@ public class ConfigManagerImpl {
 				ConfigManager.LOGGER.warn("Expected config version '{}'. Found '{}'.", configDefinition.getVersion(), version);
 				backup(valueContainer, configDefinition, serializer);
 			}
-		} catch (Exception ignored) {
+		} catch (IOException | VersionParsingException e) {
+        	ConfigManager.LOGGER.warn("Failed to get version from config '{}': {}", configDefinition, e.getMessage());
+			backup(valueContainer, configDefinition, serializer);
 		}
 
 		try {
 			if (Files.exists(serializer.getPath(configDefinition, valueContainer))) {
-				serializer.deserialize(configDefinition, valueContainer);
+				boolean backup = serializer.deserialize(configDefinition, valueContainer);
+
+				if (backup) {
+					backup(valueContainer, configDefinition, serializer);
+				}
 			}
         } catch (IOException e) {
-			ConfigManager.LOGGER.warn("Failed to deserialize config '{}'", e.getMessage());
+			ConfigManager.LOGGER.warn("Failed to deserialize config '{}': {}", configDefinition, e.getMessage());
 			backup(valueContainer, configDefinition, serializer);
-		} catch (Exception e) {
-			throw new ConfigSerializationException(e);
 		}
 
 		try {
@@ -144,10 +150,8 @@ public class ConfigManagerImpl {
 			Files.createDirectories(location.getParent());
             serializer.serialize(configDefinition, valueContainer);
         } catch (IOException e) {
-			ConfigManager.LOGGER.error("Failed to serialize config '{}'", e.getMessage());
-        } catch (Exception e) {
-			throw new ConfigSerializationException(e);
-		}
+			ConfigManager.LOGGER.error("Failed to serialize config '{}': {}", configDefinition, e.getMessage());
+        }
 	}
 
     private static void backup(ValueContainer valueContainer, ConfigDefinition configDefinition, ConfigSerializer serializer) {

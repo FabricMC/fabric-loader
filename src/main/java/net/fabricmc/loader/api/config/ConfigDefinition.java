@@ -1,7 +1,5 @@
 package net.fabricmc.loader.api.config;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -10,8 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A top-level intermediate representation for several of the characteristics a config file needs.
@@ -24,7 +21,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
     private final String string;
     private final SaveType saveType;
     private final SemanticVersion version;
-    private final Multimap<DataType<?>, Object> data = LinkedHashMultimap.create();
+    private final Map<DataType<?>, Collection<Object>> data = new HashMap<>();
 
     /**
 	 * @param namespace namespace of the entity that owns this config file, usually a mod id
@@ -33,15 +30,16 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
 	 * @param version the version of this config definition, used for backing up and migrating from old configs
 	 * @param path the path of the directory this config file, relative to 'config/namespace'
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Multimap<DataType<?>, Object> data, @NotNull Path path) {
+    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Map<DataType<?>, Collection<Object>> data, @NotNull Path path) {
         this.namespace = namespace;
         this.name = name;
         this.serializer = serializer;
 		this.version = version;
-		this.data.putAll(data);
 		this.path = path;
         this.saveType = saveType;
         this.string = namespace + ":" + name;
+
+        data.forEach((type, collection) -> this.data.computeIfAbsent(type, t -> new ArrayList<>()).addAll(collection));
 
         if (!isValid(namespace)) {
             throw new ConfigIdentifierException("Non [a-z0-9_.-] character in namespace of config key: " + this.string);
@@ -57,7 +55,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
 	 * @param version the version of this config definition, used for backing up and migrating from old configs
 	 * @param path the path of the directory this config file, relative to 'config/namespace'
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Multimap<DataType<?>, Object> data, String... path) {
+    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Map<DataType<?>, Collection<Object>> data, String... path) {
         this(namespace, name, serializer, saveType, version, data, Paths.get(namespace, path));
     }
 
@@ -67,7 +65,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
 	 * @param saveType see {@link SaveType}
 	 * @param version the version of this config definition, used for backing up and migrating from old configs
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Multimap<DataType<?>, Object> data) {
+    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Map<DataType<?>, Collection<Object>> data) {
         this(namespace, name, serializer, saveType, version, data, Paths.get("."));
     }
 
@@ -76,7 +74,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
 	 * @param saveType see {@link SaveType}
 	 * @param version the version of this config definition, used for backing up and migrating from old configs
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Multimap<DataType<?>, Object> data) {
+    public ConfigDefinition(@NotNull String namespace, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, SemanticVersion version, Map<DataType<?>, Collection<Object>> data) {
         this(namespace, "config", serializer, saveType, version, data, Paths.get("."));
     }
 

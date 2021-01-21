@@ -1,14 +1,11 @@
 package net.fabricmc.loader.api.entrypoint;
 
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.config.data.DataCollector;
-import net.fabricmc.loader.api.config.data.Flag;
-import net.fabricmc.loader.api.config.value.ConfigValueCollector;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.SaveType;
+import net.fabricmc.loader.api.config.data.DataCollector;
+import net.fabricmc.loader.api.config.value.ConfigValueCollector;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 /**
  * Represents one config file.

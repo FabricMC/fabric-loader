@@ -1,5 +1,16 @@
 package net.fabricmc.loader.api.config.serialization;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.function.Predicate;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
@@ -9,15 +20,6 @@ import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.config.value.ConfigValue;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.SemanticVersion;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Default {@link ConfigSerializer} implementation.
@@ -26,8 +28,7 @@ import java.util.function.Supplier;
  */
 public class PropertiesSerializer implements ConfigSerializer {
 	public static final ConfigSerializer INSTANCE = new PropertiesSerializer();
-	private final HashMap<Class<?>, ValueSerializer> serializableTypes = new HashMap<>();
-	private final HashMap<Class<?>, Function<ConfigValue<?>, ValueSerializer<?>>> typeDependentSerializers = new HashMap<>();
+	private final HashMap<Class<?>, ValueSerializer<?>> serializableTypes = new HashMap<>();
 
 	protected PropertiesSerializer() {
 		this.addSerializer(Boolean.class, BooleanSerializer.INSTANCE);
@@ -49,25 +50,9 @@ public class PropertiesSerializer implements ConfigSerializer {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	protected final <T> void addSerializer(Class<T> valueClass, Function<ConfigValue<T>, ValueSerializer<T>> serializerBuilder) {
-		this.typeDependentSerializers.putIfAbsent(valueClass, (Function) serializerBuilder);
-	}
-
 	@SuppressWarnings("unchecked")
 	protected final <V> ValueSerializer<V> getSerializer(ConfigValue<V> configValue) {
-		V defaultValue = configValue.getDefaultValue();
-
-		if (typeDependentSerializers.containsKey(defaultValue.getClass())) {
-			return (ValueSerializer<V>) typeDependentSerializers.get(defaultValue.getClass()).apply(configValue);
-		}
-
-		return (ValueSerializer<V>) this.getSerializer(defaultValue.getClass());
-	}
-
-	@SuppressWarnings("unchecked")
-	protected final <V> ValueSerializer<V> getSerializer(Supplier<V> defaultValue) {
-		return this.getSerializer((Class<V>) defaultValue.get().getClass());
+		return (ValueSerializer<V>) this.getSerializer(configValue.getDefaultValue().getClass());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -76,17 +61,19 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public void serialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
-		BufferedWriter writer = Files.newBufferedWriter(this.getPath(configDefinition, valueContainer));
+	public void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ConfigValue<?>> valuePredicate, boolean minimal) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
 
 		boolean header = false;
 
-		for (String comment : configDefinition.getData(DataType.COMMENT)) {
-			for (String s : comment.split("\\r?\\n")) {
-				writer.write("# " + s + '\n');
-			}
+		if (!minimal) {
+			for (String comment : configDefinition.getData(DataType.COMMENT)) {
+				for (String s : comment.split("\\r?\\n")) {
+					writer.write("# " + s + '\n');
+				}
 
-			header = true;
+				header = true;
+			}
 		}
 
 		Iterator<ConfigValue<?>> iterator = configDefinition.iterator();
@@ -94,42 +81,49 @@ public class PropertiesSerializer implements ConfigSerializer {
 		while (iterator.hasNext()) {
 			ConfigValue<?> value = iterator.next();
 
-			for (String comment : value.getData(DataType.COMMENT)) {
-				if (header) {
-					writer.write('\n');
-					header = false;
+			if (valuePredicate.test(value)) {
+				if (!minimal) {
+					for (String comment : value.getData(DataType.COMMENT)) {
+						if (header) {
+							writer.write('\n');
+							header = false;
+						}
+
+						for (String s : comment.split("\\r?\\n")) {
+							writer.write("# " + s + '\n');
+						}
+					}
+
+					for (Flag flag : value.getFlags()) {
+						if (header) {
+							writer.write('\n');
+							header = false;
+						}
+
+						writer.write("# " + flag.toString() + '\n');
+					}
+
+					for (Constraint<?> constraint : value.getConstraints()) {
+						if (header) {
+							writer.write('\n');
+							header = false;
+						}
+
+						writer.write("# " + constraint.toString() + '\n');
+					}
 				}
 
-				for (String s : comment.split("\\r?\\n")) {
-					writer.write("# " + s + '\n');
-				}
+				//noinspection rawtypes
+				ValueSerializer serializer = this.getSerializer(value);
+				writer.write(value.getKey().getPathString());
+				writer.write('=');
+
+				//noinspection unchecked
+				writer.write(serializer.serialize(value.get()));
+
+				if (iterator.hasNext()) writer.write("\n");
+				header = false;
 			}
-
-			for (Flag flag : value.getFlags()) {
-				if (header) {
-					writer.write('\n');
-					header = false;
-				}
-
-				writer.write("# " + flag.toString() + '\n');
-			}
-
-			for (Constraint<?> constraint : value.getConstraints()) {
-				if (header) {
-					writer.write('\n');
-					header = false;
-				}
-
-				writer.write("# " + constraint.toString() + '\n');
-			}
-
-			ValueSerializer serializer = this.getSerializer(value);
-			writer.write(value.getKey().getPathString());
-			writer.write('=');
-			writer.write(serializer.serialize(value.get()));
-
-			if (iterator.hasNext()) writer.write("\n");
-			header = false;
 		}
 
 		writer.flush();
@@ -137,12 +131,7 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public void deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
-		this.deserialize(configDefinition, Files.newInputStream(this.getPath(configDefinition, valueContainer)), valueContainer);
-	}
-
-	@Override
-	public void deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
+	public boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
 		Map<String, String> values = new HashMap<>();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -154,6 +143,7 @@ public class PropertiesSerializer implements ConfigSerializer {
 			}
 		}
 
+		//noinspection rawtypes
 		for (ConfigValue value : configDefinition) {
 			String valueString = values.get(value.getKey().getPathString());
 
@@ -162,12 +152,15 @@ public class PropertiesSerializer implements ConfigSerializer {
 				continue;
 			}
 
+			//noinspection unchecked
 			value.set(this.getSerializer(value).deserialize(valueString), valueContainer);
 		}
+
+		return false;
 	}
 
 	@Override
-	public @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws Exception {
+	public @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException, VersionParsingException {
 		Map<String, String> values = new HashMap<>();
 
 		Files.readAllLines(this.getPath(configDefinition, valueContainer)).forEach(line -> {
@@ -182,7 +175,7 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public String getExtension() {
+	public @NotNull String getExtension() {
 		return "properties";
 	}
 

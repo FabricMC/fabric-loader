@@ -1,17 +1,20 @@
 package net.fabricmc.loader.api.config;
 
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.config.value.ConfigValue;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 /**
  * Implements serialization and deserialization behavior for config files.
@@ -22,17 +25,78 @@ import java.nio.file.Path;
  * serializing any {@link Flag} or {@link Constraint} instances attached to the config definition and values.</p>
  */
 public interface ConfigSerializer {
-    void serialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException;
-    void deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException;
-    void deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
+	/**
+	 * Saves all config values for a given definition to disk.
+	 *
+	 * Uses the list of config values defined in the config definition and their associated values stored in the value
+	 * container to save a copy of the config file to disk. See {@link ConfigSerializer#getPath}.
+	 *
+	 * Note that if an IOException is thrown, the game will crash, as this is considered a critical failure.
+	 *
+	 * @param configDefinition an intermediate representation for a config file
+	 * @param valueContainer the container holding values of {@param configDefinition}
+	 * @throws IOException 	if saving the file failed
+	 */
+    default void serialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
+		this.serialize(configDefinition, Files.newOutputStream(this.getPath(configDefinition, valueContainer)), valueContainer, v -> true, false);
+	}
+
+	/**
+	 * Saves config values from a value container directly into an output stream.
+	 *
+	 * Exists primarily as a helper method for networking.
+	 *
+	 * @param configDefinition an intermediate representation for a config file
+	 * @param outputStream the stream to write config values to
+	 * @param valueContainer the container holding values of {@param configDefinition}
+	 * @throws IOException 	if saving the file failed
+	 */
+	void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ConfigValue<?>> valuePredicate, boolean minimal) throws IOException;
+
+	/**
+	 * Loads all config values for a given definition to disk.
+	 *
+	 * Uses the list of config values defined in the config definition to load the values from a file and store them in
+	 * the provided value container. See {@link ConfigSerializer#getPath}.
+	 *
+	 * It is expected that config serializers will attempt to recover invalid config files as follows:
+	 *  - If a file cannot be opened, return 'true' to create a backup
+	 * 	- If a value cannot be parsed, ignore it, and return 'true' to create a backup
+	 *
+	 * Note that only one backup will be made for any given config version.
+	 *
+	 * If an IOException is thrown, the config file will be backed up and replaced with the default config file.
+	 *
+	 * @param configDefinition an intermediate representation for a config file
+	 * @param valueContainer the container holding values of {@param configDefinition}
+	 * @return whether or not a backup should be made of the existing config file before saving the new one
+	 * @throws IOException if loading the file failed
+	 */
+    default boolean deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
+		return this.deserialize(configDefinition, Files.newInputStream(this.getPath(configDefinition, valueContainer)), valueContainer);
+	}
+
+	/**
+	 * Loads config values into a value container directly from an input stream.
+	 *
+	 * Exists primarily as a helper method for networking.
+	 *
+	 * @param configDefinition an intermediate representation for a config file
+	 * @param inputStream the input stream to read values from
+	 * @param valueContainer the container holding values of {@param configDefinition}
+	 * @return whether or not a backup should be made of the existing config file before saving the new one
+	 * @throws IOException if loading the config failed
+	 */
+    boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
 
 	/**
 	 * @param configDefinition an intermediate representation for a config file
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @return the version of an existing config file, null if one is not present
-	 * @throws Exception if either loading the file or parsing the semantic version failed
+	 * @throws IOException if loading the file failed
+	 * @throws VersionParsingException if parsing the semantic version failed
 	 */
-    @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws Exception;
+    @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException, VersionParsingException;
 
 	/**
 	 * @return the file extension of this serializer, e.g. 'json', 'yaml', 'properties', etc.

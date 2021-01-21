@@ -25,19 +25,18 @@ public class ConfigValue<T> implements Comparable<ConfigValue<?>> {
     private final Supplier<T> defaultValue;
     private final ImmutableCollection<Constraint<T>> constraints;
 	private final ImmutableCollection<Flag> flags;
-	private final Multimap<DataType<?>, Object> data;
+	private final Map<DataType<?>, Collection<Object>> data = new HashMap<>();
 	private final ImmutableCollection<BiConsumer<T, T>> listeners;
 	private final ImmutableCollection<TriConsumer<T, T, UUID>> playerListeners;
 
 	private ValueKey key;
 
-    private ConfigValue(@NotNull Supplier<@NotNull T> defaultValue, Collection<Constraint<T>> constraints, Collection<Flag> flags, Multimap<DataType<?>, Object> data, List<BiConsumer<T, T>> listeners, List<TriConsumer<T, T, UUID>> playerListeners) {
+    private ConfigValue(@NotNull Supplier<@NotNull T> defaultValue, Collection<Constraint<T>> constraints, Collection<Flag> flags, Map<DataType<?>, Collection<Object>> data, List<BiConsumer<T, T>> listeners, List<TriConsumer<T, T, UUID>> playerListeners) {
         this.defaultValue = defaultValue;
 		this.constraints = ImmutableList.copyOf(constraints);
 		this.flags = ImmutableSet.copyOf(flags);
 
-		this.data = LinkedHashMultimap.create();
-		this.data.putAll(data);
+		data.forEach((type, collection) -> this.data.computeIfAbsent(type, t -> new ArrayList<>()).addAll(collection));
 
 		this.listeners = ImmutableList.copyOf(listeners);
 		this.playerListeners = ImmutableList.copyOf(playerListeners);
@@ -183,7 +182,7 @@ public class ConfigValue<T> implements Comparable<ConfigValue<?>> {
 		private final Supplier<T> defaultValue;
 		private final Collection<Constraint<T>> constraints = new ArrayList<>();
 		private final List<Flag> flags = new ArrayList<>();
-		private final Multimap<DataType<?>, Object> data = LinkedHashMultimap.create();
+		private final Map<DataType<?>, Collection<Object>> data = new HashMap<>();
 		private final List<BiConsumer<T, T>> listeners = new ArrayList<>();
 		private final List<TriConsumer<T, T, UUID>> playerListeners = new ArrayList<>();
 
@@ -219,7 +218,7 @@ public class ConfigValue<T> implements Comparable<ConfigValue<?>> {
 		 * @return this
 		 */
 		public final <D> Builder<T> with(DataType<D> type, D data) {
-			this.data.put(type, data);
+			this.data.computeIfAbsent(type, t -> new ArrayList<>()).add(data);
 			return this;
 		}
 
