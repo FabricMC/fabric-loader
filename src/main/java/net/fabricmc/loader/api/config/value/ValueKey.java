@@ -24,6 +24,7 @@ import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
 import net.fabricmc.loader.api.config.exceptions.ConfigValueException;
 import net.fabricmc.loader.config.ValueContainerProviders;
+import net.minecraft.entity.EquipmentSlot;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -243,6 +244,10 @@ public class ValueKey<T> implements Comparable<ValueKey<?>> {
 		this.assertInitialized();
 
 		return this.pathString;
+	}
+
+	public String[] getPath() {
+		return this.path;
 	}
 
 	private boolean isInitialized() {
