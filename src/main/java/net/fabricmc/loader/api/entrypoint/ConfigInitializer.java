@@ -4,6 +4,7 @@ import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.SaveType;
 import net.fabricmc.loader.api.config.data.DataCollector;
+import net.fabricmc.loader.api.config.serialization.PropertiesSerializer;
 import net.fabricmc.loader.api.config.value.ConfigValueCollector;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,7 +16,9 @@ public interface ConfigInitializer {
 	/**
 	 * @return the concrete serializer instance associated with this config file.
 	 */
-    @NotNull ConfigSerializer getSerializer();
+    default @NotNull ConfigSerializer getSerializer() {
+    	return PropertiesSerializer.INSTANCE;
+	}
 
     @NotNull SaveType getSaveType();
 

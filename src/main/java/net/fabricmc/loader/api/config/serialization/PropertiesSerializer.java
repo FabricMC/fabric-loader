@@ -1,7 +1,24 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.fabricmc.loader.api.config.serialization;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,12 +29,11 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.ConfigDefinition;
-import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.data.Flag;
-import net.fabricmc.loader.api.config.value.ConfigValue;
+import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.SemanticVersion;
 
@@ -51,8 +67,8 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected final <V> ValueSerializer<V> getSerializer(ConfigValue<V> configValue) {
-		return (ValueSerializer<V>) this.getSerializer(configValue.getDefaultValue().getClass());
+	protected final <V> ValueSerializer<V> getSerializer(ValueKey<V> valueKey) {
+		return (ValueSerializer<V>) this.getSerializer(valueKey.getDefaultValue().getClass());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -61,7 +77,7 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ConfigValue<?>> valuePredicate, boolean minimal) throws IOException {
+	public void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
 
 		boolean header = false;
@@ -74,12 +90,14 @@ public class PropertiesSerializer implements ConfigSerializer {
 
 				header = true;
 			}
+
+			writer.write("version=" + configDefinition.getVersion().toString() + '\n');
 		}
 
-		Iterator<ConfigValue<?>> iterator = configDefinition.iterator();
+		Iterator<ValueKey<?>> iterator = configDefinition.iterator();
 
 		while (iterator.hasNext()) {
-			ConfigValue<?> value = iterator.next();
+			ValueKey<?> value = iterator.next();
 
 			if (valuePredicate.test(value)) {
 				if (!minimal) {
@@ -115,13 +133,13 @@ public class PropertiesSerializer implements ConfigSerializer {
 
 				//noinspection rawtypes
 				ValueSerializer serializer = this.getSerializer(value);
-				writer.write(value.getKey().getPathString());
+				writer.write(value.getPathString());
 				writer.write('=');
 
 				//noinspection unchecked
-				writer.write(serializer.serialize(value.get()));
+				writer.write(serializer.serialize(valueContainer.get(value)));
 
-				if (iterator.hasNext()) writer.write("\n");
+				if (iterator.hasNext()) writer.write("\n\n");
 				header = false;
 			}
 		}
@@ -144,16 +162,15 @@ public class PropertiesSerializer implements ConfigSerializer {
 		}
 
 		//noinspection rawtypes
-		for (ConfigValue value : configDefinition) {
-			String valueString = values.get(value.getKey().getPathString());
+		for (ValueKey value : configDefinition) {
+			String valueString = values.get(value.getPathString());
 
 			if (valueString == null) {
-				ConfigManager.LOGGER.warn("Failed to load config value '{}'", value.getKey());
 				continue;
 			}
 
 			//noinspection unchecked
-			value.set(this.getSerializer(value).deserialize(valueString), valueContainer);
+			value.setValue(this.getSerializer(value).deserialize(valueString), valueContainer);
 		}
 
 		return false;
@@ -161,10 +178,14 @@ public class PropertiesSerializer implements ConfigSerializer {
 
 	@Override
 	public @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException, VersionParsingException {
+		Path path = this.getPath(configDefinition, valueContainer);
+
+		if (!Files.exists(path)) return null;
+
 		Map<String, String> values = new HashMap<>();
 
-		Files.readAllLines(this.getPath(configDefinition, valueContainer)).forEach(line -> {
-			if (line.startsWith("!") || line.startsWith("#")) return;
+		Files.readAllLines(path).forEach(line -> {
+			if (line.startsWith("!") || line.startsWith("#") || line.trim().isEmpty()) return;
 
 			String[] split = line.split("=", 2);
 

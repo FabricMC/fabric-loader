@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.fabricmc.loader.config;
 
 import net.fabricmc.loader.api.FabricLoader;
@@ -10,7 +26,7 @@ import net.fabricmc.loader.api.config.ConfigsLoadedEntrypoint;
 import net.fabricmc.loader.api.config.data.DataCollector;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.exceptions.ConfigSerializationException;
-import net.fabricmc.loader.api.config.value.ConfigValue;
+import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.entrypoint.ConfigInitializer;
 import net.fabricmc.loader.api.entrypoint.ConfigProvider;
@@ -21,16 +37,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConfigManagerImpl {
-    private static final Map<ConfigDefinition, Collection<ConfigValue<?>>> CONFIGS = new HashMap<>();
+    private static final Map<ConfigDefinition, Collection<ValueKey<?>>> CONFIGS = new HashMap<>();
     private static final Map<String, ConfigDefinition> CONFIG_DEFINITIONS = new ConcurrentHashMap<>();
-    private static final Map<String, ConfigValue<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
+    private static final Map<String, ValueKey<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
 
     private static boolean STARTED = false;
     private static boolean FINISHED = false;
@@ -43,11 +56,11 @@ public class ConfigManagerImpl {
     	return CONFIGS.keySet();
 	}
 
-    public static Collection<ConfigValue<?>> getValues(ConfigDefinition configDefinition) {
-        return CONFIGS.get(configDefinition);
+    public static Collection<ValueKey<?>> getValues(ConfigDefinition configDefinition) {
+        return CONFIGS.getOrDefault(configDefinition, Collections.emptyList());
     }
 
-    public static @Nullable ConfigValue<?> getValue(String configKeyString) {
+    public static @Nullable ValueKey<?> getValue(String configKeyString) {
     	return CONFIG_VALUES.get(configKeyString);
 	}
 
@@ -65,12 +78,12 @@ public class ConfigManagerImpl {
             String modId = container.getProvider().getMetadata().getId();
             ConfigInitializer initializer = container.getEntrypoint();
 
-            configInitializers.get(modId).add(initializer);
+            configInitializers.computeIfAbsent(modId, m -> new LinkedHashSet<>()).add(initializer);
         }
 
         for (EntrypointContainer<ConfigProvider> container : FabricLoader.getInstance().getEntrypointContainers("configProvider", ConfigProvider.class)) {
 			container.getEntrypoint().addConfigs((modId, initializer) ->
-					configInitializers.computeIfAbsent(modId, m -> new ArrayList<>()).add(initializer));
+					configInitializers.computeIfAbsent(modId, m -> new LinkedHashSet<>()).add(initializer));
 		}
 
         for (String modId : configInitializers.keySet()) {
@@ -95,10 +108,9 @@ public class ConfigManagerImpl {
 				}
 
 				initializer.addConfigValues(((configValue, path0, path) -> {
-					ValueKey key = new ValueKey(configDefinition, path0, path);
-					configValue.setKey(key);
+					configValue.initialize(configDefinition, path0, path);
 
-					if (CONFIGS.get(configDefinition).contains(configValue)) {
+					if (CONFIGS.getOrDefault(configDefinition, Collections.emptySet()).contains(configValue)) {
 						ConfigManager.LOGGER.warn("Attempted to register duplicate config value '{}'", configValue);
 						return;
 					}
@@ -150,7 +162,7 @@ public class ConfigManagerImpl {
 			Files.createDirectories(location.getParent());
             serializer.serialize(configDefinition, valueContainer);
         } catch (IOException e) {
-			ConfigManager.LOGGER.error("Failed to serialize config '{}': {}", configDefinition, e.getMessage());
+			throw new ConfigSerializationException(String.format("Failed to serialize config '%s': %s", configDefinition, e.getMessage()));
         }
 	}
 

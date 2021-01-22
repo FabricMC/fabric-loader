@@ -47,12 +47,16 @@ public class SemanticVersionImpl implements SemanticVersion {
 
 		this.prerelease = prerelease;
 		this.build = build;
+
+		buildFriendlyName();
 	}
 
 	public SemanticVersionImpl(int major, int minor, int patch) {
 		this.components = new int[] {major, minor, patch};
 		this.prerelease = null;
 		this.build = null;
+
+		buildFriendlyName();
 	}
 
 	public SemanticVersionImpl(String version, boolean storeX) throws VersionParsingException {

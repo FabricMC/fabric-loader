@@ -1,10 +1,26 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.fabricmc.loader.api.config;
 
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.config.value.ConfigValue;
+import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,9 +36,9 @@ import java.util.function.Predicate;
  * Implements serialization and deserialization behavior for config files.
  *
  *
- * <p>The config serializer is responsible for serializing a config definition and its values to a config file reading
+ * The config serializer is responsible for serializing a config definition and its values to a config file reading
  * those same types of files, and handling several other format-specific behavior. Serializers are responsible for
- * serializing any {@link Flag} or {@link Constraint} instances attached to the config definition and values.</p>
+ * serializing any {@link Flag} or {@link Constraint} instances attached to the config definition, values, and versions.
  */
 public interface ConfigSerializer {
 	/**
@@ -38,7 +54,13 @@ public interface ConfigSerializer {
 	 * @throws IOException 	if saving the file failed
 	 */
     default void serialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
-		this.serialize(configDefinition, Files.newOutputStream(this.getPath(configDefinition, valueContainer)), valueContainer, v -> true, false);
+		Path path = this.getPath(configDefinition, valueContainer);
+
+		if (!Files.exists(path.getParent())) {
+			Files.createDirectories(path.getParent());
+		}
+
+		this.serialize(configDefinition, Files.newOutputStream(path), valueContainer, v -> true, false);
 	}
 
 	/**
@@ -51,7 +73,7 @@ public interface ConfigSerializer {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @throws IOException 	if saving the file failed
 	 */
-	void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ConfigValue<?>> valuePredicate, boolean minimal) throws IOException;
+	void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException;
 
 	/**
 	 * Loads all config values for a given definition to disk.
@@ -73,7 +95,9 @@ public interface ConfigSerializer {
 	 * @throws IOException if loading the file failed
 	 */
     default boolean deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
-		return this.deserialize(configDefinition, Files.newInputStream(this.getPath(configDefinition, valueContainer)), valueContainer);
+    	Path path = this.getPath(configDefinition, valueContainer);
+
+    	return Files.exists(path) && this.deserialize(configDefinition, Files.newInputStream(path), valueContainer);
 	}
 
 	/**

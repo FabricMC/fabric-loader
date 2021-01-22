@@ -1,9 +1,25 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.fabricmc.loader.api.config;
 
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.config.value.ConfigValue;
+import net.fabricmc.loader.api.config.value.ValueKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -13,7 +29,7 @@ import java.util.*;
 /**
  * A top-level intermediate representation for several of the characteristics a config file needs.
  */
-public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<ConfigValue<?>> {
+public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<ValueKey<?>> {
     private final String namespace;
     private final String name;
     private final ConfigSerializer serializer;
@@ -80,7 +96,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
 
 	@SuppressWarnings("unchecked")
 	public <D> Iterable<D> getData(DataType<D> dataType) {
-		return (Iterable<D>) this.data.get(dataType);
+		return (Iterable<D>) this.data.getOrDefault(dataType, Collections.emptyList());
 	}
 
     public @NotNull String getNamespace() {
@@ -152,7 +168,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
 
 	@NotNull
 	@Override
-	public Iterator<ConfigValue<?>> iterator() {
+	public Iterator<ValueKey<?>> iterator() {
 		return ConfigManager.getValues(this).iterator();
 	}
 }
