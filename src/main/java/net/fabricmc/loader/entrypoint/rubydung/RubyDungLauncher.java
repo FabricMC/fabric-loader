@@ -33,7 +33,7 @@ public class RubyDungLauncher {
 	private Runnable mcApplet;
 	private boolean active;
 
-	public RubyDungLauncher (File instance, String username, String sessionid, String host, String port, boolean doConnect, boolean fullscreen, boolean demo) {
+	public RubyDungLauncher(File instance, String username, String sessionid, String host, String port, boolean doConnect, boolean fullscreen, boolean demo) {
 		gameDir = instance;
 		params = new HashMap<>();
 		params.put("username", username);
