@@ -218,8 +218,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 		if (envType == EnvType.CLIENT && targetClass.contains("Runnable")) {
 			targetClass = "net.fabricmc.loader.entrypoint.rubydung.RubyDungLauncher";
-		}
-		else if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
+		} else if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
 			targetClass = "net.fabricmc.loader.entrypoint.applet.AppletMain";
 		}
 
