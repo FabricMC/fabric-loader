@@ -43,7 +43,7 @@ public class RubyDungLauncher {
 			params.put("server", host);
 			params.put("port", port);
 		}
-		params.put("fullscreen", Boolean.toString(fullscreen)); //Required param for vanilla. Forge handles the absence gracefully.
+		params.put("fullscreen", Boolean.toString(fullscreen));
 		params.put("demo", Boolean.toString(demo));
 
 		try {
@@ -51,7 +51,7 @@ public class RubyDungLauncher {
 				                    .getDeclaredConstructor().newInstance();
 			//noinspection ConstantConditions
 			if (mcApplet == null) {
-				throw new RuntimeException("Could not instantiate MinecraftApplet - is null?");
+				throw new RuntimeException("Could not instantiate RubyDung - is null?");
 			}
 
 			mcApplet.run();
