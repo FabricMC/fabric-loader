@@ -52,7 +52,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 			String gameEntrypoint = null;
 			boolean serverHasFile = true;
 			boolean isApplet = entrypoint.contains("Applet");
-			boolean isRunnable = entrypoint.contains("Runnable");
+			boolean isRubyDung = entrypoint.contains("RubyDung");
 			ClassNode mainClass = loadClass(launcher, entrypoint);
 
 			if (mainClass == null) {
@@ -392,7 +392,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 					finishEntrypoint(type, it);
 				}
 				patched = true;
-			} else if (isRunnable || entrypoint.contains("com.mojang.rubydung.RubyDung")) {
+			} else if (isRubyDung) {
 				// RubyDung should not need any real patches
 				patched = true;
 			} else {

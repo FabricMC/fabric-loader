@@ -36,15 +36,6 @@ public class RubyDungLauncher {
 	public RubyDungLauncher(File instance, String username, String sessionid, String host, String port, boolean doConnect, boolean fullscreen, boolean demo) {
 		gameDir = instance;
 		params = new HashMap<>();
-		params.put("username", username);
-		params.put("sessionid", sessionid);
-		params.put("stand-alone", "true");
-		if (doConnect) {
-			params.put("server", host);
-			params.put("port", port);
-		}
-		params.put("fullscreen", Boolean.toString(fullscreen));
-		params.put("demo", Boolean.toString(demo));
 
 		try {
 			mcApplet = (Runnable) FabricLauncherBase.getLauncher().getTargetClassLoader().loadClass(EntrypointTransformer.appletMainClass)
@@ -58,22 +49,5 @@ public class RubyDungLauncher {
 		} catch (ReflectiveOperationException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public Map<String, String> getParams() {
-		return params;
-	}
-
-	private URL pathToUrl(File path) {
-		try {
-			return path.toURI().toURL();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private void closeWindow(int status) {
-		System.exit(status);
 	}
 }
