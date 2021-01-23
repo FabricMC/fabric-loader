@@ -393,7 +393,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 				}
 				patched = true;
 			} else if (isRunnable || entrypoint.contains("com.mojang.rubydung.RubyDung")) {
-				System.out.println("Trying as Runnable");
+				// RubyDung should not need any real patches
 				patched = true;
 			} else {
 				// Client-side:

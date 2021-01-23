@@ -51,11 +51,11 @@ public class RubyDungLauncher {
 				                    .getDeclaredConstructor().newInstance();
 			//noinspection ConstantConditions
 			if (mcApplet == null) {
-				throw new RuntimeException("Could not instantiate RubyDung - is null?");
+				throw new RuntimeException("Could not instantiate RubyDung - is it null?");
 			}
 
 			mcApplet.run();
-		} catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException | ClassNotFoundException e) {
+		} catch (ReflectiveOperationException e) {
 			throw new RuntimeException(e);
 		}
 	}
