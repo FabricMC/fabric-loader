@@ -61,7 +61,7 @@ public class AppletLauncher extends Applet implements AppletStub {
 
 		try {
 			mcApplet = (Applet) FabricLauncherBase.getLauncher().getTargetClassLoader().loadClass(EntrypointTransformer.appletMainClass)
-				.getDeclaredConstructor().newInstance();
+				                    .getDeclaredConstructor().newInstance();
 			//noinspection ConstantConditions
 			if (mcApplet == null) {
 				throw new RuntimeException("Could not instantiate MinecraftApplet - is null?");

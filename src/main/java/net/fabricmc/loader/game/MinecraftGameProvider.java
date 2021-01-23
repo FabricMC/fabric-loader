@@ -138,7 +138,7 @@ public class MinecraftGameProvider implements GameProvider {
 		List<String> entrypointClasses;
 
 		if (envType == EnvType.CLIENT) {
-			entrypointClasses = Arrays.asList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet");
+			entrypointClasses = Arrays.asList("net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet", "com.mojang.rubydung.RubyDung");
 		} else {
 			entrypointClasses = Arrays.asList("net.minecraft.server.Main", "net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer");
 		}
@@ -216,7 +216,10 @@ public class MinecraftGameProvider implements GameProvider {
 	public void launch(ClassLoader loader) {
 		String targetClass = entrypoint;
 
-		if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
+		if (envType == EnvType.CLIENT && targetClass.contains("Runnable")) {
+			targetClass = "net.fabricmc.loader.entrypoint.rubydung.RubyDungLauncher";
+		}
+		else if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
 			targetClass = "net.fabricmc.loader.entrypoint.applet.AppletMain";
 		}
 
