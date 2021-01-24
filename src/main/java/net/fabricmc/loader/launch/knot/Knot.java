@@ -46,7 +46,7 @@ public final class Knot extends FabricLauncherBase {
 	private final File gameJarFile;
 	private GameProvider provider;
 
-	protected Knot(EnvType type, File gameJarFile) {
+	public Knot(EnvType type, File gameJarFile) {
 		this.envType = type;
 		this.gameJarFile = gameJarFile;
 	}
