@@ -32,7 +32,7 @@ public interface ModDependency {
 	String getModId();
 
 	/**
-	 * @return the reason for the mod dependency
+	 * @return the reason for the mod dependency.
 	 */
 	Optional<String> getReason();
 
