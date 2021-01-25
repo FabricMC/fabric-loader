@@ -46,7 +46,7 @@ final class V1ModMetadataParser {
 	 * @param logger the logger to print warnings to
 	 * @param reader the json reader to read the file with
 	 * @return the metadata of this file, null if the file could not be parsed
-	 * @throws IOException         if there was any issue reading the file
+	 * @throws IOException if there was any issue reading the file
 	 */
 	static LoaderModMetadata parse(Logger logger, JsonReader reader) throws IOException, ParseMetadataException {
 		List<ParseWarning> warnings = new ArrayList<>();
@@ -434,7 +434,7 @@ final class V1ModMetadataParser {
 		reader.endArray();
 	}
 
-	private static void readDependenciesContainer(JsonReader reader, Map<String, ModDependency> modDependencies) throws IOException, ParseMetadataException {
+	static void readDependenciesContainer(JsonReader reader, Map<String, ModDependency> modDependencies) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Dependency container must be an object!", reader);
 		}
@@ -444,7 +444,8 @@ final class V1ModMetadataParser {
 		while (reader.hasNext()) {
 			final String modId = reader.nextName();
 			final List<String> matcherStringList = new ArrayList<>();
-			/* @Nullable */ String reason = null;
+			/* @Nullable */
+			String reason = null;
 			ModEnvironment environment = ModEnvironment.UNIVERSAL;
 
 			switch (reader.peek()) {
