@@ -440,7 +440,7 @@ public class ModResolver {
 					.append(depCandidateVer)
 					.append(" of ")
 					.append(getCandidateName(depCandidate))
-					.append(" may breaks in the presence of ")
+					.append(" may break in the presence of ")
 					.append(getCandidateName(candidate))
 					.append(":\n")
 					.append(reason);
