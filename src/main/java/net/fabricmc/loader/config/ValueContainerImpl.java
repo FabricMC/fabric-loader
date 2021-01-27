@@ -99,11 +99,15 @@ public class ValueContainerImpl implements ValueContainer {
 
 	@Override
 	public boolean contains(SaveType saveType) {
-		return this == ValueContainer.ROOT || this.saveTypes.contains(saveType);
+		return this.saveTypes.contains(saveType);
 	}
 
 	@Override
     public Path getSaveDirectory() {
         return this.saveDirectory;
     }
+
+    public void add(SaveType... saveTypes) {
+    	this.saveTypes.addAll(Arrays.asList(saveTypes));
+	}
 }

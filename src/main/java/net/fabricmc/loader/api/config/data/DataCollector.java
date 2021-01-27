@@ -16,6 +16,9 @@
 
 package net.fabricmc.loader.api.config.data;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public interface DataCollector {
 	/**
 	 * Adds any number of pieces of data of one specific type.
@@ -24,5 +27,9 @@ public interface DataCollector {
 	 * @param <T> the type of data to add
 	 */
 	@SuppressWarnings("unchecked")
-	<T> void add(DataType<T> type, T... data);
+	default <T> void add(DataType<T> type, T... data) {
+		this.add(type, Arrays.asList(data));
+	}
+
+	<T> void add(DataType<T> type, Collection<T> data);
 }

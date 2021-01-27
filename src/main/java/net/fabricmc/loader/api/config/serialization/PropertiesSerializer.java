@@ -90,8 +90,6 @@ public class PropertiesSerializer implements ConfigSerializer {
 
 				header = true;
 			}
-
-			writer.write("version=" + configDefinition.getVersion().toString() + '\n');
 		}
 
 		Iterator<ValueKey<?>> iterator = configDefinition.iterator();
@@ -174,25 +172,6 @@ public class PropertiesSerializer implements ConfigSerializer {
 		}
 
 		return false;
-	}
-
-	@Override
-	public @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException, VersionParsingException {
-		Path path = this.getPath(configDefinition, valueContainer);
-
-		if (!Files.exists(path)) return null;
-
-		Map<String, String> values = new HashMap<>();
-
-		Files.readAllLines(path).forEach(line -> {
-			if (line.startsWith("!") || line.startsWith("#") || line.trim().isEmpty()) return;
-
-			String[] split = line.split("=", 2);
-
-			values.put(split[0], split[1]);
-		});
-
-		return SemanticVersion.parse(values.get("version"));
 	}
 
 	@Override

@@ -16,8 +16,16 @@
 
 package net.fabricmc.loader.api.config.data;
 
-import net.fabricmc.loader.config.Identifiable;
+import net.fabricmc.loader.api.config.util.ListView;
+import net.fabricmc.loader.api.config.util.StronglyTypedImmutableCollection;
+import net.fabricmc.loader.api.config.util.Table;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Allows for formal definition of constraints on config values.
@@ -25,15 +33,95 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <T> the type of value this constraint can be applied to
  */
-public abstract class Constraint<T> extends Identifiable {
-	public Constraint(@NotNull String namespace, @NotNull String name) {
-		super(namespace, name);
+public abstract class Constraint<T> {
+	protected final String name;
+
+	public Constraint(@NotNull String name) {
+		this.name = name;
 	}
 
 	public abstract boolean passes(T value);
 
+	public void addStrings(Consumer<String> stringConsumer) {
+		stringConsumer.accept(this.toString());
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
 	@Override
 	public String toString() {
-		return "@" + super.toString();
+		return this.name;
+	}
+
+	public static class Value<T extends StronglyTypedImmutableCollection<?, V, ?>, V> extends Constraint<T> {
+		private final List<Constraint<V>> constraints = new ArrayList<>();
+
+		@SafeVarargs
+		public Value(@NotNull String name, Constraint<V>... constraints) {
+			super(name);
+			this.constraints.addAll(Arrays.asList(constraints));
+		}
+
+		public Value(@NotNull String name, Collection<Constraint<V>> constraints) {
+			super(name);
+			this.constraints.addAll(constraints);
+		}
+
+		@Override
+		public boolean passes(T value) {
+			for (V v : value.getValues()) {
+				for (Constraint<V> constraint : this.constraints) {
+					if (!constraint.passes(v)) return false;
+				}
+			}
+
+			return true;
+		}
+
+		public ListView<Constraint<V>> getConstraints() {
+			return new ListView<>(this.constraints);
+		}
+
+		@Override
+		public void addStrings(Consumer<String> stringConsumer) {
+
+		}
+	}
+
+	public static class Key<T extends Table<?>> extends Constraint<T> {
+		private final List<Constraint<String>> constraints = new ArrayList<>();
+
+		@SafeVarargs
+		public Key(@NotNull String name, Constraint<String>... constraints) {
+			super(name);
+			this.constraints.addAll(Arrays.asList(constraints));
+		}
+
+		public Key(@NotNull String name, Collection<Constraint<String>> constraints) {
+			super(name);
+			this.constraints.addAll(constraints);
+		}
+
+		@Override
+		public boolean passes(T value) {
+			for (Table.Entry<String, ?> entry : value) {
+				for (Constraint<String> constraint : this.constraints) {
+					if (!constraint.passes(entry.getKey())) return false;
+				}
+			}
+
+			return true;
+		}
+
+		public ListView<Constraint<String>> getConstraints() {
+			return new ListView<>(this.constraints);
+		}
+
+		@Override
+		public void addStrings(Consumer<String> stringConsumer) {
+
+		}
 	}
 }

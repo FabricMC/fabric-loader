@@ -16,14 +16,11 @@
 
 package net.fabricmc.loader.api.config;
 
-import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.Flag;
-import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
+import net.fabricmc.loader.api.config.value.ValueKey;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,7 +88,7 @@ public interface ConfigSerializer {
 	 *
 	 * @param configDefinition an intermediate representation for a config file
 	 * @param valueContainer the container holding values of {@param configDefinition}
-	 * @return whether or not a backup should be made of the existing config file before saving the new one
+	 * @return whether or not this config file was successfully saved
 	 * @throws IOException if loading the file failed
 	 */
     default boolean deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
@@ -112,15 +109,6 @@ public interface ConfigSerializer {
 	 * @throws IOException if loading the config failed
 	 */
     boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
-
-	/**
-	 * @param configDefinition an intermediate representation for a config file
-	 * @param valueContainer the container holding values of {@param configDefinition}
-	 * @return the version of an existing config file, null if one is not present
-	 * @throws IOException if loading the file failed
-	 * @throws VersionParsingException if parsing the semantic version failed
-	 */
-    @Nullable SemanticVersion getVersion(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException, VersionParsingException;
 
 	/**
 	 * @return the file extension of this serializer, e.g. 'json', 'yaml', 'properties', etc.
@@ -149,4 +137,6 @@ public interface ConfigSerializer {
 		return valueContainer.getSaveDirectory()
 				.resolve(configDefinition.getPath()).normalize()
 				.resolve(configDefinition.getName() + "-" + suffix + "." + this.getExtension());
-	}}
+	}
+
+}

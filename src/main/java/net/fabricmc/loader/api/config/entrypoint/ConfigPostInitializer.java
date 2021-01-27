@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api.config;
+package net.fabricmc.loader.api.config.entrypoint;
 
 import net.fabricmc.loader.api.config.value.ValueContainerProvider;
 
@@ -25,9 +25,9 @@ import java.util.function.Function;
  *
  * <p>This is the appropriate entrypoint to use to call {@link ValueContainerProvider#register(Function)}.</p>
  *
- * <p>The entrypoint is exposed with {@code configsLoaded} key in the mod json and runs for any environment. It is run
- * immediately before any {@link net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint}s.</p>
+ * <p>The entrypoint is exposed with {@code config} key in the mod json and runs for any environment. It is run
+ * befdore (de)serialization, and can be used to append flags and data to value keys by providers.</p>
  */
-public interface ConfigsLoadedEntrypoint {
+public interface ConfigPostInitializer {
 	void onConfigsLoaded();
 }

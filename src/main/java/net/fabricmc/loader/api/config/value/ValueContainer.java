@@ -20,13 +20,15 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.SaveType;
+import net.fabricmc.loader.config.ConfigManagerImpl;
 import net.fabricmc.loader.config.ValueContainerImpl;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 
 public interface ValueContainer {
-    ValueContainer ROOT = new ValueContainerImpl(FabricLoader.getInstance().getConfigDir().normalize());
+    ValueContainer ROOT = new ValueContainerImpl(FabricLoader.getInstance().getConfigDir().normalize(), SaveType.ROOT);
 
 	static ValueContainer of(Path saveDirectory, SaveType... saveTypes) {
 		ValueContainer valueContainer = new ValueContainerImpl(saveDirectory, saveTypes);
@@ -34,7 +36,7 @@ public interface ValueContainer {
 		if (saveDirectory != null) {
 			for (ConfigDefinition config : ConfigManager.getConfigKeys()) {
 				if (valueContainer.contains(config.getSaveType())) {
-					ConfigManager.doSerialization(config, valueContainer);
+					ConfigManagerImpl.doSerialization(config, valueContainer);
 				}
 			}
 		}
@@ -49,6 +51,7 @@ public interface ValueContainer {
      * @param <T> the type of the actual value
      * @return the value previously stored in the ValueContainer, or the default value
      */
+	@ApiStatus.Internal
     <T> T put(@NotNull ValueKey<T> valueKey, @NotNull T newValue);
 
     /**
@@ -57,6 +60,7 @@ public interface ValueContainer {
      * @param <T> the type of the actual value
      * @return the value stored in the ValueContainer, or the default value
      */
+    @ApiStatus.Internal
     <T> T get(ValueKey<T> valueKey);
 
     /**

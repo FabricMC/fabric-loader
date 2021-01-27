@@ -29,9 +29,4 @@ public final class Flag extends Identifiable {
 	public Flag(@NotNull String namespace, @NotNull String name) {
 		super(namespace, name);
 	}
-
-	@Override
-	public String toString() {
-		return "$" + super.toString();
-	}
 }

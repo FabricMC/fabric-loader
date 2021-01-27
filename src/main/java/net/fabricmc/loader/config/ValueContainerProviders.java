@@ -38,8 +38,9 @@ public class ValueContainerProviders {
 		@Override
 		public ValueContainer getPlayerValueContainer(UUID playerId) {
 			ConfigManager.LOGGER.warn("Attempted to get player value container from root provider.");
+			ConfigManager.LOGGER.warn("Returning root config value container.");
 
-			return null;
+			return ValueContainer.ROOT;
 		}
 
 		@Override

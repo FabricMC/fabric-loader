@@ -19,7 +19,9 @@ package net.fabricmc.loader.config;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class Identifiable {
 	private final String id;
@@ -37,6 +39,10 @@ public class Identifiable {
 	@Override
 	public String toString() {
 		return this.id;
+	}
+
+	public void addStrings(Consumer<String> stringConsumer) {
+		stringConsumer.accept(this.toString());
 	}
 
 	@Override

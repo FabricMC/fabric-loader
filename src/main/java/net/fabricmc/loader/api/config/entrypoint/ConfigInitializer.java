@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api.entrypoint;
+package net.fabricmc.loader.api.config.entrypoint;
 
-import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.SaveType;
 import net.fabricmc.loader.api.config.data.DataCollector;
-import net.fabricmc.loader.api.config.serialization.PropertiesSerializer;
+import net.fabricmc.loader.api.config.serialization.TomlSerializer;
 import net.fabricmc.loader.api.config.value.ConfigValueCollector;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +32,7 @@ public interface ConfigInitializer {
 	 * @return the concrete serializer instance associated with this config file.
 	 */
     default @NotNull ConfigSerializer getSerializer() {
-    	return PropertiesSerializer.INSTANCE;
+    	return TomlSerializer.INSTANCE;
 	}
 
     @NotNull SaveType getSaveType();
@@ -65,11 +64,4 @@ public interface ConfigInitializer {
 	default @NotNull String[] getSavePath() {
         return new String[0];
     }
-
-	/**
-	 * @return the version of this config file, used for backing up and migrating from old configs
-	 */
-    default @NotNull SemanticVersion getVersion() {
-    	return SemanticVersion.of(1, 0, 0);
-	}
 }

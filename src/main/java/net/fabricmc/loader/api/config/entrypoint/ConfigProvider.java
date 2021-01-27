@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api.entrypoint;
+package net.fabricmc.loader.api.config.entrypoint;
 
 import java.util.function.BiConsumer;
 
