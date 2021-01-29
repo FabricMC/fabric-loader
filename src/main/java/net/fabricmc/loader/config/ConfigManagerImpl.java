@@ -61,8 +61,9 @@ public class ConfigManagerImpl {
     	return CONFIG_VALUES.get(configKeyString);
 	}
 
-	public static @Nullable ConfigDefinition<?> getDefinition(String configKeyString) {
-		return CONFIG_DEFINITIONS.get(configKeyString);
+	public static <R> @Nullable ConfigDefinition<R> getDefinition(String configKeyString) {
+		//noinspection unchecked
+		return (ConfigDefinition<R>) CONFIG_DEFINITIONS.get(configKeyString);
 	}
 
     public static void initialize() {

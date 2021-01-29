@@ -71,7 +71,7 @@ public interface ConfigManager {
 	 * @param configKeyString the path of a config definition
 	 * @return the config definition if it exists, null otherwise
 	 */
-	static @Nullable ConfigDefinition<?> getDefinition(String configKeyString) {
+	static <R> @Nullable ConfigDefinition<R> getDefinition(String configKeyString) {
 		return ConfigManagerImpl.getDefinition(configKeyString);
 	}
 

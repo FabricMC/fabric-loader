@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * Supports serialization of comments, constraints, and data.
  */
 public class PropertiesSerializer implements ConfigSerializer<Map<String, String>> {
-	public static final ConfigSerializer<Map<String, String>> INSTANCE = new PropertiesSerializer();
+	public static final PropertiesSerializer INSTANCE = new PropertiesSerializer();
 	private final HashMap<Class<?>, ValueSerializer<?>> serializableTypes = new HashMap<>();
 
 	protected PropertiesSerializer() {
@@ -89,6 +89,8 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 				header = true;
 			}
 		}
+
+		writer.write("version=" + configDefinition.getVersion().toString() + '\n');
 
 		Iterator<ValueKey<?>> iterator = configDefinition.iterator();
 

@@ -85,6 +85,8 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 
 		ListView<String> configComments = configDefinition.getData(DataType.COMMENT);
 
+		root.put("version", new TomlElement(configDefinition.getVersion().toString()));
+
 		Writer writer = new BufferedWriter(new OutputStreamWriter(outputStream));
 
 		for (String comment : configComments) {
