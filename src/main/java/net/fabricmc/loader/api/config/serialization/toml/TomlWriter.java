@@ -140,7 +140,7 @@ public final class TomlWriter {
 			TomlElement element = entry.getValue();
 			Object object = element.getObject();
 			if (object instanceof Collection) {// array
-				Collection c = (Collection) object;
+				Collection<?> c = (Collection<?>) object;
 				if (!c.isEmpty() && c.iterator().next() instanceof Map) {// array of tables
 					if (simpleValues) {
 						continue;
@@ -157,7 +157,8 @@ public final class TomlWriter {
 						write("[[");
 						writeTableName();
 						write("]]\n");
-						Map<String, TomlElement> map = (Map) o;
+						//noinspection unchecked
+						Map<String, TomlElement> map = (Map<String, TomlElement>) o;
 						writeTableContent(map);
 					}
 					indentationLevel--;
@@ -190,7 +191,7 @@ public final class TomlWriter {
 						write("[[");
 						writeTableName();
 						write("]]\n");
-						Map<String, TomlElement> map = (Map) o;
+						Map<String, TomlElement> map = (Map<String, TomlElement>) o;
 						writeTableContent(map);
 					}
 					indentationLevel--;
@@ -218,7 +219,7 @@ public final class TomlWriter {
 				writeTableName();
 				write(']');
 				newLine();
-				writeTableContent((Map) object);
+				writeTableContent((Map<String, TomlElement>) object);
 
 				indentationLevel--;
 				tablesNames.removeLast();
@@ -278,12 +279,12 @@ public final class TomlWriter {
 		write(sb.toString());
 	}
 
-	private void writeArray(Collection c) throws IOException {
+	private void writeArray(Collection<?> c) throws IOException {
 		write('[');
 
 		indentationLevel += 2;
 
-		for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+		for (Iterator<?> iter = c.iterator(); iter.hasNext(); ) {
 			newLine();
 			indent();
 
@@ -499,7 +500,7 @@ public final class TomlWriter {
 			}
 			write(formatted);
 		} else if (value instanceof Collection) {
-			writeArray((Collection) value);
+			writeArray((Collection<?>) value);
 		} else if (value instanceof int[]) {
 			writeArray((int[]) value);
 		} else if (value instanceof byte[]) {

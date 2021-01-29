@@ -26,7 +26,7 @@ import java.util.function.Function;
  * <p>This is the appropriate entrypoint to use to call {@link ValueContainerProvider#register(Function)}.</p>
  *
  * <p>The entrypoint is exposed with {@code config} key in the mod json and runs for any environment. It is run
- * befdore (de)serialization, and can be used to append flags and data to value keys by providers.</p>
+ * before (de)serialization, and can be used to append flags and data to value keys by providers.</p>
  */
 public interface ConfigPostInitializer {
 	void onConfigsLoaded();

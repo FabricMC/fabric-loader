@@ -16,8 +16,10 @@
 
 package net.fabricmc.loader.api.config;
 
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
+import net.fabricmc.loader.api.config.util.ConfigUpgrade;
 import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import org.jetbrains.annotations.NotNull;
@@ -29,25 +31,31 @@ import java.util.*;
 /**
  * A top-level intermediate representation for several of the characteristics a config file needs.
  */
-public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<ValueKey<?>> {
+public class ConfigDefinition<R> implements Comparable<ConfigDefinition<?>>, Iterable<ValueKey<?>> {
     private final String namespace;
     private final String name;
-    private final ConfigSerializer serializer;
+    private final SemanticVersion version;
+    private final ConfigSerializer<R> serializer;
     private final Path path;
     private final String string;
     private final SaveType saveType;
 	private final Map<DataType<?>, List<Object>> data = new HashMap<>();
+	private final ConfigUpgrade<R> upgrade;
 
-    /**
+	/**
 	 * @param namespace namespace of the entity that owns this config file, usually a mod id
 	 * @param name the name of the config file this key represents (without any file extensions)
+	 * @param version
 	 * @param saveType see {@link SaveType}
+	 * @param upgrade
 	 * @param path the path of the directory this config file, relative to 'config/namespace'
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data, @NotNull Path path) {
+    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull SemanticVersion version, @NotNull ConfigSerializer<R> serializer, @NotNull SaveType saveType, @NotNull ConfigUpgrade<R> upgrade, @NotNull Path path, Map<DataType<?>, Collection<Object>> data) {
         this.namespace = namespace;
         this.name = name;
-        this.serializer = serializer;
+		this.version = version;
+		this.serializer = serializer;
+		this.upgrade = upgrade;
 		this.path = path;
         this.saveType = saveType;
         this.string = namespace + ":" + name;
@@ -64,28 +72,34 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
     /**
 	 * @param namespace namespace of the entity that owns this config file, usually a mod id
 	 * @param name the name of the config file this key represents (without any file extensions)
+	 * @param version
 	 * @param saveType see {@link SaveType}
+	 * @param upgrade
 	 * @param path the path of the directory this config file, relative to 'config/namespace'
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data, String... path) {
-        this(namespace, name, serializer, saveType, data, Paths.get(namespace, path));
+    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull SemanticVersion version, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data, @NotNull ConfigSerializer<R> serializer, @NotNull ConfigUpgrade<R> upgrade, String... path) {
+        this(namespace, name, version, serializer, saveType, upgrade, Paths.get(namespace, path), data);
     }
 
     /**
 	 * @param namespace namespace of the entity that owns this config file, usually a mod id
 	 * @param name the name of the config file this key represents (without any file extensions)
 	 * @param saveType see {@link SaveType}
+	 * @param version
+	 * @param upgrade
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data) {
-        this(namespace, name, serializer, saveType, data, Paths.get("."));
+    public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull ConfigSerializer<R> serializer, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data, SemanticVersion version, ConfigUpgrade<R> upgrade) {
+        this(namespace, name, version, serializer, saveType, upgrade, Paths.get("."), data);
     }
 
     /**
 	 * @param namespace namespace of the entity that owns this config file, usually a mod id
 	 * @param saveType see {@link SaveType}
+	 * @param version
+	 * @param upgrade
 	 */
-    public ConfigDefinition(@NotNull String namespace, @NotNull ConfigSerializer serializer, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data) {
-        this(namespace, "config", serializer, saveType, data, Paths.get("."));
+    public ConfigDefinition(@NotNull String namespace, @NotNull ConfigSerializer<R> serializer, @NotNull SaveType saveType, Map<DataType<?>, Collection<Object>> data, SemanticVersion version, ConfigUpgrade<R> upgrade) {
+        this(namespace, "config", version, serializer, saveType, upgrade, Paths.get("."), data);
     }
 
 	@SuppressWarnings("unchecked")
@@ -101,7 +115,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
         return this.name;
     }
 
-    public @NotNull ConfigSerializer getSerializer() {
+    public @NotNull ConfigSerializer<R> getSerializer() {
         return this.serializer;
     }
 
@@ -113,7 +127,7 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ConfigDefinition configDefinition = (ConfigDefinition) o;
+        ConfigDefinition<?> configDefinition = (ConfigDefinition<?>) o;
         return namespace.equals(configDefinition.namespace) && name.equals(configDefinition.name);
     }
 
@@ -156,9 +170,17 @@ public class ConfigDefinition implements Comparable<ConfigDefinition>, Iterable<
         return this.saveType;
     }
 
+    public boolean upgrade(SemanticVersion from, R representation) {
+    	return this.upgrade.upgrade(from, representation);
+	}
+
 	@NotNull
 	@Override
 	public Iterator<ValueKey<?>> iterator() {
 		return ConfigManager.getValues(this).iterator();
+	}
+
+	public @NotNull SemanticVersion getVersion() {
+		return this.version;
 	}
 }

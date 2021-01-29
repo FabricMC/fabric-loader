@@ -37,7 +37,7 @@ public interface ConfigManager {
 	/**
 	 * @return all registered config definitions
 	 */
-	static Collection<ConfigDefinition> getConfigKeys() {
+	static Collection<ConfigDefinition<?>> getConfigKeys() {
 		return ConfigManagerImpl.getConfigKeys();
 	}
 
@@ -45,7 +45,7 @@ public interface ConfigManager {
 	 * @param configDefinition the config file whose values we want
 	 * @return a list of value keys associated with the config file
 	 */
-	static Collection<ValueKey<?>> getValues(ConfigDefinition configDefinition) {
+	static Collection<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
 		return ConfigManagerImpl.getValues(configDefinition);
 	}
 
@@ -63,7 +63,7 @@ public interface ConfigManager {
 	 * @param config the config file to save
 	 * @param valueContainer the value container where values are stored
 	 */
-	static void save(ConfigDefinition config, ValueContainer valueContainer) {
+	static void save(ConfigDefinition<?> config, ValueContainer valueContainer) {
 		ConfigManagerImpl.save(config, valueContainer);
 	}
 
@@ -71,7 +71,7 @@ public interface ConfigManager {
 	 * @param configKeyString the path of a config definition
 	 * @return the config definition if it exists, null otherwise
 	 */
-	static @Nullable ConfigDefinition getDefinition(String configKeyString) {
+	static @Nullable ConfigDefinition<?> getDefinition(String configKeyString) {
 		return ConfigManagerImpl.getDefinition(configKeyString);
 	}
 

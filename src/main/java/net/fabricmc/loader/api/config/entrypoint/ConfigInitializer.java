@@ -16,10 +16,11 @@
 
 package net.fabricmc.loader.api.config.entrypoint;
 
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.SaveType;
 import net.fabricmc.loader.api.config.data.DataCollector;
-import net.fabricmc.loader.api.config.serialization.TomlSerializer;
+import net.fabricmc.loader.api.config.util.ConfigUpgrade;
 import net.fabricmc.loader.api.config.value.ConfigValueCollector;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,13 +28,11 @@ import org.jetbrains.annotations.NotNull;
  * Represents one config file.
  * See {@link ConfigProvider}
  */
-public interface ConfigInitializer {
+public interface ConfigInitializer<R> extends ConfigUpgrade<R> {
 	/**
 	 * @return the concrete serializer instance associated with this config file.
 	 */
-    default @NotNull ConfigSerializer getSerializer() {
-    	return TomlSerializer.INSTANCE;
-	}
+    @NotNull ConfigSerializer<R> getSerializer();
 
     @NotNull SaveType getSaveType();
 
@@ -58,10 +57,29 @@ public interface ConfigInitializer {
     	return "config";
 	}
 
+	default @NotNull SemanticVersion getVersion() {
+    	return SemanticVersion.of(1, 0, 0);
+	}
+
 	/**
 	 * @return an array of folder names that point where this config file will be saved, relative to 'config/namespace'
 	 */
 	default @NotNull String[] getSavePath() {
         return new String[0];
     }
+
+	/**
+	 * Upgrades on older config file to the version represented by this initializer.
+	 *
+	 * Called after post initializers but before the old version is deserialized.
+	 *
+	 * All ValueKey's should be fully operational by this point.
+	 *
+	 * @param from the version represented in the representation
+	 * @param representation the intermediate representation of the existing config file
+	 * @return whether or not to try to deserialize the existing config file after upgrading
+	 */
+    default boolean upgrade(SemanticVersion from, R representation) {
+		return true;
+	}
 }

@@ -1,5 +1,7 @@
 package net.fabricmc.loader.api.config.serialization;
 
+import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
@@ -14,6 +16,7 @@ import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -21,7 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class TomlSerializer implements ConfigSerializer {
+public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>> {
 	public static final TomlSerializer INSTANCE = new TomlSerializer();
 
 	@SuppressWarnings("rawtypes")
@@ -77,7 +80,7 @@ public class TomlSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public final void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
+	public final void serialize(ConfigDefinition<Map<String, TomlElement>> configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
 		Map<String, TomlElement> root = new LinkedHashMap<>();
 
 		ListView<String> configComments = configDefinition.getData(DataType.COMMENT);
@@ -107,8 +110,8 @@ public class TomlSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public final boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
-		Map<String, TomlElement> root = Toml.read(inputStream);
+	public final void deserialize(ConfigDefinition<Map<String, TomlElement>> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
+		Map<String, TomlElement> root = this.getRepresentation(inputStream);
 
 		MutableBoolean backup = new MutableBoolean(false);
 
@@ -125,7 +128,7 @@ public class TomlSerializer implements ConfigSerializer {
 			});
 		}
 
-		return backup.booleanValue();
+		backup.booleanValue();
 	}
 
 
@@ -159,6 +162,16 @@ public class TomlSerializer implements ConfigSerializer {
 	@Override
 	public @NotNull String getExtension() {
 		return "toml";
+	}
+
+	@Override
+	public @Nullable SemanticVersion getVersion(InputStream inputStream) throws IOException, VersionParsingException {
+		return SemanticVersion.parse((String) Toml.read(inputStream).get("version").getObject());
+	}
+
+	@Override
+	public @NotNull Map<String, TomlElement> getRepresentation(InputStream inputStream) throws IOException {
+		return Toml.read(inputStream);
 	}
 
 	public interface ValueSerializer<T> {

@@ -17,17 +17,15 @@
 package net.fabricmc.loader.api.config.serialization;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
+import org.jetbrains.annotations.NotNull;
+
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.data.Constraint;
@@ -35,15 +33,15 @@ import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
-import net.fabricmc.loader.api.SemanticVersion;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Default {@link ConfigSerializer} implementation.
  *
  * Supports serialization of comments, constraints, and data.
  */
-public class PropertiesSerializer implements ConfigSerializer {
-	public static final ConfigSerializer INSTANCE = new PropertiesSerializer();
+public class PropertiesSerializer implements ConfigSerializer<Map<String, String>> {
+	public static final ConfigSerializer<Map<String, String>> INSTANCE = new PropertiesSerializer();
 	private final HashMap<Class<?>, ValueSerializer<?>> serializableTypes = new HashMap<>();
 
 	protected PropertiesSerializer() {
@@ -77,7 +75,7 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
+	public void serialize(ConfigDefinition<Map<String, String>> configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
 
 		boolean header = false;
@@ -147,17 +145,8 @@ public class PropertiesSerializer implements ConfigSerializer {
 	}
 
 	@Override
-	public boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
-		Map<String, String> values = new HashMap<>();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-			if (!line.startsWith("!") && !line.startsWith("#") && !line.trim().isEmpty()) {
-				String[] split = line.split("=", 2);
-
-				values.put(split[0], split[1]);
-			}
-		}
+	public void deserialize(ConfigDefinition<Map<String, String>> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
+		Map<String, String> values = this.getRepresentation(inputStream);
 
 		//noinspection rawtypes
 		for (ValueKey value : configDefinition) {
@@ -171,12 +160,33 @@ public class PropertiesSerializer implements ConfigSerializer {
 			value.setValue(this.getSerializer(value).deserialize(valueString), valueContainer);
 		}
 
-		return false;
-	}
+    }
 
 	@Override
 	public @NotNull String getExtension() {
 		return "properties";
+	}
+
+	@Override
+	public @Nullable SemanticVersion getVersion(InputStream inputStream) throws IOException, VersionParsingException {
+		String s = this.getRepresentation(inputStream).get("version");
+		return s == null ? null : SemanticVersion.parse(s);
+	}
+
+	@Override
+	public @NotNull Map<String, String> getRepresentation(InputStream inputStream) throws IOException {
+		Map<String, String> values = new HashMap<>();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+		for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+			if (!line.startsWith("!") && !line.startsWith("#") && !line.trim().isEmpty()) {
+				String[] split = line.split("=", 2);
+
+				values.put(split[0], split[1]);
+			}
+		}
+
+		return values;
 	}
 
 	public interface ValueSerializer<V> {

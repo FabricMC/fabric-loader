@@ -38,7 +38,7 @@ import java.util.function.Predicate;
  * @param <E> The most basic building block class of this tree
  * @param <O> The "object" or "map" equivalent for this tree
  */
-public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSerializer {
+public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSerializer<O> {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	@SuppressWarnings("rawtypes")
@@ -82,7 +82,7 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 	}
 
 	@Override
-	public void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
+	public void serialize(ConfigDefinition<O> configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
 		O root = this.start(configDefinition.getData(DataType.COMMENT));
 
 		for (ValueKey<?> value : configDefinition) {
@@ -106,8 +106,8 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 	}
 
 	@Override
-	public boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
-		O root = this.read(inputStream);
+	public void deserialize(ConfigDefinition<O> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
+		O root = this.getRepresentation(inputStream);
 
 		MutableBoolean result = new MutableBoolean(false);
 
@@ -124,8 +124,8 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 			});
 		}
 
-		return result.booleanValue();
-	}
+        result.booleanValue();
+    }
 
 	private void doNested(O root, ValueKey<?> value, Consumer<O, String> consumer) {
 		O object = root;
@@ -149,8 +149,6 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 	protected abstract <R extends E> R add(O object, String key, R representation, Iterable<String> comments);
 
 	protected abstract <V> V get(O object, String s);
-
-	protected abstract O read(InputStream in) throws IOException;
 
 	protected abstract void write(O root, Writer writer, boolean minimal) throws IOException;
 

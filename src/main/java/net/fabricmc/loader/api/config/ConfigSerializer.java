@@ -16,11 +16,15 @@
 
 package net.fabricmc.loader.api.config;
 
+import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.Flag;
+import net.fabricmc.loader.api.config.exceptions.ConfigSerializationException;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
+
 /**
  * Implements serialization and deserialization behavior for config files.
  *
@@ -36,8 +41,10 @@ import java.util.function.Predicate;
  * The config serializer is responsible for serializing a config definition and its values to a config file reading
  * those same types of files, and handling several other format-specific behavior. Serializers are responsible for
  * serializing any {@link Flag} or {@link Constraint} instances attached to the config definition, values, and versions.
+ *
+ * @param <R> The intermediate representation class, used in upgrading between versions.
  */
-public interface ConfigSerializer {
+public interface ConfigSerializer<R> {
 	/**
 	 * Saves all config values for a given definition to disk.
 	 *
@@ -50,7 +57,7 @@ public interface ConfigSerializer {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @throws IOException 	if saving the file failed
 	 */
-    default void serialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
+    default void serialize(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) throws IOException {
 		Path path = this.getPath(configDefinition, valueContainer);
 
 		if (!Files.exists(path.getParent())) {
@@ -70,7 +77,7 @@ public interface ConfigSerializer {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @throws IOException 	if saving the file failed
 	 */
-	void serialize(ConfigDefinition configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException;
+	void serialize(ConfigDefinition<R> configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException;
 
 	/**
 	 * Loads all config values for a given definition to disk.
@@ -88,13 +95,35 @@ public interface ConfigSerializer {
 	 *
 	 * @param configDefinition an intermediate representation for a config file
 	 * @param valueContainer the container holding values of {@param configDefinition}
-	 * @return whether or not this config file was successfully saved
 	 * @throws IOException if loading the file failed
 	 */
-    default boolean deserialize(ConfigDefinition configDefinition, ValueContainer valueContainer) throws IOException {
+    default void deserialize(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) throws IOException {
     	Path path = this.getPath(configDefinition, valueContainer);
 
-    	return Files.exists(path) && this.deserialize(configDefinition, Files.newInputStream(path), valueContainer);
+    	if (Files.exists(path)) {
+    		SemanticVersion version = null;
+    		try {
+				version = this.getVersion(Files.newInputStream(path));
+			} catch (VersionParsingException ignored) {
+			}
+
+    		int c;
+
+    		boolean deserialize = false;
+
+    		if (version == null || (c = version.compareTo(configDefinition.getVersion())) < 0) {
+				deserialize = configDefinition.upgrade(version, this.getRepresentation(Files.newInputStream(path)));
+			} else if (c > 0) {
+				throw new ConfigSerializationException("Attempted to load newer config file: '" +
+						configDefinition.getVersion().toString() + "' expected, found '" +
+						version.toString() + "'"
+				);
+			}
+
+    		if (deserialize) {
+				this.deserialize(configDefinition, Files.newInputStream(path), valueContainer);
+			}
+		}
 	}
 
 	/**
@@ -105,15 +134,18 @@ public interface ConfigSerializer {
 	 * @param configDefinition an intermediate representation for a config file
 	 * @param inputStream the input stream to read values from
 	 * @param valueContainer the container holding values of {@param configDefinition}
-	 * @return whether or not a backup should be made of the existing config file before saving the new one
 	 * @throws IOException if loading the config failed
 	 */
-    boolean deserialize(ConfigDefinition configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
+    void deserialize(ConfigDefinition<R> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
 
 	/**
 	 * @return the file extension of this serializer, e.g. 'json', 'yaml', 'properties', etc.
 	 */
 	@NotNull String getExtension();
+
+	@Nullable SemanticVersion getVersion(InputStream inputStream) throws IOException, VersionParsingException;
+
+	@NotNull R getRepresentation(InputStream inputStream) throws IOException;
 
 	/**
 	 * Helper method for getting the path where a config file should be saved.
@@ -121,7 +153,7 @@ public interface ConfigSerializer {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @return the save location of the config file
 	 */
-    default @NotNull Path getPath(ConfigDefinition configDefinition, ValueContainer valueContainer) {
+    default @NotNull Path getPath(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
         return valueContainer.getSaveDirectory()
                 .resolve(configDefinition.getPath()).normalize()
                 .resolve(configDefinition.getName() + "." + this.getExtension());
@@ -133,7 +165,7 @@ public interface ConfigSerializer {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @return the save location of the config file
 	 */
-	default @NotNull Path getPath(ConfigDefinition configDefinition, ValueContainer valueContainer, String suffix) {
+	default @NotNull Path getPath(ConfigDefinition<R> configDefinition, ValueContainer valueContainer, String suffix) {
 		return valueContainer.getSaveDirectory()
 				.resolve(configDefinition.getPath()).normalize()
 				.resolve(configDefinition.getName() + "-" + suffix + "." + this.getExtension());
