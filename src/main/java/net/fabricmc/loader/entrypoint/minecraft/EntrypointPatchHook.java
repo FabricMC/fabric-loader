@@ -161,9 +161,7 @@ public class EntrypointPatchHook extends EntrypointPatch {
 
 						int qual = 2;
 						boolean hasLwjglLog = false;
-						ListIterator<AbstractInsnNode> it = gmCandidate.instructions.iterator();
-						while (it.hasNext()) {
-							AbstractInsnNode insn = it.next();
+						for (AbstractInsnNode insn : gmCandidate.instructions) {
 							if (insn instanceof LdcInsnNode) {
 								Object cst = ((LdcInsnNode) insn).cst;
 								if (cst instanceof String) {
