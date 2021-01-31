@@ -96,15 +96,16 @@ public class ModResolver {
 		try {
 			path = UrlUtil.asPath(c.getOriginUrl());
 		} catch (UrlConversionException e) {
-			throw new RuntimeException(e);
+			loader.getLogger().error("Failed to turn '{}' (URL for mod '{}') into a path!", c.getOriginUrl(), c.getInfo().getId());
+			path = null;
 		}
 
 		Path gameDir = loader.getGameDir();
-		if (path.startsWith(gameDir)) {
+		if (path != null && path.startsWith(gameDir)) {
 			path = gameDir.relativize(path);
 		}
 
-		return readableNestedJarPaths.getOrDefault(c.getOriginUrl().toString(), path.toString());
+		return readableNestedJarPaths.getOrDefault(c.getOriginUrl().toString(), path != null ? path.toString() : "<unknown>");
 	}
 
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
@@ -717,7 +718,7 @@ public class ModResolver {
 									try {
 										readableNestedJarPaths.put(UrlUtil.asUrl(dest).toString(), String.format("%s!%s", getReadablePath(loader, candidate), modPath));
 									} catch (UrlConversionException e) {
-										e.printStackTrace();
+										loader.getLogger().error("Failed to turn '{}' (path to mod '{}') into URL!", dest, candidate.getInfo().getId());
 									}
 								}
 							});
