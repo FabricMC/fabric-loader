@@ -239,7 +239,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	/**
 	 * Prints the mod list according to the setting specified by
-	 * {@code -Dfabric_loader_modlist_style}. Valid values for this setting are:
+	 * {@code -Dfabric.modListStyle}. Valid values for this setting are:
 	 * <ul>
 	 *     <li>
 	 *         {@code verbose}. Prints each mod id, version, and path to the jar
@@ -251,9 +251,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 *         readable than {@code short}.
 	 *         <br>
 	 *         The {@code ncols} setting determines the maximum width each line
-	 *         can take up. Using {@code -Dfabric_loader_modlist_style=col80}
-	 *         for example means that it will auto-wrap the printed text after
-	 *         80 characters. If {@code ncols} is left away, it will default to
+	 *         can take up. Using {@code -Dfabric.modListStyle=col80} for
+	 *         example means that it will auto-wrap the printed text after 80
+	 *         characters. If {@code ncols} is left away, it will default to
 	 *         120.
 	 *     </li>
 	 *     <li>
@@ -261,7 +261,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 *         and version.
 	 *     </li>
 	 * </ul>
-	 * The default value for {@code -Dfabric_loader_modlist_style} is 'col'.
+	 * The default value for {@code -Dfabric.modListStyle} is 'col'.
 	 * @param candidateMap the mod candidate map to print
 	 */
 	private void printModList(Map<String, ModCandidate> candidateMap) {
@@ -278,7 +278,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				break;
 		}
 
-		String style = System.getProperty("fabric_loader_modlist_style", "col");
+		String style = System.getProperty(SystemProperties.MOD_LIST_STYLE, "col");
 		int maxWidth = 120;
 
 		if (style.startsWith("col")) {
@@ -320,7 +320,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
 				.collect(Collectors.joining(", ")));
 		} else {
-			LOGGER.error("Invalid setting for fabric_loader_modlist_style: '{}'. Valid values are: verbose, col *, short", style);
+			LOGGER.error("Invalid setting for -D{}: '{}'. Valid values are: verbose, col *, short", SystemProperties.MOD_LIST_STYLE, style);
 			LOGGER.error("* You can add the maximum width the output will have by adding it as a suffix to col, for example col80 for an 80 columns terminal. Default is 120.");
 			LOGGER.info("Not displaying mod list due to invalid configuration.");
 		}

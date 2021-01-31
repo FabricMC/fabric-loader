@@ -23,6 +23,13 @@ public final class SystemProperties {
 	public static final String GAME_VERSION = "fabric.gameVersion";
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
 
+	/**
+	 * Property that defines how the mod list is displayed at game startup.
+	 *
+	 * @see net.fabricmc.loader.FabricLoader#printModList(java.util.Map)
+	 */
+	public static final String MOD_LIST_STYLE = "fabric.modListStyle";
+
 	private SystemProperties() {
 	}
 }
