@@ -16,15 +16,19 @@
 
 package net.fabricmc.loader.util;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.invoke.WrongMethodTypeException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
+
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-
-import java.lang.invoke.MethodHandle;
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class DefaultLanguageAdapter implements LanguageAdapter {
 	public static final DefaultLanguageAdapter INSTANCE = new DefaultLanguageAdapter();
@@ -50,78 +54,98 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 		if (methodSplit.length == 1) {
 			if (type.isAssignableFrom(c)) {
 				try {
+					// can't call exact for return type isn't specified
 					//noinspection unchecked
-					return (T) c.getDeclaredConstructor().newInstance();
-				} catch (Exception e) {
+					return (T) MethodHandles.lookup().findConstructor(c, MethodType.methodType(Void.TYPE)).invoke();
+				} catch (Throwable e) {
 					throw new LanguageAdapterException(e);
 				}
-			} else {
-				throw new LanguageAdapterException("Class " + c.getName() + " cannot be cast to " + type.getName() + "!");
 			}
-		} else /* length == 2 */ {
-			List<Method> methodList = new ArrayList<>();
+			throw new LanguageAdapterException("Class " + c.getName() + " cannot be cast to " + type.getName() + "!");
+		}
 
-			for (Method m : c.getDeclaredMethods()) {
-				if (!(m.getName().equals(methodSplit[1]))) {
-					continue;
-				}
+		/* length == 2 */
+		Method foundMethod = null;
 
-				methodList.add(m);
+		for (Method m : c.getDeclaredMethods()) {
+			if (!(m.getName().equals(methodSplit[1]))) {
+				continue;
 			}
 
-			try {
-				Field field = c.getDeclaredField(methodSplit[1]);
-				Class<?> fType = field.getType();
-				if ((field.getModifiers() & Modifier.STATIC) == 0) {
-					throw new LanguageAdapterException("Field " + value + " must be static!");
-				}
-
-				if (!methodList.isEmpty()) {
-					throw new LanguageAdapterException("Ambiguous " + value + " - refers to both field and method!");
-				}
-
-				if (!type.isAssignableFrom(fType)) {
-					throw new LanguageAdapterException("Field " + value + " cannot be cast to " + type.getName() + "!");
-				}
-
-				//noinspection unchecked
-				return (T) field.get(null);
-			} catch (NoSuchFieldException e) {
-				// ignore
-			} catch (IllegalAccessException e) {
-				throw new LanguageAdapterException("Field " + value + " cannot be accessed!", e);
-			}
-
-			if (!type.isInterface()) {
-				throw new LanguageAdapterException("Cannot proxy method " + value + " to non-interface type " + type.getName() + "!");
-			}
-
-			if (methodList.isEmpty()) {
-				throw new LanguageAdapterException("Could not find " + value + "!");
-			} else if (methodList.size() >= 2) {
+			if (foundMethod != null) {
 				throw new LanguageAdapterException("Found multiple method entries of name " + value + "!");
 			}
 
-			final Method targetMethod = methodList.get(0);
-			Object object = null;
+			foundMethod = m;
+		}
 
-			if ((targetMethod.getModifiers() & Modifier.STATIC) == 0) {
-				try {
-					object = c.getDeclaredConstructor().newInstance();
-				} catch (Exception e) {
-					throw new LanguageAdapterException(e);
+		try {
+			Field field = c.getDeclaredField(methodSplit[1]);
+			Class<?> fType = field.getType();
+			if ((field.getModifiers() & Modifier.STATIC) == 0) {
+				throw new LanguageAdapterException("Field " + value + " must be static!");
+			}
+
+			if (foundMethod != null) {
+				throw new LanguageAdapterException("Ambiguous " + value + " - refers to both field and method!");
+			}
+
+			if (!type.isAssignableFrom(fType)) {
+				throw new LanguageAdapterException("Field " + value + " cannot be cast to " + type.getName() + "!");
+			}
+
+			//noinspection unchecked
+			return (T) field.get(null);
+		} catch (NoSuchFieldException e) {
+			// ignore
+		} catch (IllegalAccessException e) {
+			throw new LanguageAdapterException("Field " + value + " cannot be accessed!", e);
+		}
+
+		if (foundMethod == null) {
+			throw new LanguageAdapterException("Could not find " + value + "!");
+		}
+
+		if (!type.isInterface()) {
+			throw new LanguageAdapterException("Cannot proxy method " + value + " to non-interface type " + type.getName() + "!");
+		}
+
+		MethodHandles.Lookup lookup = MethodHandles.lookup();
+		MethodHandle called;
+		try {
+			called = lookup.unreflect(foundMethod);
+		} catch (IllegalAccessException ex) {
+			throw new LanguageAdapterException("Method " + value + " is not accessible to the language adapter", ex);
+		}
+
+		if (!Modifier.isStatic(foundMethod.getModifiers())) {
+			try {
+				called = called.bindTo(lookup.findConstructor(c, MethodType.methodType(Void.TYPE)).invoke());
+			} catch (Throwable e) {
+				throw new LanguageAdapterException("Cannot create a class instance to invoke instance method for " + value, e);
+			}
+		}
+
+		final MethodHandle target = called;
+		// cannot use lambda meta factory because hidden classes will not work
+		//noinspection unchecked
+		return (T) Proxy.newProxyInstance(FabricLauncherBase.getLauncher().getTargetClassLoader(), new Class[] {type}, (proxy, method, args) -> {
+			if (method.getDeclaringClass() == Object.class) {
+				switch (method.getName()) {
+				case "hashCode":
+					return System.identityHashCode(proxy);
+				case "equals":
+					return (proxy == args[0] ? Boolean.TRUE : Boolean.FALSE);
+				case "toString":
+					return proxy.getClass().getName() + '@' + Integer.toHexString(proxy.hashCode());
 				}
 			}
 
-			final Object targetObject = object;
-
-			//noinspection unchecked
-			return (T) Proxy.newProxyInstance(FabricLauncherBase.getLauncher().getTargetClassLoader(), new Class[] { type }, new InvocationHandler() {
-				@Override
-				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-					return targetMethod.invoke(targetObject, args);
-				}
-			});
-		}
+			try {
+				return target.invokeWithArguments(args);
+			} catch (WrongMethodTypeException | ClassCastException ex) {
+				throw new UnsupportedOperationException("Cannot delegate call to backing method " + value, ex);
+			}
+		});
 	}
 }

@@ -29,7 +29,8 @@ import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.SystemProperties;
 
 import java.io.File;
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -221,10 +222,10 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		try {
-			Class<?> c = loader.loadClass(targetClass);
-			Method m = c.getMethod("main", String[].class);
-			m.invoke(null, (Object) arguments.toArray());
-		} catch (Exception e) {
+			MethodHandles.lookup()
+					.findStatic(loader.loadClass(targetClass), "main", MethodType.methodType(Void.TYPE, String[].class))
+					.invokeExact((String[]) arguments.toArray()); // ignore ide warning here
+		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
 	}

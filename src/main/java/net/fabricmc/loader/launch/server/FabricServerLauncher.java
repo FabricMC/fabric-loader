@@ -20,6 +20,8 @@ import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlUtil;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -58,9 +60,10 @@ public class FabricServerLauncher {
 
 	private static void launch(String mainClass, ClassLoader loader, String[] args) {
 		try {
-			Class<?> c = loader.loadClass(mainClass);
-			c.getMethod("main", String[].class).invoke(null, (Object) args);
-		} catch (Exception e) {
+			MethodHandles.lookup()
+					.findStatic(loader.loadClass(mainClass), "main", MethodType.methodType(Void.TYPE, String[].class))
+					.invokeExact((String[]) args); // ignore ide warning
+		} catch (Throwable e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
 		}
 	}

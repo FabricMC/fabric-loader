@@ -16,7 +16,11 @@
 
 package net.fabricmc.test;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
@@ -51,6 +55,10 @@ public class TestMod implements PreLaunchEntrypoint, ModInitializer {
 		LOGGER.info("**************************");
 		LOGGER.info("Hello from Fabric");
 		LOGGER.info("**************************");
+
+		Set<ModInitializer> testingInits = new LinkedHashSet<>(FabricLoader.getInstance().getEntrypoints("test:testing", ModInitializer.class));
+		LOGGER.info("Found %d testing inits", testingInits.size());
+		testingInits.forEach(ModInitializer::onInitialize);
 	}
 
 }

@@ -88,6 +88,19 @@ public interface FabricLoader {
 	 * where the {@code default} adapter is the {@linkplain LanguageAdapter adapter}
 	 * offered by Fabric Loader. </p>
 	 *
+	 * <p>The language adapter from fabric loader supports these notations:
+	 * <ul><li>A class name in binary ({@code .}) format</li>
+	 * <li>A class name in binary format concatenated with {@code ::} to a field or
+	 * method name</li></ul>
+	 * When only a class name is provided, the default adapter will try to instantiate
+	 * the class thorough its public no-argument constructor and cast it to the type
+	 * of entrypoint. When there is a field name, the field must be public and static;
+	 * the adapter will retrieve the field's value and cast it to the type of entrypoint.
+	 * When there is a method name, the adapter will create a proxy where <b>any call to
+	 * any method</b> except Object methods will be delegated to that method, which must be
+	 * public and can be static or instance. If it's an instance method, an instance of
+	 * the class will be created first.
+	 *
 	 * @param key  the key in entrypoint declaration in {@code fabric.mod.json}
 	 * @param type the type of entrypoints
 	 * @param <T>  the type of entrypoints
