@@ -157,6 +157,14 @@ public class ModResolver {
 				for (ModCandidate mod : candidateIntMap.keySet()) {
 					int modClauseId = candidateIntMap.get(mod);
 
+					// When a mod provides an alias id, another mod with same id as the alias must NOT be present.
+
+					for (String provided : mod.getInfo().getProvides()) {
+						if (mandatoryMods.contains(provided)) {
+							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " provides " + provided + " but it's already present");
+						}
+					}
+
 					// Each mod's requirements must be satisfied, if it is to be present.
 					// mod => ((a or b) AND (d or e))
 					// \> not mod OR ((a or b) AND (d or e))
