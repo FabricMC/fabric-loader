@@ -60,6 +60,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
@@ -92,7 +93,13 @@ class FabricMainWindow {
 	private static void createUi(CountDownLatch onCloseLatch, FabricStatusTree tree) {
 		JFrame window = new JFrame();
 		window.setVisible(false);
-		window.setTitle("Fabric Loader");
+
+		window.setTitle("Fabric Loader " + FabricLoader.getInstance()
+			.getModContainer("fabricloader")
+			.get()
+			.getMetadata()
+			.getVersion()
+			.getFriendlyString());
 
 		try {
 			window.setIconImage(loadImage("/ui/icon/fabric_x128.png"));
