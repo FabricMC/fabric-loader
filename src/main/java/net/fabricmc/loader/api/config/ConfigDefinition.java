@@ -23,6 +23,7 @@ import net.fabricmc.loader.api.config.util.ConfigUpgrade;
 import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,7 +48,7 @@ public class ConfigDefinition<R> implements Comparable<ConfigDefinition<?>>, Ite
 	 * @param name the name of the config file this key represents (without any file extensions)
 	 * @param version
 	 * @param saveType see {@link SaveType}
-	 * @param upgrade
+	 * @param upgrade the upgrader to be used
 	 * @param path the path of the directory this config file, relative to 'config/namespace'
 	 */
     public ConfigDefinition(@NotNull String namespace, @NotNull String name, @NotNull SemanticVersion version, @NotNull ConfigSerializer<R> serializer, @NotNull SaveType saveType, @NotNull ConfigUpgrade<R> upgrade, @NotNull Path path, Map<DataType<?>, Collection<Object>> data) {
@@ -170,7 +171,7 @@ public class ConfigDefinition<R> implements Comparable<ConfigDefinition<?>>, Ite
         return this.saveType;
     }
 
-    public boolean upgrade(SemanticVersion from, R representation) {
+    public boolean upgrade(@Nullable SemanticVersion from, R representation) {
     	return this.upgrade.upgrade(from, representation);
 	}
 

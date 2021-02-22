@@ -18,7 +18,6 @@ package net.fabricmc.loader.config;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.config.ConfigDefinition;
-import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.entrypoint.ConfigEnvironment;
 import net.fabricmc.loader.api.config.entrypoint.ConfigPostInitializer;
@@ -30,6 +29,8 @@ import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.entrypoint.ConfigInitializer;
 import net.fabricmc.loader.api.config.entrypoint.ConfigProvider;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -39,7 +40,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConfigManagerImpl {
-    private static final Map<ConfigDefinition<?>, Collection<ValueKey<?>>> CONFIGS = new HashMap<>();
+	public static final Logger LOGGER = LogManager.getLogger("Fabric|Config");
+	private static final Map<ConfigDefinition<?>, Collection<ValueKey<?>>> CONFIGS = new HashMap<>();
     private static final Map<String, ConfigDefinition<?>> CONFIG_DEFINITIONS = new ConcurrentHashMap<>();
     private static final Map<String, ValueKey<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
 
@@ -72,9 +74,11 @@ public class ConfigManagerImpl {
     	Map<String, Collection<ConfigInitializer<?>>> configInitializers = new HashMap<>();
     	Collection<ConfigPostInitializer> postInitializers = new ArrayList<>();
 
+    	// We use one entrypoint to reduce the number of excess entrypoint keys
     	for (EntrypointContainer<Object> container : FabricLoader.getInstance().getEntrypointContainers("config", Object.class)) {
 			Object entrypoint = container.getEntrypoint();
 
+			// Each entrypoint type is handled individually
     		if (entrypoint instanceof ConfigEnvironment) {
 				((ConfigEnvironment) entrypoint).addToRoot(((ValueContainerImpl) ValueContainer.ROOT)::add);
 			}
@@ -97,37 +101,8 @@ public class ConfigManagerImpl {
 		}
 
         for (String modId : configInitializers.keySet()) {
-			//noinspection rawtypes
-			for (ConfigInitializer initializer : configInitializers.get(modId)) {
-				Map<DataType<?>, Collection<Object>> data = new HashMap<>();
-
-				initializer.addConfigData(new DataCollector() {
-					@Override
-					public <T> void add(DataType<T> type, Collection<T> values) {
-						data.computeIfAbsent(type, t -> new ArrayList<>()).addAll(values);
-					}
-				});
-
-				//noinspection unchecked
-				ConfigDefinition<?> configDefinition = new ConfigDefinition(modId, initializer.getName(), initializer.getVersion(), initializer.getSaveType(), data, initializer.getSerializer(), initializer::upgrade, initializer.getSavePath());
-
-				if (CONFIGS.containsKey(configDefinition)) {
-					ConfigManager.LOGGER.warn("Attempted to register duplicate config '{}'", configDefinition.toString());
-					continue;
-				}
-
-				initializer.addConfigValues(((configValue, path0, path) -> {
-					configValue.initialize(configDefinition, path0, path);
-
-					if (CONFIGS.getOrDefault(configDefinition, Collections.emptySet()).contains(configValue)) {
-						ConfigManager.LOGGER.warn("Attempted to register duplicate config value '{}'", configValue);
-						return;
-					}
-
-					CONFIGS.computeIfAbsent(configDefinition, c -> new ArrayList<>()).add(configValue);
-					CONFIG_VALUES.put(configValue.toString(), configValue);
-					CONFIG_DEFINITIONS.put(configDefinition.toString(), configDefinition);
-				}));
+			for (ConfigInitializer<?> initializer : configInitializers.get(modId)) {
+				initialize(modId, initializer);
 			}
 		}
 
@@ -140,16 +115,46 @@ public class ConfigManagerImpl {
         FINISHED = true;
     }
 
+    private static <T1> void initialize(String modId, ConfigInitializer<T1> initializer) {
+		Map<DataType<?>, Collection<Object>> data = new HashMap<>();
+
+		initializer.addConfigData(new DataCollector() {
+			@Override
+			public <T2> void add(DataType<T2> type, Collection<T2> values) {
+				data.computeIfAbsent(type, t -> new ArrayList<>()).addAll(values);
+			}
+		});
+
+		ConfigDefinition<T1> configDefinition = new ConfigDefinition<>(modId, initializer.getName(), initializer.getVersion(), initializer.getSaveType(), data, initializer.getSerializer(), initializer, initializer.getSavePath());
+
+		if (CONFIGS.containsKey(configDefinition)) {
+			LOGGER.warn("Attempted to register duplicate config '{}'", configDefinition.toString());
+			return;
+		}
+
+		initializer.addConfigValues(((configValue, path0, path) -> {
+			configValue.initialize(configDefinition, path0, path);
+
+			if (CONFIGS.getOrDefault(configDefinition, Collections.emptySet()).contains(configValue)) {
+				LOGGER.warn("Attempted to register duplicate config value '{}'", configValue);
+				return;
+			}
+
+			CONFIGS.computeIfAbsent(configDefinition, c -> new ArrayList<>()).add(configValue);
+			CONFIG_VALUES.put(configValue.toString(), configValue);
+			CONFIG_DEFINITIONS.put(configDefinition.toString(), configDefinition);
+		}));
+	}
+
     public static <R> void doSerialization(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
     	if (!valueContainer.contains(configDefinition.getSaveType())) return;
 
         ConfigSerializer<R> serializer = configDefinition.getSerializer();
 
-        Path location = serializer.getPath(configDefinition, valueContainer);
-
 		try {
 			serializer.deserialize(configDefinition, valueContainer);
         } catch (IOException e) {
+			Path location = serializer.getPath(configDefinition, valueContainer);
 			throw new ConfigSerializationException(String.format("Failed to deserialize config '%s': %s", location, e.getMessage()));
 		}
 

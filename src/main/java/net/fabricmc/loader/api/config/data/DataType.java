@@ -16,18 +16,34 @@
 
 package net.fabricmc.loader.api.config.data;
 
+import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.config.Identifiable;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 /**
  * Represent a type of data that can be attached to a specific config value or config definition.
  * See {@link ValueKey#getData(DataType)}.
  */
 public class DataType<T> extends Identifiable {
-	public static final DataType<String> COMMENT = new DataType<>("fabric", "comment");
+	public static final DataType<String> COMMENT = new DataType<String>("fabric", "comment") {
+		@Override
+		public void addLines(ListView<String> data, Consumer<String> consumer) {
+			data.forEach(comment -> {
+				for (String s : comment.split("\\r?\\n")) {
+					consumer.accept(s);
+				}
+			});
+		}
+	};
 
 	public DataType(@NotNull String namespace, @NotNull String name) {
 		super(namespace, name);
+	}
+
+	public void addLines(ListView<T> data, Consumer<String> consumer) {
+		// Don't add lines by default
 	}
 }

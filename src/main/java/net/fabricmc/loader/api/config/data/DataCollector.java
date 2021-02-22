@@ -31,5 +31,11 @@ public interface DataCollector {
 		this.add(type, Arrays.asList(data));
 	}
 
+	/**
+	 * Adds any number of pieces of data of one specific type.
+	 * @param type the type of data to add
+	 * @param data zero or more data values
+	 * @param <T> the type of data to add
+	 */
 	<T> void add(DataType<T> type, Collection<T> data);
 }

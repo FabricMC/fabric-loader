@@ -28,7 +28,9 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -89,14 +91,7 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 			if (valuePredicate.test(value)) {
 				doNested(root, value, (object, key) -> {
 					Object v = valueContainer.get(value);
-					Collection<String> comments;
-
-					if (minimal) {
-						comments = Collections.emptyList();
-					} else {
-						comments = ConfigManager.getComments(value);
-					}
-
+					Collection<String> comments = minimal ? Collections.emptyList() : ConfigManager.getComments(value);
 					this.add(object, key, this.getSerializer(value).serializeValue(v), comments);
 				});
 			}
@@ -109,23 +104,27 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 	public void deserialize(ConfigDefinition<O> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException {
 		O root = this.getRepresentation(inputStream);
 
-		MutableBoolean result = new MutableBoolean(false);
+		MutableBoolean backup = new MutableBoolean(false);
 
-		for (ValueKey value : configDefinition) {
-			doNested(root, value, (object, key) -> {
-				ValueSerializer<E, ?, ?> serializer = this.getSerializer(value);
-				E representation = this.get(object, key);
-
-				if (representation != null) {
-					value.setValue(serializer.deserialize(representation), valueContainer);
-				} else {
-					result.setTrue();
-				}
-			});
+		for (ValueKey<?> value : configDefinition) {
+			this.handle(root, valueContainer, value, backup);
 		}
 
-        result.booleanValue();
+        backup.booleanValue();
     }
+
+	private <T> void handle(O root, ValueContainer valueContainer, ValueKey<T> value, MutableBoolean backup) {
+		doNested(root, value, (object, key) -> {
+			ValueSerializer<E, ?, T> serializer = this.getSerializer(value);
+			E representation = this.get(object, key);
+
+			if (representation != null) {
+				value.setValue(serializer.deserialize(representation), valueContainer);
+			} else {
+				backup.setTrue();
+			}
+		});
+	}
 
 	private void doNested(O root, ValueKey<?> value, Consumer<O, String> consumer) {
 		O object = root;

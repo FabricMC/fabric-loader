@@ -18,21 +18,17 @@ package net.fabricmc.loader.api.config;
 
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.DataType;
-import net.fabricmc.loader.api.config.data.Flag;
-import net.fabricmc.loader.api.config.util.ListView;
-import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
+import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.config.ConfigManagerImpl;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface ConfigManager {
-	Logger LOGGER = LogManager.getLogger("Fabric|Config");
 
 	/**
 	 * @return all registered config definitions
@@ -75,15 +71,35 @@ public interface ConfigManager {
 		return ConfigManagerImpl.getDefinition(configKeyString);
 	}
 
+	/**
+	 * A utility method for getting all comments for a config value, including data, flags, and constraints.
+	 *
+	 * @param value the config value whose comments we want to get
+	 * @return an ordered collection of comment strings
+	 */
 	static Collection<String> getComments(ValueKey<?> value) {
 		Collection<String> comments = new ArrayList<>();
 
-		ListView<String> valueComments = value.getData(DataType.COMMENT);
-		valueComments.forEach(comments::add);
+		DataType.COMMENT.addLines(value.getData(DataType.COMMENT), comments::add);
+
+		List<String> dataStrings = new ArrayList<>();
+		value.getDataTypes().forEach(dataType -> {
+			if (dataType != DataType.COMMENT) {
+				process(dataType, value, dataStrings::add);
+			}
+		});
+
+		if (comments.size() > 0 && dataStrings.size() > 0) {
+			comments.add("");
+		}
+
+		if (dataStrings.size() > 0) {
+			comments.add("Data:");
+			dataStrings.forEach(string -> comments.add("  " + string));
+		}
 
 		List<String> flagStrings = new ArrayList<>();
-		ListView<Flag> flags = value.getFlags();
-		flags.forEach(flag -> flag.addStrings(flagStrings::add));
+		value.getFlags().forEach(flag -> flag.addStrings(flagStrings::add));
 
 		if (comments.size() > 0 && flagStrings.size() > 0) {
 			comments.add("");
@@ -97,7 +113,7 @@ public interface ConfigManager {
 		List<String> constraintStrings = new ArrayList<>();
 		List<String> keyConstraintStrings = new ArrayList<>();
 		value.getConstraints().forEach(constraint ->
-				constraint.addStrings((constraint instanceof Constraint.Key
+				constraint.addLines((constraint instanceof Constraint.Key
 						? keyConstraintStrings
 						: constraintStrings)::add)
 		);
@@ -120,5 +136,9 @@ public interface ConfigManager {
 		}
 
 		return comments;
+	}
+
+	static <T> void process(DataType<T> dataType, ValueKey<?> valueKey, Consumer<String> linesConsumer) {
+		dataType.addLines(valueKey.getData(dataType), linesConsumer);
 	}
 }

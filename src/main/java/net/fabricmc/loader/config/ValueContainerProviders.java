@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.config;
 
-import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.SaveType;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.value.ValueContainerProvider;
@@ -37,8 +36,8 @@ public class ValueContainerProviders {
 
 		@Override
 		public ValueContainer getPlayerValueContainer(UUID playerId) {
-			ConfigManager.LOGGER.warn("Attempted to get player value container from root provider.");
-			ConfigManager.LOGGER.warn("Returning root config value container.");
+			ConfigManagerImpl.LOGGER.warn("Attempted to get player value container from root provider.");
+			ConfigManagerImpl.LOGGER.warn("Returning root config value container.");
 
 			return ValueContainer.ROOT;
 		}

@@ -66,19 +66,6 @@ public final class Toml {
 	}
 
 	/**
-	 * Writes the specified data to a String, in the TOML format.
-	 *
-	 * @param data the data to write
-	 * @return a String that contains the data in the TOML format.
-	 * @throws IOException if an error occurs
-	 */
-	public static String writeToString(Map<String, TomlElement> data) throws IOException {
-		FastStringWriter writer = new FastStringWriter();
-		write(data, writer);
-		return writer.toString();
-	}
-
-	/**
 	 * Writes data to a File, in the TOML format and with the UTF-8 encoding. The default indentation
 	 * parameters are used, ie each indent is one tab character.
 	 *
@@ -143,7 +130,6 @@ public final class Toml {
 	 *
 	 * @param toml a String containing TOML data
 	 * @return a {@code Map<String, Object>} containing the parsed data
-	 * @throws IOException if a read error occurs
 	 * @throws TomlException if a parse error occurs
 	 */
 	public static Map<String, TomlElement> read(String toml) throws TomlException {
@@ -156,7 +142,6 @@ public final class Toml {
 	 * @param toml a String containing TOML data
 	 * @param strictAsciiBareKeys <code>true</code> to enforce strict bare keys (see {@link Toml}).
 	 * @return a {@code Map<String, Object>} containing the parsed data
-	 * @throws IOException if a read error occurs
 	 * @throws TomlException if a parse error occurs
 	 */
 	public static Map<String, TomlElement> read(String toml, boolean strictAsciiBareKeys) {

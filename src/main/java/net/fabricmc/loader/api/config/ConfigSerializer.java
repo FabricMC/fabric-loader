@@ -109,7 +109,7 @@ public interface ConfigSerializer<R> {
 
     		int c;
 
-    		boolean deserialize = false;
+    		boolean deserialize = true;
 
     		if (version == null || (c = version.compareTo(configDefinition.getVersion())) < 0) {
 				deserialize = configDefinition.upgrade(version, this.getRepresentation(Files.newInputStream(path)));

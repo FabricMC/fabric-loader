@@ -26,5 +26,5 @@ public interface ConfigProvider {
 	/**
 	 * @param consumer consumes the modId under which to register a config file and the initializer to create it
 	 */
-	void addConfigs(BiConsumer<String, ConfigInitializer> consumer);
+	void addConfigs(BiConsumer<String, ConfigInitializer<?>> consumer);
 }

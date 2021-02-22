@@ -40,21 +40,54 @@ public abstract class Constraint<T> {
 		this.name = name;
 	}
 
+	/**
+	 * Tests a config value against this constraint.
+	 *
+	 * @param value the value to test
+	 * @return whether or not the value passes this constraint
+	 */
 	public abstract boolean passes(T value);
 
-	public void addStrings(Consumer<String> stringConsumer) {
-		stringConsumer.accept(this.toString());
+	/**
+	 * Can be overridden to allow constraints to append multiple lines to config files.
+	 *
+	 * By default will append a single line, the string representation of this constraint.
+	 *
+	 * @param linesConsumer consumes strings to add to the config file, each string is its own line
+	 */
+	public void addLines(Consumer<String> linesConsumer) {
+		linesConsumer.accept(this.toString());
 	}
 
-	public String getName() {
+	/**
+	 * Gets the name of the constraint.
+	 *
+	 * Used when serialized to a config file by default.
+	 *
+	 * @return the name of this constraint
+	 */
+	public final String getName() {
 		return this.name;
 	}
 
+	/**
+	 * Returns the string representation of this constraint.
+	 *
+	 * Can be used to provide more detail in config files.
+	 *
+	 * @return the string representation of this constraint
+	 */
 	@Override
 	public String toString() {
 		return this.name;
 	}
 
+	/**
+	 * Represents a constraint on elements of a {@link StronglyTypedImmutableCollection}.
+	 *
+	 * @param <T> the class of the collection
+	 * @param <V> the class of the values in the collection
+	 */
 	public static class Value<T extends StronglyTypedImmutableCollection<?, V, ?>, V> extends Constraint<T> {
 		private final List<Constraint<V>> constraints = new ArrayList<>();
 
@@ -85,11 +118,16 @@ public abstract class Constraint<T> {
 		}
 
 		@Override
-		public void addStrings(Consumer<String> stringConsumer) {
-
+		public void addLines(Consumer<String> linesConsumer) {
+			this.constraints.forEach(constraint -> constraint.addLines(linesConsumer));
 		}
 	}
 
+	/**
+	 * Represents a constraint on the keys that are valid for a {@link Table}.
+	 *
+	 * @param <T> the class of the table in question
+	 */
 	public static class Key<T extends Table<?>> extends Constraint<T> {
 		private final List<Constraint<String>> constraints = new ArrayList<>();
 
@@ -104,6 +142,10 @@ public abstract class Constraint<T> {
 			this.constraints.addAll(constraints);
 		}
 
+		public ListView<Constraint<String>> getConstraints() {
+			return new ListView<>(this.constraints);
+		}
+
 		@Override
 		public boolean passes(T value) {
 			for (Table.Entry<String, ?> entry : value) {
@@ -115,13 +157,9 @@ public abstract class Constraint<T> {
 			return true;
 		}
 
-		public ListView<Constraint<String>> getConstraints() {
-			return new ListView<>(this.constraints);
-		}
-
 		@Override
-		public void addStrings(Consumer<String> stringConsumer) {
-
+		public void addLines(Consumer<String> linesConsumer) {
+			this.constraints.forEach(constraint -> constraint.addLines(linesConsumer));
 		}
 	}
 }

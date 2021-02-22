@@ -6,11 +6,8 @@ package net.fabricmc.loader.api.config.serialization.toml;
  * @author TheElectronWill
  */
 public class TomlException extends RuntimeException {
-	
 	private static final long serialVersionUID = 1L;
-	
-	public TomlException() {}
-	
+
 	public TomlException(String message, Throwable cause) {
 		super(message, cause);
 	}
@@ -18,9 +15,4 @@ public class TomlException extends RuntimeException {
 	public TomlException(String message) {
 		super(message);
 	}
-	
-	public TomlException(Throwable cause) {
-		super(cause);
-	}
-	
 }

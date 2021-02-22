@@ -86,15 +86,6 @@ public final class TomlWriter {
 	}
 
 	/**
-	 * Flushes the underlying writer.
-	 *
-	 * @throws IOException if an error occurs
-	 */
-	public void flush() throws IOException {
-		writer.flush();
-	}
-
-	/**
 	 * Writes the specified data in the TOML format.
 	 *
 	 * @param data the data to write

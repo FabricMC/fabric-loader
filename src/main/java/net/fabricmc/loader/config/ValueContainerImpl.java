@@ -44,9 +44,9 @@ public class ValueContainerImpl implements ValueContainer {
     public <T> T put(@NotNull ValueKey<T> valueKey, @NotNull T newValue) {
     	SaveType saveType = valueKey.getConfig().getSaveType();
     	if (!this.contains(saveType)) {
-    		ConfigManager.LOGGER.warn("Error putting value '{}' for '{}'.", newValue, valueKey);
-    		ConfigManager.LOGGER.warn("ValueContainer does not support save type {}", saveType);
-    		ConfigManager.LOGGER.warn("Valid save types are [{}]", this.saveTypes.stream().map(Object::toString).collect(Collectors.joining(", ")));
+    		ConfigManagerImpl.LOGGER.warn("Error putting value '{}' for '{}'.", newValue, valueKey);
+    		ConfigManagerImpl.LOGGER.warn("ValueContainer does not support save type {}", saveType);
+    		ConfigManagerImpl.LOGGER.warn("Valid save types are [{}]", this.saveTypes.stream().map(Object::toString).collect(Collectors.joining(", ")));
     		return null;
 		}
 
@@ -82,7 +82,7 @@ public class ValueContainerImpl implements ValueContainer {
     @Override
     public void save(ConfigDefinition configDefinition) {
         if (this.saveDirectory == null) {
-            ConfigManager.LOGGER.warn("Attempted to save ValueContainer with null save directory.");
+            ConfigManagerImpl.LOGGER.warn("Attempted to save ValueContainer with null save directory.");
             return;
         }
 
@@ -91,7 +91,7 @@ public class ValueContainerImpl implements ValueContainer {
         try {
             serializer.serialize(configDefinition, this);
         } catch (IOException e) {
-			ConfigManager.LOGGER.error("Failed to save '{}' to disk", configDefinition);
+			ConfigManagerImpl.LOGGER.error("Failed to save '{}' to disk", configDefinition);
         }
 
         this.modifications.remove(configDefinition);

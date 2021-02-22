@@ -20,10 +20,6 @@ package net.fabricmc.loader.api.config.exceptions;
  * Thrown when a config fails to be saved to disk or backed up.
  */
 public class ConfigSerializationException extends RuntimeException {
-	public ConfigSerializationException(Exception e) {
-		super(e);
-	}
-
 	public ConfigSerializationException(String message) {
 		super(message);
 	}

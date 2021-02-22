@@ -26,9 +26,9 @@ import net.fabricmc.loader.api.config.exceptions.ConfigValueException;
 import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.util.StronglyTypedImmutableCollection;
 import net.fabricmc.loader.api.config.util.Table;
+import net.fabricmc.loader.api.config.util.TriConsumer;
 import net.fabricmc.loader.config.ConfigManagerImpl;
 import net.fabricmc.loader.config.ValueContainerProviders;
-import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,13 +46,13 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
     private final Supplier<T> defaultValue;
     private final List<Constraint<T>> constraints;
 	private final List<Flag> flags;
-	private final Map<DataType<?>, List<Object>> data = new HashMap<>();
+	private final Map<DataType<?>, List<Object>> data = new LinkedHashMap<>();
 	private final List<BiConsumer<T, T>> listeners;
 	private final List<TriConsumer<T, T, UUID>> playerListeners;
 
 	private boolean initialized;
 
-	private ConfigDefinition config;
+	private ConfigDefinition<?> config;
 	private String[] path;
 	private String pathString;
 	private String string;
@@ -261,10 +261,15 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 		return new ListView<>((List<D>) this.data.getOrDefault(dataType, Collections.emptyList()));
 	}
 
+	@Override
+	public ListView<DataType<?>> getDataTypes() {
+		return new ListView<>(new ArrayList<>(this.data.keySet()));
+	}
+
 	/**
 	 * @return the parent config file that this key belongs to
 	 */
-	public ConfigDefinition getConfig() {
+	public ConfigDefinition<?> getConfig() {
 		this.assertInitialized();
 
 		return this.config;
@@ -323,7 +328,7 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 	 * @param path additional elements in the path of this value key, for nested values
 	 */
 	@ApiStatus.Internal
-	public void initialize(ConfigDefinition configDefinition, @NotNull String path0, String[] path) {
+	public void initialize(ConfigDefinition<?> configDefinition, @NotNull String path0, String[] path) {
 		if (this.initialized) {
 			throw new ConfigValueException("Config value '" + this.string + "' already initialized");
 		}
@@ -425,7 +430,7 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 		 *
 		 * <p>The first parameter of the listener is the old value, while the second parameter is the new value,
 		 * and the UUID is the id of the player whom this value was set for. The old value may be null if it was not
-		 * previously present in the value container its been added to.</p>
+		 * previously present in the value container it's been added to.</p>
 		 *
 		 * @param listeners any number of listeners
 		 * @return this
@@ -543,8 +548,8 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 				}
 
 				@Override
-				public void addStrings(Consumer<String> stringConsumer) {
-					constraints.forEach(constraint -> constraint.addStrings(stringConsumer));
+				public void addLines(Consumer<String> linesConsumer) {
+					constraints.forEach(constraint -> constraint.addLines(linesConsumer));
 				}
 			});
 

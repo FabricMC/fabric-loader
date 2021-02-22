@@ -142,6 +142,7 @@ public final class TomlReader {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Map<String, TomlElement> read() {
 		Map<String, TomlElement> map = nextTableContent();
 		
@@ -236,9 +237,9 @@ public final class TomlReader {
 					childMap = new HashMap<>(4);
 					valueMap.put(part, new TomlElement(childMap));
 				} else if (child instanceof Map) {// table
-					childMap = (Map) child;
+					childMap = (Map<String, TomlElement>) child;
 				} else {// array
-					List<Map> list = (List) child;
+					List<Map<String, TomlElement>> list = (List<Map<String, TomlElement>>) child;
 					childMap = list.get(list.size() - 1);
 				}
 				valueMap = childMap;

@@ -34,7 +34,7 @@ public interface ValueContainer {
 		ValueContainer valueContainer = new ValueContainerImpl(saveDirectory, saveTypes);
 
 		if (saveDirectory != null) {
-			for (ConfigDefinition config : ConfigManager.getConfigKeys()) {
+			for (ConfigDefinition<?> config : ConfigManager.getConfigKeys()) {
 				if (valueContainer.contains(config.getSaveType())) {
 					ConfigManagerImpl.doSerialization(config, valueContainer);
 				}
@@ -68,14 +68,14 @@ public interface ValueContainer {
      * @param configDefinition the config file in question
      * @return the number of unsaved modified config values
      */
-    int countUnsavedChanges(ConfigDefinition configDefinition);
+    int countUnsavedChanges(ConfigDefinition<?> configDefinition);
 
     /**
      * Determines whether or not the specified config file has unsaved changes.
      * @param configDefinition the config file in question
      * @return whether or not the config file has changes that need to be saved
      */
-    default boolean hasUnsavedChanges(ConfigDefinition configDefinition) {
+    default boolean hasUnsavedChanges(ConfigDefinition<?> configDefinition) {
     	return this.countUnsavedChanges(configDefinition) > 0;
 	}
 
@@ -83,7 +83,7 @@ public interface ValueContainer {
      * Saves the specified config file to disk.
      * @param configDefinition the config file in question
      */
-    void save(ConfigDefinition configDefinition);
+    void save(ConfigDefinition<?> configDefinition);
 
 	/**
 	 * @param saveType the save type to check

@@ -24,14 +24,15 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>> {
-	public static final TomlSerializer INSTANCE = new TomlSerializer();
+public class TOMLSerializer implements ConfigSerializer<Map<String, TomlElement>> {
+	public static final TOMLSerializer INSTANCE = new TOMLSerializer();
 
 	@SuppressWarnings("rawtypes")
 	private final HashMap<Class<?>, ValueSerializer> serializableTypes = new HashMap<>();
 	private final HashMap<Class<?>, Function<ValueKey<?>, ValueSerializer<?>>> typeDependentSerializers = new HashMap<>();
 
-	public TomlSerializer() {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public TOMLSerializer() {
 		this.addSerializer(Boolean.class, new Direct<>());
 		this.addSerializer(Integer.class, new Direct<>());
 		this.addSerializer(Long.class, new Direct<>());
@@ -39,6 +40,7 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 		this.addSerializer(Float.class, new Direct<>());
 		this.addSerializer(Double.class, new Direct<>());
 
+		// No real getting around the unchecked and rawtypes for these guys
 		this.addSerializer(Array.class, key -> new ArraySerializer(key.getDefaultValue()));
 		this.addSerializer(Table.class, key -> new TableSerializer(key.getDefaultValue()));
 	}
@@ -117,22 +119,25 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 
 		MutableBoolean backup = new MutableBoolean(false);
 
-		for (ValueKey value : configDefinition) {
-			doNested(root, value, (key, map) -> {
-				ValueSerializer<?> serializer = this.getSerializer(value);
-				TomlElement representation = map.get(key);
-
-				if (representation != null) {
-					value.setValue(serializer.deserialize(representation.getObject()), valueContainer);
-				} else {
-					backup.setTrue();
-				}
-			});
+		for (ValueKey<?> value : configDefinition) {
+			this.handle(root, valueContainer, value, backup);
 		}
 
 		backup.booleanValue();
 	}
 
+	private <T> void handle(Map<String, TomlElement> root, ValueContainer valueContainer, ValueKey<T> value, MutableBoolean backup) {
+		doNested(root, value, (key, map) -> {
+			ValueSerializer<T> serializer = this.getSerializer(value);
+			TomlElement representation = map.get(key);
+
+			if (representation != null) {
+				value.setValue(serializer.deserialize(representation.getObject()), valueContainer);
+			} else {
+				backup.setTrue();
+			}
+		});
+	}
 
 	private void doNested(Map<String, TomlElement> root, ValueKey<?> value, BiConsumer<String, Map<String, TomlElement>> consumer) {
 		Map<String, TomlElement> object = root;
@@ -168,7 +173,8 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 
 	@Override
 	public @Nullable SemanticVersion getVersion(InputStream inputStream) throws IOException, VersionParsingException {
-		return SemanticVersion.parse((String) Toml.read(inputStream).get("version").getObject());
+		TomlElement element = Toml.read(inputStream).get("version");
+		return element == null ? null : SemanticVersion.parse((String) element.getObject());
 	}
 
 	@Override
@@ -209,8 +215,8 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 
 		@Override
 		public Object serialize(Array<T> value) {
-			Collection array = new ArrayList();
-			ValueSerializer<T> serializer = TomlSerializer.this.getSerializer(value.getValueClass());
+			Collection<Object> array = new ArrayList<>();
+			ValueSerializer<T> serializer = TOMLSerializer.this.getSerializer(value.getValueClass());
 
 			for (T t : value) {
 				array.add(serializer.serialize(t));
@@ -219,13 +225,13 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 			return array;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public Array<T> deserialize(Object representation) {
-			ValueSerializer<T> serializer = TomlSerializer.this.getSerializer(this.defaultValue.getValueClass());
+			ValueSerializer<T> serializer = TOMLSerializer.this.getSerializer(this.defaultValue.getValueClass());
 
-			Collection array = (Collection) representation;
+			Collection<Object> array = (Collection<Object>) representation;
 
-			//noinspection unchecked
 			T[] values = (T[]) java.lang.reflect.Array.newInstance(defaultValue.getValueClass(), array.size());
 
 			int i = 0;
@@ -247,7 +253,7 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 		@Override
 		public Object serialize(Table<T> table) {
 			Map<String, TomlElement> map = new LinkedHashMap<>();
-			ValueSerializer<T> serializer = TomlSerializer.this.getSerializer(this.defaultValue.getValueClass());
+			ValueSerializer<T> serializer = TOMLSerializer.this.getSerializer(this.defaultValue.getValueClass());
 
 			for (Table.Entry<String, T>  t : table) {
 				map.put(t.getKey(), new TomlElement(serializer.serialize(t.getValue())));
@@ -258,7 +264,7 @@ public class TomlSerializer implements ConfigSerializer<Map<String, TomlElement>
 
 		@Override
 		public Table<T> deserialize(Object representation) {
-			ValueSerializer<T> serializer = TomlSerializer.this.getSerializer(this.defaultValue.getValueClass());
+			ValueSerializer<T> serializer = TOMLSerializer.this.getSerializer(this.defaultValue.getValueClass());
 
 			//noinspection unchecked
 			Map<String, TomlElement> map = (Map<String, TomlElement>) representation;

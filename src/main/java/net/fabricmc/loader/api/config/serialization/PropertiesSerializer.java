@@ -16,24 +16,20 @@
 
 package net.fabricmc.loader.api.config.serialization;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.function.Predicate;
-
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
-import org.jetbrains.annotations.NotNull;
-
 import net.fabricmc.loader.api.config.ConfigDefinition;
+import net.fabricmc.loader.api.config.ConfigManager;
 import net.fabricmc.loader.api.config.ConfigSerializer;
-import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.DataType;
-import net.fabricmc.loader.api.config.data.Flag;
-import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
+import net.fabricmc.loader.api.config.value.ValueKey;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.*;
+import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Default {@link ConfigSerializer} implementation.
@@ -78,19 +74,16 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 	public void serialize(ConfigDefinition<Map<String, String>> configDefinition, OutputStream outputStream, ValueContainer valueContainer, Predicate<ValueKey<?>> valuePredicate, boolean minimal) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
 
-		boolean header = false;
-
 		if (!minimal) {
-			for (String comment : configDefinition.getData(DataType.COMMENT)) {
-				for (String s : comment.split("\\r?\\n")) {
-					writer.write("# " + s + '\n');
-				}
+			List<String> lines = new ArrayList<>();
+			DataType.COMMENT.addLines(configDefinition.getData(DataType.COMMENT), lines::add);
 
-				header = true;
+			for (String s : lines) {
+				writer.write("# " + s + '\n');
 			}
 		}
 
-		writer.write("version=" + configDefinition.getVersion().toString() + '\n');
+		writer.write("version=" + configDefinition.getVersion().toString() + "\n\n");
 
 		Iterator<ValueKey<?>> iterator = configDefinition.iterator();
 
@@ -99,33 +92,8 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 
 			if (valuePredicate.test(value)) {
 				if (!minimal) {
-					for (String comment : value.getData(DataType.COMMENT)) {
-						if (header) {
-							writer.write('\n');
-							header = false;
-						}
-
-						for (String s : comment.split("\\r?\\n")) {
-							writer.write("# " + s + '\n');
-						}
-					}
-
-					for (Flag flag : value.getFlags()) {
-						if (header) {
-							writer.write('\n');
-							header = false;
-						}
-
-						writer.write("# " + flag.toString() + '\n');
-					}
-
-					for (Constraint<?> constraint : value.getConstraints()) {
-						if (header) {
-							writer.write('\n');
-							header = false;
-						}
-
-						writer.write("# " + constraint.toString() + '\n');
+					for (String comment : ConfigManager.getComments(value)) {
+						writer.write("# " + comment + '\n');
 					}
 				}
 
@@ -138,7 +106,6 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 				writer.write(serializer.serialize(valueContainer.get(value)));
 
 				if (iterator.hasNext()) writer.write("\n\n");
-				header = false;
 			}
 		}
 
@@ -161,7 +128,6 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 			//noinspection unchecked
 			value.setValue(this.getSerializer(value).deserialize(valueString), valueContainer);
 		}
-
     }
 
 	@Override

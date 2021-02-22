@@ -15,15 +15,7 @@ public class TomlElement implements Iterable<String> {
         this(object, Arrays.asList(comments));
     }
 
-    public void addComments(Collection<String> comments) {
-        this.comments.addAll(comments);
-    }
-
-    public void addComments(String... comments) {
-        this.addComments(Arrays.asList(comments));
-    }
-
-    public Object getObject() {
+	public Object getObject() {
         return this.object;
     }
 
