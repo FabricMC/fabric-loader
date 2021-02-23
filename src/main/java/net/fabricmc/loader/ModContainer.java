@@ -30,35 +30,11 @@ import java.nio.file.Path;
 public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private final LoaderModMetadata info;
 	private final URL originUrl;
-	private Path root;
+	private volatile Path root;
 
 	public ModContainer(LoaderModMetadata info, URL originUrl) {
 		this.info = info;
 		this.originUrl = originUrl;
-	}
-
-	void setupRootPath() {
-		if (root != null) {
-			throw new RuntimeException("Not allowed to setup mod root path twice!");
-		}
-
-		try {
-			Path holder = UrlUtil.asPath(originUrl).toAbsolutePath();
-			if (Files.isDirectory(holder)) {
-				root = holder.toAbsolutePath();
-			} else /* JAR */ {
-				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(holder, false);
-				if (delegate.get() == null) {
-					throw new RuntimeException("Could not open JAR file " + holder.getFileName() + " for NIO reading!");
-				}
-
-				root = delegate.get().getRootDirectories().iterator().next();
-
-				// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
-			}
-		} catch (IOException | UrlConversionException e) {
-			throw new RuntimeException("Failed to find root directory for mod '" + info.getId() + "'!", e);
-		}
 	}
 
 	@Override
@@ -68,10 +44,34 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 
 	@Override
 	public Path getRootPath() {
-		if (root == null) {
-			throw new RuntimeException("Accessed mod root before primary loader!");
+		Path ret = root;
+
+		if (ret == null) {
+			root = ret = obtainRootPath(); // obtainRootPath is thread safe, but we need to avoid plain or repeated reads to root
 		}
-		return root;
+
+		return ret;
+	}
+
+	private Path obtainRootPath() {
+		try {
+			Path holder = UrlUtil.asPath(originUrl).toAbsolutePath();
+
+			if (Files.isDirectory(holder)) {
+				return holder;
+			} else /* JAR */ {
+				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(holder, false);
+				if (delegate.get() == null) {
+					throw new RuntimeException("Could not open JAR file " + holder.getFileName() + " for NIO reading!");
+				}
+
+				return delegate.get().getRootDirectories().iterator().next();
+
+				// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
+			}
+		} catch (IOException | UrlConversionException e) {
+			throw new RuntimeException("Failed to find root directory for mod '" + info.getId() + "'!", e);
+		}
 	}
 
 	public LoaderModMetadata getInfo() {
