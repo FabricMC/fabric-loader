@@ -47,7 +47,7 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
 
-	implementation('net.fabricmc:sponge-mixin:0.8.2+build.24') {
+	implementation('net.fabricmc:sponge-mixin:0.9.2+mixin.0.8.2') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
