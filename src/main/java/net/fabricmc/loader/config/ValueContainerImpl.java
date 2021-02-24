@@ -31,73 +31,73 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ValueContainerImpl implements ValueContainer {
-    private final Path saveDirectory;
-    private final Map<ValueKey<?>, Object> values = new ConcurrentHashMap<>();
-    private final Map<ConfigDefinition, Map<ValueKey<?>, Boolean>> modifications = new ConcurrentHashMap<>();
-    private final Collection<SaveType> saveTypes = new HashSet<>();
+	private final Path saveDirectory;
+	private final Map<ValueKey<?>, Object> values = new ConcurrentHashMap<>();
+	private final Map<ConfigDefinition, Map<ValueKey<?>, Boolean>> modifications = new ConcurrentHashMap<>();
+	private final Collection<SaveType> saveTypes = new HashSet<>();
 
-    public ValueContainerImpl(Path saveDirectory, SaveType... saveTypes) {
-        this.saveDirectory = saveDirectory;
+	public ValueContainerImpl(Path saveDirectory, SaveType... saveTypes) {
+		this.saveDirectory = saveDirectory;
 		this.saveTypes.addAll(Arrays.asList(saveTypes));
-    }
+	}
 
-    @Override
+	@Override
 	@ApiStatus.Internal
-    public <T> T put(@NotNull ValueKey<T> valueKey, @NotNull T newValue) {
-    	SaveType saveType = valueKey.getConfig().getSaveType();
-    	if (!this.contains(saveType)) {
-    		ConfigManagerImpl.LOGGER.warn("Error putting value '{}' for '{}'.", newValue, valueKey);
-    		ConfigManagerImpl.LOGGER.warn("ValueContainer does not support save type {}", saveType);
-    		ConfigManagerImpl.LOGGER.warn("Valid save types are [{}]", this.saveTypes.stream().map(Object::toString).collect(Collectors.joining(", ")));
-    		return null;
+	public <T> T put(@NotNull ValueKey<T> valueKey, @NotNull T newValue) {
+		SaveType saveType = valueKey.getConfig().getSaveType();
+		if (!this.contains(saveType)) {
+			ConfigManagerImpl.LOGGER.warn("Error putting value '{}' for '{}'.", newValue, valueKey);
+			ConfigManagerImpl.LOGGER.warn("ValueContainer does not support save type {}", saveType);
+			ConfigManagerImpl.LOGGER.warn("Valid save types are [{}]", this.saveTypes.stream().map(Object::toString).collect(Collectors.joining(", ")));
+			return null;
 		}
 
-        //noinspection unchecked
-        T result = (T) (this.values.containsKey(valueKey)
-                        ? this.values.get(valueKey)
-                        : valueKey.getDefaultValue());
+		//noinspection unchecked
+		T result = (T) (this.values.containsKey(valueKey)
+						? this.values.get(valueKey)
+						: valueKey.getDefaultValue());
 
-        if (!newValue.equals(result)) {
-            this.modifications.computeIfAbsent(valueKey.getConfig(), key -> new HashMap<>()).put(valueKey, true);
-        }
+		if (!newValue.equals(result)) {
+			this.modifications.computeIfAbsent(valueKey.getConfig(), key -> new HashMap<>()).put(valueKey, true);
+		}
 
-        this.values.put(valueKey, newValue);
+		this.values.put(valueKey, newValue);
 
-        return result;
-    }
+		return result;
+	}
 
-    @Override
-    public <T> T get(ValueKey<T> valueKey) {
-        if (!this.values.containsKey(valueKey)) {
-            this.values.put(valueKey, valueKey.getDefaultValue());
-        }
+	@Override
+	public <T> T get(ValueKey<T> valueKey) {
+		if (!this.values.containsKey(valueKey)) {
+			this.values.put(valueKey, valueKey.getDefaultValue());
+		}
 
-        //noinspection unchecked
-        return (T) this.values.get(valueKey);
-    }
+		//noinspection unchecked
+		return (T) this.values.get(valueKey);
+	}
 
-    @Override
-    public int countUnsavedChanges(ConfigDefinition configDefinition) {
-        return this.modifications.getOrDefault(configDefinition, Collections.emptyMap()).size();
-    }
+	@Override
+	public int countUnsavedChanges(ConfigDefinition configDefinition) {
+		return this.modifications.getOrDefault(configDefinition, Collections.emptyMap()).size();
+	}
 
-    @Override
-    public void save(ConfigDefinition configDefinition) {
-        if (this.saveDirectory == null) {
-            ConfigManagerImpl.LOGGER.warn("Attempted to save ValueContainer with null save directory.");
-            return;
-        }
+	@Override
+	public void save(ConfigDefinition configDefinition) {
+		if (this.saveDirectory == null) {
+			ConfigManagerImpl.LOGGER.warn("Attempted to save ValueContainer with null save directory.");
+			return;
+		}
 
-        ConfigSerializer serializer = configDefinition.getSerializer();
+		ConfigSerializer serializer = configDefinition.getSerializer();
 
-        try {
-            serializer.serialize(configDefinition, this);
-        } catch (IOException e) {
+		try {
+			serializer.serialize(configDefinition, this);
+		} catch (IOException e) {
 			ConfigManagerImpl.LOGGER.error("Failed to save '{}' to disk", configDefinition);
-        }
+		}
 
-        this.modifications.remove(configDefinition);
-    }
+		this.modifications.remove(configDefinition);
+	}
 
 	@Override
 	public boolean contains(SaveType saveType) {
@@ -105,11 +105,11 @@ public class ValueContainerImpl implements ValueContainer {
 	}
 
 	@Override
-    public Path getSaveDirectory() {
-        return this.saveDirectory;
-    }
+	public Path getSaveDirectory() {
+		return this.saveDirectory;
+	}
 
-    public void add(SaveType... saveTypes) {
-    	this.saveTypes.addAll(Arrays.asList(saveTypes));
+	public void add(SaveType... saveTypes) {
+		this.saveTypes.addAll(Arrays.asList(saveTypes));
 	}
 }

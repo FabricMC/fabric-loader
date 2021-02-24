@@ -23,14 +23,14 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 
 public class Array<T> extends StronglyTypedImmutableList<T, T> {
-    @SafeVarargs
-    public Array(Class<T> valueClass, Supplier<T> defaultValue, T... values) {
-        super(valueClass, defaultValue, values);
-    }
+	@SafeVarargs
+	public Array(Class<T> valueClass, Supplier<T> defaultValue, T... values) {
+		super(valueClass, defaultValue, values);
+	}
 
-    public Array(Array<T> other) {
-        super(other);
-    }
+	public Array(Array<T> other) {
+		super(other);
+	}
 
 	@Override
 	public Array<T> addEntry() {
@@ -64,27 +64,27 @@ public class Array<T> extends StronglyTypedImmutableList<T, T> {
 	}
 
 	@NotNull
-    @Override
-    public Iterator<T> iterator() {
-        return Arrays.asList(this.values).iterator();
-    }
+	@Override
+	public Iterator<T> iterator() {
+		return Arrays.asList(this.values).iterator();
+	}
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder("Array[");
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder("Array[");
 
-        for (int i = 0; i < this.values.length; ++i) {
-            builder.append(this.values[i]);
+		for (int i = 0; i < this.values.length; ++i) {
+			builder.append(this.values[i]);
 
-            if (i < this.values.length - 1) {
-                builder.append(", ");
-            }
-        }
+			if (i < this.values.length - 1) {
+				builder.append(", ");
+			}
+		}
 
-        builder.append(']');
+		builder.append(']');
 
-        return builder.toString();
-    }
+		return builder.toString();
+	}
 
 	@Override
 	public Iterable<T> getValues() {

@@ -127,7 +127,7 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 			//noinspection unchecked
 			value.setValue(this.getSerializer(value).deserialize(valueString), valueContainer);
 		}
-    }
+	}
 
 	@Override
 	public @NotNull String getExtension() {

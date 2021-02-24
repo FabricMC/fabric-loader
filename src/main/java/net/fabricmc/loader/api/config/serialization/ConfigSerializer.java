@@ -58,7 +58,7 @@ public interface ConfigSerializer<R> {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @throws IOException 	if saving the file failed
 	 */
-    default void serialize(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) throws IOException {
+	default void serialize(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) throws IOException {
 		Path path = this.getPath(configDefinition, valueContainer);
 
 		if (!Files.exists(path.getParent())) {
@@ -98,21 +98,21 @@ public interface ConfigSerializer<R> {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @throws IOException if loading the file failed
 	 */
-    default void deserialize(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) throws IOException {
-    	Path path = this.getPath(configDefinition, valueContainer);
+	default void deserialize(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) throws IOException {
+		Path path = this.getPath(configDefinition, valueContainer);
 
-    	if (Files.exists(path)) {
-    		SemanticVersion version = null;
-    		try {
+		if (Files.exists(path)) {
+			SemanticVersion version = null;
+			try {
 				version = this.getVersion(Files.newInputStream(path));
 			} catch (VersionParsingException ignored) {
 			}
 
-    		int c;
+			int c;
 
-    		boolean deserialize = true;
+			boolean deserialize = true;
 
-    		if (version == null || (c = version.compareTo(configDefinition.getVersion())) < 0) {
+			if (version == null || (c = version.compareTo(configDefinition.getVersion())) < 0) {
 				deserialize = configDefinition.upgrade(version, this.getRepresentation(Files.newInputStream(path)));
 			} else if (c > 0) {
 				throw new ConfigSerializationException("Attempted to load newer config file: '" +
@@ -121,7 +121,7 @@ public interface ConfigSerializer<R> {
 				);
 			}
 
-    		if (deserialize) {
+			if (deserialize) {
 				this.deserialize(configDefinition, Files.newInputStream(path), valueContainer);
 			}
 		}
@@ -137,7 +137,7 @@ public interface ConfigSerializer<R> {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @throws IOException if loading the config failed
 	 */
-    void deserialize(ConfigDefinition<R> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
+	void deserialize(ConfigDefinition<R> configDefinition, InputStream inputStream, ValueContainer valueContainer) throws IOException;
 
 	/**
 	 * @return the file extension of this serializer, e.g. 'json', 'yaml', 'properties', etc.
@@ -168,11 +168,11 @@ public interface ConfigSerializer<R> {
 	 * @param valueContainer the container holding values of {@param configDefinition}
 	 * @return the save location of the config file
 	 */
-    default @NotNull Path getPath(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
-        return valueContainer.getSaveDirectory()
-                .resolve(configDefinition.getPath()).normalize()
-                .resolve(configDefinition.getName() + "." + this.getExtension());
-    }
+	default @NotNull Path getPath(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
+		return valueContainer.getSaveDirectory()
+				.resolve(configDefinition.getPath()).normalize()
+				.resolve(configDefinition.getName() + "." + this.getExtension());
+	}
 
 	/**
 	 * Helper method for getting the path where a config file should be saved, with a suffix.

@@ -109,8 +109,8 @@ public abstract class AbstractTreeSerializer<E, O extends E> implements ConfigSe
 			this.handle(root, valueContainer, value, backup);
 		}
 
-        backup.booleanValue();
-    }
+		backup.booleanValue();
+	}
 
 	private <T> void handle(O root, ValueContainer valueContainer, ValueKey<T> value, MutableBoolean backup) {
 		doNested(root, value, (object, key) -> {

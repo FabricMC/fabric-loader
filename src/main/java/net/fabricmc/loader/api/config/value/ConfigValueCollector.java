@@ -25,5 +25,5 @@ public interface ConfigValueCollector {
 	 * @param path0 the first element of the path
 	 * @param path any additional elements of the path, for nested elements
 	 */
-    void addConfigValue(@NotNull ValueKey<?> valueKey, @NotNull String path0, String... path);
+	void addConfigValue(@NotNull ValueKey<?> valueKey, @NotNull String path0, String... path);
 }

@@ -44,28 +44,28 @@ public class ConfigManagerImpl {
 	public static final Logger LOGGER = LogManager.getLogger("Fabric|Config");
 	private static final Map<ConfigDefinition<?>, List<ValueKey<?>>> CONFIGS = new HashMap<>();
 	private static final Map<ConfigDefinition<?>, ListView<ValueKey<?>>> CONFIG_VIEWS = new HashMap<>();
-    private static final Map<String, ConfigDefinition<?>> CONFIG_DEFINITIONS = new ConcurrentHashMap<>();
-    private static final Map<String, ValueKey<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
+	private static final Map<String, ConfigDefinition<?>> CONFIG_DEFINITIONS = new ConcurrentHashMap<>();
+	private static final Map<String, ValueKey<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
 
 	private static ListView<ConfigDefinition<?>> CONFIG_DEFINITION_VIEW = null;
 
-    private static boolean FINISHED = false;
+	private static boolean FINISHED = false;
 
-    public static boolean isFinished() {
-        return FINISHED;
-    }
-
-    public static ListView<ConfigDefinition<?>> getConfigKeys() {
-    	return CONFIG_DEFINITION_VIEW;
+	public static boolean isFinished() {
+		return FINISHED;
 	}
 
-    public static ListView<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
-        return CONFIG_VIEWS.computeIfAbsent(configDefinition, definition ->
-				new ListView<>(CONFIGS.getOrDefault(definition, Collections.emptyList())));
-    }
+	public static ListView<ConfigDefinition<?>> getConfigKeys() {
+		return CONFIG_DEFINITION_VIEW;
+	}
 
-    public static @Nullable ValueKey<?> getValue(String configKeyString) {
-    	return CONFIG_VALUES.get(configKeyString);
+	public static ListView<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
+		return CONFIG_VIEWS.computeIfAbsent(configDefinition, definition ->
+				new ListView<>(CONFIGS.getOrDefault(definition, Collections.emptyList())));
+	}
+
+	public static @Nullable ValueKey<?> getValue(String configKeyString) {
+		return CONFIG_VALUES.get(configKeyString);
 	}
 
 	public static <R> @Nullable ConfigDefinition<R> getDefinition(String configKeyString) {
@@ -73,56 +73,56 @@ public class ConfigManagerImpl {
 		return (ConfigDefinition<R>) CONFIG_DEFINITIONS.get(configKeyString);
 	}
 
-    public static void initialize() {
-    	if (FINISHED) return;
+	public static void initialize() {
+		if (FINISHED) return;
 
-    	Map<String, Collection<ConfigInitializer<?>>> configInitializers = new HashMap<>();
-    	Collection<ConfigPostInitializer> postInitializers = new ArrayList<>();
+		Map<String, Collection<ConfigInitializer<?>>> configInitializers = new HashMap<>();
+		Collection<ConfigPostInitializer> postInitializers = new ArrayList<>();
 
-    	// We use one entrypoint to reduce the number of excess entrypoint keys
-    	for (EntrypointContainer<Object> container : FabricLoader.getInstance().getEntrypointContainers("config", Object.class)) {
+		// We use one entrypoint to reduce the number of excess entrypoint keys
+		for (EntrypointContainer<Object> container : FabricLoader.getInstance().getEntrypointContainers("config", Object.class)) {
 			Object entrypoint = container.getEntrypoint();
 
 			// Each entrypoint type is handled individually
-    		if (entrypoint instanceof ConfigEnvironment) {
+			if (entrypoint instanceof ConfigEnvironment) {
 				((ConfigEnvironment) entrypoint).addToRoot(((ValueContainerImpl) ValueContainer.ROOT)::add);
 			}
 
-    		if (entrypoint instanceof ConfigInitializer) {
+			if (entrypoint instanceof ConfigInitializer) {
 				String modId = container.getProvider().getMetadata().getId();
 				ConfigInitializer<?> initializer = (ConfigInitializer<?>) entrypoint;
 
 				configInitializers.computeIfAbsent(modId, m -> new LinkedHashSet<>()).add(initializer);
 			}
 
-    		if (entrypoint instanceof ConfigProvider) {
+			if (entrypoint instanceof ConfigProvider) {
 				((ConfigProvider) entrypoint).addConfigs((modId, initializer) ->
 						configInitializers.computeIfAbsent(modId, m -> new LinkedHashSet<>()).add(initializer));
 			}
 
-    		if (entrypoint instanceof ConfigPostInitializer) {
-    			postInitializers.add((ConfigPostInitializer) entrypoint);
+			if (entrypoint instanceof ConfigPostInitializer) {
+				postInitializers.add((ConfigPostInitializer) entrypoint);
 			}
 		}
 
-        for (String modId : configInitializers.keySet()) {
+		for (String modId : configInitializers.keySet()) {
 			for (ConfigInitializer<?> initializer : configInitializers.get(modId)) {
 				initialize(modId, initializer);
 			}
 		}
 
-        CONFIG_DEFINITION_VIEW = new ListView<>(CONFIG_DEFINITIONS.values());
+		CONFIG_DEFINITION_VIEW = new ListView<>(CONFIG_DEFINITIONS.values());
 
 		postInitializers.forEach(ConfigPostInitializer::onConfigsLoaded);
 
-        for (ConfigDefinition<?> configDefinition : CONFIG_DEFINITIONS.values()) {
-        	doSerialization(configDefinition, ValueContainer.ROOT);
+		for (ConfigDefinition<?> configDefinition : CONFIG_DEFINITIONS.values()) {
+			doSerialization(configDefinition, ValueContainer.ROOT);
 		}
 
-        FINISHED = true;
-    }
+		FINISHED = true;
+	}
 
-    private static <T1> void initialize(String modId, ConfigInitializer<T1> initializer) {
+	private static <T1> void initialize(String modId, ConfigInitializer<T1> initializer) {
 		Map<DataType<?>, Collection<Object>> data = new HashMap<>();
 
 		initializer.addConfigData(new DataCollector() {
@@ -153,14 +153,14 @@ public class ConfigManagerImpl {
 		}));
 	}
 
-    public static <R> void doSerialization(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
-    	if (!valueContainer.contains(configDefinition.getSaveType())) return;
+	public static <R> void doSerialization(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
+		if (!valueContainer.contains(configDefinition.getSaveType())) return;
 
-        ConfigSerializer<R> serializer = configDefinition.getSerializer();
+		ConfigSerializer<R> serializer = configDefinition.getSerializer();
 
 		try {
 			serializer.deserialize(configDefinition, valueContainer);
-        } catch (IOException e) {
+		} catch (IOException e) {
 			Path location = serializer.getPath(configDefinition, valueContainer);
 			throw new ConfigSerializationException(String.format("Failed to deserialize config '%s': %s", location, e.getMessage()));
 		}
@@ -169,7 +169,7 @@ public class ConfigManagerImpl {
 	}
 
 	public static <R> void save(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
-    	if (configDefinition != null && valueContainer != null) {
+		if (configDefinition != null && valueContainer != null) {
 			ConfigSerializer<R> serializer = configDefinition.getSerializer();
 
 			Path location = serializer.getPath(configDefinition, valueContainer);

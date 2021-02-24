@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 
 public interface ValueContainer {
-    ValueContainer ROOT = new ValueContainerImpl(FabricLoader.getInstance().getConfigDir().normalize(), SaveType.ROOT);
+	ValueContainer ROOT = new ValueContainerImpl(FabricLoader.getInstance().getConfigDir().normalize(), SaveType.ROOT);
 
 	static ValueContainer of(Path saveDirectory, SaveType... saveTypes) {
 		ValueContainer valueContainer = new ValueContainerImpl(saveDirectory, saveTypes);
@@ -45,54 +45,54 @@ public interface ValueContainer {
 	}
 
 	/**
-     * Puts the specified value into this value container.
-     * @param valueKey the key of the value to store
-     * @param newValue the actual value to store
-     * @param <T> the type of the actual value
-     * @return the value previously stored in the ValueContainer, or the default value
-     */
+	 * Puts the specified value into this value container.
+	 * @param valueKey the key of the value to store
+	 * @param newValue the actual value to store
+	 * @param <T> the type of the actual value
+	 * @return the value previously stored in the ValueContainer, or the default value
+	 */
 	@ApiStatus.Internal
-    <T> T put(@NotNull ValueKey<T> valueKey, @NotNull T newValue);
+	<T> T put(@NotNull ValueKey<T> valueKey, @NotNull T newValue);
 
-    /**
-     * Gets the stored value of the specified config key stored in this container.
-     * @param valueKey the key of the value to fetch
-     * @param <T> the type of the actual value
-     * @return the value stored in the ValueContainer, or the default value
-     */
-    @ApiStatus.Internal
-    <T> T get(ValueKey<T> valueKey);
+	/**
+	 * Gets the stored value of the specified config key stored in this container.
+	 * @param valueKey the key of the value to fetch
+	 * @param <T> the type of the actual value
+	 * @return the value stored in the ValueContainer, or the default value
+	 */
+	@ApiStatus.Internal
+	<T> T get(ValueKey<T> valueKey);
 
-    /**
-     * Gets the number of values belonging to the specified config key that have unsaved modifications.
-     * @param configDefinition the config file in question
-     * @return the number of unsaved modified config values
-     */
-    int countUnsavedChanges(ConfigDefinition<?> configDefinition);
+	/**
+	 * Gets the number of values belonging to the specified config key that have unsaved modifications.
+	 * @param configDefinition the config file in question
+	 * @return the number of unsaved modified config values
+	 */
+	int countUnsavedChanges(ConfigDefinition<?> configDefinition);
 
-    /**
-     * Determines whether or not the specified config file has unsaved changes.
-     * @param configDefinition the config file in question
-     * @return whether or not the config file has changes that need to be saved
-     */
-    default boolean hasUnsavedChanges(ConfigDefinition<?> configDefinition) {
-    	return this.countUnsavedChanges(configDefinition) > 0;
+	/**
+	 * Determines whether or not the specified config file has unsaved changes.
+	 * @param configDefinition the config file in question
+	 * @return whether or not the config file has changes that need to be saved
+	 */
+	default boolean hasUnsavedChanges(ConfigDefinition<?> configDefinition) {
+		return this.countUnsavedChanges(configDefinition) > 0;
 	}
 
-    /**
-     * Saves the specified config file to disk.
-     * @param configDefinition the config file in question
-     */
-    void save(ConfigDefinition<?> configDefinition);
+	/**
+	 * Saves the specified config file to disk.
+	 * @param configDefinition the config file in question
+	 */
+	void save(ConfigDefinition<?> configDefinition);
 
 	/**
 	 * @param saveType the save type to check
 	 * @return whether or not this container contains configs of the specified type
 	 */
-    boolean contains(SaveType saveType);
+	boolean contains(SaveType saveType);
 
 	/**
 	 * @return the directory this value container saves configs to
 	 */
-    Path getSaveDirectory();
+	Path getSaveDirectory();
 }

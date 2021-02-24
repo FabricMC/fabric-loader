@@ -43,8 +43,8 @@ import java.util.function.Supplier;
  * @param <T> the type of value to be stored
  */
 public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
-    private final Supplier<T> defaultValue;
-    private final List<Constraint<T>> constraints;
+	private final Supplier<T> defaultValue;
+	private final List<Constraint<T>> constraints;
 	private final List<Flag> flags;
 	private final Map<DataType<?>, List<Object>> data = new LinkedHashMap<>();
 	private final List<BiConsumer<T, T>> listeners;
@@ -58,7 +58,7 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 	private String string;
 
 	ValueKey(@NotNull Supplier<@NotNull T> defaultValue, Collection<Constraint<T>> constraints, Collection<Flag> flags, Map<DataType<?>, Collection<Object>> data, List<BiConsumer<T, T>> listeners, List<TriConsumer<T, T, UUID>> playerListeners) {
-        this.defaultValue = defaultValue;
+		this.defaultValue = defaultValue;
 		this.constraints = new ArrayList<>(constraints);
 		this.flags = new ArrayList<>(flags);
 
@@ -73,16 +73,16 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 		}
 	}
 
-    /**
-     * Gets the default value for this config key for initial population of config files and reset purposes.
-     * @return the default value of this config value
-     */
-    public T getDefaultValue() {
-        return this.defaultValue.get();
-    }
+	/**
+	 * Gets the default value for this config key for initial population of config files and reset purposes.
+	 * @return the default value of this config value
+	 */
+	public T getDefaultValue() {
+		return this.defaultValue.get();
+	}
 
-    @Override
-    public int compareTo(@NotNull ValueKey<?> o) {
+	@Override
+	public int compareTo(@NotNull ValueKey<?> o) {
 		if (!this.config.equals(o.config)) {
 			return this.config.compareTo(o.config);
 		} else if (this.path.length != o.path.length) {
@@ -96,7 +96,7 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 		}
 
 		return 0;
-    }
+	}
 
 	/**
 	 * Gets the value represented by this config key.
@@ -105,13 +105,13 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 	 *
 	 * @return a value
 	 */
-    public T getValue() {
+	public T getValue() {
 		this.assertInitialized();
 
-        ValueContainerProvider provider = ValueContainerProviders.getInstance(this.config.getSaveType());
+		ValueContainerProvider provider = ValueContainerProviders.getInstance(this.config.getSaveType());
 
-        return this.getValue(provider.getValueContainer());
-    }
+		return this.getValue(provider.getValueContainer());
+	}
 
 	/**
 	 * Gets the value represented by this config key for the specified player.
@@ -214,7 +214,7 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 			if (!constraint.passes(value)) return false;
 		}
 
-    	return true;
+		return true;
 	}
 
 	/**
@@ -222,15 +222,15 @@ public final class ValueKey<T> implements Comparable<ValueKey<?>>, KeyView<T> {
 	 * @return true if the flag is present, false otherwise
 	 */
 	public boolean isFlagSet(Flag flag) {
-    	return this.flags.contains(flag);
+		return this.flags.contains(flag);
 	}
 
-    @NotNull
-    public ListView<Constraint<T>> getConstraints() {
-        return new ListView<>(this.constraints);
-    }
+	@NotNull
+	public ListView<Constraint<T>> getConstraints() {
+		return new ListView<>(this.constraints);
+	}
 
-    public void add(Flag... flags) {
+	public void add(Flag... flags) {
 		this.add(Arrays.asList(flags));
 	}
 
