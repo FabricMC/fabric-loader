@@ -112,6 +112,10 @@ public final class ModMetadataParser {
 		case 0:
 			return V0ModMetadataParser.parse(logger, reader);
 		default:
+			if (schemaVersion > 0) {
+				throw new ParseMetadataException(String.format("This version of fabric-loader doesn't support the newer schema version of \"%s\""
+					+ "\nPlease update fabric-loader to be able to read this.", schemaVersion));
+			}
 			throw new ParseMetadataException(String.format("Invalid/Unsupported schema version \"%s\" was found", schemaVersion));
 		}
 	}

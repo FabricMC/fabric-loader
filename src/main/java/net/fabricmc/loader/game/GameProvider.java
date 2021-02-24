@@ -38,8 +38,7 @@ public interface GameProvider {
 	boolean requiresUrlClassLoader();
 	List<Path> getGameContextJars();
 
-	boolean locateGame(EnvType envType, ClassLoader loader);
-	void acceptArguments(String... arguments);
+	boolean locateGame(EnvType envType, String[] args, ClassLoader loader);
 	EntrypointTransformer getEntrypointTransformer();
 	void launch(ClassLoader loader);
 

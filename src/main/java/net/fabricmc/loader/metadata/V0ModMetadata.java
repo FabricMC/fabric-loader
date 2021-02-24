@@ -41,7 +41,9 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	// Optional (Environment)
 	private final Map<String, ModDependency> requires;
+	private final Map<String, ModDependency> suggests;
 	private final Map<String, ModDependency> conflicts;
+	private final Map<String, ModDependency> breaks;
 	private final String languageAdapter = "net.fabricmc.loader.language.JavaLanguageAdapter"; // TODO: Constants class?
 	private final Mixins mixins;
 	private final ModEnvironment environment; // REMOVEME: Replacing Side in old metadata with this
@@ -60,8 +62,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	V0ModMetadata(String id, Version version, Map<String, ModDependency> requires, Map<String, ModDependency> conflicts, Mixins mixins, ModEnvironment environment, String initializer, Collection<String> initializers, String name, String description, Map<String, ModDependency> recommends, Collection<Person> authors, Collection<Person> contributors, ContactInformation links, String license) {
 		this.id = id;
 		this.version = version;
-		this.requires = Collections.unmodifiableMap(requires);
-		this.conflicts = Collections.unmodifiableMap(conflicts);
+		this.requires = DependencyOverrides.INSTANCE.getActiveDependencyMap("depends", id, Collections.unmodifiableMap(requires));
+		this.recommends = DependencyOverrides.INSTANCE.getActiveDependencyMap("recommends", id, Collections.emptyMap());
+		this.suggests = DependencyOverrides.INSTANCE.getActiveDependencyMap("suggests", id, Collections.unmodifiableMap(recommends));
+		this.conflicts = DependencyOverrides.INSTANCE.getActiveDependencyMap("conflicts", id, Collections.emptyMap());
+		this.breaks = DependencyOverrides.INSTANCE.getActiveDependencyMap("breaks", id, Collections.unmodifiableMap(conflicts));
 
 		if (mixins == null) {
 			this.mixins = V0ModMetadata.EMPTY_MIXINS;
@@ -80,7 +85,6 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 			this.description = description;
 		}
 
-		this.recommends = Collections.unmodifiableMap(recommends);
 		this.authors = Collections.unmodifiableCollection(authors);
 		this.contributors = contributors;
 		this.links = links;
@@ -100,6 +104,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public String getId() {
 		return this.id;
+	}
+
+	@Override
+	public Collection<String> getProvides() {
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -124,22 +133,22 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	@Override
 	public Collection<ModDependency> getRecommends() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public Collection<ModDependency> getSuggests() {
 		return this.recommends.values();
 	}
 
 	@Override
+	public Collection<ModDependency> getSuggests() {
+		return this.suggests.values();
+	}
+
+	@Override
 	public Collection<ModDependency> getConflicts() {
-		return Collections.emptyList();
+		return this.conflicts.values();
 	}
 
 	@Override
 	public Collection<ModDependency> getBreaks() {
-		return this.conflicts.values();
+		return this.breaks.values();
 	}
 
 	// General metadata

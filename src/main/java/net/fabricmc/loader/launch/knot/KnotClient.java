@@ -24,6 +24,7 @@ import java.io.File;
 public class KnotClient {
 	public static void main(String[] args) {
 		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
-		new Knot(EnvType.CLIENT, gameJarPath != null ? new File(gameJarPath) : null).init(args);
+		Knot knot = new Knot(EnvType.CLIENT, gameJarPath != null ? new File(gameJarPath) : null);
+		knot.launch(knot.init(args));
 	}
 }
