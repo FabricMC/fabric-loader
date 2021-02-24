@@ -144,8 +144,22 @@ public interface ConfigSerializer<R> {
 	 */
 	@NotNull String getExtension();
 
+	/**
+	 * Parses a config file from an input stream and returns the version, if present.
+	 *
+	 * @param inputStream holding data about a config file
+	 * @return the version of the config file
+	 */
 	@Nullable SemanticVersion getVersion(InputStream inputStream) throws IOException, VersionParsingException;
 
+	/**
+	 * Gets the intermediate representation of a config file fed via input stream.
+	 *
+	 * Used primarily for upgrading purposes.
+	 *
+	 * @param inputStream holding data about a config file
+	 * @return the intermediate representation
+	 */
 	@NotNull R getRepresentation(InputStream inputStream) throws IOException;
 
 	/**
