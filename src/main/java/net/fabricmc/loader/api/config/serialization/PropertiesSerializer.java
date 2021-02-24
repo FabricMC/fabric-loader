@@ -48,7 +48,7 @@ public class PropertiesSerializer implements ConfigSerializer<Map<String, String
 		this.addSerializer(Double.class, DoubleSerializer.INSTANCE);
 	}
 
-	protected final <T> void addSerializer(Class<T> valueClass, ValueSerializer<T> valueSerializer) {
+	public final <T> void addSerializer(Class<T> valueClass, ValueSerializer<T> valueSerializer) {
 		this.serializableTypes.putIfAbsent(valueClass, valueSerializer);
 
 		//noinspection unchecked
