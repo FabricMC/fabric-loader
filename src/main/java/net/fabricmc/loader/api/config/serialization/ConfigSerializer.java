@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api.config;
+package net.fabricmc.loader.api.config.serialization;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.Flag;
 import net.fabricmc.loader.api.config.exceptions.ConfigSerializationException;

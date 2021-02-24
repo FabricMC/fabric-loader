@@ -17,8 +17,8 @@
 package net.fabricmc.loader.api.config.entrypoint;
 
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.config.ConfigSerializer;
-import net.fabricmc.loader.api.config.SaveType;
+import net.fabricmc.loader.api.config.serialization.ConfigSerializer;
+import net.fabricmc.loader.api.config.data.SaveType;
 import net.fabricmc.loader.api.config.data.DataCollector;
 import net.fabricmc.loader.api.config.util.ConfigUpgrade;
 import net.fabricmc.loader.api.config.value.ConfigValueCollector;
@@ -26,7 +26,10 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents one config file.
- * See {@link ConfigProvider}
+ *
+ * See {@link ConfigProvider} for providing multiple config files with one entrypoint.
+ *
+ * @param <R> The representation of a config serializer
  */
 public interface ConfigInitializer<R> extends ConfigUpgrade<R> {
 	/**

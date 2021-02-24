@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.api.config;
+package net.fabricmc.loader.api.config.data;
 
 import net.fabricmc.loader.config.Identifiable;
 

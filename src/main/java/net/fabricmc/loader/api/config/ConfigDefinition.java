@@ -18,7 +18,9 @@ package net.fabricmc.loader.api.config;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.data.DataType;
+import net.fabricmc.loader.api.config.data.SaveType;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
+import net.fabricmc.loader.api.config.serialization.ConfigSerializer;
 import net.fabricmc.loader.api.config.util.ConfigUpgrade;
 import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueKey;

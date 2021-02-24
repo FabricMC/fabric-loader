@@ -18,7 +18,7 @@ package net.fabricmc.loader.config;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.config.ConfigDefinition;
-import net.fabricmc.loader.api.config.ConfigSerializer;
+import net.fabricmc.loader.api.config.serialization.ConfigSerializer;
 import net.fabricmc.loader.api.config.entrypoint.ConfigEnvironment;
 import net.fabricmc.loader.api.config.entrypoint.ConfigPostInitializer;
 import net.fabricmc.loader.api.config.data.DataCollector;

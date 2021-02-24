@@ -2,6 +2,15 @@ package net.fabricmc.loader.api.config.util;
 
 import java.util.function.Supplier;
 
+/**
+ * This class represents a data structure similar to a collection, with two caveats. Firstly, it is strongly typed,
+ * meaning we can always get the type of the values in this collection, even when it's empty. Secondly, it is immutable,
+ * and any operations that would normally add to a collection returns a new instance instead.
+ *
+ * @param <K> Key type
+ * @param <V> Value type
+ * @param <I> Iterator type
+ */
 public abstract class StronglyTypedImmutableCollection<K, V, I> implements Iterable<I>, ValueCollection<V> {
     protected final Class<V> valueClass;
     protected final Supplier<V> defaultValue;

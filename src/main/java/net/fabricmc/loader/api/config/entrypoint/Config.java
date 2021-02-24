@@ -19,6 +19,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
+/**
+ * Helper class that makes creating configs easier.
+ *
+ * Config values are registered from the class' fields. Any non-ValueKey fields will be ignored. If any of the ValueKey
+ * fields are not public, static, and final an exception will be thrown.
+ *
+ * @param <R> The representation of a config serializer
+ */
 public abstract class Config<R> implements ConfigInitializer<R> {
 	private final List<ValueKey<?>> valueKeys = new ArrayList<>();
 

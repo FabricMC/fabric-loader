@@ -17,6 +17,8 @@
 package net.fabricmc.loader.config;
 
 import net.fabricmc.loader.api.config.*;
+import net.fabricmc.loader.api.config.data.SaveType;
+import net.fabricmc.loader.api.config.serialization.ConfigSerializer;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import org.jetbrains.annotations.ApiStatus;

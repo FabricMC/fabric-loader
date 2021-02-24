@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.api.config.value;
 
-import net.fabricmc.loader.api.config.SaveType;
+import net.fabricmc.loader.api.config.data.SaveType;
 import net.fabricmc.loader.config.ValueContainerProviders;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

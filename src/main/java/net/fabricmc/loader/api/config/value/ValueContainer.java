@@ -19,7 +19,7 @@ package net.fabricmc.loader.api.config.value;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigManager;
-import net.fabricmc.loader.api.config.SaveType;
+import net.fabricmc.loader.api.config.data.SaveType;
 import net.fabricmc.loader.config.ConfigManagerImpl;
 import net.fabricmc.loader.config.ValueContainerImpl;
 import org.jetbrains.annotations.ApiStatus;

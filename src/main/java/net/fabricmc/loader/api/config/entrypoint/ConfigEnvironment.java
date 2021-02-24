@@ -1,6 +1,6 @@
 package net.fabricmc.loader.api.config.entrypoint;
 
-import net.fabricmc.loader.api.config.SaveType;
+import net.fabricmc.loader.api.config.data.SaveType;
 
 import java.util.function.Consumer;
 

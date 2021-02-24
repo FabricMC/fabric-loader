@@ -20,7 +20,6 @@ import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.config.ConfigDefinition;
 import net.fabricmc.loader.api.config.ConfigManager;
-import net.fabricmc.loader.api.config.ConfigSerializer;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.value.ValueKey;
