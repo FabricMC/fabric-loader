@@ -2,6 +2,9 @@ package net.fabricmc.loader.api.config.data;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Represents an inclusive bound on a number.
+ */
 public class Bounds<T extends Number & Comparable<T>> extends Constraint<T> {
 	protected final T min;
 	protected final T max;

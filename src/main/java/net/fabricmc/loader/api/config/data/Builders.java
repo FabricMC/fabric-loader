@@ -19,16 +19,29 @@ public class Builders {
 			this.absoluteMax = absoluteMax;
 		}
 
+		/**
+		 * @param min minimum value, inclusive
+		 * @param max maximum value, inclusive
+		 * @return this
+		 */
 		public Number<T> bounds(T min, T max) {
 			this.with(new Bounds<>(this.boundsName, min, max, this.absoluteMin, this.absoluteMax));
 			return this;
 		}
 
+		/**
+		 * @param min minimum value, inclusive
+		 * @return this
+		 */
 		public Number<T> min(T min) {
 			this.with(new Bounds<>(this.boundsName, min, this.absoluteMax, this.absoluteMin, this.absoluteMax));
 			return this;
 		}
 
+		/**
+		 * @param max maximum value, inclusive
+		 * @return this
+		 */
 		public Number<T> max(T max) {
 			this.with(new Bounds<>(this.boundsName, this.absoluteMin, max, this.absoluteMin, this.absoluteMax));
 			return this;

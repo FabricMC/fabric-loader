@@ -20,10 +20,12 @@ import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.data.SaveType;
 import net.fabricmc.loader.api.config.exceptions.ConfigIdentifierException;
+import net.fabricmc.loader.api.config.exceptions.ConfigValueException;
 import net.fabricmc.loader.api.config.serialization.ConfigSerializer;
 import net.fabricmc.loader.api.config.util.ConfigUpgrade;
 import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueKey;
+import net.fabricmc.loader.config.ConfigManagerImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +50,7 @@ public class ConfigDefinition<R> implements Comparable<ConfigDefinition<?>>, Ite
 	/**
 	 * @param namespace namespace of the entity that owns this config file, usually a mod id
 	 * @param name the name of the config file this key represents (without any file extensions)
-	 * @param version
+	 * @param version version
 	 * @param saveType see {@link SaveType}
 	 * @param upgrade the upgrader to be used
 	 * @param path the path of the directory this config file, relative to 'config/namespace'
@@ -177,6 +179,17 @@ public class ConfigDefinition<R> implements Comparable<ConfigDefinition<?>>, Ite
     	return this.upgrade.upgrade(from, representation);
 	}
 
+	@SafeVarargs
+	public final <D> void add(DataType<D> dataType, D... data) {
+		this.add(dataType, Arrays.asList(data));
+	}
+
+	public <D> void add(DataType<D> dataType, Collection<D> data) {
+		assertNotPostInitialized();
+
+		this.data.computeIfAbsent(dataType, t -> new ArrayList<>()).addAll(data);
+	}
+
 	@NotNull
 	@Override
 	public Iterator<ValueKey<?>> iterator() {
@@ -185,5 +198,11 @@ public class ConfigDefinition<R> implements Comparable<ConfigDefinition<?>>, Ite
 
 	public @NotNull SemanticVersion getVersion() {
 		return this.version;
+	}
+
+	private static void assertNotPostInitialized() {
+		if (ConfigManagerImpl.isFinished()) {
+			throw new ConfigValueException("Post initializers already finished!");
+		}
 	}
 }
