@@ -24,6 +24,7 @@ import net.fabricmc.loader.api.config.entrypoint.ConfigPostInitializer;
 import net.fabricmc.loader.api.config.data.DataCollector;
 import net.fabricmc.loader.api.config.data.DataType;
 import net.fabricmc.loader.api.config.exceptions.ConfigSerializationException;
+import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.entrypoint.ConfigInitializer;
@@ -41,9 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ConfigManagerImpl {
 	public static final Logger LOGGER = LogManager.getLogger("Fabric|Config");
-	private static final Map<ConfigDefinition<?>, Collection<ValueKey<?>>> CONFIGS = new HashMap<>();
+	private static final Map<ConfigDefinition<?>, List<ValueKey<?>>> CONFIGS = new HashMap<>();
+	private static final Map<ConfigDefinition<?>, ListView<ValueKey<?>>> CONFIG_VIEWS = new HashMap<>();
     private static final Map<String, ConfigDefinition<?>> CONFIG_DEFINITIONS = new ConcurrentHashMap<>();
     private static final Map<String, ValueKey<?>> CONFIG_VALUES = new ConcurrentHashMap<>();
+
+	private static ListView<ConfigDefinition<?>> CONFIG_DEFINITION_VIEW = null;
 
     private static boolean FINISHED = false;
 
@@ -51,12 +55,13 @@ public class ConfigManagerImpl {
         return FINISHED;
     }
 
-    public static Collection<ConfigDefinition<?>> getConfigKeys() {
-    	return CONFIGS.keySet();
+    public static ListView<ConfigDefinition<?>> getConfigKeys() {
+    	return CONFIG_DEFINITION_VIEW;
 	}
 
-    public static Collection<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
-        return CONFIGS.getOrDefault(configDefinition, Collections.emptyList());
+    public static ListView<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
+        return CONFIG_VIEWS.computeIfAbsent(configDefinition, definition ->
+				new ListView<>(CONFIGS.getOrDefault(definition, Collections.emptyList())));
     }
 
     public static @Nullable ValueKey<?> getValue(String configKeyString) {
@@ -106,6 +111,8 @@ public class ConfigManagerImpl {
 			}
 		}
 
+        CONFIG_DEFINITION_VIEW = new ListView<>(CONFIG_DEFINITIONS.values());
+
 		postInitializers.forEach(ConfigPostInitializer::onConfigsLoaded);
 
         for (ConfigDefinition<?> configDefinition : CONFIG_DEFINITIONS.values()) {
@@ -135,7 +142,7 @@ public class ConfigManagerImpl {
 		initializer.addConfigValues(((configValue, path0, path) -> {
 			configValue.initialize(configDefinition, path0, path);
 
-			if (CONFIGS.getOrDefault(configDefinition, Collections.emptySet()).contains(configValue)) {
+			if (CONFIGS.getOrDefault(configDefinition, Collections.emptyList()).contains(configValue)) {
 				LOGGER.warn("Attempted to register duplicate config value '{}'", configValue);
 				return;
 			}
@@ -162,15 +169,17 @@ public class ConfigManagerImpl {
 	}
 
 	public static <R> void save(ConfigDefinition<R> configDefinition, ValueContainer valueContainer) {
-		ConfigSerializer<R> serializer = configDefinition.getSerializer();
+    	if (configDefinition != null && valueContainer != null) {
+			ConfigSerializer<R> serializer = configDefinition.getSerializer();
 
-		Path location = serializer.getPath(configDefinition, valueContainer);
+			Path location = serializer.getPath(configDefinition, valueContainer);
 
-		try {
-			Files.createDirectories(location.getParent());
-			serializer.serialize(configDefinition, valueContainer);
-		} catch (IOException e) {
-			throw new ConfigSerializationException(String.format("Failed to serialize config '%s': %s", location, e.getMessage()));
+			try {
+				Files.createDirectories(location.getParent());
+				serializer.serialize(configDefinition, valueContainer);
+			} catch (IOException e) {
+				throw new ConfigSerializationException(String.format("Failed to serialize config '%s': %s", location, e.getMessage()));
+			}
 		}
 	}
 }

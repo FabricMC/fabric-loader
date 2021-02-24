@@ -18,6 +18,7 @@ package net.fabricmc.loader.api.config;
 
 import net.fabricmc.loader.api.config.data.Constraint;
 import net.fabricmc.loader.api.config.data.DataType;
+import net.fabricmc.loader.api.config.util.ListView;
 import net.fabricmc.loader.api.config.value.ValueContainer;
 import net.fabricmc.loader.api.config.value.ValueKey;
 import net.fabricmc.loader.config.ConfigManagerImpl;
@@ -33,7 +34,7 @@ public interface ConfigManager {
 	/**
 	 * @return all registered config definitions
 	 */
-	static Collection<ConfigDefinition<?>> getConfigKeys() {
+	static ListView<ConfigDefinition<?>> getConfigKeys() {
 		return ConfigManagerImpl.getConfigKeys();
 	}
 
@@ -41,7 +42,7 @@ public interface ConfigManager {
 	 * @param configDefinition the config file whose values we want
 	 * @return a list of value keys associated with the config file
 	 */
-	static Collection<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
+	static ListView<ValueKey<?>> getValues(ConfigDefinition<?> configDefinition) {
 		return ConfigManagerImpl.getValues(configDefinition);
 	}
 

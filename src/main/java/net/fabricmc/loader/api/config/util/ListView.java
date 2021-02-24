@@ -2,6 +2,8 @@ package net.fabricmc.loader.api.config.util;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -10,6 +12,10 @@ public final class ListView<T> implements Iterable<T> {
 
 	public ListView(List<T> list) {
 		this.list = list;
+	}
+
+	public ListView(Collection<T> collection) {
+		this.list = new ArrayList<>(collection);
 	}
 
 	public int size() {
