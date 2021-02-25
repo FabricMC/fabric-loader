@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import javax.imageio.ImageIO;
@@ -61,6 +62,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
@@ -90,17 +92,29 @@ class FabricMainWindow {
 		}
 	}
 
+	private static String getTitleVersion() {
+		Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("fabricloader");
+		if (optional.isPresent()) {
+			return optional
+				.get()
+				.getMetadata()
+				.getVersion()
+				.getFriendlyString();
+		}
+
+		return null;
+	}
+
 	private static void createUi(CountDownLatch onCloseLatch, FabricStatusTree tree) {
 		JFrame window = new JFrame();
 		window.setVisible(false);
 
-		window.setTitle("Fabric Loader " + FabricLoader.getInstance()
-			.getModContainer("fabricloader")
-			.get()
-			.getMetadata()
-			.getVersion()
-			.getFriendlyString());
-
+		String version = getTitleVersion();
+		if (version == null) {
+			window.setTitle("Fabric Loader");
+		} else {
+			window.setTitle("Fabric Loader " + version);
+		}
 		try {
 			window.setIconImage(loadImage("/ui/icon/fabric_x128.png"));
 		} catch (IOException e) {
