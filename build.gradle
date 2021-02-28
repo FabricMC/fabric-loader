@@ -16,7 +16,7 @@ archivesBaseName = "fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-version = version + (ENV.GITHUB_ACTIONS ? "" : "+calexsat.11")
+version = version + (ENV.GITHUB_ACTIONS ? "" : "+calexsat.12")
 
 repositories {
 	mavenLocal()
