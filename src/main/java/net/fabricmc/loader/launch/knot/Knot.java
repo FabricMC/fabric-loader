@@ -46,12 +46,12 @@ public final class Knot extends FabricLauncherBase {
 	private final File gameJarFile;
 	private GameProvider provider;
 
-	protected Knot(EnvType type, File gameJarFile) {
+	public Knot(EnvType type, File gameJarFile) {
 		this.envType = type;
 		this.gameJarFile = gameJarFile;
 	}
 
-	protected void init(String[] args) {
+	protected ClassLoader init(String[] args) {
 		setProperties(properties);
 
 		// configure fabric vars
@@ -136,6 +136,13 @@ public final class Knot extends FabricLauncherBase {
 
 		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 
+		return cl;
+	}
+
+	public void launch(ClassLoader cl) {
+		if(this.provider == null) {
+			throw new IllegalStateException("Game provider was not initialized! (Knot#init(String[]))");
+		}
 		provider.launch(cl);
 	}
 

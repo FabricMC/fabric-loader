@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.discovery.RuntimeModRemapper;
+import net.fabricmc.loader.metadata.DependencyOverrides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -226,6 +227,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
 			.collect(Collectors.joining(", ")));
 
+		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
+			LOGGER.info(String.format("Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides().keySet())));
+		}
+
 		boolean runtimeModRemapping = isDevelopmentEnvironment();
 
 		if (runtimeModRemapping && System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
@@ -405,8 +410,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private void setupMods() {
 		for (ModContainer mod : mods) {
 			try {
-				mod.setupRootPath();
-
 				for (String in : mod.getInfo().getOldInitializers()) {
 					String adapter = mod.getInfo().getOldStyleLanguageAdapter();
 					entrypointStorage.addDeprecated(mod, adapter, in);
