@@ -60,8 +60,6 @@ final class ModResolvingTests {
 
 		assertModPresent(modSet, "mod-resolving-tests-single", "1.0.0");
 		assertNoMoreMods(modSet);
-
-		throw new Error("Yay! The test worked!");
 	}
 
 	@Test
