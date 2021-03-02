@@ -50,6 +50,7 @@ import net.fabricmc.loader.discovery.ModResolutionException;
 import net.fabricmc.loader.discovery.ModResolver;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
+import net.fabricmc.loader.launch.common.FabricLauncher;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
@@ -312,7 +313,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	@Override
 	public boolean isDevelopmentEnvironment() {
-		return FabricLauncherBase.getLauncher().isDevelopment();
+		FabricLauncher launcher = FabricLauncherBase.getLauncher();
+		if (launcher == null) {
+			// Most likely a test
+			return true;
+		}
+		return launcher.isDevelopment();
 	}
 
 	/**
