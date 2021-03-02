@@ -32,7 +32,7 @@ package net.fabricmc.loader.api;
  * <p>In the declaration, the language adapter is referred by its <a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-13.html#jls-13.1">binary name</a>,
  * such as {@code "mypackage.MyClass$Inner"}. It must have a no-argument public constructor for the Loader to instantiate.</p>
  *
- * <p>The {@code default} language adapter from Fabric Loader can accepet {@code value} as follows:
+ * <p>The {@code default} language adapter from Fabric Loader can accept {@code value} as follows:
  * <ul>
  *   <li>A fully qualified reference to a class, in <a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-13.html#jls-13.1">
  *   binary name</a>, such as {@code package.MyClass$Inner}, where the class has a public no-argument constructor
