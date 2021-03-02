@@ -43,7 +43,15 @@ public final class DependencyOverrides {
 	private final Map<String, Map<String, Map<String, ModDependency>>> dependencyOverrides;
 
 	private DependencyOverrides() {
-		Path path = FabricLoader.INSTANCE.getConfigDir().resolve("fabric_loader_dependencies.json");
+		Path configDir = FabricLoader.INSTANCE.getConfigDir();
+
+		if (configDir == null) {
+			exists = false;
+			dependencyOverrides = Collections.emptyMap();
+			return;
+		}
+
+		Path path = configDir.resolve("fabric_loader_dependencies.json");
 		exists = Files.exists(path);
 
 		if (!exists) {

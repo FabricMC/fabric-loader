@@ -153,6 +153,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	 */
 	@Override
 	public Path getConfigDir() {
+		if (configDir == null) {
+			// May be null during tests
+			// If this is in production then things are about to go very wrong.
+			return null;
+		}
+
 		if (!Files.exists(configDir)) {
 			try {
 				Files.createDirectories(configDir);

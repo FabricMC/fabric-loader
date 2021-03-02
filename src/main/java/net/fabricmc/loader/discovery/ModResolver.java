@@ -95,9 +95,14 @@ public class ModResolver {
 			throw new RuntimeException(e);
 		}
 
-		Path gameDir = loader.getGameDirectory().toPath().normalize();
-		if (path.startsWith(gameDir)) {
-			path = gameDir.relativize(path);
+		Path gameDir = loader.getGameDir();
+
+		if (gameDir != null) {
+			gameDir = gameDir.normalize();
+
+			if (path.startsWith(gameDir)) {
+				path = gameDir.relativize(path);
+			}
 		}
 
 		return readableNestedJarPaths.getOrDefault(c.getOriginUrl().toString(), path.toString());
