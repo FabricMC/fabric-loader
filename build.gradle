@@ -55,7 +55,9 @@ dependencies {
 	implementation 'net.fabricmc:tiny-remapper:0.3.0.70'
 	implementation 'net.fabricmc:access-widener:1.0.0'
 
-	implementation 'com.google.jimfs:jimfs:1.2-fabric'
+	implementation('com.google.jimfs:jimfs:1.2') {
+	    exclude module: 'guava'
+	}
 	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
 
 	// launchwrapper + dependencies
