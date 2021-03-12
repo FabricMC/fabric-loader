@@ -253,7 +253,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainer mod : mods) {
-			if (!mod.getInfo().getId().equals("fabricloader")) {
+			if (!mod.getInfo().getId().equals("fabricloader") && !mod.getInfo().getType().equals("builtin")) {
 				FabricLauncherBase.getLauncher().propose(mod.getOriginUrl());
 			}
 		}
