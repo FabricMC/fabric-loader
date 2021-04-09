@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.gui;
 
-import java.awt.GraphicsEnvironment;
+import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,11 +25,15 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 
-/** The main entry point for all fabric-based stuff. */
+/**
+ * The main entry point for all fabric-based stuff.
+ */
 public final class FabricGuiEntry {
-	/** Opens the given {@link FabricStatusTree} in a new swing window.
-	 * 
-	 * @throws Exception if something went wrong while opening the window. */
+	/**
+	 * Opens the given {@link FabricStatusTree} in a new swing window.
+	 *
+	 * @throws Exception if something went wrong while opening the window.
+	 */
 	public static void open(FabricStatusTree tree) throws Exception {
 		openWindow(tree, true);
 	}
@@ -38,10 +42,14 @@ public final class FabricGuiEntry {
 		FabricMainWindow.open(tree, shouldWait);
 	}
 
-	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
-	 *            return normally. */
-	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
-		FabricLoader.INSTANCE.getLogger().fatal("A critical error occurred", exception);
+	/**
+	 * @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
+	 *                  return normally.
+	 */
+	public static void displayCriticalErrors(Set<Throwable> exceptions, boolean exitAfter) {
+		for (Throwable t : exceptions) {
+			FabricLoader.INSTANCE.getLogger().fatal("A critical error occurred", t);
+		}
 
 		GameProvider provider = FabricLoader.INSTANCE.getGameProvider();
 
@@ -50,7 +58,9 @@ public final class FabricGuiEntry {
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
 			tree.mainText = "Failed to launch!";
-			addThrowable(crashTab.node, exception, new HashSet<>());
+			for (Throwable t : exceptions) {
+				addThrowable(crashTab.node, t, new HashSet<>());
+			}
 
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?

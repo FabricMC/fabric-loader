@@ -91,14 +91,19 @@ public class ModResolver {
 	}
 
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
-	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
+	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap, Set<Throwable> exceptions) {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
 		Map<String, List<ModCandidate>> modCandidateMap = new HashMap<>();
 		Set<String> mandatoryMods = new HashSet<>();
 
 		for (ModCandidateSet mcs : modCandidateSetMap.values()) {
-			Collection<ModCandidate> s = mcs.toSortedSet();
+			Collection<ModCandidate> s = null;
+			try {
+				s = mcs.toSortedSet();
+			} catch (ModResolutionException e) {
+				exceptions.add(e);
+			}
 			modCandidateMap.computeIfAbsent(mcs.getModId(), i -> new ArrayList<>()).addAll(s);
 			for (String modProvide : mcs.getModProvides()) {
 				modCandidateMap.computeIfAbsent(modProvide, i -> new ArrayList<>()).addAll(s);
@@ -110,7 +115,7 @@ public class ModResolver {
 			}
 		}
 
-		Map<String, ModCandidate> result;
+		Map<String, ModCandidate> result = null;
 
 		if (!isAdvanced) {
 			result = new HashMap<>();
@@ -150,7 +155,7 @@ public class ModResolver {
 							solver.addAtMost(versionVec, 1);
 						}
 					} catch (ContradictionException e) {
-						throw new ModResolutionException("Could not resolve valid mod collection (at: adding mod " + id + ")", e);
+						exceptions.add(new ModResolutionException("Could not resolve valid mod collection (at: adding mod " + id + ")", e));
 					}
 				}
 
@@ -177,7 +182,7 @@ public class ModResolver {
 							solver.addClause(new VecInt(clause));
 						} catch (ContradictionException e) {
 							//TODO: JiJ'd mods don't manage to throw this exception and instead fail silently
-							throw new ModResolutionException("Could not find required mod: " + mod.getInfo().getId() + " requires " + dep, e);
+							exceptions.add(new ModResolutionException("Could not find required mod: " + mod.getInfo().getId() + " requires " + dep, e));
 						}
 					}
 
@@ -198,7 +203,7 @@ public class ModResolver {
 								solver.addClause(new VecInt(new int[] { -modClauseId, -m }));
 							}
 						} catch (ContradictionException e) {
-							throw new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " conflicts with " + dep, e);
+							exceptions.add(new ModResolutionException("Found conflicting mods: " + mod.getInfo().getId() + " conflicts with " + dep, e));
 						}
 					}
 				}
@@ -223,7 +228,7 @@ public class ModResolver {
 
 					if (!satisfied) {
 						if (mandatoryMods.contains(mod)) {
-							throw new ModResolutionException("Could not resolve mod collection including mandatory mod '" + mod + "'");
+							exceptions.add(new ModResolutionException("Could not resolve mod collection including mandatory mod '" + mod + "'"));
 						} else {
 							assumptions = assumptions.pop();
 						}
@@ -232,7 +237,7 @@ public class ModResolver {
 
 				// TODO: better error message, have a way to figure out precisely which mods are causing this
 				if (!problem.isSatisfiable(assumptions)) {
-					throw new ModResolutionException("Could not resolve mod collection due to an unknown error");
+					exceptions.add(new ModResolutionException("Could not resolve mod collection due to an unknown error"));
 				}
 				int[] model = problem.model();
 				result = new HashMap<>();
@@ -244,13 +249,13 @@ public class ModResolver {
 
 					ModCandidate candidate = intCandidateMap.get(i);
 					if (result.containsKey(candidate.getInfo().getId())) {
-						throw new ModResolutionException("Duplicate ID '" + candidate.getInfo().getId() + "' after solving - wrong constraints?");
+						exceptions.add(new ModResolutionException("Duplicate ID '" + candidate.getInfo().getId() + "' after solving - wrong constraints?"));
 					} else {
 						result.put(candidate.getInfo().getId(), candidate);
 					}
 				}
 			} catch (TimeoutException e) {
-				throw new ModResolutionException("Mod collection took too long to be resolved", e);
+				exceptions.add(new ModResolutionException("Mod collection took too long to be resolved", e));
 			}
 		}
 
@@ -319,7 +324,7 @@ public class ModResolver {
 		}
 
 		if (!errHardStr.isEmpty()) {
-			throw new ModResolutionException("Errors were found!" + errHardStr + errSoftStr);
+			exceptions.add(new ModResolutionException("Errors were found!" + errHardStr + errSoftStr));
 		}
 
 		return result;
@@ -723,7 +728,7 @@ public class ModResolver {
 		}
 	}
 
-	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
+	public Map<String, ModCandidate> resolve(FabricLoader loader, Set<Throwable> exceptions) {
 		ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();
@@ -750,7 +755,7 @@ public class ModResolver {
 						.setName(System.getProperty("java.vm.name"))
 						.build()));
 		} catch (MalformedURLException e) {
-			throw new ModResolutionException("Could not add Java to the dependency constraints", e);
+			exceptions.add(new ModResolutionException("Could not add Java to the dependency constraints", e));
 		}
 
 		boolean tookTooLong = false;
@@ -774,17 +779,17 @@ public class ModResolver {
 				}
 			}
 		} catch (InterruptedException e) {
-			throw new ModResolutionException("Mod resolution took too long!", e);
+			exceptions.add(new ModResolutionException("Mod resolution took too long!", e));
 		}
 		if (tookTooLong) {
-			throw new ModResolutionException("Mod resolution took too long!");
+			exceptions.add(new ModResolutionException("Mod resolution took too long!"));
 		}
 		if (exception != null) {
-			throw new ModResolutionException("Mod resolution failed!", exception);
+			exceptions.add(new ModResolutionException("Mod resolution failed!", exception));
 		}
 
 		long time2 = System.currentTimeMillis();
-		Map<String, ModCandidate> result = findCompatibleSet(loader.getLogger(), candidatesById);
+		Map<String, ModCandidate> result = findCompatibleSet(loader.getLogger(), candidatesById, exceptions);
 
 		long time3 = System.currentTimeMillis();
 		loader.getLogger().debug("Mod resolution detection time: " + (time2 - time1) + "ms");
