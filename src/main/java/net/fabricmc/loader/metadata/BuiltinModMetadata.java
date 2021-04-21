@@ -77,6 +77,11 @@ public final class BuiltinModMetadata implements ModMetadata {
 	}
 
 	@Override
+	public Collection<String> getProvides() {
+		return Collections.emptyList();
+	}
+
+	@Override
 	public Version getVersion() {
 		return version;
 	}

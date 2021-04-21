@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 public class ModCandidateSet {
 	private final String modId;
+	private final List<String> modProvides = new ArrayList<>();
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
 	private final Map<String, ModCandidate> candidates = new HashMap<>();
 
@@ -45,6 +46,10 @@ public class ModCandidateSet {
 		return modId;
 	}
 
+	public List<String> getModProvides() {
+		return modProvides;
+	}
+
 	public boolean add(ModCandidate candidate) {
 		String version = candidate.getInfo().getVersion().getFriendlyString();
 		ModCandidate oldCandidate = candidates.get(version);
@@ -63,6 +68,7 @@ public class ModCandidateSet {
 		}
 
 		candidates.put(version, candidate);
+		modProvides.addAll(candidate.getInfo().getProvides());
 		if (candidate.getDepth() == 0) {
 			depthZeroCandidates.add(candidate);
 		}

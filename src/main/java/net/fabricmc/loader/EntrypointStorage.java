@@ -131,27 +131,16 @@ class EntrypointStorage {
 		List<Entry> entries = entryMap.get(key);
 		if (entries == null) return Collections.emptyList();
 
-		EntrypointException exception = null;
 		List<EntrypointContainer<T>> results = new ArrayList<>(entries.size());
 
 		for (Entry entry : entries) {
-			try {
-				T result = entry.getOrCreate(type);
-
-				if (result != null) {
-					results.add(new EntrypointContainerImpl<>(entry.getModContainer(), result));
+			results.add(new EntrypointContainerImpl<>(entry.getModContainer(), () -> {
+				try {
+					return entry.getOrCreate(type);
+				} catch (Exception ex) {
+					throw new EntrypointException(key, entry.getModContainer(), ex);
 				}
-			} catch (Throwable t) {
-				if (exception == null) {
-					exception = new EntrypointException(key, entry.getModContainer(), t);
-				} else {
-					exception.addSuppressed(t);
-				}
-			}
-		}
-
-		if (exception != null) {
-			throw exception;
+			}));
 		}
 
 		return results;

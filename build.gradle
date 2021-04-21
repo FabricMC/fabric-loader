@@ -10,10 +10,10 @@ buildscript {
 
 plugins {
 	id 'java'
-	id 'maven-publish'
-
 	id 'idea'
 	id 'eclipse'
+	id 'maven-publish'
+	id("org.cadixdev.licenser") version "0.5.0"
 	//id("fabric-loom") version "0.2.6-SNAPSHOT"
 }
 
@@ -28,7 +28,7 @@ archivesBaseName = "fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-version = version + "+" + (ENV.BUILD_NUMBER ? ("build." + ENV.BUILD_NUMBER) : "local")
+version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 repositories {
 	mavenCentral()
@@ -67,7 +67,7 @@ dependencies {
 	annotationProcessor installed ("org.ow2.asm:asm-tree:${project.asm_version}")
 	annotationProcessor installed ("org.ow2.asm:asm-util:${project.asm_version}")
 
-	installed('net.fabricmc:sponge-mixin:0.8.2+build.23') {
+	installed('net.fabricmc:sponge-mixin:0.9.2+mixin.0.8.2') {
 		exclude module: 'launchwrapper'
 		//exclude module: 'guava'
 	}
@@ -191,6 +191,10 @@ jar {
 			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
 		)
 	}
+
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}"}
+	}
 }
 
 task copyJson(type: Copy, dependsOn: createInstallerJSON) {
@@ -209,6 +213,17 @@ task copyJsonLw(type: Copy, dependsOn: createInstallerLWJSON) {
 
 tasks.build.dependsOn copyJson
 tasks.build.dependsOn copyJsonLw
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	// The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
+	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
+	// We'll use that if it's available, but otherwise we'll use the older option.
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
+}
 
 // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 // if it is present.
@@ -247,7 +262,16 @@ task javadocJar(type: Jar) {
 	from javadoc.destinationDir
 	classifier = 'javadoc'
 }
+
 build.dependsOn javadocJar
+
+license {
+	header file("HEADER")
+	include '**/*.java'
+
+	// Exclude gson since it is google's code, we just modify and bundle it
+	exclude '**/lib/gson/*.java'
+}
 
 publishing {
 	publications {
@@ -272,26 +296,14 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-		if (project.hasProperty('mavenPass')) {
+		if (ENV.MAVEN_URL) {
 			maven {
-				url = "http://mavenupload.modmuss50.me/"
+				url ENV.MAVEN_URL
 				credentials {
-					username = "buildslave"
-					password = project.getProperty('mavenPass')
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
 				}
 			}
 		}
 	}
-}
-
-apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/license.gradle'
-apply from: 'https://github.com/FabricMC/fabric-docs/raw/master/gradle/ideconfig.gradle'
-
-license {
-	// Exclude gson since it is google's code, we just modify and bundle it
-	exclude '**/JsonReader.java'
-	exclude '**/JsonScope.java'
-	exclude '**/JsonToken.java'
-	exclude '**/MalformedJsonException.java'
-	exclude '**/io/github/minecraftcursedlegacy/**'
 }

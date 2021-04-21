@@ -47,6 +47,10 @@ class BuiltinMetadataWrapper implements LoaderModMetadata {
 	public String getType() { return parent.getType(); }
 	@Override
 	public String getId() { return parent.getId(); }
+
+	@Override
+	public Collection<String> getProvides() { return parent.getProvides(); }
+
 	@Override
 	public Version getVersion() { return parent.getVersion(); }
 	@Override

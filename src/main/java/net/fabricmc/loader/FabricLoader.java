@@ -36,6 +36,8 @@ import org.apache.logging.log4j.Logger;
 
 import org.objectweb.asm.Opcodes;
 
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
@@ -51,12 +53,11 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
+import net.fabricmc.loader.metadata.DependencyOverrides;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.util.SystemProperties;
-import net.fabricmc.accesswidener.AccessWidener;
-import net.fabricmc.accesswidener.AccessWidenerReader;
 
 /**
  * The main class for mod loading operations.
@@ -209,6 +210,10 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
 			.collect(Collectors.joining(", ")));
 
+		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
+			LOGGER.info(String.format("Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides().keySet())));
+		}
+
 		boolean runtimeModRemapping = isDevelopmentEnvironment();
 
 		if (runtimeModRemapping && System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
@@ -231,7 +236,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainer mod : mods) {
-			if (!mod.getInfo().getId().equals("fabricloader")) {
+			if (!mod.getInfo().getId().equals("fabricloader") && !mod.getInfo().getType().equals("builtin")) {
 				FabricLauncherBase.getLauncher().propose(mod.getOriginUrl());
 			}
 		}
@@ -302,6 +307,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		ModContainer container = new ModContainer(info, originUrl);
 		mods.add(container);
 		modMap.put(info.getId(), container);
+		for (String provides : info.getProvides()) {
+			if(modMap.containsKey(provides)) {
+				throw new ModResolutionException("Duplicate provided alias: " + provides + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			}
+			modMap.put(provides, container);
+		}
 	}
 
 	protected void postprocessModMetadata() {
@@ -368,8 +379,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private void setupMods() {
 		for (ModContainer mod : mods) {
 			try {
-				mod.setupRootPath();
-
 				for (String key : mod.getInfo().getEntrypointKeys()) {
 					for (EntrypointMetadata in : mod.getInfo().getEntrypoints(key)) {
 						entrypointStorage.add(mod, key, in, adapterMap);

@@ -111,10 +111,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		GameProvider provider = new MinecraftGameProvider();
 
-		if (!provider.locateGame(getEnvironmentType(), launchClassLoader)) {
+		if (!provider.locateGame(getEnvironmentType(), arguments.toArray(), launchClassLoader)) {
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
-		provider.acceptArguments(arguments.toArray());
 
 		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
@@ -210,12 +209,12 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	// for the entrypoint.
 	// To work around that, we pre-popuplate the LaunchClassLoader's resource cache,
 	// which will then cause it to use the one we need it to.
+	@SuppressWarnings("unchecked")
 	private void preloadRemappedJar(Path remappedJarFile) throws IOException {
 		Map<String, byte[]> resourceCache = null;
 		try {
 			Field f = LaunchClassLoader.class.getDeclaredField("resourceCache");
 			f.setAccessible(true);
-			//noinspection unchecked
 			resourceCache = (Map<String, byte[]>) f.get(launchClassLoader);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -227,7 +226,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		}
 
 		try (FileInputStream jarFileStream = new FileInputStream(remappedJarFile.toFile());
-			 JarInputStream jarStream = new JarInputStream(jarFileStream)) {
+				JarInputStream jarStream = new JarInputStream(jarFileStream)) {
 			JarEntry entry;
 
 			while ((entry = jarStream.getNextJarEntry()) != null) {
