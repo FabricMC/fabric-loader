@@ -1,13 +1,3 @@
-buildscript {
-	repositories {
-		mavenCentral();
-	}
-
-	dependencies {
-		classpath group: 'net.sourceforge.argo', name: 'argo', version: '5.13'
-	}
-}
-
 plugins {
 	id 'java'
 	id 'idea'
@@ -98,44 +88,51 @@ processResources {
 	}
 }
 
-import static argo.jdom.JsonNodeBuilders.*;
-import argo.format.PrettyJsonFormatter;
-import argo.jdom.JsonArrayNodeBuilder;
-import argo.jdom.JsonNode;
-import argo.jdom.JsonObjectNodeBuilder;
-import java.util.function.Consumer;
+import groovy.json.JsonBuilder
 
-JsonObjectNodeBuilder makeDependencyObject(Dependency dependency) {
-	return anObjectBuilder()
-			.withField("name", aStringBuilder(String.join(":", dependency.getGroup(), dependency.getName(), dependency.getVersion())))
-			.withField("url", aStringBuilder("https://maven.fabricmc.net/"));
-}
+String generalInstallerJSON(Configuration config, Closure extra) {
+	def json = new JsonBuilder()
 
-JsonObjectNodeBuilder getInstallerJSON(Configuration config, Consumer<JsonArrayNodeBuilder> extraLibs = {}) {
-	JsonObjectNodeBuilder libraries = anObjectBuilder();
+	def emptyList = [] //Groovy makes json([]) ambiguous so we take the clear route
+	json {
+		version 1
+		libraries {
+			client emptyList
+			common json(config.allDependencies.findAll { 
+				it instanceof ExternalDependency 
+			}) {dependency ->
+				def repo = ['https://libraries.minecraft.net', 'https://maven.fabricmc.net'].find {repo ->
+					def url = "$repo/${dependency.group.replace('.', '/')}/${dependency.name}/${dependency.version}/${dependency.name}-${dependency.version}.jar".toURL()
 
-	JsonArrayNodeBuilder clientLibs = anArrayBuilder();
-	//There aren't any client side only libraries
-	libraries.withField("client", clientLibs);
+					def connection = url.openConnection()
+					connection.requestMethod = 'HEAD'
+					def back = connection.responseCode
+					connection.disconnect()
 
-	JsonArrayNodeBuilder commonLibs = anArrayBuilder();
-	config.dependencies.findAll { 
-		it instanceof ExternalDependency 
-	}.forEach {
-		commonLibs.withElement(makeDependencyObject(it))
+					if ((200..<300).contains(back)) {
+						//println "$repo has ${dependency.group}:${dependency.name}:${dependency.version}"
+						return repo
+					} else {
+						//println "$repo lacks ${dependency.group}:${dependency.name}:${dependency.version}"
+						return null
+					}
+				}
+				if (repo == null) throw new IllegalArgumentException("Can't find repository for ${dependency.group}:${dependency.name}:${dependency.version}")
+
+				name "${dependency.group}:${dependency.name}:${dependency.version}"
+				url "$repo/" //The trailing slash is probably optional
+			}
+			server json(['com.google.guava:guava:21.0']) {dependency ->
+				//Mojang hosts Guava: https://libraries.minecraft.net/com/google/guava/guava/21.0/guava-21.0.jar
+				_comment 'JiMFS in fabric-server-launch requires Guava on the system classloader'
+				name dependency
+				url 'https://libraries.minecraft.net/'
+			}
+		}
+		extra(delegate)
 	}
-	extraLibs.accept(commonLibs)
-	libraries.withField("common", commonLibs);
 
-	JsonArrayNodeBuilder serverLibs = anArrayBuilder();
-	serverLibs.withElement(anObjectBuilder()
-			.withField("_comment", aStringBuilder("jimfs in fabric-server-launch requires guava on the system classloader"))
-			.withField("name", aStringBuilder("com.google.guava:guava:21.0"))
-			//Mojang hosts Guava: https://libraries.minecraft.net/com/google/guava/guava/21.0/guava-21.0.jar
-			);
-	libraries.withField("server", serverLibs);
-
-	return anObjectBuilder().withField("version", aNumberBuilder("1")).withField("libraries", libraries);
+	return json.toPrettyString()
 }
 
 task createInstallerJSON() {
@@ -144,11 +141,12 @@ task createInstallerJSON() {
 
 	doLast {
 		output.withWriter('utf-8') {writer ->
-			new PrettyJsonFormatter().format(getInstallerJSON(configurations.installed)
-				.withField("mainClass", anObjectBuilder()
-					.withField("client", aStringBuilder("net.fabricmc.loader.launch.knot.KnotClient"))
-					.withField("server", aStringBuilder("net.fabricmc.loader.launch.knot.KnotServer"))
-				).build(), writer);
+			writer.write(generalInstallerJSON(configurations.installed) {json ->
+				json.mainClass {
+					client 'net.fabricmc.loader.launch.knot.KnotClient'
+					server 'net.fabricmc.loader.launch.knot.KnotServer'
+				}
+			})
 		}
 	}
 }
@@ -159,26 +157,21 @@ task createInstallerLWJSON() {
 
 	doLast {
 		output.withWriter('utf-8') {writer ->
-			new PrettyJsonFormatter().format(getInstallerJSON(configurations.installed) {dependencies ->
-					dependencies.withElement(anObjectBuilder()
-						.withField("name", aStringBuilder("net.minecraft:launchwrapper:1.12"))
-						)
-				}.withField("mainClass", aStringBuilder("net.minecraft.launchwrapper.Launch"))
-				.withField("arguments", anObjectBuilder()
-					.withField("client", anArrayBuilder()
-					).withField("common", anArrayBuilder()
-					).withField("server", anArrayBuilder()
-					)
-				).withField("launchwrapper", anObjectBuilder()
-					.withField("tweakers", anObjectBuilder()
-						.withField("client", anArrayBuilder()
-							.withElement(aStringBuilder("net.fabricmc.loader.launch.FabricClientTweaker"))
-						).withField("common", anArrayBuilder()
-						).withField("server", anArrayBuilder()
-							.withElement(aStringBuilder("net.fabricmc.loader.launch.FabricServerTweaker"))
-						)
-					)
-				).build(), writer);
+			writer.write(generalInstallerJSON(configurations.launchwrapper) {json ->
+				def emptyList = []
+
+				json.mainClass 'net.minecraft.launchwrapper.Launch'
+				json.arguments {
+					client emptyList
+					common emptyList
+					server emptyList
+				}
+				json.launchwrapper {
+					client json(['net.fabricmc.loader.launch.FabricClientTweaker'])
+					common emptyList
+					server json(['net.fabricmc.loader.launch.FabricServerTweaker'])
+				}
+			})
 		}
 	}
 }
@@ -211,8 +204,7 @@ task copyJsonLw(type: Copy, dependsOn: createInstallerLWJSON) {
 	into 'build/libs'
 }
 
-tasks.build.dependsOn copyJson
-tasks.build.dependsOn copyJsonLw
+build.dependsOn copyJson, copyJsonLw
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
