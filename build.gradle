@@ -264,6 +264,7 @@ license {
 
 	// Exclude gson since it is google's code, we just modify and bundle it
 	exclude '**/lib/gson/*.java'
+	exclude '**/io/github/minecraftcursedlegacy/**'
 }
 
 publishing {
