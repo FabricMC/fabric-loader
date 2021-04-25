@@ -278,6 +278,7 @@ publishing {
 				builtBy sourcesJar
 			}
 			artifact javadocJar
+			artifact installerJar
 			artifact(createInstallerJSON.outputs.files.singleFile) {
 				builtBy copyJson
 			}
