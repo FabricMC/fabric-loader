@@ -6,7 +6,7 @@
     ],
     "common": [
       {
-        "name": "net.fabricmc:tiny-mappings-parser:0.2.2.14",
+        "name": "net.fabricmc:tiny-mappings-parser:0.3.0+build.17",
         "url": "https://maven.fabricmc.net/"
       },
       {
@@ -14,11 +14,11 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:tiny-remapper:0.3.0.70",
+        "name": "net.fabricmc:tiny-remapper:0.3.2",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:access-widener:1.0.0",
+        "name": "net.fabricmc:access-widener:1.0.2",
         "url": "https://maven.fabricmc.net/"
       },
       {
