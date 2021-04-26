@@ -18,7 +18,6 @@ version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 repositories {
 	mavenCentral()
-	jcenter()
 	maven {
 		name = 'Fabric'
 		url = 'https://maven.fabricmc.net/'
@@ -30,8 +29,8 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.16.4"
-	mappings "net.fabricmc:yarn:1.16.4+build.9:v2"
+	minecraft "com.mojang:minecraft:1.16.5"
+	mappings "net.fabricmc:yarn:1.16.5+build.6:v2"
 
 	// fabric-loader dependencies
 	implementation "org.ow2.asm:asm:${project.asm_version}"
@@ -51,9 +50,9 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	implementation 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	implementation 'net.fabricmc:tiny-remapper:0.3.0.70'
-	implementation 'net.fabricmc:access-widener:1.0.0'
+	implementation 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
+	implementation 'net.fabricmc:tiny-remapper:0.3.2'
+	implementation 'net.fabricmc:access-widener:1.0.2'
 
 	implementation 'com.google.jimfs:jimfs:1.2-fabric'
 	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
@@ -64,10 +63,10 @@ dependencies {
 	}
 	implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
 
-	testCompileClasspath 'org.jetbrains:annotations:19.0.0'
+	testCompileClasspath 'org.jetbrains:annotations:20.1.0'
 
 	// Unit testing for mod metadata
-	testImplementation('org.junit.jupiter:junit-jupiter:5.6.2')
+	testImplementation('org.junit.jupiter:junit-jupiter:5.7.1')
 }
 
 processResources {
