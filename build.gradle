@@ -62,6 +62,8 @@ dependencies {
 		transitive = false
 	}
 	implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
+	
+	testImplementation 'org.jetbrains:annotations:20.1.0'
 
 	// Unit testing for mod metadata
 	testImplementation('org.junit.jupiter:junit-jupiter:5.7.1')
