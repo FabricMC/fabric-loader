@@ -29,8 +29,8 @@ repositories {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.16.5"
-	mappings "net.fabricmc:yarn:1.16.5+build.6:v2"
+	minecraft "com.mojang:minecraft:1.16.4"
+	mappings "net.fabricmc:yarn:1.16.4+build.9:v2"
 
 	// fabric-loader dependencies
 	implementation "org.ow2.asm:asm:${project.asm_version}"
