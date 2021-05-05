@@ -127,7 +127,6 @@ public final class Knot extends FabricLauncherBase {
 
 		Thread.currentThread().setContextClassLoader(cl);
 
-		@SuppressWarnings("deprecation")
 		FabricLoaderImpl loader = FabricLoaderImpl.getInstance();
 		loader.setGameProvider(provider);
 		loader.load();
