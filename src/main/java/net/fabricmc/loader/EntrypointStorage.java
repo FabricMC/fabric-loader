@@ -81,13 +81,12 @@ class EntrypointStorage {
 		return entryMap.computeIfAbsent(key, (z) -> new ArrayList<>());
 	}
 
-	@SuppressWarnings("deprecation")
 	protected void add(ModContainer modContainer, String key, EntrypointMetadata metadata, Map<String, LanguageAdapter> adapterMap) throws Exception {
 		if (!adapterMap.containsKey(metadata.getAdapter())) {
 			throw new Exception("Could not find adapter '" + metadata.getAdapter() + "' (mod " + modContainer.getInfo().getId() + "!)");
 		}
 
-		FabricLoader.INSTANCE.getLogger().debug("Registering new-style initializer " + metadata.getValue() + " for mod " + modContainer.getInfo().getId() + " (key " + key + ")");
+		FabricLoaderImpl.getInstance().getLogger().debug("Registering new-style initializer " + metadata.getValue() + " for mod " + modContainer.getInfo().getId() + " (key " + key + ")");
 		getOrCreateEntries(key).add(new NewEntry(
 			modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
 		));

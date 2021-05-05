@@ -18,7 +18,7 @@ package net.fabricmc.loader.transformer;
 
 import net.fabricmc.accesswidener.AccessWidenerVisitor;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
@@ -43,12 +43,11 @@ public final class FabricTransformer {
 
 	}
 
-	@SuppressWarnings("deprecation")
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
-		boolean applyAccessWidener = isMinecraftClass && FabricLoader.INSTANCE.getAccessWidener().getTargets().contains(name);
+		boolean applyAccessWidener = isMinecraftClass && FabricLoaderImpl.getInstance().getAccessWidener().getTargets().contains(name);
 
 		if (!transformAccess && !environmentStrip && !applyAccessWidener) {
 			return bytes;
@@ -60,23 +59,23 @@ public final class FabricTransformer {
 		int visitorCount = 0;
 
 		if (applyAccessWidener) {
-			visitor = AccessWidenerVisitor.createClassVisitor(FabricLoader.ASM_VERSION, visitor, FabricLoader.INSTANCE.getAccessWidener());
+			visitor = AccessWidenerVisitor.createClassVisitor(FabricLoaderImpl.ASM_VERSION, visitor, FabricLoaderImpl.getInstance().getAccessWidener());
 			visitorCount++;
 		}
 
 		if (transformAccess) {
-			visitor = new PackageAccessFixer(FabricLoader.ASM_VERSION, visitor);
+			visitor = new PackageAccessFixer(FabricLoaderImpl.ASM_VERSION, visitor);
 			visitorCount++;
 		}
 
 		if (environmentStrip) {
-			EnvironmentStrippingData stripData = new EnvironmentStrippingData(FabricLoader.ASM_VERSION, envType.toString());
+			EnvironmentStrippingData stripData = new EnvironmentStrippingData(FabricLoaderImpl.ASM_VERSION, envType.toString());
 			classReader.accept(stripData, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
 			if (stripData.stripEntireClass()) {
 				throw new RuntimeException("Cannot load class " + name + " in environment type " + envType);
 			}
 			if (!stripData.isEmpty()) {
-				visitor = new ClassStripper(FabricLoader.ASM_VERSION, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
+				visitor = new ClassStripper(FabricLoaderImpl.ASM_VERSION, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
 				visitorCount++;
 			}
 		}

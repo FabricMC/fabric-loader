@@ -16,8 +16,24 @@
 
 package net.fabricmc.loader.launch.knot;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.spongepowered.asm.launch.MixinBootstrap;
+
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
@@ -27,15 +43,6 @@ import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import org.spongepowered.asm.launch.MixinBootstrap;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();
@@ -121,7 +128,7 @@ public final class Knot extends FabricLauncherBase {
 		Thread.currentThread().setContextClassLoader(cl);
 
 		@SuppressWarnings("deprecation")
-		FabricLoader loader = FabricLoader.INSTANCE;
+		FabricLoaderImpl loader = FabricLoaderImpl.getInstance();
 		loader.setGameProvider(provider);
 		loader.load();
 		loader.freeze();

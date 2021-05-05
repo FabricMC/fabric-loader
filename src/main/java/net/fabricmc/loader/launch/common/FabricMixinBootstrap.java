@@ -17,7 +17,7 @@
 package net.fabricmc.loader.launch.common;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.mappings.MixinIntermediaryDevRemapper;
@@ -44,7 +44,7 @@ public final class FabricMixinBootstrap {
 		Mixins.addConfiguration(configuration);
 	}
 
-	static Set<String> getMixinConfigs(FabricLoader loader, EnvType type) {
+	static Set<String> getMixinConfigs(FabricLoaderImpl loader, EnvType type) {
 		return loader.getAllMods().stream()
 			.map(ModContainer::getMetadata)
 			.filter((m) -> m instanceof LoaderModMetadata)
@@ -53,7 +53,7 @@ public final class FabricMixinBootstrap {
 			.collect(Collectors.toSet());
 	}
 
-	public static void init(EnvType side, FabricLoader loader) {
+	public static void init(EnvType side, FabricLoaderImpl loader) {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}

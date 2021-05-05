@@ -34,7 +34,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
@@ -423,7 +423,7 @@ public final class McVersionLookup {
 
 	private static final class FieldStringConstantVisitor extends ClassVisitor implements Analyzer {
 		public FieldStringConstantVisitor(String fieldName) {
-			super(FabricLoader.ASM_VERSION);
+			super(FabricLoaderImpl.ASM_VERSION);
 
 			this.fieldName = fieldName;
 		}
@@ -494,7 +494,7 @@ public final class McVersionLookup {
 
 	private static final class MethodStringConstantContainsVisitor extends ClassVisitor implements Analyzer {
 		public MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
-			super(FabricLoader.ASM_VERSION);
+			super(FabricLoaderImpl.ASM_VERSION);
 
 			this.methodOwner = methodOwner;
 			this.methodName = methodName;
@@ -549,7 +549,7 @@ public final class McVersionLookup {
 
 	private static final class MethodConstantRetVisitor extends ClassVisitor implements Analyzer {
 		public MethodConstantRetVisitor(String methodName) {
-			super(FabricLoader.ASM_VERSION);
+			super(FabricLoaderImpl.ASM_VERSION);
 
 			this.methodName = methodName;
 		}
@@ -607,7 +607,7 @@ public final class McVersionLookup {
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
 		public MethodConstantVisitor(String methodNameHint) {
-			super(FabricLoader.ASM_VERSION);
+			super(FabricLoaderImpl.ASM_VERSION);
 
 			this.methodNameHint = methodNameHint;
 		}
@@ -625,7 +625,7 @@ public final class McVersionLookup {
 				return null;
 			}
 
-			return new MethodVisitor(FabricLoader.ASM_VERSION) {
+			return new MethodVisitor(FabricLoaderImpl.ASM_VERSION) {
 				@Override
 				public void visitLdcInsn(Object value) {
 					String str;
@@ -647,7 +647,7 @@ public final class McVersionLookup {
 
 	private static abstract class InsnFwdMethodVisitor extends MethodVisitor {
 		public InsnFwdMethodVisitor() {
-			super(FabricLoader.ASM_VERSION);
+			super(FabricLoaderImpl.ASM_VERSION);
 		}
 
 		protected abstract void visitAnyInsn();

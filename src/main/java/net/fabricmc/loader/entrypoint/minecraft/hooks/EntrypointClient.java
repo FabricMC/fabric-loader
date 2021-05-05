@@ -20,7 +20,7 @@ import java.io.File;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 
 import io.github.minecraftcursedlegacy.api.ModPostInitializer;
 import io.github.minecraftcursedlegacy.impl.Hacks;
@@ -31,7 +31,7 @@ public final class EntrypointClient {
 			runDir = new File(".");
 		}
 
-		FabricLoader.preInit(runDir, gameInstance);
+		FabricLoaderImpl.preInit(runDir, gameInstance);
 		EntrypointUtils.invoke("init", ModInitializer.class, ModInitializer::onInitialize);
 		EntrypointUtils.invoke("client", ClientModInitializer.class, ClientModInitializer::onInitializeClient);
 		Hacks.hack.run();

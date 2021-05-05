@@ -16,14 +16,49 @@
 
 package net.fabricmc.loader.discovery;
 
+import static com.google.common.jimfs.Feature.FILE_CHANNEL;
+import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.zip.ZipError;
+
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.game.GameProvider.BuiltinMod;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.lib.gson.MalformedJsonException;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
@@ -41,26 +76,6 @@ import net.fabricmc.loader.util.sat4j.specs.IProblem;
 import net.fabricmc.loader.util.sat4j.specs.ISolver;
 import net.fabricmc.loader.util.sat4j.specs.IVecInt;
 import net.fabricmc.loader.util.sat4j.specs.TimeoutException;
-
-import org.apache.logging.log4j.Logger;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.zip.ZipError;
-
-import static com.google.common.jimfs.Feature.FILE_CHANNEL;
-import static com.google.common.jimfs.Feature.SECURE_DIRECTORY_STREAM;
 
 public class ModResolver {
 	// nested JAR store
@@ -325,7 +340,6 @@ public class ModResolver {
 		return result;
 	}
 
-	@SuppressWarnings("deprecation")
 	private void addErrorToList(Logger logger, ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
@@ -347,7 +361,7 @@ public class ModResolver {
 		if(depCandidate == null) {
 			for (ModCandidate value : result.values()) {
 				if (value.getInfo().getProvides().contains(depModId)) {
-					if(FabricLoader.INSTANCE.isDevelopmentEnvironment()) logger.warn("Mod " + candidate.getInfo().getId() + " is using the provided alias " + depModId + " in place of the real mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a provided alias.");
+					if(FabricLoader.getInstance().isDevelopmentEnvironment()) logger.warn("Mod " + candidate.getInfo().getId() + " is using the provided alias " + depModId + " in place of the real mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a provided alias.");
 					depCandidate = value;
 					break;
 				}
@@ -553,13 +567,13 @@ public class ModResolver {
 
 	@SuppressWarnings("serial")
 	static class UrlProcessAction extends RecursiveAction {
-		private final FabricLoader loader;
+		private final FabricLoaderImpl loader;
 		private final Map<String, ModCandidateSet> candidatesById;
 		private final URL url;
 		private final int depth;
 		private final boolean requiresRemap;
 
-		UrlProcessAction(FabricLoader loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth, boolean requiresRemap) {
+		UrlProcessAction(FabricLoaderImpl loader, Map<String, ModCandidateSet> candidatesById, URL url, int depth, boolean requiresRemap) {
 			this.loader = loader;
 			this.candidatesById = candidatesById;
 			this.url = url;
@@ -725,7 +739,7 @@ public class ModResolver {
 		}
 	}
 
-	public Map<String, ModCandidate> resolve(FabricLoader loader) throws ModResolutionException {
+	public Map<String, ModCandidate> resolve(FabricLoaderImpl loader) throws ModResolutionException {
 		ConcurrentMap<String, ModCandidateSet> candidatesById = new ConcurrentHashMap<>();
 
 		long time1 = System.currentTimeMillis();

@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -62,13 +62,8 @@ import net.fabricmc.loader.util.SystemProperties;
 /**
  * The main class for mod loading operations.
  */
-public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
-	/**
-	 * @deprecated Use {@link net.fabricmc.loader.api.FabricLoader#getInstance()} where possible,
-	 * report missing areas as an issue.
-	 */
-	@Deprecated
-	public static final FabricLoader INSTANCE = new FabricLoader();
+public class FabricLoaderImpl implements FabricLoader {
+	static final FabricLoaderImpl INSTANCE = new FabricLoaderImpl();
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
@@ -90,7 +85,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	private Path gameDir;
 	private Path configDir;
 
-	protected FabricLoader() {
+	protected FabricLoaderImpl() {
 	}
 
 	/**
@@ -485,6 +480,13 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public static void preInit(File newRunDir, Object gameInstance) {
 		INSTANCE.prepareModInit(newRunDir.toPath(), gameInstance);
+	}
+
+	/**
+	 * For internal use only.
+	 */
+	public static FabricLoaderImpl getInstance() {
+		return INSTANCE;
 	}
 
 	@Override

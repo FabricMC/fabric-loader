@@ -16,7 +16,7 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 public class ClasspathModCandidateFinder implements ModCandidateFinder {
 	@Override
-	public void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> appender) {
+	public void findCandidates(FabricLoaderImpl loader, BiConsumer<URL, Boolean> appender) {
 		Stream<URL> urls;
 
 		URL fabricCodeSource;

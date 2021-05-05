@@ -20,7 +20,7 @@ import java.awt.GraphicsEnvironment;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.FabricLoaderImpl;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
@@ -42,9 +42,9 @@ public final class FabricGuiEntry {
 	 *            return normally. */
 	@SuppressWarnings("deprecation")
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
-		FabricLoader.INSTANCE.getLogger().fatal("A critical error occurred", exception);
+		FabricLoaderImpl.getInstance().getLogger().fatal("A critical error occurred", exception);
 
-		GameProvider provider = FabricLoader.INSTANCE.getGameProvider();
+		GameProvider provider = FabricLoaderImpl.getInstance().getGameProvider();
 
 		if ((provider == null || provider.canOpenErrorGui()) && !GraphicsEnvironment.isHeadless()) {
 			FabricStatusTree tree = new FabricStatusTree();
@@ -61,7 +61,7 @@ public final class FabricGuiEntry {
 				open(tree);
 			} catch (Exception e) {
 				if (exitAfter) {
-					FabricLoader.INSTANCE.getLogger().warn("Failed to open the error gui!", e);
+					FabricLoaderImpl.getInstance().getLogger().warn("Failed to open the error gui!", e);
 				} else {
 					throw new RuntimeException("Failed to open the error gui!", e);
 				}

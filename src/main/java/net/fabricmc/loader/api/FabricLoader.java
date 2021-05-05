@@ -36,13 +36,12 @@ public interface FabricLoader {
 	/**
 	 * Returns the public-facing Fabric Loader instance.
 	 */
-	@SuppressWarnings("deprecation")
 	static FabricLoader getInstance() {
-		if (net.fabricmc.loader.FabricLoader.INSTANCE == null) {
+		if (net.fabricmc.loader.FabricLoaderImpl.getInstance() == null) {
 			throw new RuntimeException("Accessed FabricLoader too early!");
 		}
 
-		return net.fabricmc.loader.FabricLoader.INSTANCE;
+		return net.fabricmc.loader.FabricLoaderImpl.getInstance();
 	}
 
 	/**

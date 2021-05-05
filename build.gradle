@@ -14,7 +14,7 @@ task wrapper(type: Wrapper) {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = "fabric-loader"
+archivesBaseName = "cursed-fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
@@ -291,12 +291,13 @@ publishing {
 
 	// select the repositories you want to publish to
 	repositories {
-		if (ENV.MAVEN_URL) {
-			maven {
-				url ENV.MAVEN_URL
+		maven {
+			def mavenUrl = project.hasProperty('maven_url') ? project.property('maven_url') : ""
+			url mavenUrl
+			if(mavenUrl.startsWith("http")) {
 				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
+					username project.hasProperty('maven_username') ? project.property('maven_username') : ""
+					password project.hasProperty('maven_password') ? project.property('maven_password') : ""
 				}
 			}
 		}
