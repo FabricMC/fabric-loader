@@ -214,7 +214,7 @@ tasks.withType(JavaCompile).configureEach {
 	// JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
 	// We'll use that if it's available, but otherwise we'll use the older option.
 	if (JavaVersion.current().isJava9Compatible()) {
-		it.options.release = 8
+		//it.options.release = 8
 	}
 }
 
