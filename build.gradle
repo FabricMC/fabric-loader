@@ -18,7 +18,7 @@ archivesBaseName = "cursed-fabric-loader"
 
 // Fetch build number from Jenkins
 def ENV = System.getenv()
-version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
+//version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 repositories {
 	mavenCentral()
