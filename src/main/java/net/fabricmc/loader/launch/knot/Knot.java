@@ -19,6 +19,7 @@ package net.fabricmc.loader.launch.knot;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
+import net.fabricmc.loader.api.entrypoint.PreMixinInitEntrypoint;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
@@ -125,8 +126,9 @@ public final class Knot extends FabricLauncherBase {
 		loader.setGameProvider(provider);
 		loader.load();
 		loader.freeze();
+		loader.loadAccessWideners();
 
-		FabricLoader.INSTANCE.loadAccessWideners();
+		EntrypointUtils.invoke("preMixinInit", PreMixinInitEntrypoint.class, PreMixinInitEntrypoint::onPreMixinInit);
 
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
