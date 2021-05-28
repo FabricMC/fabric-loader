@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -210,22 +211,25 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		resolver.addCandidateFinder(new DirectoryModCandidateFinder(getModsDir(), isDevelopmentEnvironment()));
 		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
 
+		String modListText = candidateMap.values().stream()
+				.sorted(Comparator.comparing(candidate -> candidate.getInfo().getId()))
+				.map(candidate -> String.format("\t- %s@%s", candidate.getInfo().getId(), candidate.getInfo().getVersion().getFriendlyString()))
+				.collect(Collectors.joining("\n"));
+
 		String modText;
 		switch (candidateMap.values().size()) {
 			case 0:
 				modText = "Loading %d mods";
 				break;
 			case 1:
-				modText = "Loading %d mod: %s";
+				modText = "Loading %d mod:";
 				break;
 			default:
-				modText = "Loading %d mods: %s";
+				modText = "Loading %d mods:";
 				break;
 		}
 
-		LOGGER.info("[" + getClass().getSimpleName() + "] " + modText, candidateMap.values().size(), candidateMap.values().stream()
-			.map(info -> String.format("%s@%s", info.getInfo().getId(), info.getInfo().getVersion().getFriendlyString()))
-			.collect(Collectors.joining(", ")));
+		LOGGER.info("[%s] " + modText + "%n%s", getClass().getSimpleName(), candidateMap.values().size(), modListText);
 
 		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
 			LOGGER.info(String.format("Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides().keySet())));
