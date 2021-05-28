@@ -215,6 +215,6 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public MixinEnvironment.CompatibilityLevel getMaxCompatibilityLevel() {
-		return MixinEnvironment.CompatibilityLevel.JAVA_14;
+		return MixinEnvironment.CompatibilityLevel.JAVA_17;
 	}
 }
