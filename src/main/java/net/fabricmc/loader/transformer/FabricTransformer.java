@@ -16,13 +16,14 @@
 
 package net.fabricmc.loader.transformer;
 
+import net.fabricmc.accesswidener.AccessWidenerVisitor;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
 
 public final class FabricTransformer {
 	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
@@ -46,8 +47,9 @@ public final class FabricTransformer {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
+		boolean applyAccessWidener = isMinecraftClass && FabricLoader.INSTANCE.getAccessWidener().getTargets().contains(name);
 
-		if (!transformAccess && !environmentStrip) {
+		if (!transformAccess && !environmentStrip && !applyAccessWidener) {
 			return bytes;
 		}
 
@@ -56,19 +58,24 @@ public final class FabricTransformer {
 		ClassVisitor visitor = classWriter;
 		int visitorCount = 0;
 
+		if (applyAccessWidener) {
+			visitor = AccessWidenerVisitor.createClassVisitor(FabricLoader.ASM_VERSION, visitor, FabricLoader.INSTANCE.getAccessWidener());
+			visitorCount++;
+		}
+
 		if (transformAccess) {
-			visitor = new PackageAccessFixer(Opcodes.ASM7, visitor);
+			visitor = new PackageAccessFixer(FabricLoader.ASM_VERSION, visitor);
 			visitorCount++;
 		}
 
 		if (environmentStrip) {
-			EnvironmentStrippingData stripData = new EnvironmentStrippingData(Opcodes.ASM7, envType.toString());
+			EnvironmentStrippingData stripData = new EnvironmentStrippingData(FabricLoader.ASM_VERSION, envType.toString());
 			classReader.accept(stripData, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
 			if (stripData.stripEntireClass()) {
 				throw new RuntimeException("Cannot load class " + name + " in environment type " + envType);
 			}
 			if (!stripData.isEmpty()) {
-				visitor = new ClassStripper(Opcodes.ASM7, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
+				visitor = new ClassStripper(FabricLoader.ASM_VERSION, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
 				visitorCount++;
 			}
 		}

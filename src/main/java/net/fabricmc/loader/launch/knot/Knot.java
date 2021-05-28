@@ -24,6 +24,7 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.game.GameProviders;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
 import org.spongepowered.asm.launch.MixinBootstrap;
@@ -45,30 +46,30 @@ public final class Knot extends FabricLauncherBase {
 	private final File gameJarFile;
 	private GameProvider provider;
 
-	protected Knot(EnvType type, File gameJarFile) {
+	public Knot(EnvType type, File gameJarFile) {
 		this.envType = type;
 		this.gameJarFile = gameJarFile;
 	}
 
-	protected void init(String[] args) {
+	protected ClassLoader init(String[] args) {
 		setProperties(properties);
 
 		// configure fabric vars
 		if (envType == null) {
-			String side = System.getProperty("fabric.side");
+			String side = System.getProperty(SystemProperties.SIDE);
 			if (side == null) {
 				throw new RuntimeException("Please specify side or use a dedicated Knot!");
 			}
 
 			switch (side.toLowerCase(Locale.ROOT)) {
-				case "client":
-					envType = EnvType.CLIENT;
-					break;
-				case "server":
-					envType = EnvType.SERVER;
-					break;
-				default:
-					throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
+			case "client":
+				envType = EnvType.CLIENT;
+				break;
+			case "server":
+				envType = EnvType.SERVER;
+				break;
+			default:
+				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
 			}
 		}
 
@@ -79,7 +80,7 @@ public final class Knot extends FabricLauncherBase {
 		provider = null;
 
 		for (GameProvider p : providers) {
-			if (p.locateGame(envType, this.getClass().getClassLoader())) {
+			if (p.locateGame(envType, args, this.getClass().getClassLoader())) {
 				provider = p;
 				break;
 			}
@@ -90,14 +91,12 @@ public final class Knot extends FabricLauncherBase {
 		} else {
 			LOGGER.error("Could not find valid game provider!");
 			for (GameProvider p : providers) {
-				LOGGER.error("- " + p.getGameName()+ " " + p.getRawGameVersion());
+				LOGGER.error("- " + p.getGameName());
 			}
 			throw new RuntimeException("Could not find valid game provider!");
 		}
 
-		provider.acceptArguments(args);
-
-		isDevelopment = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
+		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
 
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
@@ -108,11 +107,11 @@ public final class Knot extends FabricLauncherBase {
 		if (provider.isObfuscated()) {
 			for (Path path : provider.getGameContextJars()) {
 				FabricLauncherBase.deobfuscate(
-					provider.getGameId(), provider.getNormalizedGameVersion(),
-					provider.getLaunchDirectory(),
-					path,
-					this
-				);
+						provider.getGameId(), provider.getNormalizedGameVersion(),
+						provider.getLaunchDirectory(),
+						path,
+						this
+						);
 			}
 		}
 
@@ -127,6 +126,8 @@ public final class Knot extends FabricLauncherBase {
 		loader.load();
 		loader.freeze();
 
+		FabricLoader.INSTANCE.loadAccessWideners();
+
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
 		FabricLauncherBase.finishMixinBootstrapping();
@@ -135,6 +136,13 @@ public final class Knot extends FabricLauncherBase {
 
 		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 
+		return cl;
+	}
+
+	public void launch(ClassLoader cl) {
+		if(this.provider == null) {
+			throw new IllegalStateException("Game provider was not initialized! (Knot#init(String[]))");
+		}
 		provider.launch(cl);
 	}
 
@@ -201,8 +209,12 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public byte[] getClassByteArray(String name) throws IOException {
-		return classLoader.getDelegate().getClassByteArray(name, false);
+	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
+		if (runTransformers) {
+			return classLoader.getDelegate().getPreMixinClassByteArray(name, false);
+		} else {
+			return classLoader.getDelegate().getRawClassByteArray(name, false);
+		}
 	}
 
 	@Override

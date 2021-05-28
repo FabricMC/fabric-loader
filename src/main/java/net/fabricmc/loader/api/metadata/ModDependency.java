@@ -16,9 +16,31 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import net.fabricmc.loader.api.Version;
+import java.util.Set;
 
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionPredicate;
+
+/**
+ * Represents a dependency.
+ */
 public interface ModDependency {
+	/**
+	 * Returns the ID of the mod to check.
+	 */
 	String getModId();
+
+	/**
+	 * Returns if the version fulfills this dependency's version requirement.
+	 *
+	 * @param version the version to check
+	 */
 	boolean matches(Version version);
+
+	/**
+	 * Returns a representation of the dependency's version requirements.
+	 *
+	 * @return representation of the dependency's version requirements
+	 */
+	Set<VersionPredicate> getVersionRequirements();
 }

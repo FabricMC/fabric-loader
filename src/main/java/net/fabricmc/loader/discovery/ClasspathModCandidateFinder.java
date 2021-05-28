@@ -24,14 +24,24 @@ import net.fabricmc.loader.util.UrlUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public class ClasspathModCandidateFinder implements ModCandidateFinder {
 	@Override
-	public void findCandidates(FabricLoader loader, Consumer<URL> appender) {
+	public void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> appender) {
 		Stream<URL> urls;
+
+		URL fabricCodeSource;
+		try {
+			fabricCodeSource = FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation();
+		} catch (Throwable t) {
+			loader.getLogger().debug("Could not retrieve launcher code source!", t);
+			fabricCodeSource = null;
+		}
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			// Search for URLs which point to 'fabric.mod.json' entries, to be considered as mods.
@@ -59,7 +69,16 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 						try {
 							URL url = UrlUtil.asUrl(file);
 							if (!modsList.contains(url)) {
-								FabricLauncherBase.getLauncher().propose(url);
+								// Fix running fabric-loader itself in a developmental environment.
+								// By proposing loader classes to KnotClassLoader, we setup a
+								// situation where the entrypoint hooks are loaded on KnotClassLoader
+								// rather than AppClassLoader. This crashes the game due to
+								// Fabric being supposedly uninitialized.
+								// This heuristic could probably be better, but I doubt that any sane
+								// mod would include a second FabricLoader.
+								if (!FabricLoader.INSTANCE.isDevelopmentEnvironment() || !url.equals(fabricCodeSource)) {
+									FabricLauncherBase.getLauncher().propose(url);
+								}
 							}
 						} catch (UrlConversionException e) {
 							loader.getLogger().warn("[ClasspathModCandidateFinder] Failed to add dev directory " + file.getAbsolutePath() + " to classpath!", e);
@@ -72,10 +91,10 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 				throw new RuntimeException(e);
 			}
 		} else {
-			try {
-				urls = Stream.of(FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation());
-			} catch (Throwable t) {
-				loader.getLogger().debug("Could not fallback to itself for mod candidate lookup!", t);
+			if(fabricCodeSource != null) {
+				urls = Stream.of(fabricCodeSource);
+			} else {
+				loader.getLogger().debug("Could not fallback to itself for mod candidate lookup!");
 				urls = Stream.empty();
 			}
 		}
@@ -92,7 +111,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 
 			if (f.exists()) {
 				if (f.isDirectory() || f.getName().endsWith(".jar")) {
-					appender.accept(url);
+					appender.accept(url, false);
 				}
 			}
 		});

@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.launch.server;
 
+import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlUtil;
 
 import java.io.*;
@@ -42,7 +43,7 @@ public class FabricServerLauncher {
 			}
 		}
 
-		boolean dev = Boolean.parseBoolean(System.getProperty("fabric.development", "false"));
+		boolean dev = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
 
 		if (!dev) {
 			try {
@@ -98,7 +99,7 @@ public class FabricServerLauncher {
 			throw new RuntimeException("Searched for '" + serverJar.getName() + "' but could not find it.");
 		}
 
-		System.setProperty("fabric.gameJarPath", serverJar.getAbsolutePath());
+		System.setProperty(SystemProperties.GAME_JAR_PATH, serverJar.getAbsolutePath());
 		try {
 			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, parentLoader, "com.google.common.jimfs.");
 			Thread.currentThread().setContextClassLoader(newClassLoader);

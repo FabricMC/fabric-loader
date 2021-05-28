@@ -17,12 +17,14 @@
 package net.fabricmc.loader.launch.knot;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.util.SystemProperties;
 
 import java.io.File;
 
 public class KnotClient {
 	public static void main(String[] args) {
-		String gameJarPath = System.getProperty("fabric.gameJarPath");
-		new Knot(EnvType.CLIENT, gameJarPath != null ? new File(gameJarPath) : null).init(args);
+		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
+		Knot knot = new Knot(EnvType.CLIENT, gameJarPath != null ? new File(gameJarPath) : null);
+		knot.launch(knot.init(args));
 	}
 }

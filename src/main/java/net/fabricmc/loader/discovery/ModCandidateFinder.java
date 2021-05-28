@@ -19,9 +19,9 @@ package net.fabricmc.loader.discovery;
 import net.fabricmc.loader.FabricLoader;
 
 import java.net.URL;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 @FunctionalInterface
 public interface ModCandidateFinder {
-	void findCandidates(FabricLoader loader, Consumer<URL> urlProposer);
+	void findCandidates(FabricLoader loader, BiConsumer<URL, Boolean> urlProposer);
 }

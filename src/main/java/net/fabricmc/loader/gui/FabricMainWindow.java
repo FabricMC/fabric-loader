@@ -161,6 +161,7 @@ class FabricMainWindow {
 		}
 
 		window.setVisible(true);
+		window.requestFocus();
 	}
 
 	private static JPanel createTreePanel(FabricStatusNode rootNode, FabricTreeWarningLevel minimumWarningLevel,

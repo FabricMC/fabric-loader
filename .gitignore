@@ -4,6 +4,7 @@
 # Folders
 !/gradle
 !/src
+!/.github
 
 # Files
 !/.gitattributes
@@ -14,7 +15,6 @@
 !/gradlew
 !/gradlew.bat
 !/HEADER
-!/Jenkinsfile
 !/LICENSE
 !/README.md
 !/settings.gradle

@@ -29,6 +29,7 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.metadata.AbstractModMetadata;
@@ -47,8 +48,14 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public String getType() { return parent.getType(); }
 	@Override
 	public String getId() { return parent.getId(); }
+
+	@Override
+	public Collection<String> getProvides() { return parent.getProvides(); }
+
 	@Override
 	public Version getVersion() { return parent.getVersion(); }
+	@Override
+	public ModEnvironment getEnvironment() { return parent.getEnvironment(); }
 	@Override
 	public Collection<ModDependency> getDepends() { return parent.getDepends(); }
 	@Override
@@ -78,6 +85,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	@Override
 	public CustomValue getCustomValue(String key) { return parent.getCustomValue(key); }
 	@Override
+	public Map<String, CustomValue> getCustomValues() { return parent.getCustomValues(); }
+	@Override
 	public int getSchemaVersion() { return Integer.MAX_VALUE; }
 	@Override
 	public Map<String, String> getLanguageAdapterDefinitions() { return Collections.emptyMap(); }
@@ -85,6 +94,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	public Collection<NestedJarEntry> getJars() { return Collections.emptyList(); }
 	@Override
 	public Collection<String> getMixinConfigs(EnvType type) { return Collections.emptyList(); }
+	@Override
+	public String getAccessWidener() { return null; }
 	@Override
 	public boolean loadsInEnvironment(EnvType type) { return true; }
 	@Override
