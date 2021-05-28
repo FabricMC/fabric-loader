@@ -130,7 +130,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			minecraftJar = jarFile;
 		}
 
-		return resultJarFile;
+		return jarFile;
 	}
 
 	private static void deobfuscate0(Path jarFile, Path deobfJarFile, Path deobfJarFileTmp, TinyTree mappings, String targetNamespace) throws IOException {
