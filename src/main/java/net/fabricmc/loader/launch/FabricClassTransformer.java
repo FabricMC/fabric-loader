@@ -16,8 +16,9 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.loader.transformer.FabricTransformer;
 import net.minecraft.launchwrapper.IClassTransformer;
+
+import net.fabricmc.loader.transformer.FabricTransformer;
 
 public class FabricClassTransformer implements IClassTransformer {
 	@Override

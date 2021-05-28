@@ -16,13 +16,14 @@
 
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
+import java.io.File;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.FabricLoader;
 
-import java.io.File;
-
 public final class EntrypointClient {
+	@SuppressWarnings("deprecation")
 	public static void start(File runDir, Object gameInstance) {
 		if (runDir == null) {
 			runDir = new File(".");

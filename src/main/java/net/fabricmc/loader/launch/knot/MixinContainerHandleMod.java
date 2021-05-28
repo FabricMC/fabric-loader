@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import org.spongepowered.asm.launch.platform.container.IContainerHandle;
-
 import java.util.Collection;
 import java.util.Collections;
+
+import org.spongepowered.asm.launch.platform.container.IContainerHandle;
 
 public class MixinContainerHandleMod implements IContainerHandle {
 	@Override

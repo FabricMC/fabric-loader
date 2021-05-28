@@ -16,18 +16,19 @@
 
 package net.fabricmc.loader.entrypoint;
 
-import net.fabricmc.loader.launch.common.FabricLauncher;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import net.fabricmc.loader.launch.common.FabricLauncher;
 
 public class EntrypointTransformer {
 	public static String appletMainClass;
@@ -43,6 +44,7 @@ public class EntrypointTransformer {
 
 	ClassNode loadClass(FabricLauncher launcher, String className) throws IOException {
 		byte[] data = patchedClasses.containsKey(className) ? patchedClasses.get(className) : launcher.getClassByteArray(className, true);
+
 		if (data != null) {
 			ClassReader reader = new ClassReader(data);
 			ClassNode node = new ClassNode();
@@ -55,6 +57,7 @@ public class EntrypointTransformer {
 
 	private void addPatchedClass(ClassNode node) {
 		String key = node.name.replace('/', '.');
+
 		if (patchedClasses.containsKey(key)) {
 			throw new RuntimeException("Duplicate addPatchedClasses call: " + key);
 		}

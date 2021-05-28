@@ -16,21 +16,28 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
-import org.spongepowered.asm.launch.platform.container.ContainerHandleURI;
-import org.spongepowered.asm.launch.platform.container.IContainerHandle;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.service.*;
-import org.spongepowered.asm.util.ReEntranceLock;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import org.spongepowered.asm.launch.platform.container.ContainerHandleURI;
+import org.spongepowered.asm.launch.platform.container.IContainerHandle;
+import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.service.IClassBytecodeProvider;
+import org.spongepowered.asm.service.IClassProvider;
+import org.spongepowered.asm.service.IClassTracker;
+import org.spongepowered.asm.service.IMixinAuditTrail;
+import org.spongepowered.asm.service.IMixinService;
+import org.spongepowered.asm.service.ITransformer;
+import org.spongepowered.asm.service.ITransformerProvider;
+import org.spongepowered.asm.util.ReEntranceLock;
+
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
 public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider, ITransformerProvider, IClassTracker {
 	private final ReEntranceLock lock;
@@ -99,9 +106,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	}
 
 	@Override
-	public void prepare() {
-
-	}
+	public void prepare() { }
 
 	@Override
 	public MixinEnvironment.Phase getInitialPhase() {
@@ -113,14 +118,10 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	}
 
 	@Override
-	public void beginPhase() {
-
-	}
+	public void beginPhase() { }
 
 	@Override
-	public void checkEnv(Object bootSource) {
-
-	}
+	public void checkEnv(Object bootSource) { }
 
 	@Override
 	public ReEntranceLock getReEntranceLock() {
@@ -177,9 +178,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	}
 
 	@Override
-	public void registerInvalidClass(String className) {
-
-	}
+	public void registerInvalidClass(String className) { }
 
 	@Override
 	public boolean isClassLoaded(String className) {
@@ -202,9 +201,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	}
 
 	@Override
-	public void addTransformerExclusion(String name) {
-
-	}
+	public void addTransformerExclusion(String name) { }
 
 	@Override
 	public String getSideName() {

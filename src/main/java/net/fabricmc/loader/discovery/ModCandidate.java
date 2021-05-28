@@ -16,9 +16,9 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.metadata.LoaderModMetadata;
-
 import java.net.URL;
+
+import net.fabricmc.loader.metadata.LoaderModMetadata;
 
 public class ModCandidate {
 	private final LoaderModMetadata info;

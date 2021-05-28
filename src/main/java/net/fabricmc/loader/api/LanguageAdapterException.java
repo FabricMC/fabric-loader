@@ -21,6 +21,7 @@ package net.fabricmc.loader.api;
  *
  * @see LanguageAdapter
  */
+@SuppressWarnings("serial")
 public class LanguageAdapterException extends Exception {
 	/**
 	 * Creates a new language adapter exception.

@@ -16,13 +16,13 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.game.GameProvider;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.game.GameProvider;
 
 class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLoaderInterface {
 	private final KnotClassDelegate delegate;
@@ -51,13 +51,16 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 
 			if (c == null) {
 				byte[] input = delegate.getPostMixinClassByteArray(name);
+
 				if (input != null) {
 					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, getResource(delegate.getClassFileName(name)));
 
 					int pkgDelimiterPos = name.lastIndexOf('.');
+
 					if (pkgDelimiterPos > 0) {
 						// TODO: package definition stub
 						String pkgString = name.substring(0, pkgDelimiterPos);
+
 						if (getPackage(pkgString) == null) {
 							definePackage(pkgString, null, null, null, null, null, null, null);
 						}

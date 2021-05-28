@@ -27,7 +27,8 @@ public interface LanguageAdapter {
 
 	default Object createInstance(String classString, Options options) throws ClassNotFoundException, LanguageAdapterException {
 		try {
-			Class c = JavaLanguageAdapter.getClass(classString, options);
+			Class<?> c = JavaLanguageAdapter.getClass(classString, options);
+
 			if (c != null) {
 				return createInstance(c, options);
 			} else {
@@ -40,7 +41,7 @@ public interface LanguageAdapter {
 
 	Object createInstance(Class<?> baseClass, Options options) throws LanguageAdapterException;
 
-	public static class Options {
+	class Options {
 		private MissingSuperclassBehavior missingSuperclassBehavior;
 
 		public MissingSuperclassBehavior getMissingSuperclassBehavior() {

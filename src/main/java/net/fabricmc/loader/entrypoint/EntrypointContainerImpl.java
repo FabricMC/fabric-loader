@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.entrypoint;
 
+import java.util.function.Supplier;
+
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-
-import java.util.function.Supplier;
 
 public class EntrypointContainerImpl<T> implements EntrypointContainer<T> {
 	private final ModContainer container;

@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.util;
 
+@SuppressWarnings("serial")
 public class UrlConversionException extends Exception {
 	public UrlConversionException() {
 		super();

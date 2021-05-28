@@ -16,14 +16,14 @@
 
 package net.fabricmc.loader.util.version;
 
-import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.VersionParsingException;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+
+import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.VersionParsingException;
 
 public class SemanticVersionImpl implements SemanticVersion {
 	private static final Pattern DOT_SEPARATED_ID = Pattern.compile("|[-0-9A-Za-z]+(\\.[-0-9A-Za-z]+)*");
@@ -35,6 +35,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 
 	public SemanticVersionImpl(String version, boolean storeX) throws VersionParsingException {
 		int buildDelimPos = version.indexOf('+');
+
 		if (buildDelimPos >= 0) {
 			build = version.substring(buildDelimPos + 1);
 			version = version.substring(0, buildDelimPos);
@@ -43,6 +44,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 		}
 
 		int dashDelimPos = version.indexOf('-');
+
 		if (dashDelimPos >= 0) {
 			prerelease = version.substring(dashDelimPos + 1);
 			version = version.substring(0, dashDelimPos);
@@ -65,6 +67,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 		}
 
 		String[] componentStrings = version.split("\\.");
+
 		if (componentStrings.length < 1) {
 			throw new VersionParsingException("Did not provide version numbers!");
 		}
@@ -93,6 +96,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 
 			try {
 				components[i] = Integer.parseInt(compStr);
+
 				if (components[i] < 0) {
 					throw new VersionParsingException("Negative version number component '" + compStr + "'!");
 				}
@@ -175,6 +179,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 			return false;
 		} else {
 			SemanticVersionImpl other = (SemanticVersionImpl) o;
+
 			if (!equalsComponentsExactly(other)) {
 				return false;
 			}
@@ -223,14 +228,13 @@ public class SemanticVersionImpl implements SemanticVersion {
 		for (int i = 0; i < Math.max(getVersionComponentCount(), o.getVersionComponentCount()); i++) {
 			int first = getVersionComponent(i);
 			int second = o.getVersionComponent(i);
+
 			if (first == COMPONENT_WILDCARD || second == COMPONENT_WILDCARD) {
 				continue;
 			}
 
 			int compare = Integer.compare(first, second);
-			if (compare != 0) {
-				return compare;
-			}
+			if (compare != 0) return compare;
 		}
 
 		Optional<String> prereleaseA = getPrereleaseKey();
@@ -249,9 +253,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 						if (UNSIGNED_INTEGER.matcher(partA).matches()) {
 							if (UNSIGNED_INTEGER.matcher(partB).matches()) {
 								int compare = Integer.compare(partA.length(), partB.length());
-								if (compare != 0) {
-									return compare;
-								}
+								if (compare != 0) return compare;
 							} else {
 								return -1;
 							}
@@ -262,13 +264,12 @@ public class SemanticVersionImpl implements SemanticVersion {
 						}
 
 						int compare = partA.compareTo(partB);
-						if (compare != 0) {
-							return compare;
-						}
+						if (compare != 0) return compare;
 					} else {
 						return 1;
 					}
 				}
+
 				return prereleaseBTokenizer.hasMoreElements() ? -1 : 0;
 			} else if (prereleaseA.isPresent()) {
 				return o.hasWildcard() ? 0 : -1;

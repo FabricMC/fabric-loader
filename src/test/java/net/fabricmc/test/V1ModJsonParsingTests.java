@@ -175,11 +175,9 @@ final class V1ModJsonParsingTests {
 	}
 
 	/*
-	* Warning tests
-	*/
+	 * Warning tests
+	 */
 
 	@Test
-	public void testWarnings() {
-
-	}
+	public void testWarnings() { }
 }

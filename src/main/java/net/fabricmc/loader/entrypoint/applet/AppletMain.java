@@ -19,12 +19,11 @@ package net.fabricmc.loader.entrypoint.applet;
 import java.io.File;
 
 public final class AppletMain {
-	private AppletMain() {
-
-	}
+	private AppletMain() { }
 
 	public static File hookGameDir(File file) {
 		File proposed = AppletLauncher.gameDir;
+
 		if (proposed != null) {
 			return proposed;
 		} else {

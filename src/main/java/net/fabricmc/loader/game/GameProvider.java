@@ -16,14 +16,14 @@
 
 package net.fabricmc.loader.game;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 
 public interface GameProvider {
 	String getGameId();
@@ -48,7 +48,7 @@ public interface GameProvider {
 		return true;
 	}
 
-	public static class BuiltinMod {
+	class BuiltinMod {
 		public BuiltinMod(URL url, ModMetadata metadata) {
 			this.url = url;
 			this.metadata = metadata;

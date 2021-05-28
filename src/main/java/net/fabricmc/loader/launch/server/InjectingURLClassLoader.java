@@ -26,16 +26,17 @@ class InjectingURLClassLoader extends URLClassLoader {
 
 	InjectingURLClassLoader(URL[] urls, ClassLoader classLoader, String... exclusions) {
 		super(urls, classLoader);
-		this.exclusions  = Arrays.asList(exclusions);
+		this.exclusions = Arrays.asList(exclusions);
 	}
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		synchronized (getClassLoadingLock(name)) {
-			Class c = findLoadedClass(name);
+			Class<?> c = findLoadedClass(name);
 
 			if (c == null) {
 				boolean excluded = false;
+
 				for (String s : exclusions) {
 					if (name.startsWith(s)) {
 						excluded = true;

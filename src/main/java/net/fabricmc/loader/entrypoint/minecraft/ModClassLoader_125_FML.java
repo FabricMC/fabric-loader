@@ -16,16 +16,16 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
+
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
 /**
  * Wrapper class replacing pre-1.3 FML's ModClassLoader (which relies on

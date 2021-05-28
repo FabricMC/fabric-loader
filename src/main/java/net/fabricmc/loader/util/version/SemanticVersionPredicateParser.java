@@ -16,7 +16,10 @@
 
 package net.fabricmc.loader.util.version;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -31,11 +34,13 @@ public final class SemanticVersionPredicateParser {
 
 		for (String s : text.split(" ")) {
 			s = s.trim();
+
 			if (s.isEmpty() || s.equals("*")) {
 				continue;
 			}
 
 			Function<SemanticVersionImpl, Predicate<SemanticVersionImpl>> factory = null;
+
 			for (String prefix : PREFIXES.keySet()) {
 				if (s.startsWith(prefix)) {
 					factory = PREFIXES.get(prefix);
@@ -45,6 +50,7 @@ public final class SemanticVersionPredicateParser {
 			}
 
 			SemanticVersionImpl version = new SemanticVersionImpl(s, true);
+
 			if (version.isPrerelease()) {
 				prereleaseVersions.add(version);
 			}

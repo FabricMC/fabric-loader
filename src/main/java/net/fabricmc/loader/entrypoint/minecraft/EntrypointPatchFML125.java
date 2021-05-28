@@ -16,16 +16,17 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
-import net.fabricmc.loader.entrypoint.EntrypointPatch;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.launch.common.FabricLauncher;
-import net.fabricmc.loader.launch.knot.Knot;
+import java.io.IOException;
+import java.util.function.Consumer;
+
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.IOException;
-import java.util.function.Consumer;
+import net.fabricmc.loader.entrypoint.EntrypointPatch;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.launch.knot.Knot;
 
 public class EntrypointPatchFML125 extends EntrypointPatch {
 	private static final String FROM = "net.fabricmc.loader.entrypoint.minecraft.ModClassLoader_125_FML";
@@ -40,13 +41,13 @@ public class EntrypointPatchFML125 extends EntrypointPatch {
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
 		if (classExists(launcher, TO)
-			&& !classExists(launcher, "cpw.mods.fml.relauncher.FMLRelauncher")) {
-
+				&& !classExists(launcher, "cpw.mods.fml.relauncher.FMLRelauncher")) {
 			if (!(launcher instanceof Knot)) {
 				throw new RuntimeException("1.2.5 FML patch only supported on Knot!");
 			}
 
 			debug("Detected 1.2.5 FML - Knotifying ModClassLoader...");
+
 			try {
 				ClassNode patchedClassLoader = loadClass(launcher, FROM);
 				ClassNode remappedClassLoader = new ClassNode();

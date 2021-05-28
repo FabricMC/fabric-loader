@@ -16,15 +16,6 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.game.GameProvider;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.transformer.FabricTransformer;
-import net.fabricmc.loader.util.FileSystemUtil;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +30,16 @@ import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.Manifest;
+
+import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.transformer.FabricTransformer;
+import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
 class KnotClassDelegate {
 	static class Metadata {
@@ -107,6 +108,7 @@ class KnotClassDelegate {
 
 						if (Files.isRegularFile(path)) {
 							URLConnection connection = new URL("jar:" + codeSourceStr + "!/").openConnection();
+
 							if (connection instanceof JarURLConnection) {
 								manifest = ((JarURLConnection) connection).getManifest();
 								certificates = ((JarURLConnection) connection).getCertificates();
@@ -115,12 +117,14 @@ class KnotClassDelegate {
 							if (manifest == null) {
 								try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
 									Path manifestPath = jarFs.get().getPath("META-INF/MANIFEST.MF");
+
 									if (Files.exists(manifestPath)) {
 										try (InputStream stream = Files.newInputStream(manifestPath)) {
 											manifest = new Manifest(stream);
 
 											// TODO
 											/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
+
 											if (codeEntry != null) {
 												codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
 											} */
@@ -150,6 +154,7 @@ class KnotClassDelegate {
 
 	public byte[] getPostMixinClassByteArray(String name) {
 		byte[] transformedClassArray = getPreMixinClassByteArray(name, true);
+
 		if (!transformInitialized || !canTransformClass(name)) {
 			return transformedClassArray;
 		}
@@ -158,7 +163,7 @@ class KnotClassDelegate {
 	}
 
 	/**
-	 * Runs all the class transformers except mixin
+	 * Runs all the class transformers except mixin.
 	 */
 	public byte[] getPreMixinClassByteArray(String name, boolean skipOriginalLoader) {
 		// some of the transformers rely on dot notation
@@ -173,6 +178,7 @@ class KnotClassDelegate {
 		}
 
 		byte[] input = provider.getEntrypointTransformer().transform(name);
+
 		if (input == null) {
 			try {
 				input = getRawClassByteArray(name, skipOriginalLoader);
@@ -201,14 +207,13 @@ class KnotClassDelegate {
 	public byte[] getRawClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
 		String classFile = getClassFileName(name);
 		InputStream inputStream = itf.getResourceAsStream(classFile, skipOriginalLoader);
-		if (inputStream == null) {
-			return null;
-		}
+		if (inputStream == null) return null;
 
 		int a = inputStream.available();
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(a < 32 ? 32768 : a);
 		byte[] buffer = new byte[8192];
 		int len;
+
 		while ((len = inputStream.read(buffer)) > 0) {
 			outputStream.write(buffer, 0, len);
 		}

@@ -16,13 +16,18 @@
 
 package net.fabricmc.loader.transformer;
 
+import java.util.Collection;
+import java.util.HashSet;
+
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
+
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvironmentInterface;
 import net.fabricmc.api.EnvironmentInterfaces;
-import org.objectweb.asm.*;
-
-import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * Scans a class for Environment and EnvironmentInterface annotations to figure out what needs to be stripped.
@@ -89,6 +94,7 @@ public class EnvironmentStrippingData extends ClassVisitor {
 		if (ENVIRONMENT_DESCRIPTOR.equals(descriptor)) {
 			return new EnvironmentAnnotationVisitor(api, onEnvMismatch);
 		}
+
 		return null;
 	}
 
@@ -115,10 +121,12 @@ public class EnvironmentStrippingData extends ClassVisitor {
 							}
 						};
 					}
+
 					return null;
 				}
 			};
 		}
+
 		return null;
 	}
 

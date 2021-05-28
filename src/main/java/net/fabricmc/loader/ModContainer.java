@@ -16,16 +16,16 @@
 
 package net.fabricmc.loader;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.FileSystemUtil;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	private final LoaderModMetadata info;
@@ -61,6 +61,7 @@ public class ModContainer implements net.fabricmc.loader.api.ModContainer {
 				return holder;
 			} else /* JAR */ {
 				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(holder, false);
+
 				if (delegate.get() == null) {
 					throw new RuntimeException("Could not open JAR file " + holder.getFileName() + " for NIO reading!");
 				}

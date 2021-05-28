@@ -16,23 +16,25 @@
 
 package net.fabricmc.loader.metadata;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.metadata.ModMetadata;
-
-import org.apache.logging.log4j.Logger;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.Logger;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 
 /**
  * Internal variant of the ModMetadata interface.
  */
 public interface LoaderModMetadata extends ModMetadata {
 	int getSchemaVersion();
+
 	default String getOldStyleLanguageAdapter() {
 		return "net.fabricmc.loader.language.JavaLanguageAdapter";
 	}
+
 	Map<String, String> getLanguageAdapterDefinitions();
 	Collection<NestedJarEntry> getJars();
 	Collection<String> getMixinConfigs(EnvType type);

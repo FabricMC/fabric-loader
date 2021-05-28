@@ -165,7 +165,7 @@ class FabricMainWindow {
 	}
 
 	private static JPanel createTreePanel(FabricStatusNode rootNode, FabricTreeWarningLevel minimumWarningLevel,
-		IconSet iconSet) {
+			IconSet iconSet) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
@@ -301,13 +301,13 @@ class FabricMainWindow {
 		public final String[] decor;
 		private final int hash;
 
-		public IconInfo(String mainPath) {
+		IconInfo(String mainPath) {
 			this.mainPath = mainPath;
 			this.decor = new String[0];
 			hash = mainPath.hashCode();
 		}
 
-		public IconInfo(String mainPath, String[] decor) {
+		IconInfo(String mainPath, String[] decor) {
 			this.mainPath = mainPath;
 			this.decor = decor;
 			assert decor.length < 4 : "Cannot fit more than 3 decorations into an image (and leave space for the background)";
@@ -387,8 +387,7 @@ class FabricMainWindow {
 
 		@Override
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
-			boolean leaf, int row, boolean hasFocus) {
-
+				boolean leaf, int row, boolean hasFocus) {
 			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
 			if (value instanceof CustomTreeNode) {
@@ -401,10 +400,10 @@ class FabricMainWindow {
 					if (c.node.details.contains("\n")) {
 						// It's a bit odd but it's easier than creating a custom tooltip
 						String replaced = c.node.details//
-							.replace("&", "&amp;")//
-							.replace("<", "&lt;")//
-							.replace(">", "&gt;")//
-							.replace("\n", "<br>");
+								.replace("&", "&amp;")//
+								.replace("<", "&lt;")//
+								.replace(">", "&gt;")//
+								.replace("\n", "<br>");
 						setToolTipText("<html>" + replaced + "</html>");
 					} else {
 						setToolTipText(c.node.details);
@@ -422,7 +421,7 @@ class FabricMainWindow {
 		public final List<CustomTreeNode> displayedChildren = new ArrayList<>();
 		private IconInfo iconInfo;
 
-		public CustomTreeNode(TreeNode parent, FabricStatusNode node, FabricTreeWarningLevel minimumWarningLevel) {
+		CustomTreeNode(TreeNode parent, FabricStatusNode node, FabricTreeWarningLevel minimumWarningLevel) {
 			this.parent = parent;
 			this.node = node;
 
@@ -479,7 +478,7 @@ class FabricMainWindow {
 		}
 
 		@Override
-		public Enumeration children() {
+		public Enumeration<CustomTreeNode> children() {
 			return new Enumeration<CustomTreeNode>() {
 				Iterator<CustomTreeNode> it = displayedChildren.iterator();
 

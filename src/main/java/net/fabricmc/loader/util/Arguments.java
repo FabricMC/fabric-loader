@@ -16,7 +16,13 @@
 
 package net.fabricmc.loader.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class Arguments {
 	public static final String GAME_VERSION = "fabric.gameVersion";
@@ -64,6 +70,7 @@ public final class Arguments {
 	public void parse(List<String> args) {
 		for (int i = 0; i < args.size(); i++) {
 			String arg = args.get(i);
+
 			if (arg.startsWith("--") && i < args.size() - 1) {
 				values.put(arg.substring(2), args.get(++i));
 			} else {
@@ -75,13 +82,16 @@ public final class Arguments {
 	public String[] toArray() {
 		String[] newArgs = new String[values.size() * 2 + extraArgs.size()];
 		int i = 0;
+
 		for (String s : values.keySet()) {
 			newArgs[i++] = "--" + s;
 			newArgs[i++] = values.get(s);
 		}
+
 		for (String s : extraArgs) {
 			newArgs[i++] = s;
 		}
+
 		return newArgs;
 	}
 

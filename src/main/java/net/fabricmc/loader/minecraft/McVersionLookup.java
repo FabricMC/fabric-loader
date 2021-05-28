@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.fabricmc.loader.FabricLoader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -35,6 +34,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
 import net.fabricmc.loader.metadata.ParseMetadataException;
@@ -43,6 +43,7 @@ import net.fabricmc.loader.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
 import net.fabricmc.loader.util.version.VersionParsingException;
 
+@SuppressWarnings("deprecation")
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
 			"0\\.\\d+(\\.\\d+)?a?(_\\d+)?|" // match classic versions first: 0.1.2a_34
@@ -120,7 +121,7 @@ public final class McVersionLookup {
 	}
 
 	private static McVersion fromVersionJson(InputStream is) {
-		try(JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+		try (JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 			String id = null;
 			String name = null;
 			String release = null;
@@ -189,7 +190,9 @@ public final class McVersionLookup {
 		} finally {
 			try {
 				is.close();
-			} catch (IOException e) { }
+			} catch (IOException e) {
+				// ignored
+			}
 		}
 
 		return null;
@@ -283,7 +286,7 @@ public final class McVersionLookup {
 	}
 
 	/**
-	 * Returns the probable version contained in the given string, or null if the string doesn't contain a version
+	 * Returns the probable version contained in the given string, or null if the string doesn't contain a version.
 	 */
 	private static String findProbableVersion(String str) {
 		Matcher matcher = VERSION_PATTERN.matcher(str);
@@ -309,6 +312,7 @@ public final class McVersionLookup {
 
 		if (name.startsWith(release)) {
 			matcher = RELEASE_CANDIDATE_PATTERN.matcher(name);
+
 			if (matcher.matches()) {
 				String rcBuild = matcher.group(1);
 
@@ -422,7 +426,7 @@ public final class McVersionLookup {
 	}
 
 	private static final class FieldStringConstantVisitor extends ClassVisitor implements Analyzer {
-		public FieldStringConstantVisitor(String fieldName) {
+		FieldStringConstantVisitor(String fieldName) {
 			super(FabricLoader.ASM_VERSION);
 
 			this.fieldName = fieldName;
@@ -493,7 +497,7 @@ public final class McVersionLookup {
 	}
 
 	private static final class MethodStringConstantContainsVisitor extends ClassVisitor implements Analyzer {
-		public MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
+		MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
 			super(FabricLoader.ASM_VERSION);
 
 			this.methodOwner = methodOwner;
@@ -548,7 +552,7 @@ public final class McVersionLookup {
 	}
 
 	private static final class MethodConstantRetVisitor extends ClassVisitor implements Analyzer {
-		public MethodConstantRetVisitor(String methodName) {
+		MethodConstantRetVisitor(String methodName) {
 			super(FabricLoader.ASM_VERSION);
 
 			this.methodName = methodName;
@@ -606,7 +610,7 @@ public final class McVersionLookup {
 	}
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
-		public MethodConstantVisitor(String methodNameHint) {
+		MethodConstantVisitor(String methodNameHint) {
 			super(FabricLoader.ASM_VERSION);
 
 			this.methodNameHint = methodNameHint;
@@ -645,8 +649,8 @@ public final class McVersionLookup {
 		private boolean foundInMethodHint;
 	}
 
-	private static abstract class InsnFwdMethodVisitor extends MethodVisitor {
-		public InsnFwdMethodVisitor() {
+	private abstract static class InsnFwdMethodVisitor extends MethodVisitor {
+		InsnFwdMethodVisitor() {
 			super(FabricLoader.ASM_VERSION);
 		}
 

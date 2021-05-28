@@ -209,6 +209,7 @@ public final class FabricStatusTree {
 					FabricStatusNode rootChild = new FabricStatusNode(this, "");
 					children.add(rootChild);
 				}
+
 				FabricStatusNode lastChild = children.get(children.size() - 1);
 				lastChild.addChild(string.substring(1));
 				lastChild.expandByDefault = true;
@@ -222,12 +223,14 @@ public final class FabricStatusTree {
 
 		private String cleanForNode(String string) {
 			string = string.trim();
+
 			if (string.length() > 1) {
 				if (string.startsWith("-")) {
 					string = string.substring(1);
 					string = string.trim();
 				}
 			}
+
 			return string;
 		}
 

@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.util.version;
 
+import java.util.function.Predicate;
+
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-
-import java.util.function.Predicate;
 
 @FunctionalInterface
 public interface VersionPredicateParser<E extends Version> {

@@ -16,11 +16,11 @@
 
 package net.fabricmc.loader.metadata;
 
-import net.fabricmc.loader.api.metadata.ContactInformation;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+
+import net.fabricmc.loader.api.metadata.ContactInformation;
 
 public class MapBackedContactInformation implements ContactInformation {
 	private final Map<String, String> map;

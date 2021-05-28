@@ -16,10 +16,6 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.FileVisitOption;
@@ -30,6 +26,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.function.BiConsumer;
+
+import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
 public class DirectoryModCandidateFinder implements ModCandidateFinder {
 	private final Path path;
@@ -78,7 +78,6 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 					}
 
 					return FileVisitResult.CONTINUE;
-
 				}
 			});
 		} catch (IOException e) {

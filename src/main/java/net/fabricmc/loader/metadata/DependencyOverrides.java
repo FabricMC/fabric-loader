@@ -16,11 +16,6 @@
 
 package net.fabricmc.loader.metadata;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.lib.gson.JsonReader;
-import net.fabricmc.loader.lib.gson.JsonToken;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +30,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.lib.gson.JsonReader;
+import net.fabricmc.loader.lib.gson.JsonToken;
+
 public final class DependencyOverrides {
 	private static final Collection<String> ALLOWED_KEYS = new HashSet<>(Arrays.asList("depends", "recommends", "suggests", "conflicts", "breaks"));
 	public static final DependencyOverrides INSTANCE = new DependencyOverrides();
@@ -43,6 +43,7 @@ public final class DependencyOverrides {
 	private final Map<String, Map<String, Map<String, ModDependency>>> dependencyOverrides;
 
 	private DependencyOverrides() {
+		@SuppressWarnings("deprecation")
 		Path path = FabricLoader.INSTANCE.getConfigDir().resolve("fabric_loader_dependencies.json");
 		exists = Files.exists(path);
 
@@ -131,24 +132,24 @@ public final class DependencyOverrides {
 			final List<String> matcherStringList = new ArrayList<>();
 
 			switch (reader.peek()) {
-				case STRING:
-					matcherStringList.add(reader.nextString());
-					break;
-				case BEGIN_ARRAY:
-					reader.beginArray();
+			case STRING:
+				matcherStringList.add(reader.nextString());
+				break;
+			case BEGIN_ARRAY:
+				reader.beginArray();
 
-					while (reader.hasNext()) {
-						if (reader.peek() != JsonToken.STRING) {
-							throw new ParseMetadataException("Dependency version range array must only contain string values", reader);
-						}
-
-						matcherStringList.add(reader.nextString());
+				while (reader.hasNext()) {
+					if (reader.peek() != JsonToken.STRING) {
+						throw new ParseMetadataException("Dependency version range array must only contain string values", reader);
 					}
 
-					reader.endArray();
-					break;
-				default:
-					throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
+					matcherStringList.add(reader.nextString());
+				}
+
+				reader.endArray();
+				break;
+			default:
+				throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
 			}
 
 			modDependencyMap.put(modId, new ModDependencyImpl(modId, matcherStringList));
@@ -159,9 +160,7 @@ public final class DependencyOverrides {
 	}
 
 	public Map<String, ModDependency> getActiveDependencyMap(String key, String modId, Map<String, ModDependency> defaultMap) {
-		if(!exists) {
-			return defaultMap;
-		}
+		if (!exists) return defaultMap;
 
 		Map<String, Map<String, ModDependency>> modOverrides = dependencyOverrides.get(modId);
 

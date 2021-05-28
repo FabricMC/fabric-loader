@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.language;
 
+@SuppressWarnings("serial")
 @Deprecated
 public class LanguageAdapterException extends Exception {
 	public LanguageAdapterException(String s) {

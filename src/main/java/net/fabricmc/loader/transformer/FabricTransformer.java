@@ -16,14 +16,15 @@
 
 package net.fabricmc.loader.transformer;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
 import net.fabricmc.accesswidener.AccessWidenerVisitor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.game.MinecraftGameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 
 public final class FabricTransformer {
 	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
@@ -31,6 +32,7 @@ public final class FabricTransformer {
 		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
 
 		byte[] input = MinecraftGameProvider.TRANSFORMER.transform(name);
+
 		if (input != null) {
 			return FabricTransformer.transform(isDevelopment, envType, name, input);
 		} else {
@@ -40,9 +42,9 @@ public final class FabricTransformer {
 				return null;
 			}
 		}
-
 	}
 
+	@SuppressWarnings("deprecation")
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
@@ -71,9 +73,11 @@ public final class FabricTransformer {
 		if (environmentStrip) {
 			EnvironmentStrippingData stripData = new EnvironmentStrippingData(FabricLoader.ASM_VERSION, envType.toString());
 			classReader.accept(stripData, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
+
 			if (stripData.stripEntireClass()) {
 				throw new RuntimeException("Cannot load class " + name + " in environment type " + envType);
 			}
+
 			if (!stripData.isEmpty()) {
 				visitor = new ClassStripper(FabricLoader.ASM_VERSION, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
 				visitorCount++;

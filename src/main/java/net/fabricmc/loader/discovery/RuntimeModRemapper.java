@@ -16,25 +16,6 @@
 
 package net.fabricmc.loader.discovery;
 
-import org.objectweb.asm.commons.Remapper;
-
-import net.fabricmc.accesswidener.AccessWidener;
-import net.fabricmc.accesswidener.AccessWidenerReader;
-import net.fabricmc.accesswidener.AccessWidenerRemapper;
-import net.fabricmc.accesswidener.AccessWidenerWriter;
-
-import net.fabricmc.loader.launch.common.FabricLauncher;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.util.FileSystemUtil;
-import net.fabricmc.loader.util.SystemProperties;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
-import net.fabricmc.tinyremapper.InputTag;
-import net.fabricmc.tinyremapper.NonClassCopyMode;
-import net.fabricmc.tinyremapper.OutputConsumerPath;
-import net.fabricmc.tinyremapper.TinyRemapper;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -56,8 +37,25 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class RuntimeModRemapper {
+import org.objectweb.asm.commons.Remapper;
 
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.accesswidener.AccessWidenerReader;
+import net.fabricmc.accesswidener.AccessWidenerRemapper;
+import net.fabricmc.accesswidener.AccessWidenerWriter;
+import net.fabricmc.loader.launch.common.FabricLauncher;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.util.FileSystemUtil;
+import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
+import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
+import net.fabricmc.tinyremapper.InputTag;
+import net.fabricmc.tinyremapper.NonClassCopyMode;
+import net.fabricmc.tinyremapper.OutputConsumerPath;
+import net.fabricmc.tinyremapper.TinyRemapper;
+
+public final class RuntimeModRemapper {
 	public static Collection<ModCandidate> remap(Collection<ModCandidate> modCandidates, FileSystem fileSystem) {
 		List<ModCandidate> modsToRemap = modCandidates.stream()
 				.filter(ModCandidate::requiresRemap)
@@ -154,7 +152,6 @@ public final class RuntimeModRemapper {
 
 				remappedMods.add(new ModCandidate(mod.getInfo(), UrlUtil.asUrl(info.outputPath), 0, false));
 			}
-
 		} catch (UrlConversionException | IOException e) {
 			remapper.finish();
 			throw new RuntimeException("Failed to remap mods", e);

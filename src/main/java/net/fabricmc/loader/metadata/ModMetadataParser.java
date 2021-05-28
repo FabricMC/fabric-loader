@@ -23,10 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.lib.gson.JsonReader;
 import net.fabricmc.loader.lib.gson.JsonToken;
 
@@ -95,8 +95,10 @@ public final class ModMetadataParser {
 				final LoaderModMetadata ret = readModMetadata(logger, reader, schemaVersion);
 				reader.endObject();
 
-				if (FabricLoader.getInstance().isDevelopmentEnvironment())
+				if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
 					LOGGER.warn(String.format("\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId()));
+				}
+
 				return ret;
 			}
 		} catch (IllegalStateException e) {
@@ -114,32 +116,23 @@ public final class ModMetadataParser {
 		default:
 			if (schemaVersion > 0) {
 				throw new ParseMetadataException(String.format("This version of fabric-loader doesn't support the newer schema version of \"%s\""
-					+ "\nPlease update fabric-loader to be able to read this.", schemaVersion));
+						+ "\nPlease update fabric-loader to be able to read this.", schemaVersion));
 			}
+
 			throw new ParseMetadataException(String.format("Invalid/Unsupported schema version \"%s\" was found", schemaVersion));
 		}
 	}
 
 	static void logWarningMessages(Logger logger, String id, List<ParseWarning> warnings) {
-		if (warnings.isEmpty()) {
-			return;
-		}
+		if (warnings.isEmpty()) return;
 
 		final StringBuilder message = new StringBuilder();
 
-		message.append("The mod \"")
-				.append(id)
-				.append("\" contains invalid entries in its mod json:");
+		message.append(String.format("The mod \"%s\" contains invalid entries in its mod json:", id));
 
 		for (ParseWarning warning : warnings) {
-			message.append("\n- ")
-					.append(warning.getReason())
-					.append(" \"")
-					.append(warning.getKey())
-					.append("\" at line ")
-					.append(warning.getLine())
-					.append(" column ")
-					.append(warning.getColumn());
+			message.append(String.format("\n- %s \"%s\" at line %d column %d",
+					warning.getReason(), warning.getKey(), warning.getLine(), warning.getColumn()));
 		}
 
 		logger.warn(message.toString());

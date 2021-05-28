@@ -16,6 +16,22 @@
 
 package net.fabricmc.loader.launch.knot;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.spongepowered.asm.launch.MixinBootstrap;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
@@ -27,15 +43,6 @@ import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
 import net.fabricmc.loader.util.SystemProperties;
 import net.fabricmc.loader.util.UrlConversionException;
 import net.fabricmc.loader.util.UrlUtil;
-import org.spongepowered.asm.launch.MixinBootstrap;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();
@@ -51,15 +58,14 @@ public final class Knot extends FabricLauncherBase {
 		this.gameJarFile = gameJarFile;
 	}
 
+	@SuppressWarnings("deprecation")
 	protected ClassLoader init(String[] args) {
 		setProperties(properties);
 
 		// configure fabric vars
 		if (envType == null) {
 			String side = System.getProperty(SystemProperties.SIDE);
-			if (side == null) {
-				throw new RuntimeException("Please specify side or use a dedicated Knot!");
-			}
+			if (side == null) throw new RuntimeException("Please specify side or use a dedicated Knot!");
 
 			switch (side.toLowerCase(Locale.ROOT)) {
 			case "client":
@@ -90,9 +96,11 @@ public final class Knot extends FabricLauncherBase {
 			LOGGER.info("Loading for game " + provider.getGameName() + " " + provider.getRawGameVersion());
 		} else {
 			LOGGER.error("Could not find valid game provider!");
+
 			for (GameProvider p : providers) {
 				LOGGER.error("- " + p.getGameName());
 			}
+
 			throw new RuntimeException("Could not find valid game provider!");
 		}
 
@@ -110,8 +118,7 @@ public final class Knot extends FabricLauncherBase {
 						provider.getGameId(), provider.getNormalizedGameVersion(),
 						provider.getLaunchDirectory(),
 						path,
-						this
-						);
+						this);
 			}
 		}
 
@@ -120,7 +127,6 @@ public final class Knot extends FabricLauncherBase {
 
 		Thread.currentThread().setContextClassLoader(cl);
 
-		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
@@ -140,9 +146,10 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	public void launch(ClassLoader cl) {
-		if(this.provider == null) {
+		if (this.provider == null) {
 			throw new IllegalStateException("Game provider was not initialized! (Knot#init(String[]))");
 		}
+
 		provider.launch(cl);
 	}
 
@@ -165,6 +172,7 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}).map((s) -> {
 			File file = new File(s);
+
 			if (!file.equals(gameJarFile)) {
 				try {
 					return (UrlUtil.asUrl(file));

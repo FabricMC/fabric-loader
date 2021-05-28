@@ -17,12 +17,11 @@
 package net.fabricmc.loader.util;
 
 public final class StringUtil {
-	private StringUtil() {
-
-	}
+	private StringUtil() { }
 
 	public static String[] splitNamespaced(String s, String defaultNamespace) {
 		int i = s.indexOf(':');
+
 		if (i >= 0) {
 			return new String[] { s.substring(0, i), s.substring(i + 1) };
 		} else {

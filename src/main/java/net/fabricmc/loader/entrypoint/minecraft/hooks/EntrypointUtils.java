@@ -16,14 +16,11 @@
 
 package net.fabricmc.loader.entrypoint.minecraft.hooks;
 
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
+
+import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 
 public final class EntrypointUtils {
 	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {

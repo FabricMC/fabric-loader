@@ -16,9 +16,6 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.game.GameProvider;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -26,6 +23,9 @@ import java.net.URLClassLoader;
 import java.security.SecureClassLoader;
 import java.util.Enumeration;
 import java.util.Objects;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.game.GameProvider;
 
 class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
 	private static class DynamicURLClassLoader extends URLClassLoader {
@@ -71,9 +71,11 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 		Objects.requireNonNull(name);
 
 		URL url = urlLoader.getResource(name);
+
 		if (url == null) {
 			url = originalLoader.getResource(name);
 		}
+
 		return url;
 	}
 
@@ -87,9 +89,11 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 		Objects.requireNonNull(name);
 
 		InputStream inputStream = urlLoader.getResourceAsStream(name);
+
 		if (inputStream == null) {
 			inputStream = originalLoader.getResourceAsStream(name);
 		}
+
 		return inputStream;
 	}
 
@@ -148,13 +152,16 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 			// We now repackage Gson's JsonReader so removal is now possible
 			if (c == null && !name.startsWith("com.google.gson.") && !name.startsWith("java.")) {
 				byte[] input = delegate.getPostMixinClassByteArray(name);
+
 				if (input != null) {
 					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, urlLoader.getResource(delegate.getClassFileName(name)));
 
 					int pkgDelimiterPos = name.lastIndexOf('.');
+
 					if (pkgDelimiterPos > 0) {
 						// TODO: package definition stub
 						String pkgString = name.substring(0, pkgDelimiterPos);
+
 						if (getPackage(pkgString) == null) {
 							definePackage(pkgString, null, null, null, null, null, null, null);
 						}
@@ -188,9 +195,11 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	@Override
 	public InputStream getResourceAsStream(String classFile, boolean skipOriginalLoader) throws IOException {
 		InputStream inputStream = urlLoader.getResourceAsStream(classFile);
+
 		if (inputStream == null && !skipOriginalLoader) {
 			inputStream = originalLoader.getResourceAsStream(classFile);
 		}
+
 		return inputStream;
 	}
 }

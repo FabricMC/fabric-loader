@@ -16,12 +16,12 @@
 
 package net.fabricmc.loader.launch.common;
 
-import net.fabricmc.api.EnvType;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
+
+import net.fabricmc.api.EnvType;
 
 public interface FabricLauncher {
 	MappingConfiguration getMappingConfiguration();
@@ -37,7 +37,8 @@ public interface FabricLauncher {
 	ClassLoader getTargetClassLoader();
 
 	/**
-	 * Gets the byte array for a particular class
+	 * Gets the byte array for a particular class.
+	 *
 	 * @param name The name of the class to retrieve
 	 * @param runTransformers Whether to run all transformers <i>except mixin</i> on the class
 	 */

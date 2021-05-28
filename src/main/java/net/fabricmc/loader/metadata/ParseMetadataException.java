@@ -18,6 +18,7 @@ package net.fabricmc.loader.metadata;
 
 import net.fabricmc.loader.lib.gson.JsonReader;
 
+@SuppressWarnings("serial")
 public class ParseMetadataException extends Exception {
 	public ParseMetadataException(String message) {
 		super(message);

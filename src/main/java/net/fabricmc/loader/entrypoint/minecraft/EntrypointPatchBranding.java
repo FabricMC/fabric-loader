@@ -16,18 +16,19 @@
 
 package net.fabricmc.loader.entrypoint.minecraft;
 
-import net.fabricmc.loader.entrypoint.EntrypointPatch;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.launch.common.FabricLauncher;
+import java.io.IOException;
+import java.util.ListIterator;
+import java.util.function.Consumer;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.io.IOException;
-import java.util.ListIterator;
-import java.util.function.Consumer;
+import net.fabricmc.loader.entrypoint.EntrypointPatch;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.launch.common.FabricLauncher;
 
 public final class EntrypointPatchBranding extends EntrypointPatch {
 	public EntrypointPatchBranding(EntrypointTransformer transformer) {
@@ -37,11 +38,12 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 	@Override
 	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
 		for (String brandClassName : new String[] {
-			"net.minecraft.client.ClientBrandRetriever",
-			"net.minecraft.server.MinecraftServer"
+				"net.minecraft.client.ClientBrandRetriever",
+				"net.minecraft.server.MinecraftServer"
 		}) {
 			try {
 				ClassNode brandClass = loadClass(launcher, brandClassName);
+
 				if (brandClass != null) {
 					if (applyBrandingPatch(brandClass)) {
 						classEmitter.accept(brandClass);
@@ -53,7 +55,6 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 		}
 	}
 
-
 	private boolean applyBrandingPatch(ClassNode classNode) {
 		boolean applied = false;
 
@@ -62,6 +63,7 @@ public final class EntrypointPatchBranding extends EntrypointPatch {
 				debug("Applying brand name hook to " + classNode.name + "::" + node.name);
 
 				ListIterator<AbstractInsnNode> it = node.instructions.iterator();
+
 				while (it.hasNext()) {
 					if (it.next().getOpcode() == Opcodes.ARETURN) {
 						it.previous();

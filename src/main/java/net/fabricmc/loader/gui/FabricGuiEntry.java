@@ -28,7 +28,7 @@ import net.fabricmc.loader.gui.FabricStatusTree.FabricStatusTab;
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
 	/** Opens the given {@link FabricStatusTree} in a new swing window.
-	 * 
+	 *
 	 * @throws Exception if something went wrong while opening the window. */
 	public static void open(FabricStatusTree tree) throws Exception {
 		openWindow(tree, true);
@@ -40,6 +40,7 @@ public final class FabricGuiEntry {
 
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
 	 *            return normally. */
+	@SuppressWarnings("deprecation")
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
 		FabricLoader.INSTANCE.getLogger().fatal("A critical error occurred", exception);
 

@@ -16,28 +16,6 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.FabricLoader;
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
-import net.fabricmc.loader.game.GameProvider;
-import net.fabricmc.loader.game.MinecraftGameProvider;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
-import net.fabricmc.loader.util.Arguments;
-import net.fabricmc.loader.util.SystemProperties;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraft.launchwrapper.ITweaker;
-import net.minecraft.launchwrapper.Launch;
-import net.minecraft.launchwrapper.LaunchClassLoader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.spongepowered.asm.launch.MixinBootstrap;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-import org.spongepowered.asm.mixin.transformer.Proxy;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,6 +30,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.spongepowered.asm.launch.MixinBootstrap;
+import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.mixin.transformer.Proxy;
+
+import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraft.launchwrapper.ITweaker;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.FabricLoader;
+import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
+import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
+import net.fabricmc.loader.game.GameProvider;
+import net.fabricmc.loader.game.MinecraftGameProvider;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.launch.common.FabricMixinBootstrap;
+import net.fabricmc.loader.util.Arguments;
+import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
@@ -89,6 +91,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
 		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
@@ -115,7 +118,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 
-		@SuppressWarnings("deprecation")
 		FabricLoader loader = FabricLoader.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
@@ -126,17 +128,20 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		if (!isDevelopment) {
 			// Obfuscated environment
 			Launch.blackboard.put(SystemProperties.DEVELOPMENT, false);
+
 			try {
 				String target = getLaunchTarget();
 				URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
 				JarURLConnection locConn = (JarURLConnection) loc.openConnection();
 				File jarFile = UrlUtil.asFile(locConn.getJarFileURL());
+
 				if (!jarFile.exists()) {
 					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
 				}
 
 				Path obfuscated = jarFile.toPath();
 				Path remapped = FabricLauncherBase.deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), obfuscated, this);
+
 				if (remapped != obfuscated) {
 					preloadRemappedJar(remapped);
 				}
@@ -197,6 +202,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 				if (transformer instanceof Proxy) {
 					continue; // skip mixin as per method contract
 				}
+
 				classBytes = transformer.transform(name, transformedName, classBytes);
 			}
 		}
@@ -209,12 +215,13 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	// for the entrypoint.
 	// To work around that, we pre-popuplate the LaunchClassLoader's resource cache,
 	// which will then cause it to use the one we need it to.
+	@SuppressWarnings("unchecked")
 	private void preloadRemappedJar(Path remappedJarFile) throws IOException {
 		Map<String, byte[]> resourceCache = null;
+
 		try {
 			Field f = LaunchClassLoader.class.getDeclaredField("resourceCache");
 			f.setAccessible(true);
-			//noinspection unchecked
 			resourceCache = (Map<String, byte[]>) f.get(launchClassLoader);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -234,6 +241,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 					// These will never be in the obfuscated jar, so we can safely skip them
 					continue;
 				}
+
 				String className = entry.getName();
 				className = className.substring(0, className.length() - 6).replace('/', '.');
 				LOGGER.debug("Appending " + className + " to resource cache...");
@@ -247,6 +255,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(estimate < 32 ? 32768 : estimate);
 		byte[] buffer = new byte[8192];
 		int len;
+
 		while ((len = inputStream.read(buffer)) > 0) {
 			outputStream.write(buffer, 0, len);
 		}

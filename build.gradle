@@ -3,6 +3,7 @@ plugins {
 	id 'idea'
 	id 'eclipse'
 	id 'maven-publish'
+	id 'checkstyle'
 	id("org.cadixdev.licenser") version "0.5.0"
 	id("fabric-loom") version "0.5-SNAPSHOT"
 }
@@ -18,7 +19,6 @@ version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 repositories {
 	mavenCentral()
-	jcenter()
 	maven {
 		name = 'Fabric'
 		url = 'https://maven.fabricmc.net/'
@@ -156,6 +156,11 @@ task javadocJar(type: Jar) {
 }
 
 build.dependsOn javadocJar
+
+checkstyle {
+	configFile = file("checkstyle.xml")
+	toolVersion = '8.31'
+}
 
 license {
 	header file("HEADER")

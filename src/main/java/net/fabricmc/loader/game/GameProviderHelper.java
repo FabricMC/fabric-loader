@@ -16,14 +16,18 @@
 
 package net.fabricmc.loader.game;
 
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import net.fabricmc.loader.util.UrlConversionException;
+import net.fabricmc.loader.util.UrlUtil;
 
 final class GameProviderHelper {
 	public static class EntrypointResult {
@@ -36,12 +40,11 @@ final class GameProviderHelper {
 		}
 	}
 
-	private GameProviderHelper() {
-
-	}
+	private GameProviderHelper() { }
 
 	static Optional<Path> getSource(ClassLoader loader, String filename) {
 		URL url;
+
 		if ((url = loader.getResource(filename)) != null) {
 			try {
 				URL urlSource = UrlUtil.getSource(filename, url);
@@ -83,13 +86,14 @@ final class GameProviderHelper {
 
 	static Optional<EntrypointResult> findFirstClass(ClassLoader loader, List<String> classNames) {
 		List<String> entrypointFilenames = classNames.stream()
-			.map((ep) -> ep.replace('.', '/') + ".class")
-			.collect(Collectors.toList());
+				.map((ep) -> ep.replace('.', '/') + ".class")
+				.collect(Collectors.toList());
 
 		for (int i = 0; i < entrypointFilenames.size(); i++) {
 			String className = classNames.get(i);
 			String classFilename = entrypointFilenames.get(i);
 			Optional<Path> classSourcePath = getSource(loader, classFilename);
+
 			if (classSourcePath.isPresent()) {
 				return Optional.of(new EntrypointResult(className, classSourcePath.get()));
 			}

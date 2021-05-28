@@ -16,40 +16,52 @@
 
 package net.fabricmc.loader.entrypoint.applet;
 
-import net.fabricmc.loader.util.Arguments;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+import javax.swing.ImageIcon;
+
+import net.fabricmc.loader.util.Arguments;
+
 /**
  * PLEASE NOTE:
  *
- * This class is originally copyrighted under Apache License 2.0
+ * <p>This class is originally copyrighted under Apache License 2.0
  * by the MCUpdater project (https://github.com/MCUpdater/MCU-Launcher/).
  *
- * It has been adapted here for the purposes of the Fabric loader.
+ * <p>It has been adapted here for the purposes of the Fabric loader.
  */
+@SuppressWarnings("serial")
 public class AppletFrame extends Frame implements WindowListener {
 	private AppletLauncher applet = null;
 
 	public AppletFrame(String title, ImageIcon icon) {
 		super(title);
+
 		if (icon != null) {
 			Image source = icon.getImage();
 			int w = source.getWidth(null);
 			int h = source.getHeight(null);
-			if (w == -1) { w = 32; h = 32; }
+
+			if (w == -1) {
+				w = 32;
+				h = 32;
+			}
+
 			BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2d = (Graphics2D) image.getGraphics();
 			g2d.drawImage(source, 0, 0, null);
 			setIconImage(image);
 			g2d.dispose();
 		}
-		this.addWindowListener(this);
+
+		addWindowListener(this);
 	}
 
 	public void launch(String[] args) {
@@ -58,6 +70,7 @@ public class AppletFrame extends Frame implements WindowListener {
 
 		String username = arguments.getOrDefault("username", "Player");
 		String sessionid;
+
 		if (arguments.containsKey("session") /* 1.6 */) {
 			sessionid = arguments.get("session");
 		} else /* fallback */ {
@@ -65,6 +78,7 @@ public class AppletFrame extends Frame implements WindowListener {
 		}
 
 		File instance = new File(arguments.getOrDefault("gameDir", "."));
+
 		if (System.getProperty("minecraft.applet.TargetDirectory") == null) {
 			System.setProperty("minecraft.applet.TargetDirectory", instance.toString());
 		} else {
@@ -89,11 +103,11 @@ public class AppletFrame extends Frame implements WindowListener {
 		int height = Integer.parseInt(arguments.getOrDefault("height", "480"));
 
 		applet = new AppletLauncher(
-			instance,
-			username, sessionid,
-			host, port, doConnect,
-			fullscreen, demo
-		);
+				instance,
+				username, sessionid,
+				host, port, doConnect,
+				fullscreen, demo
+				);
 
 		for (String key : arguments.keys()) {
 			applet.getParams().put("fabric.arguments." + key, arguments.get(key));
@@ -101,9 +115,9 @@ public class AppletFrame extends Frame implements WindowListener {
 
 		this.add(applet);
 		applet.setPreferredSize(new Dimension(width, height));
-		this.pack();
-		this.setLocationRelativeTo(null);
-		this.setResizable(true);
+		pack();
+		setLocationRelativeTo(null);
+		setResizable(true);
 		validate();
 		applet.init();
 		applet.start();
@@ -123,33 +137,20 @@ public class AppletFrame extends Frame implements WindowListener {
 	}
 
 	@Override
-	public void windowOpened(WindowEvent e) {
-
-	}
+	public void windowOpened(WindowEvent e) { }
 
 	@Override
-	public void windowActivated(WindowEvent e) {
-
-	}
+	public void windowActivated(WindowEvent e) { }
 
 	@Override
-	public void windowClosed(WindowEvent e) {
-
-	}
+	public void windowClosed(WindowEvent e) { }
 
 	@Override
-	public void windowIconified(WindowEvent e) {
-
-	}
+	public void windowIconified(WindowEvent e) { }
 
 	@Override
-	public void windowDeiconified(WindowEvent e) {
-
-	}
+	public void windowDeiconified(WindowEvent e) { }
 
 	@Override
-	public void windowDeactivated(WindowEvent e) {
-
-	}
-
+	public void windowDeactivated(WindowEvent e) { }
 }

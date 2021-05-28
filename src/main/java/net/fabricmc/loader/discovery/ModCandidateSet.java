@@ -16,9 +16,17 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.api.Version;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import net.fabricmc.loader.api.Version;
 
 public class ModCandidateSet {
 	private final String modId;
@@ -26,13 +34,13 @@ public class ModCandidateSet {
 	private final Set<ModCandidate> depthZeroCandidates = new HashSet<>();
 	private final Map<String, ModCandidate> candidates = new HashMap<>();
 
+	@SuppressWarnings("unchecked")
 	private static int compare(ModCandidate a, ModCandidate b) {
 		Version av = a.getInfo().getVersion();
 		Version bv = b.getInfo().getVersion();
 
 		if (av instanceof Comparable && bv instanceof Comparable) {
-			//noinspection unchecked
-			return ((Comparable) bv).compareTo(av);
+			return ((Comparable<Version>) bv).compareTo(av);
 		} else {
 			return 0;
 		}
@@ -53,6 +61,7 @@ public class ModCandidateSet {
 	public boolean add(ModCandidate candidate) {
 		String version = candidate.getInfo().getVersion().getFriendlyString();
 		ModCandidate oldCandidate = candidates.get(version);
+
 		if (oldCandidate != null) {
 			int oldDepth = oldCandidate.getDepth();
 			int newDepth = candidate.getDepth();
@@ -61,6 +70,7 @@ public class ModCandidateSet {
 				return false;
 			} else {
 				candidates.remove(version);
+
 				if (oldDepth > 0) {
 					depthZeroCandidates.remove(oldCandidate);
 				}
@@ -69,6 +79,7 @@ public class ModCandidateSet {
 
 		candidates.put(version, candidate);
 		modProvides.addAll(candidate.getInfo().getProvides());
+
 		if (candidate.getDepth() == 0) {
 			depthZeroCandidates.add(candidate);
 		}
@@ -83,8 +94,8 @@ public class ModCandidateSet {
 	public Collection<ModCandidate> toSortedSet() throws ModResolutionException {
 		if (depthZeroCandidates.size() > 1) {
 			String modVersions = depthZeroCandidates.stream()
-				.map((c) -> "[" + c.getInfo().getVersion() + " at " + c.getOriginUrl().getFile() + "]")
-				.collect(Collectors.joining(", "));
+					.map((c) -> "[" + c.getInfo().getVersion() + " at " + c.getOriginUrl().getFile() + "]")
+					.collect(Collectors.joining(", "));
 
 			throw new ModResolutionException("Duplicate versions for mod ID '" + modId + "': " + modVersions);
 		} else if (depthZeroCandidates.size() == 1) {

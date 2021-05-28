@@ -133,21 +133,44 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	}
 
 	@Override
-	public Collection<ModDependency> getDepends() { return Collections.emptyList(); }
+	public Collection<ModDependency> getDepends() {
+		return Collections.emptyList();
+	}
+
 	@Override
-	public Collection<ModDependency> getRecommends() { return Collections.emptyList(); }
+	public Collection<ModDependency> getRecommends() {
+		return Collections.emptyList();
+	}
+
 	@Override
-	public Collection<ModDependency> getSuggests() { return Collections.emptyList(); }
+	public Collection<ModDependency> getSuggests() {
+		return Collections.emptyList();
+	}
+
 	@Override
-	public Collection<ModDependency> getConflicts() { return Collections.emptyList(); }
+	public Collection<ModDependency> getConflicts() {
+		return Collections.emptyList();
+	}
+
 	@Override
-	public Collection<ModDependency> getBreaks() { return Collections.emptyList(); }
+	public Collection<ModDependency> getBreaks() {
+		return Collections.emptyList();
+	}
+
 	@Override
-	public boolean containsCustomValue(String key) { return false; }
+	public boolean containsCustomValue(String key) {
+		return false;
+	}
+
 	@Override
-	public CustomValue getCustomValue(String key) { return null; }
+	public CustomValue getCustomValue(String key) {
+		return null;
+	}
+
 	@Override
-	public Map<String, CustomValue> getCustomValues() { return Collections.emptyMap(); }
+	public Map<String, CustomValue> getCustomValues() {
+		return Collections.emptyMap();
+	}
 
 	public static class Builder {
 		private final String id;

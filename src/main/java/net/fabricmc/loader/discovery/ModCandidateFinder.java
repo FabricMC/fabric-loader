@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.discovery;
 
-import net.fabricmc.loader.FabricLoader;
-
 import java.net.URL;
 import java.util.function.BiConsumer;
+
+import net.fabricmc.loader.FabricLoader;
 
 @FunctionalInterface
 public interface ModCandidateFinder {

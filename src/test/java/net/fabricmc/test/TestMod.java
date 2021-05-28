@@ -16,15 +16,14 @@
 
 package net.fabricmc.test;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class TestMod implements PreLaunchEntrypoint, ModInitializer {
-
 	private static final Logger LOGGER = LogManager.getFormatterLogger("TestMod");
 
 	/**
@@ -52,5 +51,4 @@ public class TestMod implements PreLaunchEntrypoint, ModInitializer {
 		LOGGER.info("Hello from Fabric");
 		LOGGER.info("**************************");
 	}
-
 }

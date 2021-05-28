@@ -16,6 +16,13 @@
 
 package net.fabricmc.loader;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
 import net.fabricmc.loader.api.EntrypointException;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.LanguageAdapterException;
@@ -24,8 +31,6 @@ import net.fabricmc.loader.entrypoint.EntrypointContainerImpl;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 
-import java.util.*;
-
 class EntrypointStorage {
 	interface Entry {
 		<T> T getOrCreate(Class<T> type) throws Exception;
@@ -33,10 +38,11 @@ class EntrypointStorage {
 		ModContainer getModContainer();
 	}
 
+	@SuppressWarnings("deprecation")
 	private static class OldEntry implements Entry {
 		private static final net.fabricmc.loader.language.LanguageAdapter.Options options = net.fabricmc.loader.language.LanguageAdapter.Options.Builder.create()
-			.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
-			.build();
+				.missingSuperclassBehaviour(net.fabricmc.loader.language.LanguageAdapter.MissingSuperclassBehavior.RETURN_NULL)
+				.build();
 
 		private final ModContainer mod;
 		private final String languageAdapter;
@@ -54,6 +60,7 @@ class EntrypointStorage {
 			return mod.getInfo().getId() + "->" + value;
 		}
 
+		@SuppressWarnings({ "unchecked" })
 		@Override
 		public <T> T getOrCreate(Class<T> type) throws Exception {
 			if (object == null) {
@@ -64,7 +71,6 @@ class EntrypointStorage {
 			if (object == null || !type.isAssignableFrom(object.getClass())) {
 				return null;
 			} else {
-				//noinspection unchecked
 				return (T) object;
 			}
 		}
@@ -92,14 +98,16 @@ class EntrypointStorage {
 			return mod.getInfo().getId() + "->(0.3.x)" + value;
 		}
 
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getOrCreate(Class<T> type) throws Exception {
 			Object o = instanceMap.get(type);
+
 			if (o == null) {
 				o = create(type);
 				instanceMap.put(type, o);
 			}
-			//noinspection unchecked
+
 			return (T) o;
 		}
 
@@ -119,6 +127,7 @@ class EntrypointStorage {
 		return entryMap.computeIfAbsent(key, (z) -> new ArrayList<>());
 	}
 
+	@SuppressWarnings("deprecation")
 	protected void addDeprecated(ModContainer modContainer, String adapter, String value) throws ClassNotFoundException, LanguageAdapterException {
 		FabricLoader.INSTANCE.getLogger().debug("Registering 0.3.x old-style initializer " + value + " for mod " + modContainer.getInfo().getId());
 		OldEntry oe = new OldEntry(modContainer, adapter, value);
@@ -127,6 +136,7 @@ class EntrypointStorage {
 		getOrCreateEntries("server").add(oe);
 	}
 
+	@SuppressWarnings("deprecation")
 	protected void add(ModContainer modContainer, String key, EntrypointMetadata metadata, Map<String, LanguageAdapter> adapterMap) throws Exception {
 		if (!adapterMap.containsKey(metadata.getAdapter())) {
 			throw new Exception("Could not find adapter '" + metadata.getAdapter() + "' (mod " + modContainer.getInfo().getId() + "!)");
@@ -134,14 +144,15 @@ class EntrypointStorage {
 
 		FabricLoader.INSTANCE.getLogger().debug("Registering new-style initializer " + metadata.getValue() + " for mod " + modContainer.getInfo().getId() + " (key " + key + ")");
 		getOrCreateEntries(key).add(new NewEntry(
-			modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
-		));
+				modContainer, adapterMap.get(metadata.getAdapter()), metadata.getValue()
+				));
 	}
 
 	boolean hasEntrypoints(String key) {
 		return entryMap.containsKey(key);
 	}
 
+	@SuppressWarnings("deprecation")
 	protected <T> List<T> getEntrypoints(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
 		if (entries == null) return Collections.emptyList();
@@ -172,6 +183,7 @@ class EntrypointStorage {
 		return results;
 	}
 
+	@SuppressWarnings("deprecation")
 	protected <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
 		if (entries == null) return Collections.emptyList();

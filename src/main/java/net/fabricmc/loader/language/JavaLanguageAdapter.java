@@ -16,15 +16,16 @@
 
 package net.fabricmc.loader.language;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import org.objectweb.asm.ClassReader;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import org.objectweb.asm.ClassReader;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
 @Deprecated
 public class JavaLanguageAdapter implements LanguageAdapter {
@@ -33,21 +34,21 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 
 		// TODO: Be a bit more involved
 		switch (itfString) {
-			case "net/fabricmc/api/ClientModInitializer":
-				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
-					return false;
-				}
-				break;
-			case "net/fabricmc/api/DedicatedServerModInitializer":
-				if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-					return false;
-				}
+		case "net/fabricmc/api/ClientModInitializer":
+			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
+				return false;
+			}
+
+			break;
+		case "net/fabricmc/api/DedicatedServerModInitializer":
+			if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+				return false;
+			}
 		}
 
 		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(className);
-		if (stream == null) {
-			return false;
-		}
+		if (stream == null) return false;
+
 		ClassReader reader = new ClassReader(stream);
 
 		for (String s : reader.getInterfaces()) {
@@ -64,22 +65,20 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 	public static Class<?> getClass(String className, Options options) throws ClassNotFoundException, IOException {
 		String classFilename = className.replace('.', '/') + ".class";
 		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(classFilename);
-		if (stream == null) {
-			throw new ClassNotFoundException("Could not find or load class " + classFilename);
-		}
+		if (stream == null) throw new ClassNotFoundException("Could not find or load class " + classFilename);
 
 		ClassReader reader = new ClassReader(stream);
+
 		for (String s : reader.getInterfaces()) {
 			if (!canApplyInterface(s)) {
 				switch (options.getMissingSuperclassBehavior()) {
-					case RETURN_NULL:
-						stream.close();
-						return null;
-					case CRASH:
-					default:
-						stream.close();
-						throw new ClassNotFoundException("Could not find or load class " + s);
-
+				case RETURN_NULL:
+					stream.close();
+					return null;
+				case CRASH:
+				default:
+					stream.close();
+					throw new ClassNotFoundException("Could not find or load class " + s);
 				}
 			}
 		}

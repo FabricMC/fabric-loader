@@ -16,18 +16,6 @@
 
 package net.fabricmc.loader.game;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.entrypoint.EntrypointTransformer;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
-import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
-import net.fabricmc.loader.metadata.BuiltinModMetadata;
-import net.fabricmc.loader.minecraft.McVersionLookup;
-import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
-import net.fabricmc.loader.util.Arguments;
-import net.fabricmc.loader.util.SystemProperties;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -39,6 +27,18 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.entrypoint.EntrypointTransformer;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
+import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.metadata.BuiltinModMetadata;
+import net.fabricmc.loader.minecraft.McVersionLookup;
+import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
+import net.fabricmc.loader.util.Arguments;
+import net.fabricmc.loader.util.SystemProperties;
 
 public class MinecraftGameProvider implements GameProvider {
 	private EnvType envType;
@@ -123,9 +123,11 @@ public class MinecraftGameProvider implements GameProvider {
 	public List<Path> getGameContextJars() {
 		List<Path> list = new ArrayList<>();
 		list.add(gameJar);
+
 		if (realmsJar != null) {
 			list.add(realmsJar);
 		}
+
 		return list;
 	}
 

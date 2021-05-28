@@ -30,37 +30,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.fabricmc.loader.discovery.RuntimeModRemapper;
-import net.fabricmc.loader.metadata.DependencyOverrides;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.objectweb.asm.Opcodes;
 
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.discovery.DirectoryModCandidateFinder;
 import net.fabricmc.loader.discovery.ModCandidate;
 import net.fabricmc.loader.discovery.ModResolutionException;
 import net.fabricmc.loader.discovery.ModResolver;
+import net.fabricmc.loader.discovery.RuntimeModRemapper;
 import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.launch.knot.Knot;
+import net.fabricmc.loader.metadata.DependencyOverrides;
 import net.fabricmc.loader.metadata.EntrypointMetadata;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 import net.fabricmc.loader.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.util.SystemProperties;
-import net.fabricmc.accesswidener.AccessWidener;
-import net.fabricmc.accesswidener.AccessWidenerReader;
-
-import org.objectweb.asm.Opcodes;
 
 /**
  * The main class for mod loading operations.
@@ -161,6 +158,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				throw new RuntimeException("Creating config directory", e);
 			}
 		}
+
 		return configDir;
 	}
 
@@ -177,21 +175,6 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	@Deprecated
 	public File getModsDirectory() {
 		return getModsDir().toFile();
-	}
-
-	private String join(Stream<String> strings, String joiner) {
-		StringBuilder builder = new StringBuilder();
-		AtomicInteger i = new AtomicInteger();
-
-		strings.sequential().forEach((s) -> {
-			if ((i.getAndIncrement()) > 0) {
-				builder.append(joiner);
-			}
-
-			builder.append(s);
-		});
-
-		return builder.toString();
 	}
 
 	public void load() {
@@ -218,15 +201,15 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 		String modText;
 		switch (candidateMap.values().size()) {
-			case 0:
-				modText = "Loading %d mods";
-				break;
-			case 1:
-				modText = "Loading %d mod:";
-				break;
-			default:
-				modText = "Loading %d mods:";
-				break;
+		case 0:
+			modText = "Loading %d mods";
+			break;
+		case 1:
+			modText = "Loading %d mod:";
+			break;
+		default:
+			modText = "Loading %d mods:";
+			break;
 		}
 
 		LOGGER.info("[%s] " + modText + "%n%s", getClass().getSimpleName(), candidateMap.values().size(), modListText);
@@ -285,9 +268,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
 			mappingResolver = new FabricMappingResolver(
-				FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings,
-				FabricLauncherBase.getLauncher().getTargetNamespace()
-			);
+					FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings,
+					FabricLauncherBase.getLauncher().getTargetNamespace()
+					);
 		}
 
 		return mappingResolver;
@@ -342,10 +325,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		ModContainer container = new ModContainer(info, originUrl);
 		mods.add(container);
 		modMap.put(info.getId(), container);
+
 		for (String provides : info.getProvides()) {
-			if(modMap.containsKey(provides)) {
+			if (modMap.containsKey(provides)) {
 				throw new ModResolutionException("Duplicate provided alias: " + provides + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
 			}
+
 			modMap.put(provides, container);
 		}
 	}
@@ -364,13 +349,14 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 		LOGGER.debug("Sorting mods");
 
 		LinkedList<ModContainer> sorted = new LinkedList<>();
+
 		for (ModContainer mod : mods) {
 			if (sorted.isEmpty() || mod.getInfo().getRequires().size() == 0) {
 				sorted.addFirst(mod);
 			} else {
 				boolean b = false;
-				l1:
-				for (int i = 0; i < sorted.size(); i++) {
+
+				l1: for (int i = 0; i < sorted.size(); i++) {
 					for (Map.Entry<String, ModMetadataV0.Dependency> entry : sorted.get(i).getInfo().getRequires().entrySet()) {
 						String depId = entry.getKey();
 						ModMetadataV0.Dependency dep = entry.getValue();
@@ -432,6 +418,7 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 
 	public void loadAccessWideners() {
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
+
 		for (net.fabricmc.loader.api.ModContainer modContainer : getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
 			String accessWidener = modMetadata.getAccessWidener();
@@ -463,10 +450,12 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 				containsKnot = true;
 			} else {
 				gameClassLoader = gameClassLoader.getParent();
+
 				while (gameClassLoader != null && gameClassLoader.getParent() != gameClassLoader) {
 					if (gameClassLoader == targetClassLoader) {
 						containsKnot = true;
 					}
+
 					gameClassLoader = gameClassLoader.getParent();
 				}
 			}
@@ -476,9 +465,9 @@ public class FabricLoader implements net.fabricmc.loader.api.FabricLoader {
 					getLogger().info("Environment: Target class loader is parent of game class loader.");
 				} else {
 					getLogger().warn("\n\n* CLASS LOADER MISMATCH! THIS IS VERY BAD AND WILL PROBABLY CAUSE WEIRD ISSUES! *\n"
-						+ " - Expected game class loader: " + FabricLauncherBase.getLauncher().getTargetClassLoader() + "\n"
-						+ " - Actual game class loader: " + gameClassLoader + "\n"
-						+ "Could not find the expected class loader in game class loader parents!\n");
+							+ " - Expected game class loader: " + FabricLauncherBase.getLauncher().getTargetClassLoader() + "\n"
+							+ " - Actual game class loader: " + gameClassLoader + "\n"
+							+ "Could not find the expected class loader in game class loader parents!\n");
 				}
 			}
 		}

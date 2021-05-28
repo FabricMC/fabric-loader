@@ -16,9 +16,10 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import org.spongepowered.asm.service.IGlobalPropertyService;
 import org.spongepowered.asm.service.IPropertyKey;
+
+import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
 public class FabricGlobalPropertyService implements IGlobalPropertyService {
 	@Override

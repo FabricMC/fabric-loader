@@ -40,39 +40,22 @@ public class PackageAccessFixer extends ClassVisitor {
 	}
 
 	@Override
-	public void visit(
-		final int version,
-		final int access,
-		final String name,
-		final String signature,
-		final String superName,
-		final String[] interfaces) {
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		super.visit(version, modAccess(access), name, signature, superName, interfaces);
 	}
 
 	@Override
-	public void visitInnerClass(
-		final String name, final String outerName, final String innerName, final int access) {
+	public void visitInnerClass(String name, String outerName, String innerName, int access) {
 		super.visitInnerClass(name, outerName, innerName, modAccess(access));
 	}
 
 	@Override
-	public FieldVisitor visitField(
-		final int access,
-		final String name,
-		final String descriptor,
-		final String signature,
-		final Object value) {
+	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 		return super.visitField(modAccess(access), name, descriptor, signature, value);
 	}
 
 	@Override
-	public MethodVisitor visitMethod(
-		final int access,
-		final String name,
-		final String descriptor,
-		final String signature,
-		final String[] exceptions) {
+	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 		return super.visitMethod(modAccess(access), name, descriptor, signature, exceptions);
 	}
 }

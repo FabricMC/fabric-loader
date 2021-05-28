@@ -16,10 +16,10 @@
 
 package net.fabricmc.loader.launch.knot;
 
+import java.io.File;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.util.SystemProperties;
-
-import java.io.File;
 
 public class KnotClient {
 	public static void main(String[] args) {

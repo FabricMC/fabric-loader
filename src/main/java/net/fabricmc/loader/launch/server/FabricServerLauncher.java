@@ -16,13 +16,17 @@
 
 package net.fabricmc.loader.launch.server;
 
-import net.fabricmc.loader.util.SystemProperties;
-import net.fabricmc.loader.util.UrlUtil;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.Properties;
+
+import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.loader.util.UrlUtil;
 
 public class FabricServerLauncher {
 	private static final ClassLoader parentLoader = FabricServerLauncher.class.getClassLoader();
@@ -30,8 +34,10 @@ public class FabricServerLauncher {
 
 	public static void main(String[] args) {
 		URL propUrl = parentLoader.getResource("fabric-server-launch.properties");
+
 		if (propUrl != null) {
 			Properties properties = new Properties();
+
 			try (InputStream is = propUrl.openStream()) {
 				properties.load(is);
 			} catch (IOException e) {
@@ -82,6 +88,7 @@ public class FabricServerLauncher {
 		// a few versions... let's use this.
 		if (!properties.containsKey("serverJar")) {
 			properties.put("serverJar", "server.jar");
+
 			try (FileOutputStream stream = new FileOutputStream(propertiesFile)) {
 				properties.store(stream, null);
 			}
@@ -100,6 +107,7 @@ public class FabricServerLauncher {
 		}
 
 		System.setProperty(SystemProperties.GAME_JAR_PATH, serverJar.getAbsolutePath());
+
 		try {
 			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, parentLoader, "com.google.common.jimfs.");
 			Thread.currentThread().setContextClassLoader(newClassLoader);

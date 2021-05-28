@@ -19,10 +19,10 @@ package net.fabricmc.loader.entrypoint.applet;
 /**
  * PLEASE NOTE:
  *
- * This class is originally copyrighted under Apache License 2.0
+ * <p>This class is originally copyrighted under Apache License 2.0
  * by the MCUpdater project (https://github.com/MCUpdater/MCU-Launcher/).
  *
- * It has been adapted here for the purposes of the Fabric loader.
+ * <p>It has been adapted here for the purposes of the Fabric loader.
  */
 class AppletForcedShutdownListener implements Runnable {
 	private final long duration;
@@ -38,6 +38,7 @@ class AppletForcedShutdownListener implements Runnable {
 		} catch (InterruptedException ie) {
 			ie.printStackTrace();
 		}
+
 		System.out.println("~~~ Forcing exit! ~~~");
 		System.exit(0);
 	}
