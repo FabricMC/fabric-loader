@@ -19,13 +19,15 @@ package net.fabricmc.loader.metadata;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.lib.gson.JsonReader;
@@ -157,6 +159,55 @@ abstract class CustomValueImpl implements CustomValue {
 		public Iterator<Entry<String, CustomValue>> iterator() {
 			return entries.entrySet().iterator();
 		}
+
+		@Override
+		public Stream<Entry<String, CustomValue>> stream() {
+			return StreamSupport.stream(this.spliterator(), false);
+		}
+
+		@Override
+		public Set<String> keySet() {
+			return this.entries.keySet();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (!(o instanceof ObjectImpl)) {
+				return false;
+			}
+
+			ObjectImpl object = (ObjectImpl) o;
+			return this.entries.equals(object.entries);
+		}
+
+		@Override
+		public int hashCode() {
+			return this.entries.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("{");
+			Iterator<String> itr = this.keySet().iterator();
+
+			while (itr.hasNext()) {
+				String key = itr.next();
+				// Key
+				sb.append("\"").append(key).append("\"").append(":");
+				// Value
+				sb.append(this.get(key).toString());
+
+				if (itr.hasNext()) {
+					sb.append(",");
+				}
+			}
+
+			sb.append("}");
+			return sb.toString();
+		}
 	}
 
 	private static final class ArrayImpl extends CustomValueImpl implements CvArray {
@@ -185,6 +236,56 @@ abstract class CustomValueImpl implements CustomValue {
 		public Iterator<CustomValue> iterator() {
 			return entries.iterator();
 		}
+
+		@Override
+		public Stream<CustomValue> stream() {
+			return entries.stream();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (!(o instanceof ArrayImpl)) {
+				return false;
+			}
+
+			ArrayImpl that = (ArrayImpl) o;
+			return this.entries.equals(that.entries);
+		}
+
+		@Override
+		public int hashCode() {
+			return this.entries.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("[");
+			Iterator<CustomValue> itr = this.iterator();
+
+			while (itr.hasNext()) {
+				CustomValue value = itr.next();
+
+				if (value.getType() == CvType.STRING) {
+					sb.append("\"");
+				}
+
+				sb.append(value.toString());
+
+				if (value.getType() == CvType.STRING) {
+					sb.append("\"");
+				}
+
+				if (itr.hasNext()) {
+					sb.append(",");
+				}
+			}
+
+			sb.append("]");
+			return sb.toString();
+		}
 	}
 
 	private static final class StringImpl extends CustomValueImpl {
@@ -197,6 +298,28 @@ abstract class CustomValueImpl implements CustomValue {
 		@Override
 		public CvType getType() {
 			return CvType.STRING;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (!(o instanceof StringImpl)) {
+				return false;
+			}
+
+			StringImpl string = (StringImpl) o;
+			return this.value.equals(string.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return this.value.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return this.value;
 		}
 	}
 
@@ -211,6 +334,28 @@ abstract class CustomValueImpl implements CustomValue {
 		public CvType getType() {
 			return CvType.NUMBER;
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (!(o instanceof NumberImpl)) {
+				return false;
+			}
+
+			NumberImpl number = (NumberImpl) o;
+			return this.value.equals(number.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return this.value.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return String.valueOf(this.value);
+		}
 	}
 
 	private static final class BooleanImpl extends CustomValueImpl {
@@ -224,12 +369,49 @@ abstract class CustomValueImpl implements CustomValue {
 		public CvType getType() {
 			return CvType.BOOLEAN;
 		}
+
+		@Override
+		public int hashCode() {
+			return Boolean.hashCode(this.value);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (!(o instanceof BooleanImpl)) {
+				return false;
+			}
+
+			BooleanImpl aBoolean = (BooleanImpl) o;
+			return this.value == aBoolean.value;
+		}
+
+		@Override
+		public String toString() {
+			return String.valueOf(this.value);
+		}
 	}
 
 	private static final class NullImpl extends CustomValueImpl {
 		@Override
 		public CvType getType() {
 			return CvType.NULL;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj == NULL;
+		}
+
+		@Override
+		public int hashCode() {
+			return System.identityHashCode(null);
+		}
+
+		@Override
+		public String toString() {
+			return "null";
 		}
 	}
 }

@@ -17,6 +17,10 @@
 package net.fabricmc.loader.api.metadata;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Represents a custom value in the {@code fabric.mod.json}.
@@ -91,6 +95,16 @@ public interface CustomValue {
 		 * @return the value associated, or {@code null} if no such value is present
 		 */
 		CustomValue get(String key);
+
+		/**
+		 * Returns a sequential {@link Stream} with this iterable as its source.
+		 */
+		Stream<Map.Entry<String, CustomValue>> stream();
+
+		/**
+		 * Returns the set of keys in this custom value.
+		 */
+		Set<String> keySet();
 	}
 
 	/**
@@ -110,6 +124,11 @@ public interface CustomValue {
 		 * @throws IndexOutOfBoundsException if the index is not within {{@link #size()}}
 		 */
 		CustomValue get(int index);
+
+		/**
+		 * Returns a sequential {@link Stream} with this iterable as its source.
+		 */
+		Stream<CustomValue> stream();
 	}
 
 	/**
