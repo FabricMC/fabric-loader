@@ -67,175 +67,181 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	private static boolean emittedInfo = false;
 
 	protected static Path deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
-		Path resultJarFile = jarFile;
+		if (!Files.exists(jarFile)) {
+			throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
+		}
 
 		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
 
-		TinyTree mappings = launcher.isDevelopment() ? null : mappingConfiguration.getMappings();
-		String targetNamespace = mappingConfiguration.getTargetNamespace();
+		if (!launcher.isDevelopment()) { // in-dev is already deobfuscated
+			Path deobfJarDir = gameDir.resolve(".fabric").resolve("remappedJars");
 
-		if (mappings != null && mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
-			LOGGER.debug("Fabric mapping file detected, applying...");
+			if (!gameId.isEmpty()) {
+				String versionedId = gameVersion.isEmpty() ? gameId : String.format("%s-%s", gameId, gameVersion);
+				deobfJarDir = deobfJarDir.resolve(versionedId);
+			}
 
-			try {
-				if (!Files.exists(jarFile)) {
-					throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
-				}
+			String targetNamespace = mappingConfiguration.getTargetNamespace();
+			// TODO: allow versioning mappings?
+			String deobfJarFilename = targetNamespace + "-" + jarFile.getFileName();
+			Path deobfJarFile = deobfJarDir.resolve(deobfJarFilename);
+			Path deobfJarFileTmp = deobfJarDir.resolve(deobfJarFilename + ".tmp");
 
-				Path deobfJarDir = gameDir.resolve(".fabric").resolve("remappedJars");
+			if (Files.exists(deobfJarFileTmp)) { // previous unfinished remap attempt
+				LOGGER.warn("Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
 
-				if (!gameId.isEmpty()) {
-					String versionedId = gameVersion.isEmpty() ? gameId : String.format("%s-%s", gameId, gameVersion);
-					deobfJarDir = deobfJarDir.resolve(versionedId);
-				}
-
-				if (!Files.exists(deobfJarDir)) {
-					Files.createDirectories(deobfJarDir);
-				}
-
-				// TODO: allow versioning mappings?
-				String deobfJarFilename = mappingConfiguration.getTargetNamespace() + "-" + jarFile.getFileName();
-				Path deobfJarFile = deobfJarDir.resolve(deobfJarFilename);
-				Path deobfJarFileTmp = deobfJarDir.resolve(deobfJarFilename + ".tmp");
-
-				if (Files.exists(deobfJarFileTmp)) {
-					LOGGER.warn("Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
+				try {
 					Files.deleteIfExists(deobfJarFile);
 					Files.deleteIfExists(deobfJarFileTmp);
+				} catch (IOException e) {
+					throw new RuntimeException("can't delete incompletely remapped files", e);
 				}
-
-				if (!Files.exists(deobfJarFile)) {
-					boolean found = false;
-					while (!found) {
-						if (!emittedInfo) {
-							LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
-							emittedInfo = true;
-						}
-
-						TinyRemapper remapper = TinyRemapper.newRemapper()
-							.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
-							.rebuildSourceFilenames(true)
-							.build();
-
-						Set<Path> depPaths = new HashSet<>();
-
-						for (URL url : launcher.getLoadTimeDependencies()) {
-							try {
-								Path path = UrlUtil.asPath(url);
-								if (!Files.exists(path)) {
-									throw new RuntimeException("Path does not exist: " + path);
-								}
-
-								if (!path.equals(jarFile)) {
-									depPaths.add(path);
-								}
-							} catch (UrlConversionException e) {
-								throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
-							}
-						}
-
-						try (OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(deobfJarFileTmp)
-								// force jar despite the .tmp extension
-								.assumeArchive(true)
-								// don't accept class names from a blacklist of dependencies that Fabric itself utilizes
-								// TODO: really could use a better solution, as always...
-								.filter(clsName -> !clsName.startsWith("com/google/common/")
-										&& !clsName.startsWith("com/google/gson/")
-										&& !clsName.startsWith("com/google/thirdparty/")
-										&& !clsName.startsWith("org/apache/logging/log4j/"))
-								.build()) {
-							for (Path path : depPaths) {
-								LOGGER.debug("Appending '" + path + "' to remapper classpath");
-								remapper.readClassPath(path);
-							}
-							remapper.readInputs(jarFile);
-							remapper.apply(outputConsumer);
-						} catch (IOException e) {
-							throw new RuntimeException("Failed to remap '" + jarFile + "'!", e);
-						} finally {
-							remapper.finish();
-						}
-
-						// Minecraft doesn't tend to check if a ZipFileSystem is already present,
-						// so we clean up here.
-
-						depPaths.add(deobfJarFileTmp);
-						for (Path p : depPaths) {
-							try {
-								p.getFileSystem().close();
-							} catch (Exception e) {
-								// pass
-							}
-
-							try {
-								FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
-							} catch (Exception e) {
-								// pass
-							}
-						}
-
-						try (JarFile jar = new JarFile(deobfJarFileTmp.toFile())) {
-							found = jar.stream().anyMatch((e) -> e.getName().endsWith(".class"));
-						}
-
-						if (!found) {
-							LOGGER.error("Generated deobfuscated JAR contains no classes! Trying again...");
-							Files.delete(deobfJarFileTmp);
-						} else {
-							Files.move(deobfJarFileTmp, deobfJarFile);
-						}
-					}
-				}
-
-				if (!Files.exists(deobfJarFile)) {
-					throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
-				}
-
-				resultJarFile = deobfJarFile;
-			} catch (IOException e) {
-				throw new RuntimeException(e);
 			}
+
+			TinyTree mappings;
+
+			if (!Files.exists(deobfJarFile)
+					&& (mappings = mappingConfiguration.getMappings()) != null
+					&& mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
+				LOGGER.debug("Fabric mapping file detected, applying...");
+
+				if (!emittedInfo) {
+					LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
+					emittedInfo = true;
+				}
+
+				try {
+					deobfuscate0(jarFile, deobfJarFile, deobfJarFileTmp, mappings, targetNamespace);
+				} catch (IOException e) {
+					throw new RuntimeException("error remapping game jar "+jarFile, e);
+				}
+			}
+
+			jarFile = deobfJarFile;
 		}
 
 		try {
-			launcher.propose(UrlUtil.asUrl(resultJarFile));
+			launcher.propose(UrlUtil.asUrl(jarFile));
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);
 		}
 
 		if (minecraftJar == null) {
-			minecraftJar = resultJarFile;
+			minecraftJar = jarFile;
 		}
 
-		return resultJarFile;
+		return jarFile;
+	}
+
+	private static void deobfuscate0(Path jarFile, Path deobfJarFile, Path deobfJarFileTmp, TinyTree mappings, String targetNamespace) throws IOException {
+		Files.createDirectories(deobfJarFile.getParent());
+
+		boolean found;
+
+		do {
+			TinyRemapper remapper = TinyRemapper.newRemapper()
+					.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
+					.rebuildSourceFilenames(true)
+					.build();
+
+			Set<Path> depPaths = new HashSet<>();
+
+			for (URL url : launcher.getLoadTimeDependencies()) {
+				try {
+					Path path = UrlUtil.asPath(url);
+					if (!Files.exists(path)) {
+						throw new RuntimeException("Path does not exist: " + path);
+					}
+
+					if (!path.equals(jarFile)) {
+						depPaths.add(path);
+					}
+				} catch (UrlConversionException e) {
+					throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
+				}
+			}
+
+			try (OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(deobfJarFileTmp)
+					// force jar despite the .tmp extension
+					.assumeArchive(true)
+					// don't accept class names from a blacklist of dependencies that Fabric itself utilizes
+					// TODO: really could use a better solution, as always...
+					.filter(clsName -> !clsName.startsWith("com/google/common/")
+							&& !clsName.startsWith("com/google/gson/")
+							&& !clsName.startsWith("com/google/thirdparty/")
+							&& !clsName.startsWith("org/apache/logging/log4j/"))
+					.build()) {
+				for (Path path : depPaths) {
+					LOGGER.debug("Appending '" + path + "' to remapper classpath");
+					remapper.readClassPath(path);
+				}
+				remapper.readInputs(jarFile);
+				remapper.apply(outputConsumer);
+			} finally {
+				remapper.finish();
+			}
+
+			// Minecraft doesn't tend to check if a ZipFileSystem is already present,
+			// so we clean up here.
+
+			depPaths.add(deobfJarFileTmp);
+			for (Path p : depPaths) {
+				try {
+					p.getFileSystem().close();
+				} catch (Exception e) {
+					// pass
+				}
+
+				try {
+					FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
+				} catch (Exception e) {
+					// pass
+				}
+			}
+
+			try (JarFile jar = new JarFile(deobfJarFileTmp.toFile())) {
+				found = jar.stream().anyMatch((e) -> e.getName().endsWith(".class"));
+			}
+
+			if (!found) {
+				LOGGER.error("Generated deobfuscated JAR contains no classes! Trying again...");
+				Files.delete(deobfJarFileTmp);
+			} else {
+				Files.move(deobfJarFileTmp, deobfJarFile);
+			}
+		} while (!found);
+
+		if (!Files.exists(deobfJarFile)) {
+			throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
+		}
 	}
 
 	public static void processArgumentMap(Arguments argMap, EnvType envType) {
 		switch (envType) {
-			case CLIENT:
-				if (!argMap.containsKey("accessToken")) {
-					argMap.put("accessToken", "FabricMC");
-				}
+		case CLIENT:
+			if (!argMap.containsKey("accessToken")) {
+				argMap.put("accessToken", "FabricMC");
+			}
 
-				if (!argMap.containsKey("version")) {
-					argMap.put("version", "Fabric");
-				}
+			if (!argMap.containsKey("version")) {
+				argMap.put("version", "Fabric");
+			}
 
-				String versionType = "";
-				if(argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")){
-					versionType = argMap.get("versionType") + "/";
-				}
-				argMap.put("versionType", versionType + "Fabric");
+			String versionType = "";
+			if(argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")){
+				versionType = argMap.get("versionType") + "/";
+			}
+			argMap.put("versionType", versionType + "Fabric");
 
-				if (!argMap.containsKey("gameDir")) {
-					argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
-				}
-				break;
-			case SERVER:
-				argMap.remove("version");
-				argMap.remove("gameDir");
-				argMap.remove("assetsDir");
-				break;
+			if (!argMap.containsKey("gameDir")) {
+				argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
+			}
+			break;
+		case SERVER:
+			argMap.remove("version");
+			argMap.remove("gameDir");
+			argMap.remove("assetsDir");
+			break;
 		}
 	}
 
