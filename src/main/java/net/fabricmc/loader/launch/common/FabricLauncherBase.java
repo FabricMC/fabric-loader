@@ -66,7 +66,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	private static boolean emittedInfo = false;
 
-	protected static void deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
+	protected static Path deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
 		if (!Files.exists(jarFile)) {
 			throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
 		}
