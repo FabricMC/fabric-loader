@@ -16,11 +16,12 @@
 
 package net.fabricmc.loader.util;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandleProxies;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,14 +117,25 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 				}
 			}
 
-			final Object targetObject = object;
+			MethodHandle handle;
 
-			return (T) Proxy.newProxyInstance(FabricLauncherBase.getLauncher().getTargetClassLoader(), new Class[] { type }, new InvocationHandler() {
-				@Override
-				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-					return targetMethod.invoke(targetObject, args);
-				}
-			});
+			try {
+				handle = MethodHandles.lookup()
+						.unreflect(targetMethod);
+			} catch (Exception ex) {
+				throw new LanguageAdapterException(ex);
+			}
+
+			if (object != null) {
+				handle = handle.bindTo(object);
+			}
+
+			// uses proxy as well, but this handles default and object methods
+			try {
+				return MethodHandleProxies.asInterfaceInstance(type, handle);
+			} catch (Exception ex) {
+				throw new LanguageAdapterException(ex);
+			}
 		}
 	}
 }

@@ -101,14 +101,8 @@ class EntrypointStorage {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getOrCreate(Class<T> type) throws Exception {
-			Object o = instanceMap.get(type);
-
-			if (o == null) {
-				o = create(type);
-				instanceMap.put(type, o);
-			}
-
-			return (T) o;
+			//noinspection unchecked
+			return (T) instanceMap.computeIfAbsent(type, this::create);
 		}
 
 		@Override
@@ -116,8 +110,12 @@ class EntrypointStorage {
 			return mod;
 		}
 
-		private <T> T create(Class<T> type) throws Exception {
-			return adapter.create(mod, value, type);
+		<T> T create(Class<T> type) {
+			try {
+				return adapter.create(mod, value, type);
+			} catch (LanguageAdapterException ex) {
+				throw sneakyThrows(ex);
+			}
 		}
 	}
 
@@ -201,5 +199,10 @@ class EntrypointStorage {
 		}
 
 		return results;
+	}
+
+	@SuppressWarnings("unchecked") // return value allows "throw" declaration to end method
+	static <E extends Throwable> RuntimeException sneakyThrows(Throwable ex) throws E {
+		throw (E) ex;
 	}
 }
