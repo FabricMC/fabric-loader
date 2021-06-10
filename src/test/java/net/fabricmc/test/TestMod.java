@@ -16,10 +16,15 @@
 
 package net.fabricmc.test;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 
@@ -50,5 +55,9 @@ public class TestMod implements PreLaunchEntrypoint, ModInitializer {
 		LOGGER.info("**************************");
 		LOGGER.info("Hello from Fabric");
 		LOGGER.info("**************************");
+
+		Set<CustomEntry> testingInits = new LinkedHashSet<>(FabricLoader.getInstance().getEntrypoints("test:testing", CustomEntry.class));
+		LOGGER.info("Found %d testing inits", testingInits.size());
+		LOGGER.info(testingInits.stream().map(CustomEntry::describe).collect(Collectors.joining(", ")));
 	}
 }

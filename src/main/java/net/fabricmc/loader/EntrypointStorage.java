@@ -19,7 +19,6 @@ package net.fabricmc.loader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,16 +80,17 @@ class EntrypointStorage {
 		}
 	}
 
-	private static class NewEntry implements Entry {
+	private static final class NewEntry implements Entry {
 		private final ModContainer mod;
 		private final LanguageAdapter adapter;
 		private final String value;
-		private final Map<Class<?>, Object> instanceMap = new IdentityHashMap<>();
+		private final Map<Class<?>, Object> instanceMap;
 
-		private NewEntry(ModContainer mod, LanguageAdapter adapter, String value) {
+		NewEntry(ModContainer mod, LanguageAdapter adapter, String value) {
 			this.mod = mod;
 			this.adapter = adapter;
 			this.value = value;
+			this.instanceMap = new HashMap<>(1);
 		}
 
 		@Override
@@ -101,23 +101,18 @@ class EntrypointStorage {
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getOrCreate(Class<T> type) throws Exception {
-			Object o = instanceMap.get(type);
-
-			if (o == null) {
-				o = create(type);
-				instanceMap.put(type, o);
-			}
-
-			return (T) o;
+			return (T) instanceMap.computeIfAbsent(type, t -> {
+				try {
+					return adapter.create(mod, value, t);
+				} catch (LanguageAdapterException ex) {
+					throw sneakyThrows(ex);
+				}
+			});
 		}
 
 		@Override
 		public ModContainer getModContainer() {
 			return mod;
-		}
-
-		private <T> T create(Class<T> type) throws Exception {
-			return adapter.create(mod, value, type);
 		}
 	}
 
@@ -201,5 +196,10 @@ class EntrypointStorage {
 		}
 
 		return results;
+	}
+
+	@SuppressWarnings("unchecked") // return value allows "throw" declaration to end method
+	static <E extends Throwable> RuntimeException sneakyThrows(Throwable ex) throws E {
+		throw (E) ex;
 	}
 }

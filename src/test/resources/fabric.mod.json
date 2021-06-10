@@ -16,6 +16,11 @@
     ],
     "main": [
       "net.fabricmc.test.TestMod"
+    ],
+    "test:testing": [
+      "net.fabricmc.test.EntrypointTest::instanceEntry",
+      "net.fabricmc.test.EntrypointTest::staticEntry",
+      "net.fabricmc.test.EntrypointTest::FIELD_ENTRY"
     ]
   }
 }

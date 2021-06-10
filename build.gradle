@@ -5,7 +5,7 @@ plugins {
 	id 'maven-publish'
 	id 'checkstyle'
 	id("org.cadixdev.licenser") version "0.5.0"
-	id("fabric-loom") version "0.5-SNAPSHOT"
+	id("fabric-loom") version "0.7-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -95,6 +95,12 @@ jar {
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}
 	}
+}
+
+// useful for creating test mod jar
+task testJar(type: Jar) {
+	archiveClassifier = "test"
+	from sourceSets.test.output
 }
 
 task copyJson(type: Copy, dependsOn: ["remapJar"]) {
