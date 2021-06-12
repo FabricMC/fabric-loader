@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.minecraft;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,6 +67,34 @@ public final class McVersionLookup {
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
+
+	public static OptionalInt getClassVersion(Path gameJar, List<String> entrypointClasses) {
+		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
+			FileSystem fs = jarFs.get();
+
+			for (String entrypointClass : entrypointClasses) {
+				String fileString = entrypointClass.replace('.', '/') + ".class";
+				Path file = fs.getPath(fileString);
+
+				if (Files.isRegularFile(file)) {
+					DataInputStream is = new DataInputStream(Files.newInputStream(file));
+					if (is.readInt() != 0xCAFEBABE) {
+						continue;
+					}
+
+					is.readUnsignedShort();
+					int classVersion = is.readUnsignedShort();
+
+					is.close();
+					return OptionalInt.of(classVersion);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return OptionalInt.empty();
+	}
 
 	public static McVersion getVersion(String version) {
 		return new McVersion(version, getRelease(version));
