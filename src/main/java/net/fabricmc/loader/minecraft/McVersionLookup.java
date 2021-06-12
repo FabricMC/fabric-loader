@@ -78,6 +78,7 @@ public final class McVersionLookup {
 
 				if (Files.isRegularFile(file)) {
 					DataInputStream is = new DataInputStream(Files.newInputStream(file));
+
 					if (is.readInt() != 0xCAFEBABE) {
 						continue;
 					}

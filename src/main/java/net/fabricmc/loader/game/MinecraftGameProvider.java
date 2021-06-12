@@ -94,7 +94,7 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		BuiltinModMetadata.Builder metadata = new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
-			.setName(getGameName());
+				.setName(getGameName());
 
 		if (classVersion.isPresent()) {
 			metadata.addDepends(new JavaModDependency(classVersion.getAsInt() - 44));
