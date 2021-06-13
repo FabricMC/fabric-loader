@@ -25,12 +25,12 @@ import net.fabricmc.loader.api.VersionPredicate;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.util.version.VersionPredicateParser;
 
-final class ModDependencyImpl implements ModDependency {
+public final class ModDependencyImpl implements ModDependency {
 	private final String modId;
 	private final List<String> matcherStringList;
 	private Set<VersionPredicate> ranges;
 
-	ModDependencyImpl(String modId, List<String> matcherStringList) {
+	public ModDependencyImpl(String modId, List<String> matcherStringList) {
 		this.modId = modId;
 		this.matcherStringList = matcherStringList;
 	}
