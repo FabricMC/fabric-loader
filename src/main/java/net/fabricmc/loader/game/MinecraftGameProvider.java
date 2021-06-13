@@ -24,11 +24,17 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.VersionPredicate;
+import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.entrypoint.EntrypointTransformer;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchBranding;
 import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchFML125;
@@ -36,9 +42,10 @@ import net.fabricmc.loader.entrypoint.minecraft.EntrypointPatchHook;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import net.fabricmc.loader.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.minecraft.McVersionLookup;
-import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
+import net.fabricmc.loader.minecraft.McVersion;
 import net.fabricmc.loader.util.Arguments;
 import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.loader.util.version.VersionPredicateParser;
 
 public class MinecraftGameProvider implements GameProvider {
 	private EnvType envType;
@@ -66,12 +73,12 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public String getRawGameVersion() {
-		return versionData.raw;
+		return versionData.getRaw();
 	}
 
 	@Override
 	public String getNormalizedGameVersion() {
-		return versionData.normalized;
+		return versionData.getNormalized();
 	}
 
 	@Override
@@ -84,11 +91,14 @@ public class MinecraftGameProvider implements GameProvider {
 			throw new RuntimeException(e);
 		}
 
-		return Arrays.asList(
-				new BuiltinMod(url, new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
-						.setName(getGameName())
-						.build())
-				);
+		BuiltinModMetadata.Builder metadata = new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
+				.setName(getGameName());
+
+		if (versionData.getClassVersion().isPresent()) {
+			metadata.addDepends(new JavaModDependency(versionData.getClassVersion().getAsInt() - 44));
+		}
+
+		return Arrays.asList(new BuiltinMod(url, metadata.build()));
 	}
 
 	public Path getGameJar() {
@@ -158,7 +168,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 		String version = arguments.remove(Arguments.GAME_VERSION);
 		if (version == null) version = System.getProperty(SystemProperties.GAME_VERSION);
-		versionData = version != null ? McVersionLookup.getVersion(version) : McVersionLookup.getVersion(gameJar);
+		versionData = McVersionLookup.getVersion(gameJar, entrypointClasses, version);
 
 		FabricLauncherBase.processArgumentMap(arguments, envType);
 
@@ -228,6 +238,36 @@ public class MinecraftGameProvider implements GameProvider {
 			m.invoke(null, (Object) arguments.toArray());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	static class JavaModDependency implements ModDependency {
+		private final int minVersion;
+
+		JavaModDependency(int minVersion) {
+			this.minVersion = minVersion;
+		}
+
+		@Override
+		public String getModId() {
+			return "java";
+		}
+
+		@Override
+		public boolean matches(Version version) {
+			try {
+				return VersionPredicateParser.matches(version, ">=" + minVersion);
+			} catch (VersionParsingException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+
+		@Override
+		public Set<VersionPredicate> getVersionRequirements() {
+			Set<VersionPredicate> requirements = new HashSet<>();
+			requirements.add(new VersionPredicate(VersionPredicate.Type.GREATER_THAN_OR_EQUAL, minVersion + ""));
+			return requirements;
 		}
 	}
 }

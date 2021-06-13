@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.minecraft;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,62 +67,101 @@ public final class McVersionLookup {
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
-	public static McVersion getVersion(String version) {
-		return new McVersion(version, getRelease(version));
-	}
+	public static McVersion getVersion(Path gameJar, List<String> entrypointClasses, String versionName) {
+		McVersion.Builder builder = new McVersion.Builder();
 
-	public static McVersion getVersion(Path gameJar) {
-		McVersion ret;
-
-		// check various known files for version information
+		if (versionName != null) {
+			builder.setNameAndRelease(versionName);
+		}
 
 		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
 			FileSystem fs = jarFs.get();
+
+			// Determine class version
+			for (String entrypointClass : entrypointClasses) {
+				String fileString = entrypointClass.replace('.', '/') + ".class";
+				Path file = fs.getPath(fileString);
+
+				if (Files.isRegularFile(file)) {
+					try (DataInputStream is = new DataInputStream(Files.newInputStream(file))) {
+						if (is.readInt() != 0xCAFEBABE) {
+							continue;
+						}
+
+						is.readUnsignedShort();
+						builder.setClassVersion(is.readUnsignedShort());
+
+						break;
+					}
+				}
+			}
+
+			// Check various known files for version information if unknown
+			if (versionName == null) {
+				fillVersionFromJar(gameJar, fs, builder);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return builder.build();
+	}
+
+	public static McVersion getVersionExceptClassVersion(Path gameJar) {
+		McVersion.Builder builder = new McVersion.Builder();
+
+		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
+			fillVersionFromJar(gameJar, jarFs.get(), builder);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return builder.build();
+	}
+
+	public static void fillVersionFromJar(Path gameJar, FileSystem fs, McVersion.Builder builder) {
+		try {
 			Path file;
 
 			// version.json - contains version and target release for 18w47b+
-			if (Files.isRegularFile(file = fs.getPath("version.json"))
-					&& (ret = fromVersionJson(Files.newInputStream(file))) != null) {
-				return ret;
+			if (Files.isRegularFile(file = fs.getPath("version.json")) && fromVersionJson(Files.newInputStream(file), builder)) {
+				return;
 			}
 
 			// constant field RealmsSharedConstants.VERSION_STRING
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsSharedConstants.class"))
-					&& (ret = fromAnalyzer(Files.newInputStream(file), new FieldStringConstantVisitor("VERSION_STRING"))) != null) {
-				return ret;
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsSharedConstants.class")) && fromAnalyzer(Files.newInputStream(file), new FieldStringConstantVisitor("VERSION_STRING"), builder)) {
+				return;
 			}
 
 			// constant return value of RealmsBridge.getVersionString (presumably inlined+dead code eliminated VERSION_STRING)
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsBridge.class"))
-					&& (ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor("getVersionString"))) != null) {
-				return ret;
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsBridge.class")) && fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor("getVersionString"), builder)) {
+				return;
 			}
 
 			// version-like String constant used in MinecraftServer.run or another MinecraftServer method
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/server/MinecraftServer.class"))
-					&& (ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantVisitor("run"))) != null) {
-				return ret;
+			if (Files.isRegularFile(file = fs.getPath("net/minecraft/server/MinecraftServer.class")) && fromAnalyzer(Files.newInputStream(file), new MethodConstantVisitor("run"), builder)) {
+				return;
 			}
 
 			if (Files.isRegularFile(file = fs.getPath("net/minecraft/client/Minecraft.class"))) {
 				// version-like constant return value of a Minecraft method (obfuscated/unknown name)
-				if ((ret = fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null))) != null) {
-					return ret;
+				if (fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null), builder)) {
+					return;
 				}
 
 				// version-like constant passed into Display.setTitle in a Minecraft method (obfuscated/unknown name)
-				if ((ret = fromAnalyzer(Files.newInputStream(file), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"))) != null) {
-					return ret;
+				if (fromAnalyzer(Files.newInputStream(file), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"), builder)) {
+					return;
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return fromFileName(gameJar.getFileName().toString());
+		builder.setFromFileName(gameJar.getFileName().toString());
 	}
 
-	private static McVersion fromVersionJson(InputStream is) {
+	private static boolean fromVersionJson(InputStream is, McVersion.Builder builder) {
 		try (JsonReader reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 			String id = null;
 			String name = null;
@@ -168,22 +209,28 @@ public final class McVersionLookup {
 				if (id.length() < name.length()) name = id;
 			}
 
-			if (name != null && release != null) return new McVersion(name, release);
+			if (name != null && release != null) {
+				builder.setName(name);
+				builder.setName(release);
+
+				return true;
+			}
 		} catch (IOException | ParseMetadataException e) {
 			e.printStackTrace();
 		}
 
-		return null;
+		return false;
 	}
 
-	private static <T extends ClassVisitor & Analyzer> McVersion fromAnalyzer(InputStream is, T analyzer) {
+	private static <T extends ClassVisitor & Analyzer> boolean fromAnalyzer(InputStream is, T analyzer, McVersion.Builder builder) {
 		try {
 			ClassReader cr = new ClassReader(is);
 			cr.accept(analyzer, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
 			String result = analyzer.getResult();
 
 			if (result != null) {
-				return new McVersion(result, getRelease(result));
+				builder.setNameAndRelease(result);
+				return true;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -195,18 +242,10 @@ public final class McVersionLookup {
 			}
 		}
 
-		return null;
+		return false;
 	}
 
-	private static McVersion fromFileName(String name) {
-		// strip extension
-		int pos = name.lastIndexOf('.');
-		if (pos > 0) name = name.substring(0, pos);
-
-		return new McVersion(name, getRelease(name));
-	}
-
-	private static String getRelease(String version) {
+	protected static String getRelease(String version) {
 		if (RELEASE_PATTERN.matcher(version).matches()) return version;
 
 		assert isProbableVersion(version);
@@ -303,7 +342,7 @@ public final class McVersionLookup {
 	 *
 	 * <p>MC Snapshot -> alpha, MC Pre-Release -> rc.
 	 */
-	private static String normalizeVersion(String name, String release) {
+	protected static String normalizeVersion(String name, String release) {
 		if (release == null || name.equals(release)) {
 			return normalizeVersion(name);
 		}
@@ -720,20 +759,5 @@ public final class McVersionLookup {
 		public void visitMultiANewArrayInsn(java.lang.String descriptor, int numDimensions) {
 			visitAnyInsn();
 		}
-	}
-
-	public static final class McVersion {
-		private McVersion(String name, String release) {
-			this.raw = name;
-			this.normalized = normalizeVersion(name, release);
-		}
-
-		@Override
-		public String toString() {
-			return String.format("%s/%s", raw, normalized);
-		}
-
-		public final String raw; // raw version, e.g. 18w12a
-		public final String normalized; // normalized version, usually Semver compliant version containing release and pre-release as applicable
 	}
 }

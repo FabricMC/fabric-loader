@@ -46,6 +46,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final ContactInformation contact;
 	private final Collection<String> license;
 	private final NavigableMap<Integer, String> icons;
+	private final Collection<ModDependency> depends;
+	private final Collection<ModDependency> recommends;
+	private final Collection<ModDependency> suggests;
+	private final Collection<ModDependency> conflicts;
+	private final Collection<ModDependency> breaks;
 
 	private BuiltinModMetadata(String id, Version version,
 			ModEnvironment environment,
@@ -53,7 +58,12 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			Collection<Person> authors, Collection<Person> contributors,
 			ContactInformation contact,
 			Collection<String> license,
-			NavigableMap<Integer, String> icons) {
+			NavigableMap<Integer, String> icons,
+			Collection<ModDependency> depends,
+			Collection<ModDependency> recommends,
+			Collection<ModDependency> suggests,
+			Collection<ModDependency> conflicts,
+			Collection<ModDependency> breaks) {
 		this.id = id;
 		this.version = version;
 		this.environment = environment;
@@ -64,6 +74,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		this.contact = contact;
 		this.license = license;
 		this.icons = icons;
+		this.depends = depends;
+		this.recommends = recommends;
+		this.suggests = suggests;
+		this.conflicts = conflicts;
+		this.breaks = breaks;
 	}
 
 	@Override
@@ -134,27 +149,27 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 
 	@Override
 	public Collection<ModDependency> getDepends() {
-		return Collections.emptyList();
+		return depends;
 	}
 
 	@Override
 	public Collection<ModDependency> getRecommends() {
-		return Collections.emptyList();
+		return recommends;
 	}
 
 	@Override
 	public Collection<ModDependency> getSuggests() {
-		return Collections.emptyList();
+		return suggests;
 	}
 
 	@Override
 	public Collection<ModDependency> getConflicts() {
-		return Collections.emptyList();
+		return conflicts;
 	}
 
 	@Override
 	public Collection<ModDependency> getBreaks() {
-		return Collections.emptyList();
+		return breaks;
 	}
 
 	@Override
@@ -183,6 +198,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		private ContactInformation contact = ContactInformation.EMPTY;
 		private final Collection<String> license = new ArrayList<>();
 		private final NavigableMap<Integer, String> icons = new TreeMap<>();
+		private final Collection<ModDependency> depends = new ArrayList<>();
+		private final Collection<ModDependency> recommends = new ArrayList<>();
+		private final Collection<ModDependency> suggests = new ArrayList<>();
+		private final Collection<ModDependency> conflicts = new ArrayList<>();
+		private final Collection<ModDependency> breaks = new ArrayList<>();
 
 		public Builder(String id, String version) {
 			this.name = this.id = id;
@@ -234,8 +254,33 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			return this;
 		}
 
+		public Builder addDepends(ModDependency dependency) {
+			this.depends.add(dependency);
+			return this;
+		}
+
+		public Builder addRecommends(ModDependency dependency) {
+			this.recommends.add(dependency);
+			return this;
+		}
+
+		public Builder addSuggests(ModDependency dependency) {
+			this.suggests.add(dependency);
+			return this;
+		}
+
+		public Builder addConflicts(ModDependency dependency) {
+			this.conflicts.add(dependency);
+			return this;
+		}
+
+		public Builder addBreaks(ModDependency dependency) {
+			this.breaks.add(dependency);
+			return this;
+		}
+
 		public ModMetadata build() {
-			return new BuiltinModMetadata(id, version, environment, name, description, authors, contributors, contact, license, icons);
+			return new BuiltinModMetadata(id, version, environment, name, description, authors, contributors, contact, license, icons, depends, recommends, suggests, conflicts, breaks);
 		}
 
 		private static Person createPerson(String name, Map<String, String> contactMap) {

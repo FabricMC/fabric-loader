@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import net.fabricmc.loader.minecraft.McVersionLookup;
-import net.fabricmc.loader.minecraft.McVersionLookup.McVersion;
+import net.fabricmc.loader.minecraft.McVersion;
 
 public final class McVersionLookupTest {
 	public static void main(String[] args) throws IOException {
@@ -68,11 +68,11 @@ public final class McVersionLookupTest {
 	}
 
 	private static void check(Path file, String name, List<String> invalid) {
-		McVersion result = McVersionLookup.getVersion(file);
-		String msg = String.format("%s: %s (%s)", name, result.normalized, result.raw);
+		McVersion result = McVersionLookup.getVersionExceptClassVersion(file);
+		String msg = String.format("%s: %s (%s)", name, result.getNormalized(), result.getRaw());
 		System.out.println(msg);
 
-		if (!pattern.matcher(result.normalized).matches()) {
+		if (!pattern.matcher(result.getNormalized()).matches()) {
 			System.out.println("** invalid!");
 			invalid.add(msg);
 		}
