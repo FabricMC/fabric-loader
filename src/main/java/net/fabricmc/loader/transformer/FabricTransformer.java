@@ -46,7 +46,7 @@ public final class FabricTransformer {
 
 	@SuppressWarnings("deprecation")
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
-		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.indexOf('.') < 0;
+		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.startsWith("com.mojang.blaze3d.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
 		boolean applyAccessWidener = isMinecraftClass && FabricLoader.INSTANCE.getAccessWidener().getTargets().contains(name);
