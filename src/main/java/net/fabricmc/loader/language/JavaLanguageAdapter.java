@@ -25,7 +25,7 @@ import org.objectweb.asm.ClassReader;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 @Deprecated
 public class JavaLanguageAdapter implements LanguageAdapter {

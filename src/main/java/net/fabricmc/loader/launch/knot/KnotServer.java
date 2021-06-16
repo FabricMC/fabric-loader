@@ -16,15 +16,15 @@
 
 package net.fabricmc.loader.launch.knot;
 
-import java.io.File;
-
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.util.SystemProperties;
+import net.fabricmc.loader.impl.launch.knot.Knot;
 
-public class KnotServer {
+/**
+ * @deprecated Use {@link net.fabricmc.loader.impl.launch.knot.KnotServer} instead
+ */
+@Deprecated
+public final class KnotServer {
 	public static void main(String[] args) {
-		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
-		Knot knot = new Knot(EnvType.SERVER, gameJarPath != null ? new File(gameJarPath) : null);
-		knot.launch(knot.init(args));
+		Knot.launch(args, EnvType.SERVER);
 	}
 }

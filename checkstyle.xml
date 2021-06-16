@@ -166,7 +166,7 @@
 	</module>
 
 	<module name="SuppressionSingleFilter">
-		<property name="files" value="net[\\/]fabricmc[\\/]loader[\\/]lib[\\/]"/>
+		<property name="files" value="net[\\/]fabricmc[\\/]loader[\\/]impl[\\/]lib[\\/]"/>
 		<property name="checks" value=".*"/>
 	</module>
 </module>

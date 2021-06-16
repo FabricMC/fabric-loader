@@ -16,60 +16,15 @@
 
 package net.fabricmc.loader.launch.common;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import net.fabricmc.mapping.tree.TinyMappingFactory;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.mapping.tree.TinyTree;
 
+/**
+ * @deprecated Internal API, do not use
+ */
+@Deprecated
 public class MappingConfiguration {
-	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
-
-	private static TinyTree mappings;
-	private static boolean checkedMappings;
-
 	public TinyTree getMappings() {
-		if (!checkedMappings) {
-			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
-
-			if (mappingStream != null) {
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
-					long time = System.currentTimeMillis();
-					mappings = TinyMappingFactory.loadWithDetection(reader);
-					LOGGER.debug("Loading mappings took " + (System.currentTimeMillis() - time) + " ms");
-				} catch (IOException ee) {
-					ee.printStackTrace();
-				}
-
-				try {
-					mappingStream.close();
-				} catch (IOException ee) {
-					ee.printStackTrace();
-				}
-			}
-
-			if (mappings == null) {
-				LOGGER.info("Mappings not present!");
-				mappings = TinyMappingFactory.EMPTY_TREE;
-			}
-
-			checkedMappings = true;
-		}
-
-		return mappings;
-	}
-
-	public String getTargetNamespace() {
-		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
-	}
-
-	public boolean requiresPackageAccessHack() {
-		// TODO
-		return getTargetNamespace().equals("named");
+		return FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings();
 	}
 }

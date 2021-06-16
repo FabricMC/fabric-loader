@@ -22,6 +22,10 @@ import java.util.Optional;
 
 import net.fabricmc.loader.api.metadata.ContactInformation;
 
+/**
+ * @deprecated Use {@link ContactInformation} instead
+ */
+@Deprecated
 public class MapBackedContactInformation implements ContactInformation {
 	private final Map<String, String> map;
 
