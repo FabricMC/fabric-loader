@@ -1,1 +1,1 @@
-net.fabricmc.loader.launch.knot.FabricGlobalPropertyService
+net.fabricmc.loader.impl.launch.knot.FabricGlobalPropertyService

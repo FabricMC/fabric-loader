@@ -88,7 +88,7 @@ java {
 jar {
 	manifest {
 		attributes (
-			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
+			'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher'
 		)
 	}
 

@@ -16,16 +16,9 @@
 
 package net.fabricmc.loader.launch;
 
-import net.fabricmc.api.EnvType;
-
-public final class FabricServerTweaker extends FabricTweaker {
-	@Override
-	public EnvType getEnvironmentType() {
-		return EnvType.SERVER;
-	}
-
-	@Override
-	public String getLaunchTarget() {
-		return "net.minecraft.server.MinecraftServer";
-	}
+/**
+ * @deprecated Use {@link net.fabricmc.loader.impl.game.minecraft.launchwrapper.FabricServerTweaker} instead
+ */
+@Deprecated
+public final class FabricServerTweaker extends net.fabricmc.loader.impl.game.minecraft.launchwrapper.FabricServerTweaker {
 }

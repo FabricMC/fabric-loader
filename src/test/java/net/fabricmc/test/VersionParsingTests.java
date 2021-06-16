@@ -21,8 +21,8 @@ import java.util.function.Predicate;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.util.version.SemanticVersionImpl;
-import net.fabricmc.loader.util.version.SemanticVersionPredicateParser;
+import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
+import net.fabricmc.loader.impl.util.version.SemanticVersionPredicateParser;
 
 public class VersionParsingTests {
 	private static Exception tryParseSemantic(String s, boolean storeX) {

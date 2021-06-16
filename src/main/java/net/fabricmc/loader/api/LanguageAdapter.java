@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.api;
 
+import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
+
 /**
  * Creates instances of objects from custom notations.
  *
@@ -94,6 +96,13 @@ package net.fabricmc.loader.api;
  * </ul>
  */
 public interface LanguageAdapter {
+	/**
+	 * Get an instance of the default language adapter.
+	 */
+	static LanguageAdapter getDefault() {
+		return DefaultLanguageAdapter.INSTANCE;
+	}
+
 	/**
 	 * Creates an object of {@code type} from an arbitrary string declaration.
 	 *

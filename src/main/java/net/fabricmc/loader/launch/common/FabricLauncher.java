@@ -23,32 +23,18 @@ import java.util.Collection;
 
 import net.fabricmc.api.EnvType;
 
+/**
+ * @deprecated Internal API, do not use
+ */
+@Deprecated
 public interface FabricLauncher {
 	MappingConfiguration getMappingConfiguration();
-
 	void propose(URL url);
-
 	EnvType getEnvironmentType();
-
 	boolean isClassLoaded(String name);
-
 	InputStream getResourceAsStream(String name);
-
 	ClassLoader getTargetClassLoader();
-
-	/**
-	 * Gets the byte array for a particular class.
-	 *
-	 * @param name The name of the class to retrieve
-	 * @param runTransformers Whether to run all transformers <i>except mixin</i> on the class
-	 */
 	byte[] getClassByteArray(String name, boolean runTransformers) throws IOException;
-
 	boolean isDevelopment();
-
-	String getEntrypoint();
-
-	String getTargetNamespace();
-
 	Collection<URL> getLoadTimeDependencies();
 }

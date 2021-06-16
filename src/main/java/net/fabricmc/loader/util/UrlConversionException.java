@@ -16,7 +16,11 @@
 
 package net.fabricmc.loader.util;
 
+/**
+ * @deprecated Internal API, do not use
+ */
 @SuppressWarnings("serial")
+@Deprecated
 public class UrlConversionException extends Exception {
 	public UrlConversionException() {
 		super();

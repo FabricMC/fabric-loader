@@ -16,287 +16,71 @@
 
 package net.fabricmc.loader.launch.common;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URI;
+import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.jar.JarFile;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.spongepowered.asm.mixin.MixinEnvironment;
+import java.util.Collection;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.util.Arguments;
-import net.fabricmc.loader.util.UrlConversionException;
-import net.fabricmc.loader.util.UrlUtil;
-import net.fabricmc.loader.util.mappings.TinyRemapperMappingsHelper;
-import net.fabricmc.mapping.tree.TinyTree;
-import net.fabricmc.tinyremapper.OutputConsumerPath;
-import net.fabricmc.tinyremapper.TinyRemapper;
+import net.fabricmc.loader.api.FabricLoader;
 
-public abstract class FabricLauncherBase implements FabricLauncher {
-	public static Path minecraftJar;
-
-	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
-	private static boolean mixinReady;
-	private static Map<String, Object> properties;
-	private static FabricLauncher launcher;
-	private static MappingConfiguration mappingConfiguration = new MappingConfiguration();
-
-	protected FabricLauncherBase() {
-		setLauncher(this);
-	}
-
-	public static File getLaunchDirectory(Arguments argMap) {
-		return new File(argMap.getOrDefault("gameDir", "."));
-	}
+/**
+ * @deprecated Internal API, do not use
+ */
+@Deprecated
+public class FabricLauncherBase implements FabricLauncher {
+	private final net.fabricmc.loader.impl.launch.FabricLauncher parent = net.fabricmc.loader.impl.launch.FabricLauncherBase.getLauncher();
 
 	public static Class<?> getClass(String className) throws ClassNotFoundException {
 		return Class.forName(className, true, getLauncher().getTargetClassLoader());
 	}
 
+	public static FabricLauncher getLauncher() {
+		return new FabricLauncherBase();
+	}
+
 	@Override
 	public MappingConfiguration getMappingConfiguration() {
-		return mappingConfiguration;
+		return new MappingConfiguration();
 	}
 
-	private static boolean emittedInfo = false;
-
-	protected static Path deobfuscate(String gameId, String gameVersion, Path gameDir, Path jarFile, FabricLauncher launcher) {
-		if (!Files.exists(jarFile)) {
-			throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
-		}
-
-		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
-
-		if (!launcher.isDevelopment()) { // in-dev is already deobfuscated
-			Path deobfJarDir = gameDir.resolve(".fabric").resolve("remappedJars");
-
-			if (!gameId.isEmpty()) {
-				String versionedId = gameVersion.isEmpty() ? gameId : String.format("%s-%s", gameId, gameVersion);
-				deobfJarDir = deobfJarDir.resolve(versionedId);
-			}
-
-			String targetNamespace = mappingConfiguration.getTargetNamespace();
-			// TODO: allow versioning mappings?
-			String deobfJarFilename = targetNamespace + "-" + jarFile.getFileName();
-			Path deobfJarFile = deobfJarDir.resolve(deobfJarFilename);
-			Path deobfJarFileTmp = deobfJarDir.resolve(deobfJarFilename + ".tmp");
-
-			if (Files.exists(deobfJarFileTmp)) { // previous unfinished remap attempt
-				LOGGER.warn("Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
-
-				try {
-					Files.deleteIfExists(deobfJarFile);
-					Files.deleteIfExists(deobfJarFileTmp);
-				} catch (IOException e) {
-					throw new RuntimeException("can't delete incompletely remapped files", e);
-				}
-			}
-
-			TinyTree mappings;
-
-			if (!Files.exists(deobfJarFile)
-					&& (mappings = mappingConfiguration.getMappings()) != null
-					&& mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
-				LOGGER.debug("Fabric mapping file detected, applying...");
-
-				if (!emittedInfo) {
-					LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
-					emittedInfo = true;
-				}
-
-				try {
-					deobfuscate0(jarFile, deobfJarFile, deobfJarFileTmp, mappings, targetNamespace);
-				} catch (IOException e) {
-					throw new RuntimeException("error remapping game jar "+jarFile, e);
-				}
-			}
-
-			jarFile = deobfJarFile;
-		}
-
-		try {
-			launcher.propose(UrlUtil.asUrl(jarFile));
-		} catch (UrlConversionException e) {
-			throw new RuntimeException(e);
-		}
-
-		if (minecraftJar == null) {
-			minecraftJar = jarFile;
-		}
-
-		return jarFile;
+	@Override
+	public void propose(URL url) {
+		parent.propose(url);
 	}
 
-	private static void deobfuscate0(Path jarFile, Path deobfJarFile, Path deobfJarFileTmp, TinyTree mappings, String targetNamespace) throws IOException {
-		Files.createDirectories(deobfJarFile.getParent());
-
-		boolean found;
-
-		do {
-			TinyRemapper remapper = TinyRemapper.newRemapper()
-					.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
-					.rebuildSourceFilenames(true)
-					.build();
-
-			Set<Path> depPaths = new HashSet<>();
-
-			for (URL url : launcher.getLoadTimeDependencies()) {
-				try {
-					Path path = UrlUtil.asPath(url);
-
-					if (!Files.exists(path)) {
-						throw new RuntimeException("Path does not exist: " + path);
-					}
-
-					if (!path.equals(jarFile)) {
-						depPaths.add(path);
-					}
-				} catch (UrlConversionException e) {
-					throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
-				}
-			}
-
-			try (OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(deobfJarFileTmp)
-					// force jar despite the .tmp extension
-					.assumeArchive(true)
-					// don't accept class names from a blacklist of dependencies that Fabric itself utilizes
-					// TODO: really could use a better solution, as always...
-					.filter(clsName -> !clsName.startsWith("com/google/common/")
-							&& !clsName.startsWith("com/google/gson/")
-							&& !clsName.startsWith("com/google/thirdparty/")
-							&& !clsName.startsWith("org/apache/logging/log4j/"))
-					.build()) {
-				for (Path path : depPaths) {
-					LOGGER.debug("Appending '" + path + "' to remapper classpath");
-					remapper.readClassPath(path);
-				}
-
-				remapper.readInputs(jarFile);
-				remapper.apply(outputConsumer);
-			} finally {
-				remapper.finish();
-			}
-
-			// Minecraft doesn't tend to check if a ZipFileSystem is already present,
-			// so we clean up here.
-
-			depPaths.add(deobfJarFileTmp);
-
-			for (Path p : depPaths) {
-				try {
-					p.getFileSystem().close();
-				} catch (Exception e) {
-					// pass
-				}
-
-				try {
-					FileSystems.getFileSystem(new URI("jar:" + p.toUri())).close();
-				} catch (Exception e) {
-					// pass
-				}
-			}
-
-			try (JarFile jar = new JarFile(deobfJarFileTmp.toFile())) {
-				found = jar.stream().anyMatch((e) -> e.getName().endsWith(".class"));
-			}
-
-			if (!found) {
-				LOGGER.error("Generated deobfuscated JAR contains no classes! Trying again...");
-				Files.delete(deobfJarFileTmp);
-			} else {
-				Files.move(deobfJarFileTmp, deobfJarFile);
-			}
-		} while (!found);
-
-		if (!Files.exists(deobfJarFile)) {
-			throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
-		}
+	@Override
+	public EnvType getEnvironmentType() {
+		return FabricLoader.getInstance().getEnvironmentType();
 	}
 
-	public static void processArgumentMap(Arguments argMap, EnvType envType) {
-		switch (envType) {
-		case CLIENT:
-			if (!argMap.containsKey("accessToken")) {
-				argMap.put("accessToken", "FabricMC");
-			}
-
-			if (!argMap.containsKey("version")) {
-				argMap.put("version", "Fabric");
-			}
-
-			String versionType = "";
-
-			if (argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")) {
-				versionType = argMap.get("versionType") + "/";
-			}
-
-			argMap.put("versionType", versionType + "Fabric");
-
-			if (!argMap.containsKey("gameDir")) {
-				argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
-			}
-
-			break;
-		case SERVER:
-			argMap.remove("version");
-			argMap.remove("gameDir");
-			argMap.remove("assetsDir");
-			break;
-		}
+	@Override
+	public boolean isClassLoaded(String name) {
+		return parent.isClassLoaded(name);
 	}
 
-	protected static void setProperties(Map<String, Object> propertiesA) {
-		if (properties != null && properties != propertiesA) {
-			throw new RuntimeException("Duplicate setProperties call!");
-		}
-
-		properties = propertiesA;
+	@Override
+	public InputStream getResourceAsStream(String name) {
+		return parent.getResourceAsStream(name);
 	}
 
-	private static void setLauncher(FabricLauncher launcherA) {
-		if (launcher != null && launcher != launcherA) {
-			throw new RuntimeException("Duplicate setLauncher call!");
-		}
-
-		launcher = launcherA;
+	@Override
+	public ClassLoader getTargetClassLoader() {
+		return parent.getTargetClassLoader();
 	}
 
-	public static FabricLauncher getLauncher() {
-		return launcher;
+	@Override
+	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
+		return parent.getClassByteArray(name, runTransformers);
 	}
 
-	public static Map<String, Object> getProperties() {
-		return properties;
+	@Override
+	public boolean isDevelopment() {
+		return FabricLoader.getInstance().isDevelopmentEnvironment();
 	}
 
-	protected static void finishMixinBootstrapping() {
-		if (mixinReady) {
-			throw new RuntimeException("Must not call FabricLauncherBase.finishMixinBootstrapping() twice!");
-		}
-
-		try {
-			Method m = MixinEnvironment.class.getDeclaredMethod("gotoPhase", MixinEnvironment.Phase.class);
-			m.setAccessible(true);
-			m.invoke(null, MixinEnvironment.Phase.INIT);
-			m.invoke(null, MixinEnvironment.Phase.DEFAULT);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		mixinReady = true;
-	}
-
-	public static boolean isMixinReady() {
-		return mixinReady;
+	@Override
+	public Collection<URL> getLoadTimeDependencies() {
+		return parent.getLoadTimeDependencies();
 	}
 }

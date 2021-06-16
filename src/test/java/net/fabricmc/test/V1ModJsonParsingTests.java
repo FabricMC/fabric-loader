@@ -34,9 +34,9 @@ import org.junit.jupiter.api.Test;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.metadata.LoaderModMetadata;
-import net.fabricmc.loader.metadata.ModMetadataParser;
-import net.fabricmc.loader.metadata.ParseMetadataException;
+import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.metadata.ModMetadataParser;
+import net.fabricmc.loader.impl.metadata.ParseMetadataException;
 
 final class V1ModJsonParsingTests {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -69,12 +69,12 @@ final class V1ModJsonParsingTests {
 		// Required fields
 		final LoaderModMetadata metadata = ModMetadataParser.parseMetadata(LOGGER, specPath.resolve("required.json"));
 		assertNotNull(metadata, "Failed to read mod metadata!");
-		this.validateRequiredValues(metadata);
+		validateRequiredValues(metadata);
 
 		// Required fields in different order to verify we don't have ordering issues
 		final LoaderModMetadata reversedMetadata = ModMetadataParser.parseMetadata(LOGGER, specPath.resolve("required_reversed.json"));
 		assertNotNull(reversedMetadata, "Failed to read mod metadata!");
-		this.validateRequiredValues(reversedMetadata);
+		validateRequiredValues(reversedMetadata);
 	}
 
 	@Test
