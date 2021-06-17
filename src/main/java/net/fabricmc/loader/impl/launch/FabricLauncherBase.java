@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarFile;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import net.fabricmc.api.EnvType;
@@ -38,6 +36,8 @@ import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 import net.fabricmc.mapping.tree.TinyTree;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
@@ -45,7 +45,6 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 public abstract class FabricLauncherBase implements FabricLauncher {
 	public static Path minecraftJar;
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
 	private static boolean mixinReady;
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
@@ -75,7 +74,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			throw new RuntimeException("Could not locate Minecraft: " + jarFile + " not found");
 		}
 
-		LOGGER.debug("Requesting deobfuscation of " + jarFile.getFileName());
+		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", jarFile.getFileName());
 
 		if (!launcher.isDevelopment()) { // in-dev is already deobfuscated
 			Path deobfJarDir = gameDir.resolve(".fabric").resolve("remappedJars");
@@ -92,7 +91,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			Path deobfJarFileTmp = deobfJarDir.resolve(deobfJarFilename + ".tmp");
 
 			if (Files.exists(deobfJarFileTmp)) { // previous unfinished remap attempt
-				LOGGER.warn("Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
+				Log.warn(LogCategory.GAME_REMAP, "Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
 
 				try {
 					Files.deleteIfExists(deobfJarFile);
@@ -107,10 +106,10 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			if (!Files.exists(deobfJarFile)
 					&& (mappings = mappingConfiguration.getMappings()) != null
 					&& mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
-				LOGGER.debug("Fabric mapping file detected, applying...");
+				Log.debug(LogCategory.GAME_REMAP, "Fabric mapping file detected, applying...");
 
 				if (!emittedInfo) {
-					LOGGER.info("Fabric is preparing JARs on first launch, this may take a few seconds...");
+					Log.info(LogCategory.GAME_REMAP, "Fabric is preparing JARs on first launch, this may take a few seconds...");
 					emittedInfo = true;
 				}
 
@@ -177,7 +176,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 							&& !clsName.startsWith("org/apache/logging/log4j/"))
 					.build()) {
 				for (Path path : depPaths) {
-					LOGGER.debug("Appending '" + path + "' to remapper classpath");
+					Log.debug(LogCategory.GAME_REMAP, "Appending '%s' to remapper classpath", path);
 					remapper.readClassPath(path);
 				}
 
@@ -211,7 +210,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			}
 
 			if (!found) {
-				LOGGER.error("Generated deobfuscated JAR contains no classes! Trying again...");
+				Log.error(LogCategory.GAME_REMAP, "Generated deobfuscated JAR contains no classes! Trying again...");
 				Files.delete(deobfJarFileTmp);
 			} else {
 				Files.move(deobfJarFileTmp, deobfJarFile);

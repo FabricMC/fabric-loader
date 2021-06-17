@@ -18,14 +18,13 @@ package net.fabricmc.loader.impl.game.minecraft;
 
 import java.io.File;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 public final class Hooks {
 	public static final String INTERNAL_NAME = Hooks.class.getName().replace('.', '/');
@@ -35,11 +34,9 @@ public final class Hooks {
 	public static final String FABRIC = "fabric";
 	public static final String VANILLA = "vanilla";
 
-	private static final Logger LOGGER = LogManager.getLogger("Fabric|Branding");
-
 	public static String insertBranding(final String brand) {
 		if (brand == null || brand.isEmpty()) {
-			LOGGER.warn("Null or empty branding found!", new IllegalStateException());
+			Log.warn(LogCategory.GAME_PROVIDER, "Null or empty branding found!", new IllegalStateException());
 			return FABRIC;
 		}
 

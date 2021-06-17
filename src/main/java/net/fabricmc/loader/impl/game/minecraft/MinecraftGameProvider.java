@@ -41,6 +41,7 @@ import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.SystemProperties;
+import net.fabricmc.loader.util.log.Log;
 
 public class MinecraftGameProvider implements GameProvider {
 	private EnvType envType;
@@ -156,6 +157,8 @@ public class MinecraftGameProvider implements GameProvider {
 		if (!entrypointResult.isPresent()) {
 			return false;
 		}
+
+		Log.init(new Log4jLogHandler());
 
 		entrypoint = entrypointResult.get().entrypointName;
 		gameJar = entrypointResult.get().entrypointPath;

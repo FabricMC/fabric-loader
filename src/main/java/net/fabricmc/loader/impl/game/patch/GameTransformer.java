@@ -22,16 +22,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 public class GameTransformer {
-	public final Logger logger = LogManager.getFormatterLogger("FabricLoader|EntrypointTransformer");
 	private final List<GamePatch> patches;
 	private Map<String, byte[]> patchedClasses;
 	private boolean entrypointsLocated = false;
@@ -74,7 +73,7 @@ public class GameTransformer {
 		patchedClasses = new HashMap<>();
 
 		patches.forEach((e) -> e.process(launcher, this::addPatchedClass));
-		logger.debug("[EntrypointTransformer] Patched " + (patchedClasses.size() == 1 ? "1 class." : (patchedClasses.size() + " classes.")));
+		Log.debug(LogCategory.GAME_PATCH, "Patched %d class%s", patchedClasses.size(), patchedClasses.size() != 1 ? "s" : "");
 	}
 
 	/**

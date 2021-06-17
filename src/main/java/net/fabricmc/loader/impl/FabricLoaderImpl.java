@@ -32,8 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
@@ -59,14 +57,14 @@ import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.impl.util.SystemProperties;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 @SuppressWarnings("deprecation")
 public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public static final FabricLoaderImpl INSTANCE = InitHelper.get();
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
-
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Loader");
 
 	protected final Map<String, ModContainerImpl> modMap = new HashMap<>();
 	protected List<ModContainerImpl> mods = new ArrayList<>();
@@ -183,29 +181,17 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 				.map(candidate -> String.format("\t- %s@%s", candidate.getInfo().getId(), candidate.getInfo().getVersion().getFriendlyString()))
 				.collect(Collectors.joining("\n"));
 
-		String modText;
-		switch (candidateMap.values().size()) {
-		case 0:
-			modText = "Loading %d mods";
-			break;
-		case 1:
-			modText = "Loading %d mod:";
-			break;
-		default:
-			modText = "Loading %d mods:";
-			break;
-		}
-
-		LOGGER.info("[%s] " + modText + "%n%s", getClass().getSimpleName(), candidateMap.values().size(), modListText);
+		int count = candidateMap.values().size();
+		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
 
 		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
-			LOGGER.info(String.format("Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides().keySet())));
+			Log.info(LogCategory.GENERAL, "Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides().keySet()));
 		}
 
 		boolean runtimeModRemapping = isDevelopmentEnvironment();
 
 		if (runtimeModRemapping && System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
-			LOGGER.warn("Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
+			Log.warn(LogCategory.MOD_REMAP, "Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			runtimeModRemapping = false;
 		}
 
@@ -308,9 +294,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	protected void postprocessModMetadata() {
 		for (ModContainerImpl mod : mods) {
 			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") does not respect SemVer - comparison support is limited.");
+				Log.warn(LogCategory.METADATA, "Mod `%s` (%s) does not respect SemVer - comparison support is limited.",
+						mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
 			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
-				LOGGER.warn("Mod `" + mod.getInfo().getId() + "` (" + mod.getInfo().getVersion().getFriendlyString() + ") uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.");
+				Log.warn(LogCategory.METADATA, "Mod `%s` (%s) uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.",
+						mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
 			}
 		}
 	}
@@ -432,12 +420,13 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			if (!matchesKnot) {
 				if (containsKnot) {
-					getLogger().info("Environment: Target class loader is parent of game class loader.");
+					Log.info(LogCategory.KNOT, "Environment: Target class loader is parent of game class loader.");
 				} else {
-					getLogger().warn("\n\n* CLASS LOADER MISMATCH! THIS IS VERY BAD AND WILL PROBABLY CAUSE WEIRD ISSUES! *\n"
-							+ " - Expected game class loader: " + FabricLauncherBase.getLauncher().getTargetClassLoader() + "\n"
-							+ " - Actual game class loader: " + gameClassLoader + "\n"
-							+ "Could not find the expected class loader in game class loader parents!\n");
+					Log.warn(LogCategory.KNOT, "\n\n* CLASS LOADER MISMATCH! THIS IS VERY BAD AND WILL PROBABLY CAUSE WEIRD ISSUES! *\n"
+							+ " - Expected game class loader: %s\n"
+							+ " - Actual game class loader: %s\n"
+							+ "Could not find the expected class loader in game class loader parents!\n",
+							FabricLauncherBase.getLauncher().getTargetClassLoader(), gameClassLoader);
 				}
 			}
 		}
@@ -447,11 +436,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		if (gameDir != null) {
 			try {
 				if (!gameDir.toRealPath().equals(newRunDir.toRealPath())) {
-					getLogger().warn("Inconsistent game execution directories: engine says " + newRunDir.toRealPath() + ", while initializer says " + gameDir.toRealPath() + "...");
+					Log.warn(LogCategory.GENERAL, "Inconsistent game execution directories: engine says %s, while initializer says %s...",
+							newRunDir.toRealPath(), gameDir.toRealPath());
 					setGameDir(newRunDir);
 				}
 			} catch (IOException e) {
-				getLogger().warn("Exception while checking game execution directory consistency!", e);
+				Log.warn(LogCategory.GENERAL, "Exception while checking game execution directory consistency!", e);
 			}
 		} else {
 			setGameDir(newRunDir);
@@ -460,10 +450,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public AccessWidener getAccessWidener() {
 		return accessWidener;
-	}
-
-	public Logger getLogger() {
-		return LOGGER;
 	}
 
 	/**

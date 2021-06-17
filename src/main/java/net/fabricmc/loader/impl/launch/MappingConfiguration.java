@@ -21,15 +21,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
 import net.fabricmc.mapping.tree.TinyTree;
 
 public class MappingConfiguration {
-	protected static Logger LOGGER = LogManager.getFormatterLogger("FabricLoader");
-
 	private static TinyTree mappings;
 	private static boolean checkedMappings;
 
@@ -41,7 +38,7 @@ public class MappingConfiguration {
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
 					long time = System.currentTimeMillis();
 					mappings = TinyMappingFactory.loadWithDetection(reader);
-					LOGGER.debug("Loading mappings took " + (System.currentTimeMillis() - time) + " ms");
+					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
 				} catch (IOException ee) {
 					ee.printStackTrace();
 				}
@@ -54,7 +51,7 @@ public class MappingConfiguration {
 			}
 
 			if (mappings == null) {
-				LOGGER.info("Mappings not present!");
+				Log.info(LogCategory.MAPPINGS, "Mappings not present!");
 				mappings = TinyMappingFactory.EMPTY_TREE;
 			}
 

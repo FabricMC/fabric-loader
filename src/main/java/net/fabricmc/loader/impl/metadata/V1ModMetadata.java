@@ -24,8 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -33,6 +31,8 @@ import net.fabricmc.loader.api.metadata.CustomValue;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetadata {
 	static final IconEntry NO_ICON = size -> Optional.empty();
@@ -287,9 +287,9 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public void emitFormatWarnings(Logger logger) {
+	public void emitFormatWarnings() {
 		if (!this.requires.isEmpty()) {
-			logger.warn("Mod `{}` ({}) uses 'requires' key in fabric.mod.json, which is not supported - use 'depends'", this.id, this.version);
+			Log.warn(LogCategory.METADATA, "Mod `%s` (%s) uses 'requires' key in fabric.mod.json, which is not supported - use 'depends'", this.id, this.version);
 		}
 	}
 

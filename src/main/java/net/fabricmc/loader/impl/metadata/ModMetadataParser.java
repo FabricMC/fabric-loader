@@ -23,20 +23,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 public final class ModMetadataParser {
-	private static final Logger LOGGER = LogManager.getLogger();
 	public static final int LATEST_VERSION = 1;
 
 	// Per the ECMA-404 (www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf), the JSON spec does not prohibit duplicate keys.
 	// For all intents and purposes of replicating the logic of Gson's fromJson before we have migrated to JsonReader, duplicate keys will replace previous entries.
-	public static LoaderModMetadata parseMetadata(Logger logger, Path modJson) throws IOException, ParseMetadataException {
+	public static LoaderModMetadata parseMetadata(Path modJson) throws IOException, ParseMetadataException {
 		try {
 			// So some context:
 			// Per the json specification, ordering of fields is not typically enforced.
@@ -74,7 +72,7 @@ public final class ModMetadataParser {
 
 						if (firstField) {
 							// Finish reading the metadata
-							return readModMetadata(logger, reader, schemaVersion);
+							return readModMetadata(reader, schemaVersion);
 						}
 
 						// schemaVersion found, but after some content -> start over to parse all data with the detected version
@@ -92,11 +90,11 @@ public final class ModMetadataParser {
 			try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(modJson), StandardCharsets.UTF_8))) {
 				// No need to check if the start of the json file as it has already been checked
 				reader.beginObject();
-				final LoaderModMetadata ret = readModMetadata(logger, reader, schemaVersion);
+				final LoaderModMetadata ret = readModMetadata(reader, schemaVersion);
 				reader.endObject();
 
 				if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-					LOGGER.warn(String.format("\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId()));
+					Log.warn(LogCategory.METADATA, "\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId());
 				}
 
 				return ret;
@@ -107,12 +105,12 @@ public final class ModMetadataParser {
 		}
 	}
 
-	private static LoaderModMetadata readModMetadata(Logger logger, JsonReader reader, int schemaVersion) throws IOException, ParseMetadataException {
+	private static LoaderModMetadata readModMetadata(JsonReader reader, int schemaVersion) throws IOException, ParseMetadataException {
 		switch (schemaVersion) {
 		case 1:
-			return V1ModMetadataParser.parse(logger, reader);
+			return V1ModMetadataParser.parse(reader);
 		case 0:
-			return V0ModMetadataParser.parse(logger, reader);
+			return V0ModMetadataParser.parse(reader);
 		default:
 			if (schemaVersion > 0) {
 				throw new ParseMetadataException(String.format("This version of fabric-loader doesn't support the newer schema version of \"%s\""
@@ -123,7 +121,7 @@ public final class ModMetadataParser {
 		}
 	}
 
-	static void logWarningMessages(Logger logger, String id, List<ParseWarning> warnings) {
+	static void logWarningMessages(String id, List<ParseWarning> warnings) {
 		if (warnings.isEmpty()) return;
 
 		final StringBuilder message = new StringBuilder();
@@ -135,7 +133,7 @@ public final class ModMetadataParser {
 					warning.getReason(), warning.getKey(), warning.getLine(), warning.getColumn()));
 		}
 
-		logger.warn(message.toString());
+		Log.warn(LogCategory.METADATA, message.toString());
 	}
 
 	private ModMetadataParser() {

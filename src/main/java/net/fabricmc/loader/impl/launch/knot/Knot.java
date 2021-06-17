@@ -43,6 +43,8 @@ import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 public final class Knot extends FabricLauncherBase {
 	protected Map<String, Object> properties = new HashMap<>();
@@ -104,12 +106,12 @@ public final class Knot extends FabricLauncherBase {
 		}
 
 		if (provider != null) {
-			LOGGER.info("Loading for game " + provider.getGameName() + " " + provider.getRawGameVersion());
+			Log.info(LogCategory.GAME_PROVIDER, "Loading for game %s %s", provider.getGameName(), provider.getRawGameVersion());
 		} else {
-			LOGGER.error("Could not find valid game provider!");
+			Log.error(LogCategory.GAME_PROVIDER, "Could not find valid game provider!");
 
 			for (GameProvider p : providers) {
-				LOGGER.error("- " + p.getGameName());
+				Log.error(LogCategory.GAME_PROVIDER, "- %s", p.getGameName());
 			}
 
 			throw new RuntimeException("Could not find valid game provider!");
@@ -168,7 +170,7 @@ public final class Knot extends FabricLauncherBase {
 
 		return Arrays.stream(cmdLineClasspath.split(File.pathSeparator)).filter((s) -> {
 			if (s.equals("*") || s.endsWith(File.separator + "*")) {
-				System.err.println("WARNING: Knot does not support wildcard classpath entries: " + s + " - the game may not load properly!");
+				Log.warn(LogCategory.KNOT, "Knot does not support wildcard classpath entries: %s - the game may not load properly!", s);
 				return false;
 			} else {
 				return true;
@@ -180,7 +182,7 @@ public final class Knot extends FabricLauncherBase {
 				try {
 					return (UrlUtil.asUrl(file));
 				} catch (UrlConversionException e) {
-					LOGGER.debug(e);
+					Log.debug(LogCategory.KNOT, "Can't determine url for %s", file, e);
 					return null;
 				}
 			} else {
@@ -191,7 +193,7 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public void propose(URL url) {
-		FabricLauncherBase.LOGGER.debug("[Knot] Proposed " + url + " to classpath.");
+		Log.debug(LogCategory.KNOT, "Proposed " + url + " to classpath.");
 		classLoader.addURL(url);
 	}
 

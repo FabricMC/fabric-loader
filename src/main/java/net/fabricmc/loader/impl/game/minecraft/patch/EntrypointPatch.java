@@ -39,6 +39,8 @@ import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.util.log.LogCategory;
 
 public class EntrypointPatch extends GamePatch {
 	public EntrypointPatch(GameTransformer transformer) {
@@ -146,7 +148,7 @@ public class EntrypointPatch extends GamePatch {
 				throw new RuntimeException("Could not find game constructor in " + entrypoint + "!");
 			}
 
-			debug("Found game constructor: " + entrypoint + " -> " + gameEntrypoint);
+			Log.debug(LogCategory.GAME_PATCH, "Found game constructor: %s -> %s", entrypoint, gameEntrypoint);
 			ClassNode gameClass = gameEntrypoint.equals(entrypoint) || is20w22aServerOrHigher ? mainClass : loadClass(launcher, gameEntrypoint);
 			if (gameClass == null) throw new RuntimeException("Could not load game class " + gameEntrypoint + "!");
 
@@ -211,7 +213,7 @@ public class EntrypointPatch extends GamePatch {
 			}
 
 			boolean patched = false;
-			debug("Patching game constructor " + gameMethod.name + gameMethod.desc);
+			Log.debug(LogCategory.GAME_PATCH, "Patching game constructor %s%s", gameMethod.name, gameMethod.desc);
 
 			if (type == EnvType.SERVER) {
 				ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
@@ -239,7 +241,7 @@ public class EntrypointPatch extends GamePatch {
 					// anewarray java/lang/String
 					// invokestatic java/nio/file/Paths.get (Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;
 					// ----------------
-					debug("20w22a+ detected, patching main method...");
+					Log.debug(LogCategory.GAME_PATCH, "20w22a+ detected, patching main method...");
 
 					// Find the "server.properties".
 					LdcInsnNode serverPropertiesLdc = (LdcInsnNode) findInsn(gameMethod, insn -> insn instanceof LdcInsnNode && ((LdcInsnNode) insn).cst.equals("server.properties"), false);
@@ -265,9 +267,9 @@ public class EntrypointPatch extends GamePatch {
 
 					if (serverStartMethod == null) {
 						// We are running 20w22a, this requires a separate process for capturing game instance
-						debug("Detected 20w22a");
+						Log.debug(LogCategory.GAME_PATCH, "Detected 20w22a");
 					} else {
-						debug("Detected version above 20w22a");
+						Log.debug(LogCategory.GAME_PATCH, "Detected version above 20w22a");
 						// We are not running 20w22a.
 						// This means we need to position ourselves before any dynamic registries are initialized.
 						// Since it is a bit hard to figure out if we are on most 1.16-pre1+ versions.
@@ -331,7 +333,7 @@ public class EntrypointPatch extends GamePatch {
 					if (serverStartMethod == null) {
 						// FIXME: For 20w22a, find the only constructor in the game method that takes a DataFixer.
 						// That is the guaranteed to be dedicated server constructor
-						debug("Server game instance has not be implemented yet for 20w22a");
+						Log.debug(LogCategory.GAME_PATCH, "Server game instance has not be implemented yet for 20w22a");
 					} else {
 						final ListIterator<AbstractInsnNode> serverStartIt = serverStartMethod.instructions.iterator();
 
@@ -376,7 +378,7 @@ public class EntrypointPatch extends GamePatch {
 					// - level.dat is always stored in CWD. We can assume CWD is set, launchers generally adhere to that.
 					// - options.txt in newer Classic versions is stored in user.home/.minecraft/. This is not currently handled,
 					// but as these versions are relatively low on options this is not a huge concern.
-					warn("Could not find applet run directory! (If you're running pre-late-indev versions, this is fine.)");
+					Log.warn(LogCategory.GAME_PATCH, "Could not find applet run directory! (If you're running pre-late-indev versions, this is fine.)");
 
 					ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
 
@@ -427,7 +429,7 @@ public class EntrypointPatch extends GamePatch {
 					AbstractInsnNode insn = consIt.next();
 					if (insn.getOpcode() == Opcodes.PUTFIELD
 							&& ((FieldInsnNode) insn).desc.equals("Ljava/io/File;")) {
-						debug("Run directory field is thought to be " + ((FieldInsnNode) insn).owner + "/" + ((FieldInsnNode) insn).name);
+						Log.debug(LogCategory.GAME_PATCH, "Run directory field is thought to be %s/%s", ((FieldInsnNode) insn).owner, ((FieldInsnNode) insn).name);
 
 						ListIterator<AbstractInsnNode> it;
 

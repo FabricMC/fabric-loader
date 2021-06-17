@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -48,7 +46,7 @@ final class V1ModMetadataParser {
 	 * @return the metadata of this file, null if the file could not be parsed
 	 * @throws IOException         if there was any issue reading the file
 	 */
-	static LoaderModMetadata parse(Logger logger, JsonReader reader) throws IOException, ParseMetadataException {
+	static LoaderModMetadata parse(JsonReader reader) throws IOException, ParseMetadataException {
 		List<ParseWarning> warnings = new ArrayList<>();
 
 		// All the values the `fabric.mod.json` may contain:
@@ -224,7 +222,7 @@ final class V1ModMetadataParser {
 			throw new ParseMetadataException.MissingRequired("version");
 		}
 
-		ModMetadataParser.logWarningMessages(logger, id, warnings);
+		ModMetadataParser.logWarningMessages(id, warnings);
 
 		return new V1ModMetadata(id, version, provides, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
 	}

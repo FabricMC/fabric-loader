@@ -38,14 +38,6 @@ public abstract class GamePatch {
 		this.transformer = transformer;
 	}
 
-	protected void debug(String s) {
-		transformer.logger.debug(s);
-	}
-
-	protected void warn(String s) {
-		transformer.logger.warn(s);
-	}
-
 	protected boolean classExists(FabricLauncher launcher, String className) {
 		try {
 			return launcher.getClassByteArray(className, false) != null;
