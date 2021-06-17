@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.gson.JsonElement;
-
 import net.fabricmc.loader.api.Version;
 
 /**
@@ -171,10 +169,4 @@ public interface ModMetadata {
 	 */
 	@Deprecated
 	boolean containsCustomElement(String key);
-
-	/**
-	 * @deprecated Use {@link #getCustomValue} instead, this will be removed (can't expose GSON types)!
-	 */
-	@Deprecated
-	JsonElement getCustomElement(String key);
 }
