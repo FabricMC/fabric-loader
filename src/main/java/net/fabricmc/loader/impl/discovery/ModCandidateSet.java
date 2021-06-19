@@ -97,7 +97,7 @@ public class ModCandidateSet {
 					.map((c) -> "[" + c.getInfo().getVersion() + " at " + c.getOriginUrl().getFile() + "]")
 					.collect(Collectors.joining(", "));
 
-			throw new ModResolutionException("Duplicate versions for mod ID '" + modId + "': " + modVersions);
+			throw new ModResolutionException("Duplicate versions for mod ID '%s': %s", modId, modVersions);
 		} else if (depthZeroCandidates.size() == 1) {
 			return depthZeroCandidates;
 		} else if (candidates.size() > 1) {
