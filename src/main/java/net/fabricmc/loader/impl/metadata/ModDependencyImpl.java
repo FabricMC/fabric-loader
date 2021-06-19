@@ -23,6 +23,8 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.VersionPredicate;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public final class ModDependencyImpl implements ModDependency {
@@ -48,7 +50,7 @@ public final class ModDependencyImpl implements ModDependency {
 					return true;
 				}
 			} catch (VersionParsingException e) {
-				e.printStackTrace();
+				Log.warn(LogCategory.METADATA, "Error parsing version predicate %s: %s", s, e.toString());
 				return false;
 			}
 		}

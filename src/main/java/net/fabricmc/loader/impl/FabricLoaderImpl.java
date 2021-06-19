@@ -44,6 +44,8 @@ import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.DirectoryModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
+import net.fabricmc.loader.impl.discovery.ModCandidateSet;
+import net.fabricmc.loader.impl.discovery.ModDiscoverer;
 import net.fabricmc.loader.impl.discovery.ModResolutionException;
 import net.fabricmc.loader.impl.discovery.ModResolver;
 import net.fabricmc.loader.impl.discovery.RuntimeModRemapper;
@@ -171,10 +173,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void setup() throws ModResolutionException {
-		ModResolver resolver = new ModResolver();
-		resolver.addCandidateFinder(new ClasspathModCandidateFinder());
-		resolver.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), isDevelopmentEnvironment()));
-		Map<String, ModCandidate> candidateMap = resolver.resolve(this);
+		ModDiscoverer discoverer = new ModDiscoverer();
+		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
+		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), isDevelopmentEnvironment()));
+
+		Map<String, ModCandidateSet> mods = discoverer.discoverMods(this);
+		Map<String, ModCandidate> candidateMap = new ModResolver().resolve(mods);
 
 		String modListText = candidateMap.values().stream()
 				.sorted(Comparator.comparing(candidate -> candidate.getInfo().getId()))
@@ -196,7 +200,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		if (runtimeModRemapping) {
-			for (ModCandidate candidate : RuntimeModRemapper.remap(candidateMap.values(), ModResolver.getInMemoryFs())) {
+			for (ModCandidate candidate : RuntimeModRemapper.remap(candidateMap.values(), ModDiscoverer.getInMemoryFs())) {
 				addMod(candidate);
 			}
 		} else {
@@ -271,7 +275,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		URL originUrl = candidate.getOriginUrl();
 
 		if (modMap.containsKey(info.getId())) {
-			throw new ModResolutionException("Duplicate mod ID: " + info.getId() + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+			throw new ModResolutionException("Duplicate mod ID: %s! (%s, %s)",
+					info.getId(), modMap.get(info.getId()).getOriginUrl().getFile(), originUrl.getFile());
 		}
 
 		if (!info.loadsInEnvironment(getEnvironmentType())) {
@@ -284,7 +289,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		for (String provides : info.getProvides()) {
 			if (modMap.containsKey(provides)) {
-				throw new ModResolutionException("Duplicate provided alias: " + provides + "! (" + modMap.get(info.getId()).getOriginUrl().getFile() + ", " + originUrl.getFile() + ")");
+				throw new ModResolutionException("Duplicate provided alias: %s! (%s, %s)",
+						provides, modMap.get(info.getId()).getOriginUrl().getFile(), originUrl.getFile());
 			}
 
 			modMap.put(provides, container);
