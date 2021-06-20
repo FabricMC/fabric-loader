@@ -39,8 +39,8 @@ import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public class EntrypointPatch extends GamePatch {
 	public EntrypointPatch(GameTransformer transformer) {

@@ -52,8 +52,8 @@ import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
 	private static final LogCategory LOG_CATEGORY = new LogCategory("GameProvider", "Tweaker");

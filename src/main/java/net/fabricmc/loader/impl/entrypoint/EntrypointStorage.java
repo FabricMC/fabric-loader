@@ -30,8 +30,8 @@ import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class EntrypointStorage {
 	interface Entry {

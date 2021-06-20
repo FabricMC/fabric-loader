@@ -23,8 +23,8 @@ import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class Hooks {
 	public static final String INTERNAL_NAME = Hooks.class.getName().replace('.', '/');

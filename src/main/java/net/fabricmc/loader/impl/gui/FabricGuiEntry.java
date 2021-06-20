@@ -24,8 +24,8 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {

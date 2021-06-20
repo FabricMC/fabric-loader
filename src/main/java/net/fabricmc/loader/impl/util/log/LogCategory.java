@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util.log;
+package net.fabricmc.loader.impl.util.log;
 
 public final class LogCategory {
 	public static final LogCategory DISCOVERY = new LogCategory("Discovery");

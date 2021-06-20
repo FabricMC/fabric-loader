@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.util.log;
+package net.fabricmc.loader.impl.util.log;
 
 import java.util.Arrays;
 import java.util.IllegalFormatException;
@@ -160,7 +160,7 @@ public final class Log {
 		handler.log(System.currentTimeMillis(), level, category, msg.trim(), exc);
 	}
 
-	public static boolean shoudLog(LogLevel level, LogCategory category) {
+	public static boolean shouldLog(LogLevel level, LogCategory category) {
 		return handler.shouldLog(level, category);
 	}
 }

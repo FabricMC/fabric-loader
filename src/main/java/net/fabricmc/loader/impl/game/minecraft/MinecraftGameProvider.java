@@ -41,7 +41,7 @@ import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.SystemProperties;
-import net.fabricmc.loader.util.log.Log;
+import net.fabricmc.loader.impl.util.log.Log;
 
 public class MinecraftGameProvider implements GameProvider {
 	private EnvType envType;

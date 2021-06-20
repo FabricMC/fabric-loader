@@ -27,8 +27,8 @@ import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.knot.Knot;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public class EntrypointPatchFML125 extends GamePatch {
 	private static final String FROM = ModClassLoader_125_FML.class.getName();

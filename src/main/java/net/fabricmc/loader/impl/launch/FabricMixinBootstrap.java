@@ -28,9 +28,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
 import net.fabricmc.mapping.tree.TinyTree;
 
 public final class FabricMixinBootstrap {

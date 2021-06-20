@@ -20,10 +20,10 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
-import net.fabricmc.loader.util.log.LogHandler;
-import net.fabricmc.loader.util.log.LogLevel;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.LogHandler;
+import net.fabricmc.loader.impl.util.log.LogLevel;
 
 final class Log4jLogHandler implements LogHandler {
 	@Override

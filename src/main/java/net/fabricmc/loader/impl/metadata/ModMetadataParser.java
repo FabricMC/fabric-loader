@@ -26,8 +26,8 @@ import java.util.List;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class ModMetadataParser {
 	public static final int LATEST_VERSION = 1;

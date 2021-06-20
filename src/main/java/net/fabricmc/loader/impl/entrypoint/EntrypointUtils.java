@@ -21,8 +21,8 @@ import java.util.function.Consumer;
 
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.util.log.Log;
-import net.fabricmc.loader.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class EntrypointUtils {
 	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {
