@@ -29,6 +29,12 @@ repositories {
 	}
 }
 
+sourceSets {
+	main {
+		java.srcDirs = ['src/main/java', 'src/main/legacyJava']
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:1.16.4"
 	mappings "net.fabricmc:yarn:1.16.4+build.9:v2"
