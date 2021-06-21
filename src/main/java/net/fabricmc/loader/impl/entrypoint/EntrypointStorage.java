@@ -35,6 +35,7 @@ import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 public final class EntrypointStorage {
 	interface Entry {
 		<T> T getOrCreate(Class<T> type) throws Exception;
+		boolean isOptional();
 
 		ModContainerImpl getModContainer();
 	}
@@ -77,6 +78,11 @@ public final class EntrypointStorage {
 		}
 
 		@Override
+		public boolean isOptional() {
+			return true;
+		}
+
+		@Override
 		public ModContainerImpl getModContainer() {
 			return mod;
 		}
@@ -108,11 +114,17 @@ public final class EntrypointStorage {
 
 			if (ret == null) {
 				ret = adapter.create(mod, value, type);
+				assert ret != null;
 				T prev = (T) instanceMap.putIfAbsent(type, ret);
 				if (prev != null) ret = prev;
 			}
 
 			return ret;
+		}
+
+		@Override
+		public boolean isOptional() {
+			return false;
 		}
 
 		@Override
@@ -181,15 +193,40 @@ public final class EntrypointStorage {
 		return results;
 	}
 
+	@SuppressWarnings("deprecation")
 	public <T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type) {
 		List<Entry> entries = entryMap.get(key);
 		if (entries == null) return Collections.emptyList();
 
 		List<EntrypointContainer<T>> results = new ArrayList<>(entries.size());
+		EntrypointException exc = null;
 
 		for (Entry entry : entries) {
-			results.add(new EntrypointContainerImpl<>(key, type, entry));
+			EntrypointContainerImpl<T> container;
+
+			if (entry.isOptional()) {
+				try {
+					T instance = entry.getOrCreate(type);
+					if (instance == null) continue;
+
+					container = new EntrypointContainerImpl<>(entry, instance);
+				} catch (Throwable t) {
+					if (exc == null) {
+						exc = new EntrypointException(key, entry.getModContainer().getMetadata().getId(), t);
+					} else {
+						exc.addSuppressed(t);
+					}
+
+					continue;
+				}
+			} else {
+				container = new EntrypointContainerImpl<>(key, type, entry);
+			}
+
+			results.add(container);
 		}
+
+		if (exc != null) throw exc;
 
 		return results;
 	}
