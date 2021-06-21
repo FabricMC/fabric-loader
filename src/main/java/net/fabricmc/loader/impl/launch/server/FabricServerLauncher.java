@@ -23,11 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -134,7 +133,6 @@ public class FabricServerLauncher {
 		}
 
 		long serverSize = Long.parseLong(Objects.requireNonNull(properties.getProperty("server-size"), "No such property of name: server-size"));
-		String serverUrl = Objects.requireNonNull(properties.getProperty("server-url"), "No such property of name: server-url");
 		String serverName = Objects.requireNonNull(properties.getProperty("server-name"), "No such property of name: server-name");
 
 		Path serverJar = Paths.get(".fabric", "server", serverName);
@@ -150,16 +148,14 @@ public class FabricServerLauncher {
 		}
 
 		if (!valid) {
+			String serverUrl = Objects.requireNonNull(properties.getProperty("server-url"), "No such property of name: server-url");
 			System.out.println("Downloading " + serverUrl);
 
 			try {
 				Files.createDirectories(serverJar.getParent());
-				ReadableByteChannel rbc = Channels.newChannel(new URL(serverUrl).openStream());
-				FileOutputStream fos = new FileOutputStream(serverJar.toFile());
-				long transferred = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 
-				if (transferred != serverSize) {
-					throw new IOException(String.format("Unexpected server file size, transferred %d bytes expected %d bytes%n", transferred, serverSize));
+				try (InputStream is = new URL(serverUrl).openStream()) {
+					Files.copy(is, serverJar, StandardCopyOption.REPLACE_EXISTING);
 				}
 			} catch (IOException e) {
 				throw new IOException("Failed to download server from" + serverUrl);
