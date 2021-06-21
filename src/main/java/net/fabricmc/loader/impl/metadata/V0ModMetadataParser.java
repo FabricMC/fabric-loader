@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -42,7 +40,7 @@ final class V0ModMetadataParser {
 	private static final Pattern WEBSITE_PATTERN = Pattern.compile("\\((.+)\\)");
 	private static final Pattern EMAIL_PATTERN = Pattern.compile("<(.+)>");
 
-	public static LoaderModMetadata parse(Logger logger, JsonReader reader) throws IOException, ParseMetadataException {
+	public static LoaderModMetadata parse(JsonReader reader) throws IOException, ParseMetadataException {
 		List<ParseWarning> warnings = new ArrayList<>();
 
 		// All the values the `fabric.mod.json` may contain:
@@ -219,7 +217,7 @@ final class V0ModMetadataParser {
 			throw new ParseMetadataException.MissingRequired("version");
 		}
 
-		ModMetadataParser.logWarningMessages(logger, id, warnings);
+		ModMetadataParser.logWarningMessages(id, warnings);
 
 		// Optional stuff
 		if (links == null) {

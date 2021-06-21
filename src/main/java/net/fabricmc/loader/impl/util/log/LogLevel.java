@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.impl.util.log;
 
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
+import java.util.Locale;
 
-public final class EntrypointTest {
-	public static final CustomEntry FIELD_ENTRY = EntrypointTest::fieldEntry;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
-	public static String staticEntry() {
-		return "static";
+public enum LogLevel {
+	ERROR, WARN, INFO, DEBUG, TRACE;
+
+	public boolean isLessThan(LogLevel level) {
+		return ordinal() > level.ordinal();
 	}
 
-	public EntrypointTest() {
-		Log.info(LogCategory.TEST, "EntrypointTest instance created");
-	}
+	public static LogLevel getDefault() {
+		String val = System.getProperty(SystemProperties.LOG_LEVEL);
+		if (val == null) return INFO;
 
-	public String instanceEntry() {
-		return "instance";
-	}
+		LogLevel ret = LogLevel.valueOf(val.toUpperCase(Locale.ENGLISH));
+		if (ret == null) throw new IllegalArgumentException("invalid log level: "+val);
 
-	public static String fieldEntry() {
-		return "field";
+		return ret;
 	}
 }

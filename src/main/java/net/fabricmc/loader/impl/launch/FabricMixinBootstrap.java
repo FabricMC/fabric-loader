@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
@@ -30,13 +28,14 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
 import net.fabricmc.mapping.tree.TinyTree;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() { }
 
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|MixinBootstrap");
 	private static boolean initialized = false;
 
 	static void addConfiguration(String configuration) {
@@ -70,9 +69,9 @@ public final class FabricMixinBootstrap {
 					try {
 						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
 						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-						LOGGER.info("Loaded Fabric development mappings for mixin remapper!");
+						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
 					} catch (Exception e) {
-						LOGGER.error("Fabric development environment setup error - the game will probably crash soon!");
+						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!");
 						e.printStackTrace();
 					}
 				}

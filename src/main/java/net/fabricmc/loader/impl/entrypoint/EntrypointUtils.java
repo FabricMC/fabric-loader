@@ -21,24 +21,25 @@ import java.util.function.Consumer;
 
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class EntrypointUtils {
 	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 
 		if (!loader.hasEntrypoints(name)) {
-			loader.getLogger().debug("No subscribers for entrypoint '" + name + "'");
+			Log.debug(LogCategory.ENTRYPOINT, "No subscribers for entrypoint '%s'", name);
 		} else {
 			invoke0(name, type, invoker);
 		}
 	}
 
 	private static <T> void invoke0(String name, Class<T> type, Consumer<? super T> invoker) {
-		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		RuntimeException exception = null;
-		Collection<EntrypointContainer<T>> entrypoints = loader.getEntrypointContainers(name, type);
+		Collection<EntrypointContainer<T>> entrypoints = FabricLoaderImpl.INSTANCE.getEntrypointContainers(name, type);
 
-		loader.getLogger().debug("Iterating over entrypoint '" + name + "'");
+		Log.debug(LogCategory.ENTRYPOINT, "Iterating over entrypoint '%s'", name);
 
 		for (EntrypointContainer<T> container : entrypoints) {
 			try {

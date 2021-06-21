@@ -51,7 +51,6 @@ import java.util.zip.ZipError;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
-import org.apache.logging.log4j.Logger;
 
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
@@ -67,6 +66,8 @@ import net.fabricmc.loader.impl.metadata.ParseMetadataException;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.util.sat4j.core.VecInt;
 import net.fabricmc.loader.util.sat4j.minisat.SolverFactory;
 import net.fabricmc.loader.util.sat4j.specs.ContradictionException;
@@ -105,7 +106,7 @@ public class ModResolver {
 
 	// TODO: Find a way to sort versions of mods by suggestions and conflicts (not crucial, though)
 	@SuppressWarnings("unchecked")
-	public Map<String, ModCandidate> findCompatibleSet(Logger logger, Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
+	public Map<String, ModCandidate> findCompatibleSet(Map<String, ModCandidateSet> modCandidateSetMap) throws ModResolutionException {
 		// First, map all ModCandidateSets to Set<ModCandidate>s.
 		boolean isAdvanced = false;
 		Map<String, List<ModCandidate>> modCandidateMap = new HashMap<>();
@@ -293,19 +294,19 @@ public class ModResolver {
 			// verify result: dependencies
 			for (ModCandidate candidate : result.values()) {
 				for (ModDependency dependency : candidate.getInfo().getDepends()) {
-					addErrorToList(logger, candidate, dependency, result, errorsHard, "requires", true);
+					addErrorToList(candidate, dependency, result, errorsHard, "requires", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getRecommends()) {
-					addErrorToList(logger, candidate, dependency, result, errorsSoft, "recommends", true);
+					addErrorToList(candidate, dependency, result, errorsSoft, "recommends", true);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getBreaks()) {
-					addErrorToList(logger, candidate, dependency, result, errorsHard, "is incompatible with", false);
+					addErrorToList(candidate, dependency, result, errorsHard, "is incompatible with", false);
 				}
 
 				for (ModDependency dependency : candidate.getInfo().getConflicts()) {
-					addErrorToList(logger, candidate, dependency, result, errorsSoft, "conflicts with", false);
+					addErrorToList(candidate, dependency, result, errorsSoft, "conflicts with", false);
 				}
 
 				Version version = candidate.getInfo().getVersion();
@@ -335,7 +336,7 @@ public class ModResolver {
 		String errSoftStr = errorsSoft.toString();
 
 		if (!errSoftStr.isEmpty()) {
-			logger.warn("Warnings were found! " + errSoftStr);
+			Log.warn(LogCategory.RESOLUTION, "Warnings were found! %s", errSoftStr);
 		}
 
 		if (!errHardStr.isEmpty()) {
@@ -345,7 +346,7 @@ public class ModResolver {
 		return result;
 	}
 
-	private void addErrorToList(Logger logger, ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
+	private void addErrorToList(ModCandidate candidate, ModDependency dependency, Map<String, ModCandidate> result, StringBuilder errors, String errorType, boolean cond) {
 		String depModId = dependency.getModId();
 
 		List<String> errorList = new ArrayList<>();
@@ -368,7 +369,8 @@ public class ModResolver {
 			for (ModCandidate value : result.values()) {
 				if (value.getInfo().getProvides().contains(depModId)) {
 					if (FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) {
-						logger.warn("Mod " + candidate.getInfo().getId() + " is using the provided alias " + depModId + " in place of the real mod id " + value.getInfo().getId() + ".  Please use the mod id instead of a provided alias.");
+						Log.warn(LogCategory.METADATA, "Mod %s is using the provided alias %s in place of the real mod id %s.  Please use the mod id instead of a provided alias.",
+								candidate.getInfo().getId(), depModId, value.getInfo().getId());
 					}
 
 					depCandidate = value;
@@ -608,7 +610,7 @@ public class ModResolver {
 			Path path, modJson, rootDir;
 			URL normalizedUrl;
 
-			loader.getLogger().debug("Testing " + url);
+			Log.debug(LogCategory.DISCOVERY, "Testing %s", url);
 
 			try {
 				path = UrlUtil.asPath(url).normalize();
@@ -624,7 +626,7 @@ public class ModResolver {
 				rootDir = path;
 
 				if (loader.isDevelopmentEnvironment() && !Files.exists(modJson)) {
-					loader.getLogger().warn("Adding directory " + path + " to mod classpath in development environment - workaround for Gradle splitting mods into two directories");
+					Log.warn(LogCategory.DISCOVERY, "Adding directory %s to mod classpath in development environment - workaround for Gradle splitting mods into two directories", path);
 					synchronized (launcherSyncObject) {
 						FabricLauncherBase.getLauncher().propose(url);
 					}
@@ -645,13 +647,13 @@ public class ModResolver {
 			LoaderModMetadata[] info;
 
 			try {
-				info = new LoaderModMetadata[] { ModMetadataParser.parseMetadata(loader.getLogger(), modJson) };
+				info = new LoaderModMetadata[] { ModMetadataParser.parseMetadata(modJson) };
 			} catch (ParseMetadataException.MissingRequired e) {
 				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file! The mod is missing the following required field!", path), e);
 			} catch (MalformedJsonException | ParseMetadataException e) {
 				throw new RuntimeException(String.format("Mod at \"%s\" has an invalid fabric.mod.json file!", path), e);
 			} catch (NoSuchFileException e) {
-				loader.getLogger().warn(String.format("Non-Fabric mod JAR at \"%s\", ignoring", path));
+				Log.warn(LogCategory.DISCOVERY, "Non-Fabric mod JAR at \"%s\", ignoring", path);
 				info = new LoaderModMetadata[0];
 			} catch (IOException e) {
 				throw new RuntimeException(String.format("Failed to open fabric.mod.json for mod at \"%s\"!", path), e);
@@ -710,13 +712,13 @@ public class ModResolver {
 				added = candidatesById.computeIfAbsent(candidate.getInfo().getId(), ModCandidateSet::new).add(candidate);
 
 				if (!added) {
-					loader.getLogger().debug(candidate.getOriginUrl() + " already present as " + candidate);
+					Log.debug(LogCategory.DISCOVERY, "%s already present as %s", candidate.getOriginUrl(), candidate);
 				} else {
-					loader.getLogger().debug("Adding " + candidate.getOriginUrl() + " as " + candidate);
+					Log.debug(LogCategory.DISCOVERY, "Adding %s as %s", candidate.getOriginUrl(), candidate);
 
 					List<Path> jarInJars = inMemoryCache.computeIfAbsent(candidate.getOriginUrl().toString(), (u) -> {
-						loader.getLogger().debug("Searching for nested JARs in " + candidate);
-						loader.getLogger().debug(u);
+						Log.debug(LogCategory.DISCOVERY, "Searching for nested JARs in %s", candidate);
+						Log.debug(LogCategory.DISCOVERY, u);
 						Collection<NestedJarEntry> jars = candidate.getInfo().getJars();
 						List<Path> list = new ArrayList<>(jars.size());
 
@@ -725,7 +727,7 @@ public class ModResolver {
 
 							if (!Files.isDirectory(modPath) && modPath.toString().endsWith(".jar")) {
 								// TODO: pre-check the JAR before loading it, if possible
-								loader.getLogger().debug("Found nested JAR: " + modPath);
+								Log.debug(LogCategory.DISCOVERY, "Found nested JAR: %s", modPath);
 								Path dest = inMemoryFs.getPath(UUID.randomUUID() + ".jar");
 
 								try {
@@ -828,18 +830,18 @@ public class ModResolver {
 		}
 
 		long time2 = System.currentTimeMillis();
-		Map<String, ModCandidate> result = findCompatibleSet(loader.getLogger(), candidatesById);
+		Map<String, ModCandidate> result = findCompatibleSet(candidatesById);
 
 		long time3 = System.currentTimeMillis();
-		loader.getLogger().debug("Mod resolution detection time: " + (time2 - time1) + "ms");
-		loader.getLogger().debug("Mod resolution time: " + (time3 - time2) + "ms");
+		Log.debug(LogCategory.RESOLUTION, "Mod resolution detection time: " + (time2 - time1) + "ms");
+		Log.debug(LogCategory.RESOLUTION, "Mod resolution time: " + (time3 - time2) + "ms");
 
 		for (ModCandidate candidate : result.values()) {
 			if (candidate.getInfo().getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
-				loader.getLogger().warn("Mod ID " + candidate.getInfo().getId() + " uses outdated schema version: " + candidate.getInfo().getSchemaVersion() + " < " + ModMetadataParser.LATEST_VERSION);
+				Log.warn(LogCategory.METADATA, "Mod ID %s uses outdated schema version: %d < %d", candidate.getInfo().getId(), candidate.getInfo().getSchemaVersion(), ModMetadataParser.LATEST_VERSION);
 			}
 
-			candidate.getInfo().emitFormatWarnings(loader.getLogger());
+			candidate.getInfo().emitFormatWarnings();
 		}
 
 		return result;

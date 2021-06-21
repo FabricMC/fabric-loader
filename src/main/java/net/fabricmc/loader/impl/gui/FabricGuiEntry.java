@@ -24,6 +24,8 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 /** The main entry point for all fabric-based stuff. */
 public final class FabricGuiEntry {
@@ -41,7 +43,7 @@ public final class FabricGuiEntry {
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
 	 *            return normally. */
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
-		FabricLoaderImpl.INSTANCE.getLogger().fatal("A critical error occurred", exception);
+		Log.error(LogCategory.GENERAL, "A critical error occurred", exception);
 
 		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
 
@@ -60,7 +62,7 @@ public final class FabricGuiEntry {
 				open(tree);
 			} catch (Exception e) {
 				if (exitAfter) {
-					FabricLoaderImpl.INSTANCE.getLogger().warn("Failed to open the error gui!", e);
+					Log.warn(LogCategory.GENERAL, "Failed to open the error gui!", e);
 				} else {
 					throw new RuntimeException("Failed to open the error gui!", e);
 				}

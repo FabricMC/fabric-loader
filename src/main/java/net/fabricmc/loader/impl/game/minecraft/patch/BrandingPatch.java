@@ -30,6 +30,8 @@ import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class BrandingPatch extends GamePatch {
 	public BrandingPatch(GameTransformer transformer) {
@@ -61,7 +63,7 @@ public final class BrandingPatch extends GamePatch {
 
 		for (MethodNode node : classNode.methods) {
 			if (node.name.equals("getClientModName") || node.name.equals("getServerModName") && node.desc.endsWith(")Ljava/lang/String;")) {
-				debug("Applying brand name hook to " + classNode.name + "::" + node.name);
+				Log.debug(LogCategory.GAME_PATCH, "Applying brand name hook to %s::%s", classNode.name, node.name);
 
 				ListIterator<AbstractInsnNode> it = node.instructions.iterator();
 

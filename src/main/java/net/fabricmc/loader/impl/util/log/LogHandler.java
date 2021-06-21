@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test;
+package net.fabricmc.loader.impl.util.log;
 
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
-
-public final class EntrypointTest {
-	public static final CustomEntry FIELD_ENTRY = EntrypointTest::fieldEntry;
-
-	public static String staticEntry() {
-		return "static";
-	}
-
-	public EntrypointTest() {
-		Log.info(LogCategory.TEST, "EntrypointTest instance created");
-	}
-
-	public String instanceEntry() {
-		return "instance";
-	}
-
-	public static String fieldEntry() {
-		return "field";
-	}
+public interface LogHandler {
+	void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isReplayedBuiltin);
+	boolean shouldLog(LogLevel level, LogCategory category);
+	void close();
 }

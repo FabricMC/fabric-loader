@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.Proxy;
@@ -54,9 +52,11 @@ import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
-	protected static Logger LOGGER = LogManager.getFormatterLogger("Fabric|Tweaker");
+	private static final LogCategory LOG_CATEGORY = new LogCategory("GameProvider", "Tweaker");
 	protected Arguments arguments;
 	private LaunchClassLoader launchClassLoader;
 	private boolean isDevelopment;
@@ -227,7 +227,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		}
 
 		if (resourceCache == null) {
-			LOGGER.warn("Resource cache not pre-populated - this will probably cause issues...");
+			Log.warn(LOG_CATEGORY, "Resource cache not pre-populated - this will probably cause issues...");
 			return;
 		}
 
@@ -243,7 +243,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 				String className = entry.getName();
 				className = className.substring(0, className.length() - 6).replace('/', '.');
-				LOGGER.debug("Appending " + className + " to resource cache...");
+				Log.debug(LOG_CATEGORY, "Appending %s to resource cache...", className);
 				resourceCache.put(className, toByteArray(jarStream));
 			}
 		}

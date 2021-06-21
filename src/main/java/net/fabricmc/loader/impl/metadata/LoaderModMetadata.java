@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.Logger;
-
 import net.fabricmc.api.EnvType;
 
 /**
@@ -49,5 +47,5 @@ public interface LoaderModMetadata extends net.fabricmc.loader.metadata.LoaderMo
 	@Override
 	Collection<String> getEntrypointKeys();
 
-	void emitFormatWarnings(Logger logger);
+	void emitFormatWarnings();
 }
