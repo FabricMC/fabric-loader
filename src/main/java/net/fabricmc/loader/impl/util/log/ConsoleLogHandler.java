@@ -19,32 +19,36 @@ package net.fabricmc.loader.impl.util.log;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-final class ConsoleLogHandler implements LogHandler {
+public class ConsoleLogHandler implements LogHandler {
 	private static final LogLevel MIN_STDERR_LEVEL = LogLevel.ERROR;
 	private static final LogLevel MIN_STDOUT_LEVEL = LogLevel.getDefault();
 
-	ConsoleLogHandler() { }
-
 	@Override
-	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc) {
-		String formatted = String.format("[%tT] [%s] [%s/%s]: %s%n", time, level.name(), Log.NAME, category.name, msg);
-
-		if (exc != null) {
-			StringWriter writer = new StringWriter(formatted.length() + 500);
-
-			try (PrintWriter pw = new PrintWriter(writer, false)) {
-				pw.print(formatted);
-				exc.printStackTrace(pw);
-			}
-
-			formatted = writer.toString();
-		}
+	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isRelayedBuiltin) {
+		String formatted = formatLog(time, level, category, msg, exc);
 
 		if (level.isLessThan(MIN_STDERR_LEVEL)) {
 			System.out.print(formatted);
 		} else {
 			System.err.print(formatted);
 		}
+	}
+
+	protected static String formatLog(long time, LogLevel level, LogCategory category, String msg, Throwable exc) {
+		String ret = String.format("[%tT] [%s] [%s/%s]: %s%n", time, level.name(), Log.NAME, category.name, msg);
+
+		if (exc != null) {
+			StringWriter writer = new StringWriter(ret.length() + 500);
+
+			try (PrintWriter pw = new PrintWriter(writer, false)) {
+				pw.print(ret);
+				exc.printStackTrace(pw);
+			}
+
+			ret = writer.toString();
+		}
+
+		return ret;
 	}
 
 	@Override

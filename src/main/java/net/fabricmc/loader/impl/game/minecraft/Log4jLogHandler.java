@@ -32,7 +32,8 @@ final class Log4jLogHandler implements LogHandler {
 	}
 
 	@Override
-	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc) {
+	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isReplayedBuiltin) {
+		// TODO: suppress console log output if isReplayedBuiltin is true to avoid duplicate output
 		getLogger(category).log(translateLogLevel(level), msg, exc);
 	}
 

@@ -17,7 +17,7 @@
 package net.fabricmc.loader.impl.util.log;
 
 public interface LogHandler {
-	void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc);
+	void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isReplayedBuiltin);
 	boolean shouldLog(LogLevel level, LogCategory category);
 	void close();
 }

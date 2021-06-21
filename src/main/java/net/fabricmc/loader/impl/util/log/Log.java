@@ -23,12 +23,19 @@ public final class Log {
 	public static final String NAME = "FabricLoader";
 	private static final boolean CHECK_FOR_BRACKETS = true;
 
-	private static LogHandler handler = new ConsoleLogHandler();
+	private static LogHandler handler = new BuiltinLogHandler();
 
-	public static void init(LogHandler handler) {
+	public static void init(LogHandler handler, boolean replayBuiltin) {
 		if (handler == null) throw new NullPointerException("null log handler");
 
+		LogHandler oldhHandler = Log.handler;
+
+		if (oldhHandler instanceof BuiltinLogHandler && replayBuiltin) {
+			((BuiltinLogHandler) oldhHandler).replay(handler);
+		}
+
 		Log.handler = handler;
+		oldhHandler.close();
 	}
 
 	public static void error(LogCategory category, String format, Object... args) {
@@ -157,7 +164,7 @@ public final class Log {
 	}
 
 	private static void log(LogHandler handler, LogLevel level, LogCategory category, String msg, Throwable exc) {
-		handler.log(System.currentTimeMillis(), level, category, msg.trim(), exc);
+		handler.log(System.currentTimeMillis(), level, category, msg.trim(), exc, false);
 	}
 
 	public static boolean shouldLog(LogLevel level, LogCategory category) {

@@ -158,7 +158,7 @@ public class MinecraftGameProvider implements GameProvider {
 			return false;
 		}
 
-		Log.init(new Log4jLogHandler());
+		Log.init(new Log4jLogHandler(), true);
 
 		entrypoint = entrypointResult.get().entrypointName;
 		gameJar = entrypointResult.get().entrypointPath;
