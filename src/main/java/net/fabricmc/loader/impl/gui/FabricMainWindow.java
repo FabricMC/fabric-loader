@@ -92,19 +92,6 @@ class FabricMainWindow {
 		}
 	}
 
-	private static String getTitleVersion() {
-		Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("fabricloader");
-		if (optional.isPresent()) {
-			return optional
-				.get()
-				.getMetadata()
-				.getVersion()
-				.getFriendlyString();
-		}
-
-		return null;
-	}
-
 	private static void createUi(CountDownLatch onCloseLatch, FabricStatusTree tree) {
 		JFrame window = new JFrame();
 		window.setVisible(false);
@@ -183,6 +170,19 @@ class FabricMainWindow {
 
 		window.setVisible(true);
 		window.requestFocus();
+	}
+
+	private static String getTitleVersion() {
+		Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("fabricloader");
+		if (optional.isPresent()) {
+			return optional
+				.get()
+				.getMetadata()
+				.getVersion()
+				.getFriendlyString();
+		}
+
+		return null;
 	}
 
 	private static JPanel createTreePanel(FabricStatusNode rootNode, FabricTreeWarningLevel minimumWarningLevel,
