@@ -27,7 +27,7 @@ public interface ContactInformation {
 	/**
 	 * An empty contact information.
 	 */
-	static final ContactInformation EMPTY = new ContactInformation() {
+	ContactInformation EMPTY = new ContactInformation() {
 		@Override
 		public Optional<String> get(String key) {
 			return Optional.empty();

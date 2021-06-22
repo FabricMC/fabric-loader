@@ -18,9 +18,10 @@ package net.fabricmc.loader.api;
 
 /**
  * Represents an exception that arises when obtaining entrypoints.
- * 
- * @see FabricLoader#getEntrypointContainers(String, Class) 
+ *
+ * @see FabricLoader#getEntrypointContainers(String, Class)
  */
+@SuppressWarnings("serial")
 public class EntrypointException extends RuntimeException {
 	private final String key;
 

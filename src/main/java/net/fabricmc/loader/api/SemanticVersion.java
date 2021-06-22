@@ -16,11 +16,9 @@
 
 package net.fabricmc.loader.api;
 
-import java.util.Enumeration;
 import java.util.Optional;
-import java.util.StringTokenizer;
 
-import net.fabricmc.loader.util.version.VersionDeserializer;
+import net.fabricmc.loader.impl.util.version.VersionDeserializer;
 
 /**
  * Represents a <a href="https://semver.org/">Sematic Version</a>.
@@ -48,7 +46,7 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 
 	/**
 	 * Returns the version component at {@code pos}.
-	 * 
+	 *
 	 * <p>May return {@link #COMPONENT_WILDCARD} to indicate a wildcard component.</p>
 	 *
 	 * <p>If the pos exceeds the number of components, returns {@link #COMPONENT_WILDCARD}
@@ -61,19 +59,19 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 
 	/**
 	 * Returns the prerelease key in the version notation.
-	 * 
+	 *
 	 * <p>The prerelease key is indicated by a {@code -} before a {@code +} in
 	 * the version notation.</p>
-	 * 
+	 *
 	 * @return the optional prerelease key
 	 */
 	Optional<String> getPrereleaseKey();
 
 	/**
 	 * Returns the build key in the version notation.
-	 * 
+	 *
 	 * <p>The build key is indicated by a {@code +} in the version notation.</p>
-	 * 
+	 *
 	 * @return the optional build key
 	 */
 	Optional<String> getBuildKey();
@@ -90,7 +88,7 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * <p>Comparison of semantic versions is by the version components, from high to low;
 	 * then it falls back to comparing the prerelease notations.</p>
 	 *

@@ -3,8 +3,9 @@ plugins {
 	id 'idea'
 	id 'eclipse'
 	id 'maven-publish'
+	id 'checkstyle'
 	id("org.cadixdev.licenser") version "0.5.0"
-	id("fabric-loom") version "0.5-SNAPSHOT"
+	id("fabric-loom") version "0.7-SNAPSHOT"
 }
 
 sourceCompatibility = 1.8
@@ -18,7 +19,6 @@ version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 repositories {
 	mavenCentral()
-	jcenter()
 	maven {
 		name = 'Fabric'
 		url = 'https://maven.fabricmc.net/'
@@ -26,6 +26,12 @@ repositories {
 	maven {
 		name = 'mojang'
 		url = 'https://libraries.minecraft.net/'
+	}
+}
+
+sourceSets {
+	main {
+		java.srcDirs = ['src/main/java', 'src/main/legacyJava']
 	}
 }
 
@@ -47,12 +53,12 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
 
-	implementation('net.fabricmc:sponge-mixin:0.8.2+build.24') {
+	implementation('net.fabricmc:sponge-mixin:0.9.4+mixin.0.8.2') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
 	implementation 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	implementation 'net.fabricmc:tiny-remapper:0.3.0.70'
+	implementation 'net.fabricmc:tiny-remapper:0.4.2'
 	implementation 'net.fabricmc:access-widener:1.0.0'
 
 	implementation 'com.google.jimfs:jimfs:1.2-fabric'
@@ -88,13 +94,19 @@ java {
 jar {
 	manifest {
 		attributes (
-			'Main-Class': 'net.fabricmc.loader.launch.server.FabricServerLauncher'
+			'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher'
 		)
 	}
 
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}
 	}
+}
+
+// useful for creating test mod jar
+task testJar(type: Jar) {
+	archiveClassifier = "test"
+	from sourceSets.test.output
 }
 
 task copyJson(type: Copy, dependsOn: ["remapJar"]) {
@@ -156,6 +168,11 @@ task javadocJar(type: Jar) {
 }
 
 build.dependsOn javadocJar
+
+checkstyle {
+	configFile = file("checkstyle.xml")
+	toolVersion = '8.31'
+}
 
 license {
 	header file("HEADER")

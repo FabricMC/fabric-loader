@@ -25,14 +25,14 @@ public enum ModEnvironment {
 
 	public boolean matches(EnvType type) {
 		switch (this) {
-			case CLIENT:
-				return type == EnvType.CLIENT;
-			case SERVER:
-				return type == EnvType.SERVER;
-			case UNIVERSAL:
-				return true;
-			default:
-				return false;
+		case CLIENT:
+			return type == EnvType.CLIENT;
+		case SERVER:
+			return type == EnvType.SERVER;
+		case UNIVERSAL:
+			return true;
+		default:
+			return false;
 		}
 	}
 }

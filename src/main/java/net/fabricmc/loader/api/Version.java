@@ -17,12 +17,12 @@
 package net.fabricmc.loader.api;
 
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.util.version.VersionDeserializer;
+import net.fabricmc.loader.impl.util.version.VersionDeserializer;
 
 /**
  * Represents a version of a mod.
- * 
- * @see ModMetadata#getVersion() 
+ *
+ * @see ModMetadata#getVersion()
  */
 public interface Version {
 	/**
@@ -32,7 +32,7 @@ public interface Version {
 
 	/**
 	 * Parses a version from a string notation.
-	 * 
+	 *
 	 * @param string the string notation of the version
 	 * @return the parsed version
 	 * @throws VersionParsingException if a problem arises during version parsing
