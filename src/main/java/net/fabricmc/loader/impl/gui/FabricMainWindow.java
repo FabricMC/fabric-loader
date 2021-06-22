@@ -97,11 +97,13 @@ class FabricMainWindow {
 		window.setVisible(false);
 
 		String version = getTitleVersion();
+
 		if (version == null) {
 			window.setTitle("Fabric Loader");
 		} else {
 			window.setTitle("Fabric Loader " + version);
 		}
+
 		try {
 			window.setIconImage(loadImage("/ui/icon/fabric_x128.png"));
 		} catch (IOException e) {
@@ -174,6 +176,7 @@ class FabricMainWindow {
 
 	private static String getTitleVersion() {
 		Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("fabricloader");
+
 		if (optional.isPresent()) {
 			return optional
 				.get()
