@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ContactInformation;
@@ -41,7 +43,6 @@ final class V1ModMetadataParser {
 	/**
 	 * Reads a {@code fabric.mod.json} file of schema version {@code 1}.
 	 *
-	 * @param logger the logger to print warnings to
 	 * @param reader the json reader to read the file with
 	 * @return the metadata of this file, null if the file could not be parsed
 	 * @throws IOException         if there was any issue reading the file
@@ -59,6 +60,7 @@ final class V1ModMetadataParser {
 
 		// Optional (mod loading)
 		ModEnvironment environment = ModEnvironment.UNIVERSAL; // Default is always universal
+		String defaultLanguageAdapter = "default";
 		Map<String, List<EntrypointMetadata>> entrypoints = new HashMap<>();
 		List<NestedJarEntry> jars = new ArrayList<>();
 		List<V1ModMetadata.MixinEntry> mixins = new ArrayList<>();
@@ -136,6 +138,13 @@ final class V1ModMetadataParser {
 				}
 
 				environment = readEnvironment(reader);
+				break;
+			case "defaultLanguageAdapter":
+				if (reader.peek() != JsonToken.STRING) {
+					throw new ParseMetadataException("default language adapter must be a string key", reader);
+				}
+
+				defaultLanguageAdapter = reader.nextString();
 				break;
 			case "entrypoints":
 				readEntrypoints(warnings, reader, entrypoints);
@@ -222,6 +231,13 @@ final class V1ModMetadataParser {
 			throw new ParseMetadataException.MissingRequired("version");
 		}
 
+		final String defaultAdapter = defaultLanguageAdapter;
+		final ImmutableMap.Builder<String, List<EntrypointMetadata>> immutableEntrypoints = ImmutableMap.builder();
+		entrypoints.forEach((k, list) -> immutableEntrypoints.put(k, list.stream()
+					.map(m -> m.getAdapter() != null ? m : new V1ModMetadata.EntrypointMetadataImpl(defaultAdapter, m.getValue()))
+					.collect(ImmutableList.toImmutableList())));
+		entrypoints = immutableEntrypoints.build();
+
 		ModMetadataParser.logWarningMessages(id, warnings);
 
 		return new V1ModMetadata(id, version, provides, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
@@ -279,7 +295,7 @@ final class V1ModMetadataParser {
 			reader.beginArray();
 
 			while (reader.hasNext()) {
-				String adapter = "default";
+				String adapter = null;
 				String value = null;
 
 				// Entrypoints may be specified directly as a string or as an object to allow specification of the language adapter to use.
