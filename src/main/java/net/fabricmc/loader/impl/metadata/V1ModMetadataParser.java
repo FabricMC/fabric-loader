@@ -18,16 +18,15 @@ package net.fabricmc.loader.impl.metadata;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
@@ -232,12 +231,20 @@ final class V1ModMetadataParser {
 			throw new ParseMetadataException.MissingRequired("version");
 		}
 
-		final String defaultAdapter = defaultLanguageAdapter;
-		final ImmutableMap.Builder<String, List<EntrypointMetadata>> immutableEntrypoints = ImmutableMap.builder();
-		entrypoints.forEach((k, list) -> immutableEntrypoints.put(k, list.stream()
-					.map(m -> m.getAdapter() != null ? m : new V1ModMetadata.EntrypointMetadataImpl(defaultAdapter, m.getValue()))
-					.collect(ImmutableList.toImmutableList())));
-		entrypoints = immutableEntrypoints.build();
+		for (Map.Entry<String, List<EntrypointMetadata>> entry : entrypoints.entrySet()) {
+			List<EntrypointMetadata> list = entry.getValue();
+			ListIterator<EntrypointMetadata> listItr = list.listIterator();
+
+			while (listItr.hasNext()) {
+				EntrypointMetadata m = listItr.next();
+
+				if (m.getAdapter() == null) {
+					listItr.set(new V1ModMetadata.EntrypointMetadataImpl(defaultLanguageAdapter, m.getValue()));
+				}
+			}
+
+			entry.setValue(Collections.unmodifiableList(list));
+		}
 
 		ModMetadataParser.logWarningMessages(id, warnings);
 
