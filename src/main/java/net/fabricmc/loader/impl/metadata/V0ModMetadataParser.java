@@ -201,7 +201,7 @@ final class V0ModMetadataParser {
 
 				license = reader.nextString();
 				break;
-			case "$schema":
+			case ModMetadataParser.SCHEMA_KEY:
 				reader.skipValue();
 				break;
 			default:

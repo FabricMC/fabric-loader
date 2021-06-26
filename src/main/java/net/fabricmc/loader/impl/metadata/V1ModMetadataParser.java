@@ -206,7 +206,7 @@ final class V1ModMetadataParser {
 			case "custom":
 				readCustomValues(reader, customValues);
 				break;
-			case "$schema":
+			case ModMetadataParser.SCHEMA_KEY:
 				reader.skipValue();
 				break;
 			default:
