@@ -33,11 +33,10 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class ModMetadataParser {
 	public static final int LATEST_VERSION = 1;
-	public static final String SCHEMA_KEY = "$schema";
 	/**
 	 * Keys that will be ignored by any mod metadata parser.
 	 */
-	public static final Set<String> IGNORED_KEYS = Collections.singleton(SCHEMA_KEY);
+	public static final Set<String> IGNORED_KEYS = Collections.singleton("$schema");
 
 	// Per the ECMA-404 (www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf), the JSON spec does not prohibit duplicate keys.
 	// For all intents and purposes of replicating the logic of Gson's fromJson before we have migrated to JsonReader, duplicate keys will replace previous entries.
