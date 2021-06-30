@@ -192,7 +192,7 @@ final class ModSolver {
 						assert dep.getKind() == ModDependency.Kind.DEPENDS || dep.getKind() == ModDependency.Kind.BREAKS;
 
 						failedDeps.add(dep);
-						failedExplanations.add(new Explanation(dep.getKind() == ModDependency.Kind.DEPENDS ? ErrorKind.HARD_DEP : ErrorKind.NEG_DEP, mod, dep));
+						failedExplanations.add(new Explanation(dep.getKind() == ModDependency.Kind.DEPENDS ? ErrorKind.HARD_DEP : ErrorKind.NEG_HARD_DEP, mod, dep));
 					}
 				}
 			}
@@ -481,6 +481,7 @@ final class ModSolver {
 			// add constraints for dependencies (skips deps that are already preselected outside depDisableSim)
 
 			for (ModDependency dep : mod.getDependencies()) {
+				if (!enableOptional && dep.getKind().isSoft()) continue;
 				if (selectedMods.containsKey(dep.getModId())) continue;
 
 				List<? extends DomainObject.Mod> availableMods = modsById.get(dep.getModId());
@@ -511,35 +512,30 @@ final class ModSolver {
 
 					dependencyHelper.clause(new Explanation(ErrorKind.PRESELECT_HARD_DEP, mod, dep), suitableMods.toArray(new DomainObject[0]));
 					break;
-				case RECOMMENDS: {
+				case RECOMMENDS:
 					// this will prioritize greedy over non-greedy loaded mods, regardless of modPrioComparator due to the objective weights
-					if (enableOptional) {
-						// only pull IF_RECOMMENDED or encompassing in
-						suitableMods.removeIf(m -> ((ModCandidate) m).getLoadCondition().ordinal() > ModLoadCondition.IF_RECOMMENDED.ordinal());
 
-						if (!suitableMods.isEmpty()) {
-							suitableMods.add(getCreateDummy(dep.getModId(), OptionalDepVar::new, dummyMods, priorities.size(), weightedObjects));
-							dependencyHelper.clause(new Explanation(ErrorKind.PRESELECT_SOFT_DEP, mod, dep), suitableMods.toArray(new DomainObject[0]));
-						}
+					// only pull IF_RECOMMENDED or encompassing in
+					suitableMods.removeIf(m -> ((ModCandidate) m).getLoadCondition().ordinal() > ModLoadCondition.IF_RECOMMENDED.ordinal());
+
+					if (!suitableMods.isEmpty()) {
+						suitableMods.add(getCreateDummy(dep.getModId(), OptionalDepVar::new, dummyMods, priorities.size(), weightedObjects));
+						dependencyHelper.clause(new Explanation(ErrorKind.PRESELECT_SOFT_DEP, mod, dep), suitableMods.toArray(new DomainObject[0]));
 					}
 
 					break;
-				}
 				case BREAKS:
 					if (depDisableSim) {
-						dependencyHelper.setTrue(getCreateDisableDepVar(dep, disabledDeps), new Explanation(ErrorKind.PRESELECT_NEG_DEP, mod, dep));
+						dependencyHelper.setTrue(getCreateDisableDepVar(dep, disabledDeps), new Explanation(ErrorKind.PRESELECT_NEG_HARD_DEP, mod, dep));
 					} else {
 						for (DomainObject match : suitableMods) {
-							dependencyHelper.setFalse(match, new Explanation(ErrorKind.PRESELECT_NEG_DEP, mod, dep));
+							dependencyHelper.setFalse(match, new Explanation(ErrorKind.PRESELECT_NEG_HARD_DEP, mod, dep));
 						}
 					}
 
 					break;
 				case CONFLICTS:
-					if (enableOptional) {
-						// TODO: soft negative dep?
-					}
-
+					// TODO: soft negative dep?
 					break;
 				default:
 					// ignore
@@ -561,7 +557,7 @@ final class ModSolver {
 				suitableMods.add(getCreateDummy(mod.getId(), RemoveModVar::new, dummyMods, prio, weightedObjects));
 				suitableMods.add(mod);
 
-				dependencyHelper.clause(new Explanation(ErrorKind.PRESELECT_ROOT, mod.getId()), suitableMods.toArray(new DomainObject[0]));
+				dependencyHelper.clause(new Explanation(ErrorKind.PRESELECT_FORCELOAD, mod.getId()), suitableMods.toArray(new DomainObject[0]));
 				suitableMods.clear();
 			}
 		}
@@ -579,6 +575,8 @@ final class ModSolver {
 			// add constraints for dependencies
 
 			for (ModDependency dep : mod.getDependencies()) {
+				if (!enableOptional && dep.getKind().isSoft()) continue;
+
 				ModCandidate selectedMod = selectedMods.get(dep.getModId());
 
 				if (selectedMod != null) { // dep is already selected = present
@@ -628,41 +626,36 @@ final class ModSolver {
 					}
 
 					break;
-				case RECOMMENDS: { // soft dep
+				case RECOMMENDS: // soft dep
 					// this will prioritize greedy over non-greedy loaded mods, regardless of modPrioComparator due to the objective weights
-					if (enableOptional) {
-						// only pull IF_RECOMMENDED or encompassing in
-						suitableMods.removeIf(m -> ((ModCandidate) m).getLoadCondition().ordinal() > ModLoadCondition.IF_RECOMMENDED.ordinal());
 
-						if (!suitableMods.isEmpty()) {
-							suitableMods.add(getCreateDummy(dep.getModId(), OptionalDepVar::new, dummyMods, priorities.size(), weightedObjects));
-							dependencyHelper.implication(mod).implies(suitableMods.toArray(new DomainObject[0])).named(new Explanation(ErrorKind.SOFT_DEP, mod, dep));
-						}
+					// only pull IF_RECOMMENDED or encompassing in
+					suitableMods.removeIf(m -> ((ModCandidate) m).getLoadCondition().ordinal() > ModLoadCondition.IF_RECOMMENDED.ordinal());
+
+					if (!suitableMods.isEmpty()) {
+						suitableMods.add(getCreateDummy(dep.getModId(), OptionalDepVar::new, dummyMods, priorities.size(), weightedObjects));
+						dependencyHelper.implication(mod).implies(suitableMods.toArray(new DomainObject[0])).named(new Explanation(ErrorKind.SOFT_DEP, mod, dep));
 					}
 
 					break;
-				}
 				case BREAKS: // strong negative dep
 					if (!suitableMods.isEmpty()) {
 						if (depDisableSim) {
 							DomainObject var = getCreateDisableDepVar(dep, disabledDeps);
 
 							for (DomainObject match : suitableMods) {
-								dependencyHelper.implication(mod).implies(new NegatedDomainObject(match), var).named(new Explanation(ErrorKind.NEG_DEP, mod, dep));
+								dependencyHelper.implication(mod).implies(new NegatedDomainObject(match), var).named(new Explanation(ErrorKind.NEG_HARD_DEP, mod, dep));
 							}
 						} else {
 							for (DomainObject match : suitableMods) {
-								dependencyHelper.implication(mod).impliesNot(match).named(new Explanation(ErrorKind.NEG_DEP, mod, dep));
+								dependencyHelper.implication(mod).impliesNot(match).named(new Explanation(ErrorKind.NEG_HARD_DEP, mod, dep));
 							}
 						}
 					}
 
 					break;
 				case CONFLICTS:
-					if (enableOptional) {
-						// TODO: soft negative dep?
-					}
-
+					// TODO: soft negative dep?
 					break;
 				default:
 					// ignore
@@ -678,7 +671,7 @@ final class ModSolver {
 				ModLoadCondition loadCondition = mod.getLoadCondition();
 
 				if (loadCondition == ModLoadCondition.ALWAYS) { // required with parent
-					Explanation explanation = new Explanation(ErrorKind.REQ_AUTO_LOAD_NESTED, mod.getParentMods().iterator().next(), mod.getId()); // FIXME: this applies to all parents
+					Explanation explanation = new Explanation(ErrorKind.NESTED_FORCELOAD, mod.getParentMods().iterator().next(), mod.getId()); // FIXME: this applies to all parents
 					DomainObject[] siblings = modsById.get(mod.getId()).toArray(new DomainObject[0]);
 
 					if (isAnyParentSelected(mod, selectedMods)) {
@@ -693,7 +686,7 @@ final class ModSolver {
 				// require parent to be selected with the nested mod
 
 				if (!isAnyParentSelected(mod, selectedMods)) {
-					dependencyHelper.implication(mod).implies(mod.getParentMods().toArray(new DomainObject[0])).named(new Explanation(ErrorKind.REQ_NESTED_PARENT, mod));
+					dependencyHelper.implication(mod).implies(mod.getParentMods().toArray(new DomainObject[0])).named(new Explanation(ErrorKind.NESTED_REQ_PARENT, mod));
 				}
 			}
 
@@ -724,7 +717,7 @@ final class ModSolver {
 
 			if (variants.size() == 1 && !removalSim) { // trivial case, others are handled by multi-variant impl
 				if (firstMod.isRoot() && firstMod.getLoadCondition() == ModLoadCondition.ALWAYS) {
-					dependencyHelper.setTrue(firstMod, new Explanation(ErrorKind.REQ_AUTO_LOAD_ROOT_SINGLE, firstMod));
+					dependencyHelper.setTrue(firstMod, new Explanation(ErrorKind.ROOT_FORCELOAD_SINGLE, firstMod));
 				}
 			} else { // complex case, potentially multiple variants
 				boolean isRequired = false;
@@ -751,7 +744,7 @@ final class ModSolver {
 
 					suitableMods.addAll(variants);
 
-					dependencyHelper.clause(new Explanation(ErrorKind.REQ_AUTO_LOAD_ROOT, id), suitableMods.toArray(new DomainObject[0]));
+					dependencyHelper.clause(new Explanation(ErrorKind.ROOT_FORCELOAD, id), suitableMods.toArray(new DomainObject[0]));
 					suitableMods.clear();
 				}
 			}

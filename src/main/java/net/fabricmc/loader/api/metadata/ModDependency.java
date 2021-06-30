@@ -52,19 +52,21 @@ public interface ModDependency {
 	Collection<VersionPredicate> getVersionRequirements();
 
 	enum Kind {
-		DEPENDS("depends", true),
-		RECOMMENDS("recommends", true),
-		SUGGESTS("suggests", true),
-		CONFLICTS("conflicts", false),
-		BREAKS("breaks", false);
+		DEPENDS("depends", true, false),
+		RECOMMENDS("recommends", true, true),
+		SUGGESTS("suggests", true, true),
+		CONFLICTS("conflicts", false, true),
+		BREAKS("breaks", false, false);
 
 		private static final Map<String, Kind> map = createMap();
 		private final String key;
 		private final boolean positive;
+		private final boolean soft;
 
-		Kind(String key, boolean positive) {
+		Kind(String key, boolean positive, boolean soft) {
 			this.key = key;
 			this.positive = positive;
+			this.soft = soft;
 		}
 
 		public String getKey() {
@@ -73,6 +75,10 @@ public interface ModDependency {
 
 		public boolean isPositive() {
 			return positive;
+		}
+
+		public boolean isSoft() {
+			return soft;
 		}
 
 		public static Kind parse(String key) {

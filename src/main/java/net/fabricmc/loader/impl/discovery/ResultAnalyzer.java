@@ -52,8 +52,8 @@ final class ResultAnalyzer {
 				case HARD_DEP:
 					addErrorToList(explanation.mod, explanation.dep, modsById.get(explanation.dep.getModId()), pw);
 					break;
-				case PRESELECT_NEG_DEP:
-				case NEG_DEP:
+				case PRESELECT_NEG_HARD_DEP:
+				case NEG_HARD_DEP:
 					break;
 				default:
 					// ignore
@@ -142,13 +142,18 @@ final class ResultAnalyzer {
 	}
 
 	private static void appendMissingDependencyError(ModDependency dependency, PrintWriter pw) {
-		pw.printf("which is missing!\n\t - You must install %s of %s.",
-				getDependencyVersionRequirements(dependency), dependency.getModId());
+		pw.printf("which is missing!\n\t - You %s install %s of %s.",
+				(dependency.getKind().isSoft() ? "should" : "need to"),
+				getDependencyVersionRequirements(dependency),
+				dependency.getModId());
 	}
 
 	private static void appendUnsatisfiedDependencyError(ModDependency dependency, List<ModCandidate> matches, PrintWriter pw) {
-		pw.printf("but a non-matching version is present: %s!\n\t - You must install %s of %s.",
-				getCandidateFriendlyVersions(matches), getDependencyVersionRequirements(dependency), getCandidateName(matches.get(0)));
+		pw.printf("but a non-matching version is present: %s!\n\t - You must %s %s of %s.",
+				getCandidateFriendlyVersions(matches),
+				(dependency.getKind().isSoft() ? "should" : "need to"),
+				getDependencyVersionRequirements(dependency),
+				getCandidateName(matches.get(0)));
 	}
 
 	private static void appendConflictError(ModCandidate candidate, List<ModCandidate> matches, PrintWriter pw) {
@@ -157,7 +162,7 @@ final class ResultAnalyzer {
 		pw.printf("but a matching version is present: %s!\n"
 				+ "\t - While this won't prevent you from starting the game,  the developer(s) of %s have found that "
 				+ "version %s of %s conflicts with their mod.\n"
-				+ "\t - It is heavily recommended to remove one of the mods.",
+				+ "\t - It is recommended to remove one of the mods.",
 				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
 	}
 
@@ -215,7 +220,7 @@ final class ResultAnalyzer {
 	}
 
 	private static String getCandidateFriendlyVersions(Collection<ModCandidate> candidates) {
-		return candidates.stream().map(c -> c.getVersion().getFriendlyString()).collect(Collectors.joining("/"));
+		return candidates.stream().map(ResultAnalyzer::getCandidateFriendlyVersion).collect(Collectors.joining("/"));
 	}
 
 	private static String getDependencyVersionRequirements(ModDependency dependency) {

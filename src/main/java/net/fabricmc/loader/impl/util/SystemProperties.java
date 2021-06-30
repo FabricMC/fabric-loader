@@ -29,6 +29,8 @@ public final class SystemProperties {
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
 	// throw exceptions from entrypoints, discovery etc. directly instead of gathering and attaching as suppressed
 	public static final String DEBUG_THROW_DIRECTLY = "fabric.debug.throwDirectly";
+	// disables mod load order shuffling to be the same in-dev as in production
+	public static final String DEBUG_DISABLE_MOD_SHUFFLE = "fabric.debug.disableModShuffle";
 	// workaround for bad load order dependencies
 	public static final String DEBUG_LOAD_LATE = "fabric.debug.loadLate";
 

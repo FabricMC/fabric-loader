@@ -59,36 +59,76 @@ class Explanation implements Comparable<Explanation> {
 	@Override
 	public String toString() {
 		if (mod == null) {
-			return String.format("%s %s", error.desc, data);
+			return String.format("%s %s", error, data);
 		} else if (dep == null) {
-			return String.format("%s %s", error.desc, mod);
+			return String.format("%s %s", error, mod);
 		} else {
-			return String.format("%s %s %s", error.desc, mod, dep);
+			return String.format("%s %s %s", error, mod, dep);
 		}
 	}
 
 	enum ErrorKind {
-		PRESELECT_HARD_DEP("presel: reqdep", true),
-		PRESELECT_SOFT_DEP("presel: optdep", true),
-		PRESELECT_NEG_DEP("presel: neg.dep", true),
-		PRESELECT_ROOT("presel root", false),
-		HARD_DEP_INCOMPATIBLE_PRESELECTED("incompatible presel reqdep", true),
-		HARD_DEP_NO_CANDIDATE("reqdep without candidate", true),
-		HARD_DEP("reqdep", true),
-		SOFT_DEP("optdep", true),
-		NEG_DEP("neg.dep", true),
-		REQ_AUTO_LOAD_NESTED("req autoload nested", false),
-		REQ_NESTED_PARENT("req nested parent", false),
-		REQ_AUTO_LOAD_ROOT_SINGLE("req autoload root single", false),
-		REQ_AUTO_LOAD_ROOT("req autoload root", false),
-		UNIQUE_ID("unique id", false);
+		/**
+		 * Positive hard dependency (depends) from a preselected mod.
+		 */
+		PRESELECT_HARD_DEP(true),
+		/**
+		 * Positive soft dependency (recommends) from a preselected mod.
+		 */
+		PRESELECT_SOFT_DEP(true),
+		/**
+		 * Negative hard dependency (breaks) from a preselected mod.
+		 */
+		PRESELECT_NEG_HARD_DEP(true),
+		/**
+		 * Force loaded due to being preselected.
+		 */
+		PRESELECT_FORCELOAD(false),
+		/**
+		 * Positive hard dependency (depends) from a mod with incompatible preselected candidate.
+		 */
+		HARD_DEP_INCOMPATIBLE_PRESELECTED(true),
+		/**
+		 * Positive hard dependency (depends) from a mod with no matching candidate.
+		 */
+		HARD_DEP_NO_CANDIDATE(true),
+		/**
+		 * Positive hard dependency (depends) from a mod.
+		 */
+		HARD_DEP(true),
+		/**
+		 * Positive soft dependency (recommends) from a mod.
+		 */
+		SOFT_DEP(true),
+		/**
+		 * Negative hard dependency (breaks) from a mod.
+		 */
+		NEG_HARD_DEP(true),
+		/**
+		 * Force loaded if the parent is loaded due to LoadType ALWAYS.
+		 */
+		NESTED_FORCELOAD(false),
+		/**
+		 * Dependency of a nested mod on its parent mods.
+		 */
+		NESTED_REQ_PARENT(false),
+		/**
+		 * Force loaded due to LoadType ALWAYS as a singular root mod.
+		 */
+		ROOT_FORCELOAD_SINGLE(false),
+		/**
+		 * Force loaded due to LoadType ALWAYS and containing root mods.
+		 */
+		ROOT_FORCELOAD(false),
+		/**
+		 * Requirement to load at most one mod per id (including provides).
+		 */
+		UNIQUE_ID(false);
 
-		ErrorKind(String desc, boolean isDependencyError) {
-			this.desc = desc;
+		final boolean isDependencyError;
+
+		ErrorKind(boolean isDependencyError) {
 			this.isDependencyError = isDependencyError;
 		}
-
-		final String desc;
-		final boolean isDependencyError;
 	}
 }

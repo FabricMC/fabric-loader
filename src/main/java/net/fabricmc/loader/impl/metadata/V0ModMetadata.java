@@ -77,7 +77,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		}
 
 		this.authors = Collections.unmodifiableCollection(authors);
-		this.contributors = contributors;
+		this.contributors = Collections.unmodifiableCollection(contributors);
 		this.links = links;
 		this.license = license;
 	}

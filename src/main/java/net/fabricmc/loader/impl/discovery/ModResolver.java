@@ -37,11 +37,11 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public class ModResolver {
 	public static List<ModCandidate> resolve(Collection<ModCandidate> candidates) throws ModResolutionException {
-		long time2 = System.nanoTime();
+		long startTime = System.nanoTime();
 		List<ModCandidate> result = findCompatibleSet(candidates);
 
-		long time3 = System.nanoTime();
-		Log.debug(LogCategory.RESOLUTION, "Mod resolution time: %.1f ms", (time3 - time2) * 1e-6);
+		long endTime = System.nanoTime();
+		Log.debug(LogCategory.RESOLUTION, "Mod resolution time: %.1f ms", (endTime - startTime) * 1e-6);
 
 		return result;
 	}
