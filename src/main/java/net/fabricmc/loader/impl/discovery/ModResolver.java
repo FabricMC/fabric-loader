@@ -150,7 +150,13 @@ public class ModResolver {
 					for (ModDependency dep : mod.getInfo().getDepends()) {
 						int[] matchingCandidates = modCandidateMap.getOrDefault(dep.getModId(), Collections.emptyList())
 								.stream()
-								.filter((c) -> dep.matches(c.getInfo().getVersion()))
+								.filter((c) -> {
+									Version version = c.getInfo().getVersion();
+									if (version.toString() == "${version}" || version.toString() == "$version") {
+										return true;
+									}
+									return dep.matches(version);
+								})
 								.mapToInt(candidateIntMap::get)
 								.toArray();
 
