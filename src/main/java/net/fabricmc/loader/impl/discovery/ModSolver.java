@@ -42,7 +42,7 @@ import org.sat4j.specs.TimeoutException;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.version.VersionBounds;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.discovery.Explanation.ErrorKind;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -220,50 +220,52 @@ final class ModSolver {
 
 			// extract all version bounds (resulting version needs to be part of one of them)
 
-			Set<VersionBounds> allBounds = new HashSet<>();
+			Set<VersionInterval> allIntervals = new HashSet<>();
 
 			for (Collection<VersionPredicate> versionPredicates : entry.getValue()) {
-				List<VersionBounds> bounds = Collections.emptyList();
+				List<VersionInterval> intervals = Collections.emptyList();
 
 				for (VersionPredicate v : versionPredicates) {
-					bounds = v.getBounds().or(bounds);
+					intervals = VersionInterval.or(intervals, v.getInterval());
 				}
 
-				allBounds.addAll(bounds);
+				allIntervals.addAll(intervals);
 			}
+
+			if (allIntervals.isEmpty()) continue;
 
 			// try to determine common version bounds, alternatively approximate (imprecise due to not knowing the real versions or which deps are really essential)
 
-			VersionBounds commonBounds = null;
+			VersionInterval commonInterval = null;
 			boolean commonVersionInitialized = false;
-			Map<Version, VersionBounds> versions = new HashMap<>();
+			Map<Version, VersionInterval> versions = new HashMap<>();
 
-			for (VersionBounds bounds : allBounds) {
-				if (commonBounds == null) {
+			for (VersionInterval interval : allIntervals) {
+				if (commonInterval == null) {
 					if (!commonVersionInitialized) { // initialize to first range, otherwise leave as empty range
-						commonBounds = bounds;
+						commonInterval = interval;
 						commonVersionInitialized = true;
 					}
 				} else {
-					commonBounds = bounds.and(commonBounds);
+					commonInterval = interval.and(commonInterval);
 				}
 
-				Version version = deriveVersion(bounds);
+				Version version = deriveVersion(interval);
 
-				VersionBounds prev = versions.putIfAbsent(version, bounds);
+				VersionInterval prev = versions.putIfAbsent(version, interval);
 
 				if (prev != null) {
-					VersionBounds newBounds = VersionBounds.and(prev, bounds);
+					VersionInterval newBounds = VersionInterval.and(prev, interval);
 					if (newBounds != null) versions.put(version, newBounds);
 				}
 			}
 
 			List<AddModVar> out = installableMods.computeIfAbsent(id, ignore -> new ArrayList<>());
 
-			if (commonBounds != null) {
-				out.add(new AddModVar(id, deriveVersion(commonBounds), Collections.singletonList(commonBounds)));
+			if (commonInterval != null) {
+				out.add(new AddModVar(id, deriveVersion(commonInterval), Collections.singletonList(commonInterval)));
 			} else {
-				for (Map.Entry<Version, VersionBounds> versionEntry : versions.entrySet()) {
+				for (Map.Entry<Version, VersionInterval> versionEntry : versions.entrySet()) {
 					out.add(new AddModVar(id, versionEntry.getKey(), Collections.singletonList(versionEntry.getValue())));
 				}
 			}
@@ -345,15 +347,15 @@ final class ModSolver {
 
 	static long fixSolveTime;
 
-	private static Version deriveVersion(VersionBounds vb) {
-		if (!vb.isSemantic()) {
-			return vb.getMin() != null ? vb.getMin() : vb.getMax();
+	private static Version deriveVersion(VersionInterval interval) {
+		if (!interval.isSemantic()) {
+			return interval.getMin() != null ? interval.getMin() : interval.getMax();
 		}
 
-		SemanticVersion v = (SemanticVersion) vb.getMin();
+		SemanticVersion v = (SemanticVersion) interval.getMin();
 
 		if (v != null) { // min bound present
-			if (!vb.isMinInclusive()) { // not inclusive, increment slightly
+			if (!interval.isMinInclusive()) { // not inclusive, increment slightly
 				String pr = v.getPrereleaseKey().orElse(null);
 				int[] comps = ((SemanticVersionImpl) v).getVersionComponents();
 
@@ -370,8 +372,8 @@ final class ModSolver {
 
 				v = new SemanticVersionImpl(comps, pr, null);
 			}
-		} else if ((v = (SemanticVersion) vb.getMax()) != null) { // max bound only
-			if (!vb.isMaxInclusive()) { // not inclusive, decrement slightly
+		} else if ((v = (SemanticVersion) interval.getMax()) != null) { // max bound only
+			if (!interval.isMaxInclusive()) { // not inclusive, decrement slightly
 				String pr = v.getPrereleaseKey().orElse(null);
 				int[] comps = ((SemanticVersionImpl) v).getVersionComponents();
 
@@ -873,12 +875,12 @@ final class ModSolver {
 	static final class AddModVar implements DomainObject.Mod {
 		private final String id;
 		private final Version version;
-		private final List<VersionBounds> versionBounds;
+		private final List<VersionInterval> versionIntervals;
 
-		AddModVar(String id, Version version, List<VersionBounds> versionBounds) {
+		AddModVar(String id, Version version, List<VersionInterval> versionIntervals) {
 			this.id = id;
 			this.version = version;
-			this.versionBounds = versionBounds;
+			this.versionIntervals = versionIntervals;
 		}
 
 		@Override
@@ -891,13 +893,13 @@ final class ModSolver {
 			return version;
 		}
 
-		public List<VersionBounds> getVersionBounds() {
-			return versionBounds;
+		public List<VersionInterval> getVersionIntervals() {
+			return versionIntervals;
 		}
 
 		@Override
 		public String toString() {
-			return String.format("add:%s %s (%s)", id, version, versionBounds);
+			return String.format("add:%s %s (%s)", id, version, versionIntervals);
 		}
 	}
 

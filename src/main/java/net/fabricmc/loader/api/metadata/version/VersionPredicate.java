@@ -32,9 +32,11 @@ public interface VersionPredicate extends Predicate<Version> {
 	Collection<? extends PredicateTerm> getTerms();
 
 	/**
-	 * Get the bounds of the matched version range.
+	 * Get the version interval representing the matched versions.
+	 *
+	 * @return Covered version interval or null if nothing
 	 */
-	VersionBounds getBounds();
+	VersionInterval getInterval();
 
 	interface PredicateTerm {
 		VersionComparisonOperator getOperator();

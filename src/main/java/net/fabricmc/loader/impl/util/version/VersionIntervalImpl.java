@@ -23,17 +23,17 @@ import java.util.Objects;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.metadata.version.VersionBounds;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 
-public final class VersionBoundsImpl implements VersionBounds {
-	static final VersionBounds NONE = new VersionBoundsImpl(null, false, null, false);
+public final class VersionIntervalImpl implements VersionInterval {
+	static final VersionInterval INFINITE = new VersionIntervalImpl(null, false, null, false);
 
 	private final Version min;
 	private final boolean minInclusive;
 	private final Version max;
 	private final boolean maxInclusive;
 
-	VersionBoundsImpl(Version min, boolean minInclusive,
+	VersionIntervalImpl(Version min, boolean minInclusive,
 			Version max, boolean maxInclusive) {
 		this.min = min;
 		this.minInclusive = min != null ? minInclusive : false;
@@ -75,8 +75,8 @@ public final class VersionBoundsImpl implements VersionBounds {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof VersionBounds) {
-			VersionBounds o = (VersionBounds) obj;
+		if (obj instanceof VersionInterval) {
+			VersionInterval o = (VersionInterval) obj;
 
 			return Objects.equals(min, o.getMin()) && minInclusive == o.isMinInclusive()
 					&& Objects.equals(max, o.getMax()) && maxInclusive == o.isMaxInclusive();
@@ -100,7 +100,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 		}
 	}
 
-	public static VersionBounds and(VersionBounds a, VersionBounds b) {
+	public static VersionInterval and(VersionInterval a, VersionInterval b) {
 		if (a == null || b == null) return null;
 
 		if (!a.isSemantic() || !b.isSemantic()) {
@@ -110,7 +110,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 		}
 	}
 
-	private static VersionBounds andPlain(VersionBounds a, VersionBounds b) {
+	private static VersionInterval andPlain(VersionInterval a, VersionInterval b) {
 		Version aMin = a.getMin();
 		Version aMax = a.getMax();
 		Version bMin = b.getMin();
@@ -125,7 +125,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 				assert Objects.equals(aMax, bMax) || bMax == null;
 				return a;
 			} else {
-				return new VersionBoundsImpl(aMin, true, bMax, b.isMaxInclusive());
+				return new VersionIntervalImpl(aMin, true, bMax, b.isMaxInclusive());
 			}
 		} else if (aMax != null) { // -> min must be bMin, max must be aMax or invalid
 			if (bMin != null && !aMax.equals(bMin) || bMax != null && !aMax.equals(bMax)) {
@@ -137,14 +137,14 @@ public final class VersionBoundsImpl implements VersionBounds {
 			} else if (bMax != null) {
 				return b;
 			} else {
-				return new VersionBoundsImpl(bMin, true, aMax, true);
+				return new VersionIntervalImpl(bMin, true, aMax, true);
 			}
 		} else {
 			return b;
 		}
 	}
 
-	private static VersionBounds andSemantic(VersionBounds a, VersionBounds b) {
+	private static VersionInterval andSemantic(VersionInterval a, VersionInterval b) {
 		int minCmp = compareMin(a, b);
 		int maxCmp = compareMax(a, b);
 
@@ -164,7 +164,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 			int cmp = bMin.compareTo((Version) aMax);
 
 			if (cmp < 0 || cmp == 0 && b.isMinInclusive() && a.isMaxInclusive()) {
-				return new VersionBoundsImpl(bMin, b.isMinInclusive(), aMax, a.isMaxInclusive());
+				return new VersionIntervalImpl(bMin, b.isMinInclusive(), aMax, a.isMaxInclusive());
 			} else {
 				return null;
 			}
@@ -176,17 +176,17 @@ public final class VersionBoundsImpl implements VersionBounds {
 			int cmp = aMin.compareTo((Version) bMax);
 
 			if (cmp < 0 || cmp == 0 && a.isMinInclusive() && b.isMaxInclusive()) {
-				return new VersionBoundsImpl(aMin, a.isMinInclusive(), bMax, b.isMaxInclusive());
+				return new VersionIntervalImpl(aMin, a.isMinInclusive(), bMax, b.isMaxInclusive());
 			} else {
 				return null;
 			}
 		}
 	}
 
-	public static List<VersionBounds> or(Collection<VersionBounds> a, VersionBounds b) {
-		List<VersionBounds> ret = new ArrayList<>(a.size() + 1);
+	public static List<VersionInterval> or(Collection<VersionInterval> a, VersionInterval b) {
+		List<VersionInterval> ret = new ArrayList<>(a.size() + 1);
 
-		for (VersionBounds v : a) {
+		for (VersionInterval v : a) {
 			merge(v, ret);
 		}
 
@@ -195,7 +195,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 		return ret;
 	}
 
-	private static void merge(VersionBounds a, List<VersionBounds> out) {
+	private static void merge(VersionInterval a, List<VersionInterval> out) {
 		if (a == null) return;
 
 		if (out.isEmpty()) {
@@ -204,7 +204,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 		}
 
 		if (out.size() == 1) {
-			VersionBounds e = out.get(0);
+			VersionInterval e = out.get(0);
 
 			if (e.getMin() == null && e.getMax() == null) {
 				return;
@@ -218,20 +218,20 @@ public final class VersionBoundsImpl implements VersionBounds {
 		}
 	}
 
-	private static void mergePlain(VersionBounds a, List<VersionBounds> out) {
+	private static void mergePlain(VersionInterval a, List<VersionInterval> out) {
 		Version aMin = a.getMin();
 		Version aMax = a.getMax();
 		Version v = aMin != null ? aMin : aMax;
 		assert v != null;
 
 		for (int i = 0; i < out.size(); i++) {
-			VersionBounds c = out.get(i);
+			VersionInterval c = out.get(i);
 
 			if (v.equals(c.getMin())) {
 				if (aMin == null) {
 					assert aMax.equals(c.getMin());
 					out.clear();
-					out.add(NONE);
+					out.add(INFINITE);
 				} else if (aMax == null && c.getMax() != null) {
 					out.set(i, a);
 				}
@@ -243,7 +243,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 				if (aMax == null) {
 					assert aMin.equals(c.getMax());
 					out.clear();
-					out.add(NONE);
+					out.add(INFINITE);
 				}
 
 				return;
@@ -253,18 +253,18 @@ public final class VersionBoundsImpl implements VersionBounds {
 		out.add(a);
 	}
 
-	private static void mergeSemantic(VersionBounds a, List<VersionBounds> out) {
+	private static void mergeSemantic(VersionInterval a, List<VersionInterval> out) {
 		SemanticVersion aMin = (SemanticVersion) a.getMin();
 		SemanticVersion aMax = (SemanticVersion) a.getMax();
 
 		if (aMin == null && aMax == null) {
 			out.clear();
-			out.add(NONE);
+			out.add(INFINITE);
 			return;
 		}
 
 		for (int i = 0; i < out.size(); i++) {
-			VersionBounds c = out.get(i);
+			VersionInterval c = out.get(i);
 			if (!c.isSemantic()) continue;
 
 			SemanticVersion cMin = (SemanticVersion) c.getMin();
@@ -279,7 +279,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 						out.add(i, a);
 					} else { // ..a..|..c.. or ..a.[..].c..
 						out.clear();
-						out.add(NONE);
+						out.add(INFINITE);
 					}
 
 					return;
@@ -297,7 +297,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 						if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // ..a..]..[..c..] or ..a..)(..c..]
 							out.add(i, a);
 						} else { // c extends a to the right
-							out.set(i, new VersionBoundsImpl(null, false, cMax, c.isMaxInclusive()));
+							out.set(i, new VersionIntervalImpl(null, false, cMax, c.isMaxInclusive()));
 						}
 
 						return;
@@ -317,7 +317,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 					if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // [..a..]..[..c.. or [..a..)(..c..
 						out.add(i, a);
 					} else { // a extends c to the left
-						out.set(i, new VersionBoundsImpl(aMin, a.isMinInclusive(), null, false));
+						out.set(i, new VersionIntervalImpl(aMin, a.isMinInclusive(), null, false));
 					}
 				}
 
@@ -331,12 +331,12 @@ public final class VersionBoundsImpl implements VersionBounds {
 
 					if (cmpMax <= 0) { // aMax <= cMax
 						if (cmpMin < 0) { // aMin < cMin
-							out.set(i, new VersionBoundsImpl(aMin, a.isMinInclusive(), cMax, c.isMaxInclusive()));
+							out.set(i, new VersionIntervalImpl(aMin, a.isMinInclusive(), cMax, c.isMaxInclusive()));
 						}
 
 						return;
 					} else if (cmpMin > 0) { // aMin > cMin, aMax > cMax
-						a = new VersionBoundsImpl(cMin, c.isMinInclusive(), aMax, a.isMaxInclusive());
+						a = new VersionIntervalImpl(cMin, c.isMinInclusive(), aMax, a.isMaxInclusive());
 					}
 
 					out.remove(i);
@@ -351,7 +351,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 		out.add(a);
 	}
 
-	private static int compareMin(VersionBounds a, VersionBounds b) {
+	private static int compareMin(VersionInterval a, VersionInterval b) {
 		SemanticVersion aMin = (SemanticVersion) a.getMin();
 		SemanticVersion bMin = (SemanticVersion) b.getMin();
 		int cmp;
@@ -371,7 +371,7 @@ public final class VersionBoundsImpl implements VersionBounds {
 		}
 	}
 
-	private static int compareMax(VersionBounds a, VersionBounds b) {
+	private static int compareMax(VersionInterval a, VersionInterval b) {
 		SemanticVersion aMax = (SemanticVersion) a.getMax();
 		SemanticVersion bMax = (SemanticVersion) b.getMax();
 		int cmp;

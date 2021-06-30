@@ -26,8 +26,8 @@ import java.util.Set;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.api.metadata.version.VersionBounds;
 import net.fabricmc.loader.api.metadata.version.VersionComparisonOperator;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate.PredicateTerm;
 
@@ -123,8 +123,8 @@ public final class VersionPredicateParser {
 		}
 
 		@Override
-		public VersionBounds getBounds() {
-			return VersionBoundsImpl.NONE;
+		public VersionInterval getInterval() {
+			return VersionIntervalImpl.INFINITE;
 		}
 
 		@Override
@@ -153,14 +153,14 @@ public final class VersionPredicateParser {
 		}
 
 		@Override
-		public VersionBounds getBounds() {
+		public VersionInterval getInterval() {
 			if (refVersion instanceof SemanticVersion) {
 				SemanticVersion version = (SemanticVersion) refVersion;
 
-				return new VersionBoundsImpl(operator.minVersion(version), operator.isMinInclusive(),
+				return new VersionIntervalImpl(operator.minVersion(version), operator.isMinInclusive(),
 						operator.maxVersion(version), operator.isMaxInclusive());
 			} else {
-				return new VersionBoundsImpl(refVersion, true, refVersion, true);
+				return new VersionIntervalImpl(refVersion, true, refVersion, true);
 			}
 		}
 
@@ -218,13 +218,13 @@ public final class VersionPredicateParser {
 		}
 
 		@Override
-		public VersionBounds getBounds() {
-			if (predicates.isEmpty()) return AnyVersionPredicate.INSTANCE.getBounds();
+		public VersionInterval getInterval() {
+			if (predicates.isEmpty()) return AnyVersionPredicate.INSTANCE.getInterval();
 
-			VersionBounds ret = predicates.get(0).getBounds();
+			VersionInterval ret = predicates.get(0).getInterval();
 
 			for (int i = 1; i < predicates.size(); i++) {
-				ret = VersionBoundsImpl.and(ret, predicates.get(i).getBounds());
+				ret = VersionIntervalImpl.and(ret, predicates.get(i).getInterval());
 			}
 
 			return ret;
