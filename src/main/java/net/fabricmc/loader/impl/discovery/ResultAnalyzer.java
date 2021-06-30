@@ -271,10 +271,10 @@ final class ResultAnalyzer {
 				case LESS_EQUAL:
 					sb.append(String.format("version %s or earlier", version));
 					break;
-				case SAME_TO_MEXT_MAJOR:
+				case SAME_TO_NEXT_MAJOR:
 					sb.append(String.format("version %d.x", ((SemanticVersion) version).getVersionComponent(0)));
 					break;
-				case SAME_TO_MEXT_MINOR: {
+				case SAME_TO_NEXT_MINOR: {
 					SemanticVersion semVer = (SemanticVersion) version;
 					sb.append(String.format("version %d.%d.x", semVer.getVersionComponent(0), semVer.getVersionComponent(1)));
 					break;
