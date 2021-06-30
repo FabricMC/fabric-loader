@@ -75,7 +75,7 @@ public interface ModMetadata {
 	/**
 	 * Returns the mod's required dependencies, without which the Loader will terminate loading.
 	 *
-	 * @deprecated Use {@link #getDependencies()} instead
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#DEPENDS} instead
 	 */
 	@Deprecated
 	default Collection<ModDependency> getDepends() {
@@ -85,7 +85,7 @@ public interface ModMetadata {
 	/**
 	 * Returns the mod's recommended dependencies, without which the Loader will emit a warning.
 	 *
-	 * @deprecated Use {@link #getDependencies()} instead
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#RECOMMENDS} instead
 	 */
 	@Deprecated
 	default Collection<ModDependency> getRecommends() {
@@ -95,7 +95,7 @@ public interface ModMetadata {
 	/**
 	 * Returns the mod's suggested dependencies.
 	 *
-	 * @deprecated Use {@link #getDependencies()} instead
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#SUGGESTS} instead
 	 */
 	@Deprecated
 	default Collection<ModDependency> getSuggests() {
@@ -105,7 +105,7 @@ public interface ModMetadata {
 	/**
 	 * Returns the mod's conflicts, with which the Loader will emit a warning.
 	 *
-	 * @deprecated Use {@link #getDependencies()} instead
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#CONFLICTS} instead
 	 */
 	@Deprecated
 	default Collection<ModDependency> getConflicts() {
@@ -115,7 +115,7 @@ public interface ModMetadata {
 	/**
 	 * Returns the mod's conflicts, with which the Loader will terminate loading.
 	 *
-	 * @deprecated Use {@link #getDependencies()} instead
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#BREAKS} instead
 	 */
 	@Deprecated
 	default Collection<ModDependency> getBreaks() {

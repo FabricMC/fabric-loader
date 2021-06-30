@@ -217,7 +217,7 @@ public final class ModCandidate implements DomainObject.Mod {
 	String getDefaultFileName() {
 		String ret = String.format("%s-%s-%s.jar",
 				getId(),
-				fileNameSanitizingPattern.matcher(getVersion().getFriendlyString()).replaceAll("_"),
+				FILE_NAME_SANITIZING_PATTERN.matcher(getVersion().getFriendlyString()).replaceAll("_"),
 				Long.toHexString(mixHash(hash)));
 
 		if (ret.length() > 64) {
@@ -237,7 +237,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		return hash;
 	}
 
-	private static final Pattern fileNameSanitizingPattern = Pattern.compile("[^\\w\\.\\-\\+]+");
+	private static final Pattern FILE_NAME_SANITIZING_PATTERN = Pattern.compile("[^\\w\\.\\-\\+]+");
 
 	private void copyToFile(Path out) throws IOException {
 		SoftReference<ByteBuffer> dataRef = this.dataRef;

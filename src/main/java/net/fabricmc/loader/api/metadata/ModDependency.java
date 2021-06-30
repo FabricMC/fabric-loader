@@ -69,18 +69,30 @@ public interface ModDependency {
 			this.soft = soft;
 		}
 
+		/**
+		 * Get the key for the dependency as used by fabric.mod.json (v1+) and dependency overrides.
+		 */
 		public String getKey() {
 			return key;
 		}
 
+		/**
+		 * Get whether the dependency is positive, encouraging the inclusion of a mod instead of negative/discouraging.
+		 */
 		public boolean isPositive() {
 			return positive;
 		}
 
+		/**
+		 * Get whether it is a soft dependency, allowing the mod to still load if the dependency is unmet.
+		 */
 		public boolean isSoft() {
 			return soft;
 		}
 
+		/**
+		 * Parse a dependency kind from its key as provided by {@link #getKey}.
+		 */
 		public static Kind parse(String key) {
 			return map.get(key);
 		}

@@ -82,7 +82,7 @@ public enum VersionComparisonOperator {
 			return version;
 		}
 	},
-	REQ_MAJOR_MINOR("~", true, false) {
+	SAME_TO_MEXT_MINOR("~", true, false) {
 		@Override
 		public boolean test(SemanticVersion a, SemanticVersion b) {
 			return a.compareTo((Version) b) >= 0
@@ -100,7 +100,7 @@ public enum VersionComparisonOperator {
 			return new SemanticVersionImpl(new int[] { version.getVersionComponent(0), version.getVersionComponent(1) + 1 }, "", null);
 		}
 	},
-	REQ_MAJOR("^", true, false) {
+	SAME_TO_MEXT_MAJOR("^", true, false) {
 		@Override
 		public boolean test(SemanticVersion a, SemanticVersion b) {
 			return a.compareTo((Version) b) >= 0

@@ -109,17 +109,17 @@ public final class DependencyOverrides {
 
 		while (reader.hasNext()) {
 			String key = reader.nextName();
-			Operation op;
+			Operation op = null;
 
-			if (key.startsWith("+")) {
-				op = Operation.ADD;
-				key = key.substring(1);
-			} else if (key.startsWith("-")) {
-				op = Operation.REMOVE;
-				key = key.substring(1);
-			} else {
-				op = Operation.REPLACE;
+			for (Operation o : Operation.VALUES) {
+				if (key.startsWith(o.operator)) {
+					op = o;
+					key = key.substring(o.operator.length());
+					break;
+				}
 			}
+
+			assert op != null; // should always match since REPLACE has an empty operator string
 
 			ModDependency.Kind kind = ModDependency.Kind.parse(key);
 
@@ -267,6 +267,16 @@ public final class DependencyOverrides {
 	}
 
 	private enum Operation {
-		ADD, REMOVE, REPLACE;
+		ADD("+"),
+		REMOVE("-"),
+		REPLACE(""); // needs to be last to properly match the operator (empty string would match everything)
+
+		static final Operation[] VALUES = values();
+
+		final String operator;
+
+		Operation(String operator) {
+			this.operator = operator;
+		}
 	}
 }

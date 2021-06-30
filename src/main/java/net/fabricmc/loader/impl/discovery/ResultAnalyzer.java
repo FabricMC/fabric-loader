@@ -171,7 +171,7 @@ final class ResultAnalyzer {
 
 		pw.printf("but a matching version is present: %s!\n"
 				+ "\t - The developer(s) of %s have found that version %s of %s critically conflicts with their mod.\n"
-				+ "\t - You must remove one of the mods.",
+				+ "\t - You need to remove one of the mods.",
 				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
 	}
 
@@ -237,7 +237,7 @@ final class ResultAnalyzer {
 			boolean useBrackets = predicates.size() > 1 && terms.size() > 1;
 			if (useBrackets) sb.append('(');
 
-			boolean first = true;;
+			boolean first = true;
 
 			for (PredicateTerm term : terms) {
 				Version version = term.getReferenceVersion();
@@ -271,10 +271,10 @@ final class ResultAnalyzer {
 				case LESS_EQUAL:
 					sb.append(String.format("version %s or earlier", version));
 					break;
-				case REQ_MAJOR:
+				case SAME_TO_MEXT_MAJOR:
 					sb.append(String.format("version %d.x", ((SemanticVersion) version).getVersionComponent(0)));
 					break;
-				case REQ_MAJOR_MINOR: {
+				case SAME_TO_MEXT_MINOR: {
 					SemanticVersion semVer = (SemanticVersion) version;
 					sb.append(String.format("version %d.%d.x", semVer.getVersionComponent(0), semVer.getVersionComponent(1)));
 					break;

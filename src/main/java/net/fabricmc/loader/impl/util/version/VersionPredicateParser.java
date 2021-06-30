@@ -69,7 +69,7 @@ public final class VersionPredicateParser {
 					int compCount = semVer.getVersionComponentCount();
 					assert compCount == 2 || compCount == 3;
 
-					operator = compCount == 2 ? VersionComparisonOperator.REQ_MAJOR : VersionComparisonOperator.REQ_MAJOR_MINOR;
+					operator = compCount == 2 ? VersionComparisonOperator.SAME_TO_MEXT_MAJOR : VersionComparisonOperator.SAME_TO_MEXT_MINOR;
 
 					int[] newComponents = new int[semVer.getVersionComponentCount() - 1];
 
