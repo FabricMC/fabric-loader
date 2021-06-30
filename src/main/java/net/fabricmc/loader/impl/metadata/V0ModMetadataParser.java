@@ -202,7 +202,10 @@ final class V0ModMetadataParser {
 				license = reader.nextString();
 				break;
 			default:
-				warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), key, "Unsupported root entry"));
+				if (!ModMetadataParser.IGNORED_KEYS.contains(key)) {
+					warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), key, "Unsupported root entry"));
+				}
+
 				reader.skipValue();
 				break;
 			}

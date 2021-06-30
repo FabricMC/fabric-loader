@@ -21,7 +21,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
@@ -31,6 +33,10 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class ModMetadataParser {
 	public static final int LATEST_VERSION = 1;
+	/**
+	 * Keys that will be ignored by any mod metadata parser.
+	 */
+	public static final Set<String> IGNORED_KEYS = Collections.singleton("$schema");
 
 	// Per the ECMA-404 (www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf), the JSON spec does not prohibit duplicate keys.
 	// For all intents and purposes of replicating the logic of Gson's fromJson before we have migrated to JsonReader, duplicate keys will replace previous entries.
@@ -63,7 +69,9 @@ public final class ModMetadataParser {
 
 				while (reader.hasNext()) {
 					// Try to read the schemaVersion
-					if (reader.nextName().equals("schemaVersion")) {
+					String nextName = reader.nextName();
+
+					if (nextName.equals("schemaVersion")) {
 						if (reader.peek() != JsonToken.NUMBER) {
 							throw new ParseMetadataException("\"schemaVersion\" must be a number.", reader);
 						}
@@ -80,7 +88,9 @@ public final class ModMetadataParser {
 						reader.skipValue();
 					}
 
-					firstField = false;
+					if (!IGNORED_KEYS.contains(nextName)) {
+						firstField = false;
+					}
 				}
 
 				reader.endObject();
