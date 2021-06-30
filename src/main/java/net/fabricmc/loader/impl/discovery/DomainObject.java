@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.impl.util;
+package net.fabricmc.loader.impl.discovery;
 
-@SuppressWarnings({ "serial" })
-public class UrlConversionException extends Exception {
-	public UrlConversionException() {
-		super();
-	}
+import net.fabricmc.loader.api.Version;
 
-	public UrlConversionException(String s) {
-		super(s);
-	}
+interface DomainObject {
+	String getId();
 
-	public UrlConversionException(Throwable t) {
-		super(t);
-	}
-
-	public UrlConversionException(String s, Throwable t) {
-		super(s, t);
+	interface Mod extends DomainObject {
+		Version getVersion();
 	}
 }

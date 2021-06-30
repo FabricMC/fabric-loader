@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.FileSystemNotFoundException;
@@ -133,7 +134,7 @@ class KnotClassDelegate {
 								}
 							}
 						}
-					} catch (IOException | FileSystemNotFoundException | UrlConversionException e) {
+					} catch (IOException | FileSystemNotFoundException | URISyntaxException e) {
 						if (FabricLauncherBase.getLauncher().isDevelopment()) {
 							System.err.println("Failed to load manifest: " + e);
 							e.printStackTrace();

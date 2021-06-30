@@ -17,7 +17,6 @@
 package net.fabricmc.loader.impl.discovery;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -25,11 +24,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
-import java.util.function.BiConsumer;
-
-import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.impl.util.UrlConversionException;
-import net.fabricmc.loader.impl.util.UrlUtil;
 
 public class DirectoryModCandidateFinder implements ModCandidateFinder {
 	private final Path path;
@@ -41,7 +35,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 	}
 
 	@Override
-	public void findCandidates(FabricLoaderImpl loader, BiConsumer<URL, Boolean> urlProposer) {
+	public void findCandidates(ModCandidateConsumer out) {
 		if (!Files.exists(path)) {
 			try {
 				Files.createDirectory(path);
@@ -70,11 +64,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 					String fileName = file.getFileName().toString();
 
 					if (fileName.endsWith(".jar") && !fileName.startsWith(".") && !Files.isHidden(file)) {
-						try {
-							urlProposer.accept(UrlUtil.asUrl(file), requiresRemap);
-						} catch (UrlConversionException e) {
-							throw new RuntimeException("Failed to convert URL for mod '" + file + "'!", e);
-						}
+						out.accept(file, requiresRemap);
 					}
 
 					return FileVisitResult.CONTINUE;

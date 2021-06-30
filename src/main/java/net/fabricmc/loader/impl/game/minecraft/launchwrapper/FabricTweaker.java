@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -50,7 +52,6 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.SystemProperties;
-import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -144,7 +145,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 				if (remapped != obfuscated) {
 					preloadRemappedJar(remapped);
 				}
-			} catch (IOException | UrlConversionException e) {
+			} catch (IOException | URISyntaxException e) {
 				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);
 			}
 		}
@@ -167,8 +168,12 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
-	public void propose(URL url) {
-		launchClassLoader.addURL(url);
+	public void addToClassPath(Path path) {
+		try {
+			launchClassLoader.addURL(UrlUtil.asUrl(path));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

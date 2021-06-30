@@ -61,8 +61,8 @@ dependencies {
 	implementation 'net.fabricmc:tiny-remapper:0.4.2'
 	implementation 'net.fabricmc:access-widener:1.0.0'
 
-	implementation 'com.google.jimfs:jimfs:1.2-fabric'
-	implementation 'net.fabricmc:fabric-loader-sat4j:2.3.5.4'
+	implementation 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
+	implementation 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 
 	// launchwrapper + dependencies
 	implementation ('net.minecraft:launchwrapper:1.12') {

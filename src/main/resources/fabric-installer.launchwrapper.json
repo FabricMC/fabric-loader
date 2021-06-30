@@ -25,14 +25,6 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:fabric-loader-sat4j:2.3.5.4",
-        "url": "https://maven.fabricmc.net/"
-      },
-      {
-        "name": "com.google.jimfs:jimfs:1.2-fabric",
-        "url": "https://maven.fabricmc.net/"
-      },
-      {
         "name": "org.ow2.asm:asm:9.1",
         "url": "https://maven.fabricmc.net/"
       },

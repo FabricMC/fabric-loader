@@ -16,15 +16,22 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionPredicate;
+import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 /**
  * Represents a dependency.
  */
 public interface ModDependency {
+	/**
+	 * Get the kind of dependency.
+	 */
+	Kind getKind();
+
 	/**
 	 * Returns the ID of the mod to check.
 	 */
@@ -42,5 +49,45 @@ public interface ModDependency {
 	 *
 	 * @return representation of the dependency's version requirements
 	 */
-	Set<VersionPredicate> getVersionRequirements();
+	Collection<VersionPredicate> getVersionRequirements();
+
+	enum Kind {
+		DEPENDS("depends", true),
+		RECOMMENDS("recommends", true),
+		SUGGESTS("suggests", true),
+		CONFLICTS("conflicts", false),
+		BREAKS("breaks", false);
+
+		private static final Map<String, Kind> map = createMap();
+		private final String key;
+		private final boolean positive;
+
+		Kind(String key, boolean positive) {
+			this.key = key;
+			this.positive = positive;
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+		public boolean isPositive() {
+			return positive;
+		}
+
+		public static Kind parse(String key) {
+			return map.get(key);
+		}
+
+		private static Map<String, Kind> createMap() {
+			Kind[] values = values();
+			Map<String, Kind> ret = new HashMap<>(values.length);
+
+			for (Kind kind : values) {
+				ret.put(kind.key, kind);
+			}
+
+			return ret;
+		}
+	}
 }

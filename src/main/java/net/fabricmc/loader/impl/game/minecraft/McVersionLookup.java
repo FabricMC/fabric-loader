@@ -40,10 +40,9 @@ import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
-import net.fabricmc.loader.impl.metadata.ParseMetadataException;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
-import net.fabricmc.loader.impl.util.version.SemanticVersionPredicateParser;
+import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public final class McVersionLookup {
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
@@ -172,24 +171,21 @@ public final class McVersionLookup {
 				switch (reader.nextName()) {
 				case "id":
 					if (reader.peek() != JsonToken.STRING) {
-						// FIXME: Needs its own type?
-						throw new ParseMetadataException("\"id\" in version json must be a string");
+						throw new IOException("\"id\" in version json must be a string");
 					}
 
 					id = reader.nextString();
 					break;
 				case "name":
 					if (reader.peek() != JsonToken.STRING) {
-						// FIXME: Needs its own type?
-						throw new ParseMetadataException("\"name\" in version json must be a string");
+						throw new IOException("\"name\" in version json must be a string");
 					}
 
 					name = reader.nextString();
 					break;
 				case "release_target":
 					if (reader.peek() != JsonToken.STRING) {
-						// FIXME: Needs its own type?
-						throw new ParseMetadataException("\"release_target\" in version json must be a string");
+						throw new IOException("\"release_target\" in version json must be a string");
 					}
 
 					release = reader.nextString();
@@ -214,7 +210,7 @@ public final class McVersionLookup {
 
 				return true;
 			}
-		} catch (IOException | ParseMetadataException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
@@ -368,7 +364,7 @@ public final class McVersionLookup {
 					boolean legacyVersion;
 
 					try {
-						legacyVersion = SemanticVersionPredicateParser.create("<=1.16").test(new SemanticVersionImpl(release, false));
+						legacyVersion = VersionPredicateParser.parse("<=1.16").test(new SemanticVersionImpl(release, false));
 					} catch (VersionParsingException e) {
 						throw new RuntimeException("Failed to parse version: " + release);
 					}

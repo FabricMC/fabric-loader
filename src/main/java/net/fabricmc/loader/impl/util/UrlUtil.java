@@ -52,40 +52,27 @@ public final class UrlUtil {
 		return codeSourceURL;
 	}
 
-	public static File asFile(URL url) throws UrlConversionException {
+	public static Path getSourcePath(String filename, URL resourceURL) throws UrlConversionException {
 		try {
-			return new File(url.toURI());
+			return asPath(getSource(filename, resourceURL));
 		} catch (URISyntaxException e) {
 			throw new UrlConversionException(e);
 		}
 	}
 
-	public static Path asPath(URL url) throws UrlConversionException {
-		if (url.getProtocol().equals("file")) {
-			// TODO: Is this required?
-			return asFile(url).toPath();
-		} else {
-			try {
-				return Paths.get(url.toURI());
-			} catch (URISyntaxException e) {
-				throw new UrlConversionException(e);
-			}
-		}
+	public static File asFile(URL url) throws URISyntaxException {
+		return new File(url.toURI());
 	}
 
-	public static URL asUrl(File file) throws UrlConversionException {
-		try {
-			return file.toURI().toURL();
-		} catch (MalformedURLException e) {
-			throw new UrlConversionException(e);
-		}
+	public static Path asPath(URL url) throws URISyntaxException {
+		return Paths.get(url.toURI());
 	}
 
-	public static URL asUrl(Path path) throws UrlConversionException {
-		try {
-			return new URL(null, path.toUri().toString());
-		} catch (MalformedURLException e) {
-			throw new UrlConversionException(e);
-		}
+	public static URL asUrl(File file) throws MalformedURLException {
+		return file.toURI().toURL();
+	}
+
+	public static URL asUrl(Path path) throws MalformedURLException {
+		return path.toUri().toURL();
 	}
 }

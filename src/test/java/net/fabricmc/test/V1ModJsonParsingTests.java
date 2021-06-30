@@ -23,7 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -64,12 +67,12 @@ final class V1ModJsonParsingTests {
 	@DisplayName("Test required values")
 	public void testRequiredValues() throws IOException, ParseMetadataException {
 		// Required fields
-		final LoaderModMetadata metadata = ModMetadataParser.parseMetadata(specPath.resolve("required.json"));
+		final LoaderModMetadata metadata = parseMetadata(specPath.resolve("required.json"));
 		assertNotNull(metadata, "Failed to read mod metadata!");
 		validateRequiredValues(metadata);
 
 		// Required fields in different order to verify we don't have ordering issues
-		final LoaderModMetadata reversedMetadata = ModMetadataParser.parseMetadata(specPath.resolve("required_reversed.json"));
+		final LoaderModMetadata reversedMetadata = parseMetadata(specPath.resolve("required_reversed.json"));
 		assertNotNull(reversedMetadata, "Failed to read mod metadata!");
 		validateRequiredValues(reversedMetadata);
 	}
@@ -77,7 +80,7 @@ final class V1ModJsonParsingTests {
 	@Test
 	@DisplayName("Read custom values")
 	public void customValues() throws IOException, ParseMetadataException {
-		final LoaderModMetadata metadata = ModMetadataParser.parseMetadata(specPath.resolve("custom_values.json"));
+		final LoaderModMetadata metadata = parseMetadata(specPath.resolve("custom_values.json"));
 
 		final Map<String, CustomValue> customValues = metadata.getCustomValues();
 		// Should be 6 elements in custom values map
@@ -122,7 +125,7 @@ final class V1ModJsonParsingTests {
 	@Test
 	@DisplayName("Test example 1")
 	public void example1() throws IOException, ParseMetadataException {
-		ModMetadataParser.parseMetadata(specPath.resolve("example_1.json"));
+		parseMetadata(specPath.resolve("example_1.json"));
 	}
 
 	private void validateRequiredValues(LoaderModMetadata metadata) {
@@ -141,13 +144,13 @@ final class V1ModJsonParsingTests {
 	@Test
 	@DisplayName("Long test file")
 	public void testLongFile() throws IOException, ParseMetadataException {
-		final LoaderModMetadata modMetadata = ModMetadataParser.parseMetadata(specPath.resolve("long.json"));
+		final LoaderModMetadata modMetadata = parseMetadata(specPath.resolve("long.json"));
 
 		if (!modMetadata.getAccessWidener().equals("examplemod.accessWidener")) {
 			throw new RuntimeException("Incorrect access widener entry");
 		}
 
-		if (modMetadata.getDepends().isEmpty()) {
+		if (modMetadata.getDependencies().isEmpty()) {
 			throw new RuntimeException("Incorrect amount of dependencies");
 		}
 	}
@@ -159,15 +162,15 @@ final class V1ModJsonParsingTests {
 	@Test
 	public void verifyMissingVersionFails() {
 		// Missing version should throw an exception
-		assertThrows(ParseMetadataException.MissingRequired.class, () -> {
-			ModMetadataParser.parseMetadata(errorPath.resolve("missing_version.json"));
+		assertThrows(ParseMetadataException.MissingField.class, () -> {
+			parseMetadata(errorPath.resolve("missing_version.json"));
 		}, "Missing version exception was not caught");
 	}
 
 	@Test
 	public void validateDuplicateSchemaVersionMismatchFails() {
 		assertThrows(ParseMetadataException.class, () -> {
-			ModMetadataParser.parseMetadata(errorPath.resolve("missing_version.json"));
+			parseMetadata(errorPath.resolve("missing_version.json"));
 		}, "Parser did not fail when the duplicate \"schemaVersion\" mismatches");
 	}
 
@@ -177,4 +180,10 @@ final class V1ModJsonParsingTests {
 
 	@Test
 	public void testWarnings() { }
+
+	private static LoaderModMetadata parseMetadata(Path path) throws IOException, ParseMetadataException {
+		try (InputStream is = Files.newInputStream(path)) {
+			return ModMetadataParser.parseMetadata(null, "dummy", Collections.emptyList());
+		}
+	}
 }

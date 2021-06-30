@@ -35,7 +35,7 @@ import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.Person;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
-import net.fabricmc.loader.impl.util.version.VersionDeserializer;
+import net.fabricmc.loader.impl.util.version.VersionParser;
 
 final class V1ModMetadataParser {
 	/**
@@ -65,15 +65,9 @@ final class V1ModMetadataParser {
 		String accessWidener = null;
 
 		// Optional (dependency resolution)
-		Map<String, ModDependency> depends = new HashMap<>();
-		Map<String, ModDependency> recommends = new HashMap<>();
-		Map<String, ModDependency> suggests = new HashMap<>();
-		Map<String, ModDependency> conflicts = new HashMap<>();
-		Map<String, ModDependency> breaks = new HashMap<>();
-
+		List<ModDependency> dependencies = new ArrayList<>();
 		// Happy little accidents
-		@Deprecated
-		Map<String, ModDependency> requires = new HashMap<>();
+		boolean hasRequires = false;
 
 		// Optional (metadata)
 		String name = null;
@@ -121,7 +115,7 @@ final class V1ModMetadataParser {
 				}
 
 				try {
-					version = VersionDeserializer.deserialize(reader.nextString());
+					version = VersionParser.parse(reader.nextString(), false);
 				} catch (VersionParsingException e) {
 					throw new ParseMetadataException("Failed to parse version", e);
 				}
@@ -154,22 +148,23 @@ final class V1ModMetadataParser {
 				accessWidener = reader.nextString();
 				break;
 			case "depends":
-				readDependenciesContainer(reader, depends);
+				readDependenciesContainer(reader, ModDependency.Kind.DEPENDS, dependencies);
 				break;
 			case "recommends":
-				readDependenciesContainer(reader, recommends);
+				readDependenciesContainer(reader, ModDependency.Kind.RECOMMENDS, dependencies);
 				break;
 			case "suggests":
-				readDependenciesContainer(reader, suggests);
+				readDependenciesContainer(reader, ModDependency.Kind.SUGGESTS, dependencies);
 				break;
 			case "conflicts":
-				readDependenciesContainer(reader, conflicts);
+				readDependenciesContainer(reader, ModDependency.Kind.CONFLICTS, dependencies);
 				break;
 			case "breaks":
-				readDependenciesContainer(reader, breaks);
+				readDependenciesContainer(reader, ModDependency.Kind.BREAKS, dependencies);
 				break;
 			case "requires":
-				readDependenciesContainer(reader, requires);
+				hasRequires = true;
+				reader.skipValue();
 				break;
 			case "name":
 				if (reader.peek() != JsonToken.STRING) {
@@ -218,16 +213,19 @@ final class V1ModMetadataParser {
 
 		// Validate all required fields are resolved
 		if (id == null) {
-			throw new ParseMetadataException.MissingRequired("id");
+			throw new ParseMetadataException.MissingField("id");
 		}
 
 		if (version == null) {
-			throw new ParseMetadataException.MissingRequired("version");
+			throw new ParseMetadataException.MissingField("version");
 		}
 
 		ModMetadataParser.logWarningMessages(id, warnings);
 
-		return new V1ModMetadata(id, version, provides, environment, entrypoints, jars, mixins, accessWidener, depends, recommends, suggests, conflicts, breaks, requires, name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
+		return new V1ModMetadata(id, version, provides,
+				environment, entrypoints, jars, mixins, accessWidener,
+				dependencies, hasRequires,
+				name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
 	}
 
 	private static void readProvides(JsonReader reader, List<String> provides) throws IOException, ParseMetadataException {
@@ -316,7 +314,7 @@ final class V1ModMetadataParser {
 				}
 
 				if (value == null) {
-					throw new ParseMetadataException.MissingRequired("Entrypoint value must be present");
+					throw new ParseMetadataException.MissingField("Entrypoint value must be present");
 				}
 
 				metadata.add(new V1ModMetadata.EntrypointMetadataImpl(adapter, value));
@@ -420,7 +418,7 @@ final class V1ModMetadataParser {
 				}
 
 				if (config == null) {
-					throw new ParseMetadataException.MissingRequired("Missing mandatory key 'config' in mixin entry!");
+					throw new ParseMetadataException.MissingField("Missing mandatory key 'config' in mixin entry!");
 				}
 
 				mixins.add(new V1ModMetadata.MixinEntry(config, environment));
@@ -435,7 +433,7 @@ final class V1ModMetadataParser {
 		reader.endArray();
 	}
 
-	private static void readDependenciesContainer(JsonReader reader, Map<String, ModDependency> modDependencies) throws IOException, ParseMetadataException {
+	private static void readDependenciesContainer(JsonReader reader, ModDependency.Kind kind, List<ModDependency> out) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Dependency container must be an object!", reader);
 		}
@@ -467,7 +465,11 @@ final class V1ModMetadataParser {
 				throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
 			}
 
-			modDependencies.put(modId, new ModDependencyImpl(modId, matcherStringList));
+			try {
+				out.add(new ModDependencyImpl(kind, modId, matcherStringList));
+			} catch (VersionParsingException e) {
+				throw new ParseMetadataException(e);
+			}
 		}
 
 		reader.endObject();
@@ -518,7 +520,7 @@ final class V1ModMetadataParser {
 				reader.endObject();
 
 				if (personName == null) {
-					throw new ParseMetadataException.MissingRequired("Person object must have a 'name' field!");
+					throw new ParseMetadataException.MissingField("Person object must have a 'name' field!");
 				}
 
 				if (contactInformation == null) {

@@ -16,8 +16,11 @@
 
 package net.fabricmc.loader;
 
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 
+import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.metadata.LoaderModMetadata;
 
 /**
@@ -26,5 +29,13 @@ import net.fabricmc.loader.metadata.LoaderModMetadata;
 @Deprecated
 public abstract class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	public abstract LoaderModMetadata getInfo();
-	public abstract URL getOriginUrl();
+	protected abstract Path getOriginPath();
+
+	public URL getOriginUrl() {
+		try {
+			return UrlUtil.asUrl(getOriginPath());
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

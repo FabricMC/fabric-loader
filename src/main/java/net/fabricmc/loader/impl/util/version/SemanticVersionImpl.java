@@ -23,6 +23,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 
 public class SemanticVersionImpl implements SemanticVersion {
@@ -72,7 +73,8 @@ public class SemanticVersionImpl implements SemanticVersion {
 			throw new VersionParsingException("Did not provide version numbers!");
 		}
 
-		components = new int[componentStrings.length];
+		int[] components = new int[componentStrings.length];
+		int firstWildcardIdx = -1;
 
 		for (int i = 0; i < componentStrings.length; i++) {
 			String compStr = componentStrings[i];
@@ -84,6 +86,7 @@ public class SemanticVersionImpl implements SemanticVersion {
 					}
 
 					components[i] = COMPONENT_WILDCARD;
+					if (firstWildcardIdx < 0) firstWildcardIdx = i;
 					continue;
 				} else if (i > 0 && components[i - 1] == COMPONENT_WILDCARD) {
 					throw new VersionParsingException("Interjacent wildcard (1.x.2) are disallowed!");
@@ -108,6 +111,23 @@ public class SemanticVersionImpl implements SemanticVersion {
 		if (storeX && components.length == 1 && components[0] == COMPONENT_WILDCARD) {
 			throw new VersionParsingException("Versions of form 'x' or 'X' not allowed!");
 		}
+
+		// strip extra wildcards (1.x.x -> 1.x)
+		if (firstWildcardIdx > 0 && components.length > firstWildcardIdx + 1) {
+			components = Arrays.copyOf(components, firstWildcardIdx + 1);
+		}
+
+		this.components = components;
+
+		buildFriendlyName();
+	}
+
+	public SemanticVersionImpl(int[] components, String prerelease, String build) {
+		if (components.length == 0 || components[0] == COMPONENT_WILDCARD) throw new IllegalArgumentException("Invalid components: "+Arrays.toString(components));
+
+		this.components = components;
+		this.prerelease = prerelease;
+		this.build = build;
 
 		buildFriendlyName();
 	}
@@ -156,6 +176,10 @@ public class SemanticVersionImpl implements SemanticVersion {
 		} else {
 			return components[pos];
 		}
+	}
+
+	public int[] getVersionComponents() {
+		return components.clone();
 	}
 
 	@Override
@@ -224,7 +248,13 @@ public class SemanticVersionImpl implements SemanticVersion {
 	}
 
 	@Override
-	public int compareTo(SemanticVersion o) {
+	public int compareTo(Version other) {
+		if (!(other instanceof SemanticVersion)) {
+			return 1;
+		}
+
+		SemanticVersion o = (SemanticVersion) other;
+
 		for (int i = 0; i < Math.max(getVersionComponentCount(), o.getVersionComponentCount()); i++) {
 			int first = getVersionComponent(i);
 			int second = o.getVersionComponent(i);

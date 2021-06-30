@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.impl.util.version;
+package net.fabricmc.loader.impl.discovery;
 
-import java.util.function.Predicate;
-
-import net.fabricmc.loader.api.VersionParsingException;
-
-public final class StringVersionPredicateParser {
-	public static Predicate<StringVersion> create(String text) throws VersionParsingException {
-		final String compared = text.trim();
-
-		if (compared.equals("*")) {
-			return (t) -> true;
-		} else {
-			return (t) -> compared.equals(t.getFriendlyString());
-		}
-	}
+public enum ModLoadCondition {
+	// each includes all later conditions (e.g. IF_POSSIBLE = IF_POSSIBLE + IF_RECOMMENDED + IF_NEEDED)
+	ALWAYS, IF_POSSIBLE, IF_RECOMMENDED, IF_NEEDED;
 }

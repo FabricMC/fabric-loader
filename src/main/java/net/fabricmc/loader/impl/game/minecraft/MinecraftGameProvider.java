@@ -18,8 +18,6 @@ package net.fabricmc.loader.impl.game.minecraft;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +28,8 @@ import java.util.List;
 import java.util.Optional;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
@@ -79,23 +79,20 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public Collection<BuiltinMod> getBuiltinMods() {
-		URL url;
-
-		try {
-			url = gameJar.toUri().toURL();
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-
 		BuiltinModMetadata.Builder metadata = new BuiltinModMetadata.Builder(getGameId(), getNormalizedGameVersion())
 				.setName(getGameName());
 
 		if (versionData.getClassVersion().isPresent()) {
 			int version = versionData.getClassVersion().getAsInt() - 44;
-			metadata.addDepends(new ModDependencyImpl("java", Collections.singletonList(String.format(">=%d", version))));
+
+			try {
+				metadata.addDependency(new ModDependencyImpl(ModDependency.Kind.DEPENDS, "java", Collections.singletonList(String.format(">=%d", version))));
+			} catch (VersionParsingException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
-		return Arrays.asList(new BuiltinMod(url, metadata.build()));
+		return Collections.singletonList(new BuiltinMod(gameJar, metadata.build()));
 	}
 
 	public Path getGameJar() {

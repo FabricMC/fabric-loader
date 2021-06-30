@@ -68,28 +68,8 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	}
 
 	@Override
-	public Collection<ModDependency> getDepends() {
-		return parent.getDepends();
-	}
-
-	@Override
-	public Collection<ModDependency> getRecommends() {
-		return parent.getRecommends();
-	}
-
-	@Override
-	public Collection<ModDependency> getSuggests() {
-		return parent.getSuggests();
-	}
-
-	@Override
-	public Collection<ModDependency> getConflicts() {
-		return parent.getConflicts();
-	}
-
-	@Override
-	public Collection<ModDependency> getBreaks() {
-		return parent.getBreaks();
+	public Collection<ModDependency> getDependencies() {
+		return parent.getDependencies();
 	}
 
 	@Override
