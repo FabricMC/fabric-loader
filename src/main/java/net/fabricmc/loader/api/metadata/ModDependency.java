@@ -16,15 +16,22 @@
 
 package net.fabricmc.loader.api.metadata;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionPredicate;
+import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 /**
  * Represents a dependency.
  */
 public interface ModDependency {
+	/**
+	 * Get the kind of dependency.
+	 */
+	Kind getKind();
+
 	/**
 	 * Returns the ID of the mod to check.
 	 */
@@ -42,5 +49,63 @@ public interface ModDependency {
 	 *
 	 * @return representation of the dependency's version requirements
 	 */
-	Set<VersionPredicate> getVersionRequirements();
+	Collection<VersionPredicate> getVersionRequirements();
+
+	enum Kind {
+		DEPENDS("depends", true, false),
+		RECOMMENDS("recommends", true, true),
+		SUGGESTS("suggests", true, true),
+		CONFLICTS("conflicts", false, true),
+		BREAKS("breaks", false, false);
+
+		private static final Map<String, Kind> map = createMap();
+		private final String key;
+		private final boolean positive;
+		private final boolean soft;
+
+		Kind(String key, boolean positive, boolean soft) {
+			this.key = key;
+			this.positive = positive;
+			this.soft = soft;
+		}
+
+		/**
+		 * Get the key for the dependency as used by fabric.mod.json (v1+) and dependency overrides.
+		 */
+		public String getKey() {
+			return key;
+		}
+
+		/**
+		 * Get whether the dependency is positive, encouraging the inclusion of a mod instead of negative/discouraging.
+		 */
+		public boolean isPositive() {
+			return positive;
+		}
+
+		/**
+		 * Get whether it is a soft dependency, allowing the mod to still load if the dependency is unmet.
+		 */
+		public boolean isSoft() {
+			return soft;
+		}
+
+		/**
+		 * Parse a dependency kind from its key as provided by {@link #getKey}.
+		 */
+		public static Kind parse(String key) {
+			return map.get(key);
+		}
+
+		private static Map<String, Kind> createMap() {
+			Kind[] values = values();
+			Map<String, Kind> ret = new HashMap<>(values.length);
+
+			for (Kind kind : values) {
+				ret.put(kind.key, kind);
+			}
+
+			return ret;
+		}
+	}
 }

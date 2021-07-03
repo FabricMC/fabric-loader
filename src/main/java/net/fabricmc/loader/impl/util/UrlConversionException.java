@@ -16,8 +16,8 @@
 
 package net.fabricmc.loader.impl.util;
 
-@SuppressWarnings({ "serial", "deprecation" })
-public class UrlConversionException extends net.fabricmc.loader.util.UrlConversionException {
+@SuppressWarnings({ "serial" })
+public class UrlConversionException extends Exception {
 	public UrlConversionException() {
 		super();
 	}

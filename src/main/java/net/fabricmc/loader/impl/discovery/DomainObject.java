@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.impl.util.version;
+package net.fabricmc.loader.impl.discovery;
 
-import java.util.function.Predicate;
+import net.fabricmc.loader.api.Version;
 
-import net.fabricmc.loader.api.VersionParsingException;
+interface DomainObject {
+	String getId();
 
-public final class StringVersionPredicateParser {
-	public static Predicate<StringVersion> create(String text) throws VersionParsingException {
-		final String compared = text.trim();
-
-		if (compared.equals("*")) {
-			return (t) -> true;
-		} else {
-			return (t) -> compared.equals(t.getFriendlyString());
-		}
+	interface Mod extends DomainObject {
+		Version getVersion();
 	}
 }

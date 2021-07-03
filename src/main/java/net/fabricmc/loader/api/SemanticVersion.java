@@ -18,7 +18,7 @@ package net.fabricmc.loader.api;
 
 import java.util.Optional;
 
-import net.fabricmc.loader.impl.util.version.VersionDeserializer;
+import net.fabricmc.loader.impl.util.version.VersionParser;
 
 /**
  * Represents a <a href="https://semver.org/">Sematic Version</a>.
@@ -28,7 +28,7 @@ import net.fabricmc.loader.impl.util.version.VersionDeserializer;
  *
  * @see Version
  */
-public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
+public interface SemanticVersion extends Version {
 	/**
 	 * The value of {@linkplain #getVersionComponent(int) version component} that indicates
 	 * a {@linkplain #hasWildcard() wildcard}.
@@ -87,16 +87,12 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 	boolean hasWildcard();
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>Comparison of semantic versions is by the version components, from high to low;
-	 * then it falls back to comparing the prerelease notations.</p>
-	 *
-	 * @param o the other version
-	 * @return the result of comparison
+	 * @deprecated Use {@link #compareTo(Version)} instead
 	 */
-	@Override
-	int compareTo(SemanticVersion o);
+	@Deprecated
+	default int compareTo(SemanticVersion o) {
+		return compareTo((Version) o);
+	}
 
 	/**
 	 * Parses a semantic version from a string notation.
@@ -106,6 +102,6 @@ public interface SemanticVersion extends Version, Comparable<SemanticVersion> {
 	 * @throws VersionParsingException if a problem arises during version parsing
 	 */
 	static SemanticVersion parse(String s) throws VersionParsingException {
-		return VersionDeserializer.deserializeSemantic(s);
+		return VersionParser.parseSemantic(s);
 	}
 }

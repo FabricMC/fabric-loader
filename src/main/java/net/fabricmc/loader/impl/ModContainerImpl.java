@@ -17,25 +17,24 @@
 package net.fabricmc.loader.impl;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
-import net.fabricmc.loader.impl.util.UrlConversionException;
-import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 @SuppressWarnings("deprecation")
 public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	private final LoaderModMetadata info;
-	private final URL originUrl;
+	private final Path originPath;
 	private volatile Path root;
 
-	public ModContainerImpl(LoaderModMetadata info, URL originUrl) {
+	public ModContainerImpl(LoaderModMetadata info, Path originPath) {
 		this.info = info;
-		this.originUrl = originUrl;
+		this.originPath = originPath;
 	}
 
 	@Override
@@ -44,34 +43,44 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	}
 
 	@Override
+	protected Path getOriginPath() {
+		return originPath;
+	}
+
+	@Override
 	public Path getRootPath() {
 		Path ret = root;
 
-		if (ret == null) {
+		if (ret == null || !ret.getFileSystem().isOpen()) {
+			if (ret != null && !warned) {
+				if (!FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) warned = true;
+				Log.warn(LogCategory.GENERAL, "FileSystem for %s has been closed unexpectedly, existing root path references may break!", this);
+			}
+
 			root = ret = obtainRootPath(); // obtainRootPath is thread safe, but we need to avoid plain or repeated reads to root
 		}
 
 		return ret;
 	}
 
+	private boolean warned = false;
+
 	private Path obtainRootPath() {
 		try {
-			Path holder = UrlUtil.asPath(originUrl).toAbsolutePath();
-
-			if (Files.isDirectory(holder)) {
-				return holder;
+			if (Files.isDirectory(originPath)) {
+				return originPath;
 			} else /* JAR */ {
-				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(holder, false);
+				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(originPath, false);
 
 				if (delegate.get() == null) {
-					throw new RuntimeException("Could not open JAR file " + holder.getFileName() + " for NIO reading!");
+					throw new RuntimeException("Could not open JAR file " + originPath + " for NIO reading!");
 				}
 
 				return delegate.get().getRootDirectories().iterator().next();
 
 				// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
 			}
-		} catch (IOException | UrlConversionException e) {
+		} catch (IOException e) {
 			throw new RuntimeException("Failed to find root directory for mod '" + info.getId() + "'!", e);
 		}
 	}
@@ -82,7 +91,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	}
 
 	@Override
-	public URL getOriginUrl() {
-		return originUrl;
+	public String toString() {
+		return String.format("%s %s", info.getId(), info.getVersion());
 	}
 }

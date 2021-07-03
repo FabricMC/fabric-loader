@@ -25,22 +25,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 
 public final class DependencyOverrides {
-	private static final Collection<String> ALLOWED_KEYS = new HashSet<>(Arrays.asList("depends", "recommends", "suggests", "conflicts", "breaks"));
 	public static final DependencyOverrides INSTANCE = new DependencyOverrides();
 
 	private final boolean exists;
-	private final Map<String, Map<String, Map<String, ModDependency>>> dependencyOverrides;
+	private final Map<String, List<Entry>> dependencyOverrides;
 
 	private DependencyOverrides() {
 		Path path = FabricLoaderImpl.INSTANCE.getConfigDir().resolve("fabric_loader_dependencies.json");
@@ -58,12 +60,12 @@ public final class DependencyOverrides {
 		}
 	}
 
-	private static Map<String, Map<String, Map<String, ModDependency>>> parse(JsonReader reader) throws ParseMetadataException, IOException {
+	private static Map<String, List<Entry>> parse(JsonReader reader) throws ParseMetadataException, IOException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Root must be an object", reader);
 		}
 
-		Map<String, Map<String, Map<String, ModDependency>>> dependencyOverrides = new HashMap<>();
+		Map<String, List<Entry>> ret = new HashMap<>();
 		reader.beginObject();
 
 		if (!reader.nextName().equals("version")) {
@@ -83,7 +85,7 @@ public final class DependencyOverrides {
 				while (reader.hasNext()) {
 					String modId = reader.nextName();
 
-					dependencyOverrides.put(modId, readKeys(reader));
+					ret.put(modId, readKeys(reader));
 				}
 
 				reader.endObject();
@@ -93,37 +95,77 @@ public final class DependencyOverrides {
 		}
 
 		reader.endObject();
-		return dependencyOverrides;
+
+		return ret;
 	}
 
-	private static Map<String, Map<String, ModDependency>> readKeys(JsonReader reader) throws IOException, ParseMetadataException {
+	private static List<Entry> readKeys(JsonReader reader) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Dependency container must be an object!", reader);
 		}
 
-		Map<String, Map<String, ModDependency>> containersMap = new HashMap<>();
+		Map<ModDependency.Kind, Map<Operation, List<ModDependency>>> modOverrides = new EnumMap<>(ModDependency.Kind.class);
 		reader.beginObject();
 
 		while (reader.hasNext()) {
 			String key = reader.nextName();
+			Operation op = null;
 
-			if (!ALLOWED_KEYS.contains(key.replaceAll("^[+-]", ""))) {
-				throw new ParseMetadataException(key + " is not an allowed dependency key, must be one of: " + String.join(", ", ALLOWED_KEYS), reader);
+			for (Operation o : Operation.VALUES) {
+				if (key.startsWith(o.operator)) {
+					op = o;
+					key = key.substring(o.operator.length());
+					break;
+				}
 			}
 
-			containersMap.put(key, readDependenciesContainer(reader));
+			assert op != null; // should always match since REPLACE has an empty operator string
+
+			ModDependency.Kind kind = ModDependency.Kind.parse(key);
+
+			if (kind == null) {
+				throw new ParseMetadataException(String.format("%s is not an allowed dependency key, must be one of: %s",
+						key, Arrays.stream(ModDependency.Kind.values()).map(ModDependency.Kind::getKey).collect(Collectors.joining(", "))),
+						reader);
+			}
+
+			List<ModDependency> deps = readDependencies(reader, kind);
+
+			if (!deps.isEmpty() || op == Operation.REPLACE) {
+				modOverrides.computeIfAbsent(kind, ignore -> new EnumMap<>(Operation.class)).put(op, deps);
+			}
 		}
 
 		reader.endObject();
-		return containersMap;
+
+		List<Entry> ret = new ArrayList<>();
+
+		for (Map.Entry<ModDependency.Kind, Map<Operation, List<ModDependency>>> entry : modOverrides.entrySet()) {
+			ModDependency.Kind kind = entry.getKey();
+			Map<Operation, List<ModDependency>> map = entry.getValue();
+
+			List<ModDependency> values = map.get(Operation.REPLACE);
+
+			if (values != null) {
+				ret.add(new Entry(Operation.REPLACE, kind, values)); // suppresses add+remove
+			} else {
+				values = map.get(Operation.REMOVE);
+				if (values != null) ret.add(new Entry(Operation.REMOVE, kind, values));
+
+				values = map.get(Operation.ADD); // after remove
+				if (values != null) ret.add(new Entry(Operation.ADD, kind, values));
+			}
+		}
+
+		return ret;
 	}
 
-	private static Map<String, ModDependency> readDependenciesContainer(JsonReader reader) throws IOException, ParseMetadataException {
+	private static List<ModDependency> readDependencies(JsonReader reader, ModDependency.Kind kind) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Dependency container must be an object!", reader);
 		}
 
-		Map<String, ModDependency> modDependencyMap = new HashMap<>();
+		List<ModDependency> ret = new ArrayList<>();
 		reader.beginObject();
 
 		while (reader.hasNext()) {
@@ -151,50 +193,90 @@ public final class DependencyOverrides {
 				throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
 			}
 
-			modDependencyMap.put(modId, new ModDependencyImpl(modId, matcherStringList));
+			try {
+				ret.add(new ModDependencyImpl(kind, modId, matcherStringList));
+			} catch (VersionParsingException e) {
+				throw new ParseMetadataException(e);
+			}
 		}
 
 		reader.endObject();
-		return modDependencyMap;
+
+		return ret;
 	}
 
-	public Map<String, ModDependency> getActiveDependencyMap(String key, String modId, Map<String, ModDependency> defaultMap) {
-		if (!exists) return defaultMap;
+	public Collection<ModDependency> apply(String modId, Collection<ModDependency> dependencies) {
+		if (!exists) return dependencies;
 
-		Map<String, Map<String, ModDependency>> modOverrides = dependencyOverrides.get(modId);
+		List<Entry> modOverrides = dependencyOverrides.get(modId);
+		if (modOverrides == null) return dependencies;
 
-		if (modOverrides == null) {
-			// No overrides return the default
-			return defaultMap;
+		List<ModDependency> ret = new ArrayList<>(dependencies);
+
+		for (Entry entry : modOverrides) {
+			switch (entry.operation) {
+			case REPLACE:
+				for (Iterator<ModDependency> it = ret.iterator(); it.hasNext(); ) {
+					ModDependency dep = it.next();
+
+					if (dep.getKind() == entry.kind) {
+						it.remove();
+					}
+				}
+
+				ret.addAll(entry.values);
+				break;
+			case REMOVE:
+				for (Iterator<ModDependency> it = ret.iterator(); it.hasNext(); ) {
+					ModDependency dep = it.next();
+
+					if (dep.getKind() == entry.kind) {
+						for (ModDependency value : entry.values) {
+							if (value.getModId().equals(dep.getModId())) {
+								it.remove();
+								break;
+							}
+						}
+					}
+				}
+
+				break;
+			case ADD:
+				ret.addAll(entry.values);
+				break;
+			}
 		}
 
-		Map<String, ModDependency> override = modOverrides.get(key);
-
-		if (override != null) {
-			return Collections.unmodifiableMap(override);
-		}
-
-		Map<String, ModDependency> removals = modOverrides.get("-" + key);
-		Map<String, ModDependency> additions = modOverrides.get("+" + key);
-
-		if (additions == null && removals == null) {
-			return defaultMap;
-		}
-
-		Map<String, ModDependency> modifiedMap = new HashMap<>(defaultMap);
-
-		if (removals != null) {
-			removals.keySet().forEach(modifiedMap::remove);
-		}
-
-		if (additions != null) {
-			modifiedMap.putAll(additions);
-		}
-
-		return Collections.unmodifiableMap(modifiedMap);
+		return ret;
 	}
 
-	public Map<String, Map<String, Map<String, ModDependency>>> getDependencyOverrides() {
-		return dependencyOverrides;
+	public Collection<String> getDependencyOverrides() {
+		return dependencyOverrides.keySet();
+	}
+
+	private static final class Entry {
+		final Operation operation;
+		final ModDependency.Kind kind;
+		final List<ModDependency> values;
+
+		Entry(Operation operation, ModDependency.Kind kind, List<ModDependency> values) {
+			this.operation = operation;
+			this.kind = kind;
+			this.values = values;
+		}
+	}
+
+	private enum Operation {
+		ADD("+"),
+		REMOVE("-"),
+		REPLACE(""); // needs to be last to properly match the operator (empty string would match everything)
+
+		static final Operation[] VALUES = values();
+
+		final String operator;
+
+		Operation(String operator) {
+			this.operator = operator;
+		}
 	}
 }

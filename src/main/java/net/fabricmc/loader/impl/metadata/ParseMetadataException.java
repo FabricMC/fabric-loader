@@ -16,10 +16,15 @@
 
 package net.fabricmc.loader.impl.metadata;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 
 @SuppressWarnings("serial")
 public class ParseMetadataException extends Exception {
+	private List<String> modPaths;
+
 	public ParseMetadataException(String message) {
 		super(message);
 	}
@@ -36,8 +41,32 @@ public class ParseMetadataException extends Exception {
 		super(t);
 	}
 
-	public static class MissingRequired extends ParseMetadataException {
-		public MissingRequired(String field) {
+	void setModPaths(String modPath, List<String> modParentPaths) {
+		modPaths = new ArrayList<>(modParentPaths);
+		modPaths.add(modPath);
+	}
+
+	@Override
+	public String getMessage() {
+		String ret = "Error reading fabric.mod.json file for mod at ";
+
+		if (modPaths == null) {
+			ret += "unknown location";
+		} else {
+			ret += String.join(" -> ", modPaths);
+		}
+
+		String msg = super.getMessage();
+
+		if (msg != null) {
+			ret += ": "+msg;
+		}
+
+		return ret;
+	}
+
+	public static class MissingField extends ParseMetadataException {
+		public MissingField(String field) {
 			super(String.format("Missing required field \"%s\".", field));
 		}
 	}

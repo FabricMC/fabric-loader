@@ -19,6 +19,7 @@ package net.fabricmc.loader.api.metadata;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.Version;
 
@@ -67,29 +68,59 @@ public interface ModMetadata {
 	ModEnvironment getEnvironment();
 
 	/**
-	 * Returns the mod's required dependencies, without which the Loader will terminate loading.
+	 * Returns all of the mod's dependencies.
 	 */
-	Collection<ModDependency> getDepends();
+	Collection<ModDependency> getDependencies();
+
+	/**
+	 * Returns the mod's required dependencies, without which the Loader will terminate loading.
+	 *
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#DEPENDS} instead
+	 */
+	@Deprecated
+	default Collection<ModDependency> getDepends() {
+		return getDependencies().stream().filter(d -> d.getKind() == ModDependency.Kind.DEPENDS).collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the mod's recommended dependencies, without which the Loader will emit a warning.
+	 *
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#RECOMMENDS} instead
 	 */
-	Collection<ModDependency> getRecommends();
+	@Deprecated
+	default Collection<ModDependency> getRecommends() {
+		return getDependencies().stream().filter(d -> d.getKind() == ModDependency.Kind.RECOMMENDS).collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the mod's suggested dependencies.
+	 *
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#SUGGESTS} instead
 	 */
-	Collection<ModDependency> getSuggests();
+	@Deprecated
+	default Collection<ModDependency> getSuggests() {
+		return getDependencies().stream().filter(d -> d.getKind() == ModDependency.Kind.SUGGESTS).collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the mod's conflicts, with which the Loader will emit a warning.
+	 *
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#CONFLICTS} instead
 	 */
-	Collection<ModDependency> getConflicts();
+	@Deprecated
+	default Collection<ModDependency> getConflicts() {
+		return getDependencies().stream().filter(d -> d.getKind() == ModDependency.Kind.CONFLICTS).collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the mod's conflicts, with which the Loader will terminate loading.
+	 *
+	 * @deprecated Use {@link #getDependencies()} and filter for {@link ModDependency.Kind#BREAKS} instead
 	 */
-	Collection<ModDependency> getBreaks();
+	@Deprecated
+	default Collection<ModDependency> getBreaks() {
+		return getDependencies().stream().filter(d -> d.getKind() == ModDependency.Kind.BREAKS).collect(Collectors.toList());
+	}
 
 	/**
 	 * Returns the mod's display name.

@@ -16,25 +16,30 @@
 
 package net.fabricmc.loader.impl.metadata;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.api.VersionPredicate;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
+import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 public final class ModDependencyImpl implements ModDependency {
+	private final Kind kind;
 	private final String modId;
 	private final List<String> matcherStringList;
-	private Set<VersionPredicate> ranges;
+	private final Collection<VersionPredicate> ranges;
 
-	public ModDependencyImpl(String modId, List<String> matcherStringList) {
+	public ModDependencyImpl(Kind kind, String modId, List<String> matcherStringList) throws VersionParsingException {
+		this.kind = kind;
 		this.modId = modId;
 		this.matcherStringList = matcherStringList;
+		this.ranges = VersionPredicate.parse(this.matcherStringList);
+	}
+
+	@Override
+	public Kind getKind() {
+		return kind;
 	}
 
 	@Override
@@ -44,15 +49,8 @@ public final class ModDependencyImpl implements ModDependency {
 
 	@Override
 	public boolean matches(Version version) {
-		for (String s : this.matcherStringList) {
-			try {
-				if (VersionPredicateParser.matches(version, s)) {
-					return true;
-				}
-			} catch (VersionParsingException e) {
-				Log.warn(LogCategory.METADATA, "Error parsing version predicate %s: %s", s, e.toString());
-				return false;
-			}
+		for (VersionPredicate predicate : ranges) {
+			if (predicate.test(version)) return true;
 		}
 
 		return false;
@@ -61,6 +59,8 @@ public final class ModDependencyImpl implements ModDependency {
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder("{");
+		builder.append(kind.getKey());
+		builder.append(' ');
 		builder.append(this.modId);
 		builder.append(" @ [");
 
@@ -77,11 +77,7 @@ public final class ModDependencyImpl implements ModDependency {
 	}
 
 	@Override
-	public Set<VersionPredicate> getVersionRequirements() {
-		if (ranges == null) {
-			ranges = VersionPredicate.parse(matcherStringList);
-		}
-
+	public Collection<VersionPredicate> getVersionRequirements() {
 		return ranges;
 	}
 }

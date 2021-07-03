@@ -21,9 +21,18 @@ public final class SystemProperties {
 	public static final String SIDE = "fabric.side";
 	public static final String GAME_JAR_PATH = "fabric.gameJarPath";
 	public static final String GAME_VERSION = "fabric.gameVersion";
-	public static final String LOG_FILE = "fabric.logFile";
+	// fallback log file for the builtin log handler (dumped on exit if not replaced with another handler)
+	public static final String LOG_FILE = "fabric.log.file";
+	// minimum log level for builtin log handler
 	public static final String LOG_LEVEL = "fabric.log.level";
+	// file containing the class path for in-dev runtime mod remapping
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
+	// throw exceptions from entrypoints, discovery etc. directly instead of gathering and attaching as suppressed
+	public static final String DEBUG_THROW_DIRECTLY = "fabric.debug.throwDirectly";
+	// disables mod load order shuffling to be the same in-dev as in production
+	public static final String DEBUG_DISABLE_MOD_SHUFFLE = "fabric.debug.disableModShuffle";
+	// workaround for bad load order dependencies
+	public static final String DEBUG_LOAD_LATE = "fabric.debug.loadLate";
 
 	private SystemProperties() {
 	}

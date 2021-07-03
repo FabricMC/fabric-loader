@@ -18,11 +18,13 @@ package net.fabricmc.loader.launch.common;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.impl.util.UrlUtil;
 
 /**
  * @deprecated Internal API, do not use
@@ -46,7 +48,11 @@ public class FabricLauncherBase implements FabricLauncher {
 
 	@Override
 	public void propose(URL url) {
-		parent.propose(url);
+		try {
+			parent.addToClassPath(UrlUtil.asPath(url));
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

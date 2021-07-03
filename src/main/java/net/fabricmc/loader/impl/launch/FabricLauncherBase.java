@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -32,8 +33,8 @@ import java.util.jar.JarFile;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.Arguments;
-import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -77,7 +78,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", jarFile.getFileName());
 
 		if (!launcher.isDevelopment()) { // in-dev is already deobfuscated
-			Path deobfJarDir = gameDir.resolve(".fabric").resolve("remappedJars");
+			Path deobfJarDir = gameDir.resolve(FabricLoaderImpl.CACHE_DIR_NAME).resolve(FabricLoaderImpl.REMAPPED_JARS_DIR_NAME);
 
 			if (!gameId.isEmpty()) {
 				String versionedId = gameVersion.isEmpty() ? gameId : String.format("%s-%s", gameId, gameVersion);
@@ -123,11 +124,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			jarFile = deobfJarFile;
 		}
 
-		try {
-			launcher.propose(UrlUtil.asUrl(jarFile));
-		} catch (UrlConversionException e) {
-			throw new RuntimeException(e);
-		}
+		launcher.addToClassPath(jarFile);
 
 		if (minecraftJar == null) {
 			minecraftJar = jarFile;
@@ -160,7 +157,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 					if (!path.equals(jarFile)) {
 						depPaths.add(path);
 					}
-				} catch (UrlConversionException e) {
+				} catch (URISyntaxException e) {
 					throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
 				}
 			}

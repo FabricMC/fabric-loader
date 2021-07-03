@@ -33,9 +33,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.objectweb.asm.commons.Remapper;
 
@@ -47,8 +45,8 @@ import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
-import net.fabricmc.loader.impl.util.UrlConversionException;
-import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
@@ -56,18 +54,16 @@ import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 public final class RuntimeModRemapper {
-	public static Collection<ModCandidate> remap(Collection<ModCandidate> modCandidates, FileSystem fileSystem) {
-		List<ModCandidate> modsToRemap = modCandidates.stream()
-				.filter(ModCandidate::requiresRemap)
-				.collect(Collectors.toList());
+	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir) {
+		List<ModCandidate> modsToRemap = new ArrayList<>();
 
-		if (modsToRemap.isEmpty()) {
-			return modCandidates;
+		for (ModCandidate mod : modCandidates) {
+			if (mod.getRequiresRemap()) {
+				modsToRemap.add(mod);
+			}
 		}
 
-		List<ModCandidate> modsToSkip = modCandidates.stream()
-				.filter(mc -> !mc.requiresRemap())
-				.collect(Collectors.toList());
+		if (modsToRemap.isEmpty()) return;
 
 		FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
@@ -82,18 +78,25 @@ public final class RuntimeModRemapper {
 			throw new RuntimeException("Failed to populate remap classpath", e);
 		}
 
-		List<ModCandidate> remappedMods = new ArrayList<>();
+		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
 
 		try {
-			Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
-
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = new RemapInfo();
 				infoMap.put(mod, info);
 
 				InputTag tag = remapper.createInputTag();
 				info.tag = tag;
-				info.inputPath = UrlUtil.asPath(mod.getOriginUrl());
+
+				if (mod.hasPath()) {
+					info.inputPath = mod.getPath();
+				} else {
+					info.inputPath = mod.copyToDir(tmpDir, true);
+					info.inputIsTemp = true;
+				}
+
+				info.outputPath = outputDir.resolve(mod.getDefaultFileName());
+				Files.deleteIfExists(info.outputPath);
 
 				remapper.readInputsAsync(tag, info.inputPath);
 			}
@@ -101,7 +104,6 @@ public final class RuntimeModRemapper {
 			//Done in a 2nd loop as we need to make sure all the inputs are present before remapping
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
-				info.outputPath = fileSystem.getPath(UUID.randomUUID() + ".jar");
 				OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(info.outputPath).build();
 
 				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(info.inputPath, false);
@@ -122,7 +124,7 @@ public final class RuntimeModRemapper {
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
-				String accessWidener = mod.getInfo().getAccessWidener();
+				String accessWidener = mod.getMetadata().getAccessWidener();
 
 				if (accessWidener != null) {
 					info.accessWidenerPath = accessWidener;
@@ -150,15 +152,29 @@ public final class RuntimeModRemapper {
 					}
 				}
 
-				remappedMods.add(new ModCandidate(mod.getInfo(), UrlUtil.asUrl(info.outputPath), 0, false));
+				mod.setPath(info.outputPath);
 			}
-		} catch (UrlConversionException | IOException e) {
+		} catch (Throwable t) {
 			remapper.finish();
-			throw new RuntimeException("Failed to remap mods", e);
-		}
 
-		return Stream.concat(remappedMods.stream(), modsToSkip.stream())
-				.collect(Collectors.toList());
+			for (RemapInfo info : infoMap.values()) {
+				try {
+					Files.deleteIfExists(info.outputPath);
+				} catch (IOException e) {
+					Log.warn(LogCategory.MOD_REMAP, "Error deleting failed output jar %s", info.outputPath, e);
+				}
+			}
+
+			throw new RuntimeException("Failed to remap mods", t);
+		} finally {
+			for (RemapInfo info : infoMap.values()) {
+				try {
+					if (info.inputIsTemp) Files.deleteIfExists(info.inputPath);
+				} catch (IOException e) {
+					Log.warn(LogCategory.MOD_REMAP, "Error deleting temporary input jar %s", info.inputIsTemp, e);
+				}
+			}
+		}
 	}
 
 	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
@@ -198,6 +214,7 @@ public final class RuntimeModRemapper {
 		InputTag tag;
 		Path inputPath;
 		Path outputPath;
+		boolean inputIsTemp;
 		OutputConsumerPath outputConsumerPath;
 		String accessWidenerPath;
 		byte[] accessWidener;

@@ -16,12 +16,13 @@
 
 package net.fabricmc.loader.impl.discovery;
 
-import java.net.URL;
-import java.util.function.BiConsumer;
-
-import net.fabricmc.loader.impl.FabricLoaderImpl;
+import java.nio.file.Path;
 
 @FunctionalInterface
-public interface ModCandidateFinder {
-	void findCandidates(FabricLoaderImpl loader, BiConsumer<URL, Boolean> urlProposer);
+interface ModCandidateFinder {
+	void findCandidates(ModCandidateConsumer out);
+
+	interface ModCandidateConsumer {
+		void accept(Path path, boolean requiresRemap);
+	}
 }

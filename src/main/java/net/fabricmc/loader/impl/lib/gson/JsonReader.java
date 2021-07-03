@@ -235,7 +235,7 @@ public class JsonReader implements Closeable {
 	 * We decode literals directly out of this buffer, so it must be at least as
 	 * long as the longest token that can be reported as a number.
 	 */
-	private final char[] buffer = new char[8192];
+	private char[] buffer = new char[8192]; // Fabric - increase buffer size, remove final for resizing
 	private int pos = 0;
 	private int limit = 0;
 
@@ -1277,15 +1277,21 @@ public class JsonReader implements Closeable {
 	 */
 	private boolean fillBuffer(int minimum) throws IOException {
 		char[] buffer = this.buffer;
-		lineStart -= pos;
-		if (limit != pos) {
-			limit -= pos;
-			System.arraycopy(buffer, pos, buffer, 0, limit);
-		} else {
-			limit = 0;
+
+		if (!rewindEnabled) { // Fabric - preserve data for rewinding by expanding the buffer instead of compacting 
+			lineStart -= pos;
+			if (limit != pos) {
+				limit -= pos;
+				System.arraycopy(buffer, pos, buffer, 0, limit);
+			} else {
+				limit = 0;
+			}
+
+			pos = 0;
+		} else if (buffer.length - limit < minimum) {
+			buffer = Arrays.copyOf(buffer, buffer.length + Math.max(buffer.length, minimum));
 		}
 
-		pos = 0;
 		int total;
 		while ((total = in.read(buffer, limit, buffer.length - limit)) != -1) {
 			limit += total;
@@ -1586,7 +1592,7 @@ public class JsonReader implements Closeable {
 		pos += 5;
 	}
 
-	// Fabric - added methods for warning messages
+	// Fabric - added methods for warning messages and rewinding
 
 	public int getLineNumber() {
 		return this.lineNumber + 1;
@@ -1594,5 +1600,24 @@ public class JsonReader implements Closeable {
 
 	public int getColumn() {
 		return this.pos - this.lineStart + 1;
+	}
+
+	private boolean rewindEnabled;
+
+	public void rewind() {
+		if (!rewindEnabled) throw new IllegalStateException("rewind disabled");
+
+		pos = 0;
+		lineNumber = 0;
+		lineStart = 0;
+		peeked = PEEKED_NONE;
+		stackSize = 1;
+		stack[0] = JsonScope.EMPTY_DOCUMENT;
+	}
+
+	public void setRewindEnabled(boolean value) {
+		if (value && (pos > 0 || lineNumber > 0)) throw new IllegalStateException("already read some data");
+
+		rewindEnabled = value;
 	}
 }

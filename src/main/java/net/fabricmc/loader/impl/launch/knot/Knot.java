@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl.launch.knot;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -41,7 +42,6 @@ import net.fabricmc.loader.impl.game.GameProviders;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.SystemProperties;
-import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -181,7 +181,7 @@ public final class Knot extends FabricLauncherBase {
 			if (!file.equals(gameJarFile)) {
 				try {
 					return (UrlUtil.asUrl(file));
-				} catch (UrlConversionException e) {
+				} catch (MalformedURLException e) {
 					Log.debug(LogCategory.KNOT, "Can't determine url for %s", file, e);
 					return null;
 				}
@@ -192,9 +192,14 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public void propose(URL url) {
-		Log.debug(LogCategory.KNOT, "Proposed " + url + " to classpath.");
-		classLoader.addURL(url);
+	public void addToClassPath(Path path) {
+		Log.debug(LogCategory.KNOT, "Adding " + path + " to classpath.");
+
+		try {
+			classLoader.addURL(UrlUtil.asUrl(path));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

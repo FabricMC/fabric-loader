@@ -47,10 +47,7 @@ public final class GameProviderHelper {
 
 		if ((url = loader.getResource(filename)) != null) {
 			try {
-				URL urlSource = UrlUtil.getSource(filename, url);
-				Path classSourceFile = UrlUtil.asPath(urlSource);
-
-				return Optional.of(classSourceFile);
+				return Optional.of(UrlUtil.getSourcePath(filename, url));
 			} catch (UrlConversionException e) {
 				// TODO: Point to a logger
 				e.printStackTrace();
@@ -69,8 +66,7 @@ public final class GameProviderHelper {
 				URL url = urls.nextElement();
 
 				try {
-					URL urlSource = UrlUtil.getSource(filename, url);
-					paths.add(UrlUtil.asPath(urlSource));
+					paths.add(UrlUtil.getSourcePath(filename, url));
 				} catch (UrlConversionException e) {
 					// TODO: Point to a logger
 					e.printStackTrace();
