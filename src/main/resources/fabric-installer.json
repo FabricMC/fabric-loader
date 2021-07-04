@@ -2,7 +2,6 @@
   "version": 1,
   "libraries": {
     "client": [
-
     ],
     "common": [
       {
@@ -10,7 +9,7 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:sponge-mixin:0.9.4+mixin.0.8.2",
+        "name": "net.fabricmc:sponge-mixin:0.10.0+mixin.0.8.4.snapshot",
         "url": "https://maven.fabricmc.net/"
       },
       {
@@ -43,11 +42,6 @@
       }
     ],
     "server": [
-      {
-        "_comment": "jimfs in fabric-server-launch requires guava on the system classloader",
-        "name": "com.google.guava:guava:21.0",
-        "url": "https://maven.fabricmc.net/"
-      }
     ]
   },
   "mainClass": {
