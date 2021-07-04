@@ -53,6 +53,7 @@ import net.fabricmc.loader.impl.metadata.ModMetadataParser;
 import net.fabricmc.loader.impl.metadata.NestedJarEntry;
 import net.fabricmc.loader.impl.metadata.ParseMetadataException;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -97,8 +98,11 @@ public final class ModDiscoverer {
 
 		try {
 			pool.shutdown();
-			// Comment out for debugging
-			pool.awaitTermination(30, TimeUnit.SECONDS);
+
+			int timeout = Integer.getInteger(SystemProperties.DEBUG_DISCOVERY_TIMEOUT, 60);
+			if (timeout <= 0) timeout = Integer.MAX_VALUE;
+
+			pool.awaitTermination(timeout, TimeUnit.SECONDS);
 
 			for (Future<ModCandidate> future : futures) {
 				if (!future.isDone()) {
