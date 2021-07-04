@@ -66,7 +66,7 @@ dependencies {
 	api "org.ow2.asm:asm-tree:${project.asm_version}"
 	api "org.ow2.asm:asm-util:${project.asm_version}"
 
-	api('net.fabricmc:sponge-mixin:0.9.4+mixin.0.8.2') {
+	api('net.fabricmc:sponge-mixin:0.10.0+mixin.0.8.4.snapshot') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
