@@ -65,7 +65,7 @@ public class ArgumentModCandidateFinder implements ModCandidateFinder {
 						line = line.trim();
 						if (line.isEmpty()) continue;
 
-						addMod(pathStr, fileSource, out);
+						addMod(line, fileSource, out);
 					}
 				} catch (IOException e) {
 					throw new RuntimeException(String.format("Error reading %s provided mod list file %s", source, path), e);
