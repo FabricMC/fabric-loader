@@ -26,9 +26,9 @@ import java.util.Map;
 
 public final class Arguments {
 	// set the game version for the builtin game mod/dependencies, bypassing auto-detection
-	public static final String GAME_VERSION = "fabric.gameVersion";
+	public static final String GAME_VERSION = SystemProperties.GAME_VERSION;
 	// additional mods to load (path separator separated paths, @ prefix for meta-file with each line referencing an actual file)
-	public static final String ADD_MODS = "fabric.addMods";
+	public static final String ADD_MODS = SystemProperties.ADD_MODS;
 
 	private final Map<String, String> values;
 	private final List<String> extraArgs;
