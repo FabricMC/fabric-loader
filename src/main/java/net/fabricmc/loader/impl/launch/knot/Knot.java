@@ -33,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -305,6 +306,15 @@ public final class Knot extends FabricLauncherBase {
 			return classLoader.getDelegate().getPreMixinClassByteArray(name, false);
 		} else {
 			return classLoader.getDelegate().getRawClassByteArray(name, false);
+		}
+	}
+
+	@Override
+	public Manifest getManifest(Path originPath) {
+		try {
+			return classLoader.getDelegate().getMetadata(UrlUtil.asUrl(originPath)).manifest;
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
