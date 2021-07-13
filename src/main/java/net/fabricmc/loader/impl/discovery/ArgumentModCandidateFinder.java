@@ -19,9 +19,14 @@ package net.fabricmc.loader.impl.discovery;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -77,16 +82,66 @@ public class ArgumentModCandidateFinder implements ModCandidateFinder {
 	}
 
 	private void addMod(String pathStr, String source, ModCandidateConsumer out) {
-		Path path = Paths.get(pathStr);
-		boolean isDir;
+		Path path = Paths.get(pathStr).toAbsolutePath().normalize();
 
-		if (!Files.exists(path)) {
+		if (!Files.exists(path)) { // missing
 			Log.warn(LogCategory.DISCOVERY, "Missing %s provided mod path %s", source, path);
-		} else if ((isDir = Files.isDirectory(path)) && !Files.isRegularFile(path.resolve("fabric.mod.json"))
-				|| !isDir && !DirectoryModCandidateFinder.isValidFile(path)) {
-			Log.warn(LogCategory.DISCOVERY, "Incompatible path in %s provided mod path %s (must be a directory with a fabric.mod.json or a non-hidden jar file", source, path);
-		} else {
-			out.accept(path, requiresRemap);
+		} else if (Files.isDirectory(path)) { // directory for extracted mod (in-dev usually) or jars (like mods, but recursive)
+			if (isHidden(path)) {
+				Log.warn(LogCategory.DISCOVERY, "Ignoring hidden %s provided mod path %s", source, path);
+				return;
+			}
+
+			if (Files.exists(path.resolve("fabric.mod.json"))) { // extracted mod
+				out.accept(path, requiresRemap);
+			} else { // dir containing jars
+				try {
+					List<String> skipped = new ArrayList<>();
+
+					Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+						@Override
+						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+							if (DirectoryModCandidateFinder.isValidFile(file)) {
+								out.accept(file, requiresRemap);
+							} else {
+								skipped.add(path.relativize(file).toString());
+							}
+
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+							if (isHidden(dir)) {
+								return FileVisitResult.SKIP_SUBTREE;
+							} else {
+								return FileVisitResult.CONTINUE;
+							}
+						}
+					});
+
+					if (!skipped.isEmpty()) {
+						Log.warn(LogCategory.DISCOVERY, "Incompatible files in %s provided mod directory %s (non-jar or hidden): %s", source, path, String.join(", ", skipped));
+					}
+				} catch (IOException e) {
+					Log.warn(LogCategory.DISCOVERY, "Error processing %s provided mod path %s: %s", source, path, e);
+				}
+			}
+		} else { // single file
+			if (!DirectoryModCandidateFinder.isValidFile(path)) {
+				Log.warn(LogCategory.DISCOVERY, "Incompatible file in %s provided mod path %s (non-jar or hidden)", source, path);
+			} else {
+				out.accept(path, requiresRemap);
+			}
+		}
+	}
+
+	private static boolean isHidden(Path path) {
+		try {
+			return path.getFileName().toString().startsWith(".") || Files.isHidden(path);
+		} catch (IOException e) {
+			Log.warn(LogCategory.DISCOVERY, "Error determining whether %s is hidden: %s", path, e);
+			return true;
 		}
 	}
 }
