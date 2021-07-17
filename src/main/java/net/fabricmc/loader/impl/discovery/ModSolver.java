@@ -45,6 +45,7 @@ import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.discovery.Explanation.ErrorKind;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
@@ -65,7 +66,9 @@ final class ModSolver {
 		solverPrepTime = System.nanoTime();
 
 		IPBSolver solver = SolverFactory.newDefaultOptimizer();
-		solver.setTimeout(60); // 60s
+
+		int timeout = Integer.getInteger(SystemProperties.DEBUG_RESOLUTION_TIMEOUT, 60);
+		if (timeout > 0) solver.setTimeout(timeout); // in seconds
 
 		DependencyHelper<DomainObject, Explanation> dependencyHelper = createDepHelper(solver);
 
