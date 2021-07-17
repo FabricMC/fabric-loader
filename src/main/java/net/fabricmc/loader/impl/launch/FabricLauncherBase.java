@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.impl.launch;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -32,9 +31,7 @@ import java.util.jar.JarFile;
 
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -53,10 +50,6 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	protected FabricLauncherBase() {
 		setLauncher(this);
-	}
-
-	public static File getLaunchDirectory(Arguments argMap) {
-		return new File(argMap.getOrDefault("gameDir", "."));
 	}
 
 	public static Class<?> getClass(String className) throws ClassNotFoundException {
@@ -216,38 +209,6 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 		if (!Files.exists(deobfJarFile)) {
 			throw new RuntimeException("Remapped .JAR file does not exist after remapping! Cannot continue!");
-		}
-	}
-
-	public static void processArgumentMap(Arguments argMap, EnvType envType) {
-		switch (envType) {
-		case CLIENT:
-			if (!argMap.containsKey("accessToken")) {
-				argMap.put("accessToken", "FabricMC");
-			}
-
-			if (!argMap.containsKey("version")) {
-				argMap.put("version", "Fabric");
-			}
-
-			String versionType = "";
-
-			if (argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")) {
-				versionType = argMap.get("versionType") + "/";
-			}
-
-			argMap.put("versionType", versionType + "Fabric");
-
-			if (!argMap.containsKey("gameDir")) {
-				argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
-			}
-
-			break;
-		case SERVER:
-			argMap.remove("version");
-			argMap.remove("gameDir");
-			argMap.remove("assetsDir");
-			break;
 		}
 	}
 

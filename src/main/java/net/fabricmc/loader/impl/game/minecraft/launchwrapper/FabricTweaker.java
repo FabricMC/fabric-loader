@@ -88,8 +88,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		if (getEnvironmentType() == EnvType.CLIENT && !arguments.containsKey("assetsDir") && assetsDir != null) {
 			arguments.put("assetsDir", assetsDir.getAbsolutePath());
 		}
-
-		FabricLauncherBase.processArgumentMap(arguments, getEnvironmentType());
 	}
 
 	@Override
@@ -118,6 +116,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 
+		arguments = null;
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
@@ -127,7 +126,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		if (!isDevelopment) {
 			// Obfuscated environment
-			Launch.blackboard.put(SystemProperties.DEVELOPMENT, false);
 
 			try {
 				String target = getLaunchTarget();
@@ -164,7 +162,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public String[] getLaunchArguments() {
-		return isPrimaryTweaker ? arguments.toArray() : new String[0];
+		return isPrimaryTweaker ? FabricLoaderImpl.INSTANCE.getGameProvider().getLaunchArguments(false) : new String[0];
 	}
 
 	@Override

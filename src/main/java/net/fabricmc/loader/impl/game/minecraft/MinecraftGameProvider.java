@@ -36,7 +36,6 @@ import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
-import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -110,7 +109,7 @@ public class MinecraftGameProvider implements GameProvider {
 			return new File(".").toPath();
 		}
 
-		return FabricLauncherBase.getLaunchDirectory(arguments).toPath();
+		return getLaunchDirectory(arguments).toPath();
 	}
 
 	@Override
@@ -166,38 +165,75 @@ public class MinecraftGameProvider implements GameProvider {
 		if (version == null) version = System.getProperty(SystemProperties.GAME_VERSION);
 		versionData = McVersionLookup.getVersion(gameJar, entrypointClasses, version);
 
-		FabricLauncherBase.processArgumentMap(arguments, envType);
+		processArgumentMap(arguments, envType);
 
 		return true;
 	}
 
-	@Override
-	public String[] getLaunchArguments(boolean sanitize) {
-		if (arguments != null) {
-			List<String> list = new ArrayList<>(Arrays.asList(arguments.toArray()));
-
-			if (sanitize) {
-				int remove = 0;
-				Iterator<String> iterator = list.iterator();
-
-				while (iterator.hasNext()) {
-					String next = iterator.next();
-
-					if ("--accessToken".equals(next)) {
-						remove = 2;
-					}
-
-					if (remove > 0) {
-						iterator.remove();
-						remove--;
-					}
-				}
+	private static void processArgumentMap(Arguments argMap, EnvType envType) {
+		switch (envType) {
+		case CLIENT:
+			if (!argMap.containsKey("accessToken")) {
+				argMap.put("accessToken", "FabricMC");
 			}
 
-			return list.toArray(new String[0]);
+			if (!argMap.containsKey("version")) {
+				argMap.put("version", "Fabric");
+			}
+
+			String versionType = "";
+
+			if (argMap.containsKey("versionType") && !argMap.get("versionType").equalsIgnoreCase("release")) {
+				versionType = argMap.get("versionType") + "/";
+			}
+
+			argMap.put("versionType", versionType + "Fabric");
+
+			if (!argMap.containsKey("gameDir")) {
+				argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
+			}
+
+			break;
+		case SERVER:
+			argMap.remove("version");
+			argMap.remove("gameDir");
+			argMap.remove("assetsDir");
+			break;
+		}
+	}
+
+	private static File getLaunchDirectory(Arguments argMap) {
+		return new File(argMap.getOrDefault("gameDir", "."));
+	}
+
+	@Override
+	public Arguments getArguments() {
+		return arguments;
+	}
+
+	@Override
+	public String[] getLaunchArguments(boolean sanitize) {
+		if (arguments == null) return new String[0];
+		if (!sanitize) return arguments.toArray();
+
+		List<String> list = new ArrayList<>(Arrays.asList(arguments.toArray()));
+		int remove = 0;
+		Iterator<String> iterator = list.iterator();
+
+		while (iterator.hasNext()) {
+			String next = iterator.next();
+
+			if ("--accessToken".equals(next)) {
+				remove = 2;
+			}
+
+			if (remove > 0) {
+				iterator.remove();
+				remove--;
+			}
 		}
 
-		return new String[0];
+		return list.toArray(new String[0]);
 	}
 
 	@Override

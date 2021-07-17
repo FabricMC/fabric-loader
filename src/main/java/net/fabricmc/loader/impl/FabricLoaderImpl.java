@@ -43,6 +43,7 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.DirectoryModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
@@ -179,9 +180,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void setup() throws ModResolutionException {
+		boolean remapRegularMods = isDevelopmentEnvironment();
 		ModDiscoverer discoverer = new ModDiscoverer();
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
-		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), isDevelopmentEnvironment()));
+		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
+		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		List<ModCandidate> mods = ModResolver.resolve(discoverer.discoverMods(this));
 
@@ -201,7 +204,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// runtime mod remapping
 
-		if (isDevelopmentEnvironment()) {
+		if (remapRegularMods) {
 			if (System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
 				Log.warn(LogCategory.MOD_REMAP, "Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			} else {

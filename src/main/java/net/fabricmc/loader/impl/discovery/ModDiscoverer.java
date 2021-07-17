@@ -70,10 +70,15 @@ public final class ModDiscoverer {
 	public Collection<ModCandidate> discoverMods(FabricLoaderImpl loader) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
+		Set<Path> paths = new HashSet<>(); // suppresses duplicate paths
 		List<Future<ModCandidate>> futures = new ArrayList<>();
 
 		ModCandidateConsumer taskSubmitter = (path, requiresRemap) -> {
-			futures.add(pool.submit(new ModScanTask(path, requiresRemap)));
+			path = path.toAbsolutePath().normalize();
+
+			if (paths.add(path)) {
+				futures.add(pool.submit(new ModScanTask(path, requiresRemap)));
+			}
 		};
 
 		for (ModCandidateFinder finder : candidateFinders) {

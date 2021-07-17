@@ -24,6 +24,7 @@ import java.util.Objects;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
+import net.fabricmc.loader.impl.util.Arguments;
 
 public interface GameProvider {
 	String getGameId();
@@ -42,6 +43,7 @@ public interface GameProvider {
 	GameTransformer getEntrypointTransformer();
 	void launch(ClassLoader loader);
 
+	Arguments getArguments();
 	String[] getLaunchArguments(boolean sanitize);
 
 	default boolean canOpenErrorGui() {
