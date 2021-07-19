@@ -26,12 +26,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
-import net.fabricmc.loader.api.metadata.version.VersionComparisonOperator;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
-import net.fabricmc.loader.api.metadata.version.VersionPredicate.PredicateTerm;
 
 final class ResultAnalyzer {
 	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById) {
@@ -231,62 +229,83 @@ final class ResultAnalyzer {
 		for (VersionPredicate predicate : predicates) {
 			if (sb.length() > 0) sb.append(" or ");
 
-			Collection<? extends PredicateTerm> terms = predicate.getTerms();
-			if (terms.isEmpty()) return "any version";
+			VersionInterval interval = predicate.getInterval();
 
-			boolean useBrackets = predicates.size() > 1 && terms.size() > 1;
-			if (useBrackets) sb.append('(');
-
-			boolean first = true;
-
-			for (PredicateTerm term : terms) {
-				Version version = term.getReferenceVersion();
-				VersionComparisonOperator operator;
-
-				if (version instanceof SemanticVersion) {
-					operator = term.getOperator();
+			if (interval == null) {
+				// empty interval, skip
+			} else if (interval.getMin() == null) {
+				if (interval.getMax() == null) {
+					return "any version";
+				} else if (interval.isMaxInclusive()) {
+					sb.append(String.format("version %s or earlier", interval.getMax()));
 				} else {
-					operator = VersionComparisonOperator.EQUAL;
+					sb.append(String.format("any version before %s", interval.getMax()));
 				}
-
-				if (first) {
-					first = false;
+			} else if (interval.getMax() == null) {
+				if (interval.isMinInclusive()) {
+					sb.append(String.format("version %s or later", interval.getMin()));
 				} else {
-					sb.append(" and ");
+					sb.append(String.format("any version after %s", interval.getMin()));
 				}
-
-				switch (operator) {
-				case EQUAL:
-					sb.append(String.format("version %s", version));
-					break;
-				case GREATER:
-					sb.append(String.format("any version after %s", version));
-					break;
-				case LESS:
-					sb.append(String.format("any version before %s", version));
-					break;
-				case GREATER_EQUAL:
-					sb.append(String.format("version %s or later", version));
-					break;
-				case LESS_EQUAL:
-					sb.append(String.format("version %s or earlier", version));
-					break;
-				case SAME_TO_NEXT_MAJOR:
-					sb.append(String.format("version %d.x", ((SemanticVersion) version).getVersionComponent(0)));
-					break;
-				case SAME_TO_NEXT_MINOR: {
-					SemanticVersion semVer = (SemanticVersion) version;
-					sb.append(String.format("version %d.%d.x", semVer.getVersionComponent(0), semVer.getVersionComponent(1)));
-					break;
+			} else if (interval.getMin().equals(interval.getMax())) {
+				if (interval.isMinInclusive() && interval.isMaxInclusive()) {
+					sb.append(String.format("version %s", interval.getMin()));
+				} else {
+					// empty interval, skip
 				}
-				default:
-					throw new IllegalStateException(operator.toString());
-				}
+			} else if (isWildcard(interval, 0)) { // major.x wildcard
+				SemanticVersion version = (SemanticVersion) interval.getMin();
+				sb.append(String.format("any %d.x version", version.getVersionComponent(0)));
+			} else if (isWildcard(interval, 1)) { // major.minor.x wildcard
+				SemanticVersion version = (SemanticVersion) interval.getMin();
+				sb.append(String.format("any %d.%d.x version", version.getVersionComponent(0), version.getVersionComponent(1)));
+			} else {
+				sb.append(String.format("any version between %s (%s) and %s (%s)",
+						interval.getMin(), (interval.isMinInclusive() ? "inclusive" : "exclusive"),
+						interval.getMax(), (interval.isMaxInclusive() ? "inclusive" : "exclusive")));
 			}
-
-			if (useBrackets) sb.append(')');
 		}
 
-		return sb.toString();
+		if (sb.length() == 0) {
+			return "an unsatisfiable version range";
+		} else {
+			return sb.toString();
+		}
+	}
+
+	/**
+	 * Determine whether an interval can be represented by a .x wildcard version string.
+	 *
+	 * <p>Example: [1.2.0-,1.3.0-) is the same as 1.2.x (incrementedComponent=1)
+	 */
+	private static boolean isWildcard(VersionInterval interval, int incrementedComponent) {
+		if (interval == null || interval.getMin() == null || interval.getMax() == null // not an interval with lower+upper bounds
+				|| !interval.isMinInclusive() || interval.isMaxInclusive() // not an [a,b) interval
+				|| !interval.isSemantic()) {
+			return false;
+		}
+
+		SemanticVersion min = (SemanticVersion) interval.getMin();
+		SemanticVersion max = (SemanticVersion) interval.getMax();
+
+		// min and max need to use the empty prerelease (a.b.c-)
+		if (!"".equals(min.getPrereleaseKey().orElse(null))
+				|| !"".equals(max.getPrereleaseKey().orElse(null))) {
+			return false;
+		}
+
+		// max needs to be min + 1 for the covered component
+		if (max.getVersionComponent(incrementedComponent) != min.getVersionComponent(incrementedComponent) + 1) {
+			return false;
+		}
+
+		for (int i = incrementedComponent + 1; i < 3; i++) {
+			// all following components need to be 0
+			if (min.getVersionComponent(i) != 0 || max.getVersionComponent(i) != 0) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
