@@ -30,6 +30,8 @@ import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
+import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
+import net.fabricmc.loader.impl.util.StringUtil;
 
 final class ResultAnalyzer {
 	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById) {
@@ -120,8 +122,8 @@ final class ResultAnalyzer {
 		default: throw new IllegalStateException("unknown dep kind: "+dep.getKind());
 		}
 
-		pw.printf("\n - Mod %s %s %s of mod %s, ",
-				getCandidateName(mod), errorType, getDependencyVersionRequirements(dep),
+		pw.printf("\n - %s %s %s of %s, ",
+				StringUtil.capitalize(getCandidateName(mod)), errorType, getDependencyVersionRequirements(dep),
 				(matches.isEmpty() ? dep.getModId() : getCandidateName(matches.get(0))));
 
 		if (matches.isEmpty()) {
@@ -159,8 +161,8 @@ final class ResultAnalyzer {
 
 		pw.printf("but a matching version is present: %s!\n"
 				+ "\t - While this won't prevent you from starting the game,  the developer(s) of %s have found that "
-				+ "version %s of %s conflicts with their mod.\n"
-				+ "\t - It is recommended to remove one of the mods.",
+				+ "version %s of %s may cause issues when used at the same time.\n"
+				+ "\t - It is recommended to remove one of the two or potentially upgrade them.",
 				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
 	}
 
@@ -168,16 +170,20 @@ final class ResultAnalyzer {
 		final String depCandidateVer = getCandidateFriendlyVersions(matches);
 
 		pw.printf("but a matching version is present: %s!\n"
-				+ "\t - The developer(s) of %s have found that version %s of %s critically conflicts with their mod.\n"
-				+ "\t - You need to remove one of the mods.",
+				+ "\t - The developer(s) of %s have found that version %s of %s is incompatible and can't be used at the same time.\n"
+				+ "\t - You need to remove one of the two or potentially upgrade them.",
 				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
 	}
 
 	private static void appendJiJInfo(List<ModCandidate> mods, PrintWriter pw) {
 		for (ModCandidate mod : mods) {
-			if (mod.getMinNestLevel() < 1) {
-				pw.printf("\n\t - Mod %s v%s is being loaded from the mods directory.",
-						getCandidateName(mod), getCandidateFriendlyVersion(mod));
+			if (mod.getMetadata().getType().equals(AbstractModMetadata.TYPE_BUILTIN)) {
+				pw.printf("\n\t - %s v%s is an environment reference any usually requires installation or launcher changes to adjust.",
+						StringUtil.capitalize(getCandidateName(mod)), getCandidateFriendlyVersion(mod));
+				return;
+			} else if (mod.getMinNestLevel() < 1) {
+				pw.printf("\n\t - %s v%s is being loaded from the mods directory or supplied through the command line.",
+						StringUtil.capitalize(getCandidateName(mod)), getCandidateFriendlyVersion(mod));
 				return;
 			}
 
@@ -204,13 +210,24 @@ final class ResultAnalyzer {
 			}
 
 			// now we have the proper data, yay
-			pw.printf("\n\t - Mod %s v%s is being provided through e.g. %s.",
+			pw.printf("\n\t - %s v%s is being provided through e.g. %s.",
 					getCandidateName(mod), getCandidateFriendlyVersion(mod), pathSb);
 		}
 	}
 
 	private static String getCandidateName(ModCandidate candidate) {
-		return String.format("'%s' (%s)", candidate.getMetadata().getName(), candidate.getId());
+		String typePrefix;
+
+		switch (candidate.getMetadata().getType()) {
+		case AbstractModMetadata.TYPE_FABRIC_MOD:
+			typePrefix = "mod ";
+			break;
+		case AbstractModMetadata.TYPE_BUILTIN:
+		default:
+			typePrefix = "";
+		}
+
+		return String.format("%s'%s' (%s)", typePrefix, candidate.getMetadata().getName(), candidate.getId());
 	}
 
 	private static String getCandidateFriendlyVersion(ModCandidate candidate) {

@@ -71,7 +71,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 
 	@Override
 	public String getType() {
-		return "builtin";
+		return TYPE_BUILTIN;
 	}
 
 	@Override

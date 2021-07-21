@@ -33,6 +33,7 @@ import java.util.zip.ZipInputStream;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.game.GameProvider.BuiltinMod;
+import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 
 public final class ModCandidate implements DomainObject.Mod {
@@ -119,7 +120,7 @@ public final class ModCandidate implements DomainObject.Mod {
 	}
 
 	public boolean isBuiltin() {
-		return metadata.getType().equals("builtin");
+		return metadata.getType().equals(AbstractModMetadata.TYPE_BUILTIN);
 	}
 
 	public ModLoadCondition getLoadCondition() {
