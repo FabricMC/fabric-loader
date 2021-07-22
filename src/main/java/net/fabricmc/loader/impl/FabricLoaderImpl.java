@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.Opcodes;
@@ -42,6 +41,7 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
+import net.fabricmc.loader.api.ObjectShare;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
@@ -83,7 +83,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
 	private final AccessWidener accessWidener = new AccessWidener();
 
-	private final Map<String, Object> bulletinMap = new ConcurrentHashMap<>();
+	private final ObjectShare objectShare = new ObjectShareImpl();
 
 	private boolean frozen = false;
 
@@ -320,8 +320,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	@Override
-	public Map<String, Object> getBulletinMap() {
-		return bulletinMap;
+	public ObjectShare getObjectShare() {
+		return objectShare;
 	}
 
 	@Override
