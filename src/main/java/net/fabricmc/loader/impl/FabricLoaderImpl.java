@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.Opcodes;
@@ -81,6 +82,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
 	private final AccessWidener accessWidener = new AccessWidener();
+
+	private final Map<String, Object> bulletinMap = new ConcurrentHashMap<>();
 
 	private boolean frozen = false;
 
@@ -314,6 +317,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		return mappingResolver;
+	}
+
+	@Override
+	public Map<String, Object> getBulletinMap() {
+		return bulletinMap;
 	}
 
 	@Override

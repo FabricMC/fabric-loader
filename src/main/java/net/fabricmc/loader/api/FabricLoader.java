@@ -20,6 +20,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import net.fabricmc.api.EnvType;
@@ -98,6 +99,31 @@ public interface FabricLoader {
 	 * @see LanguageAdapter
 	 */
 	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
+
+	/**
+	 * Get the bulletin map for inter-mod communication.
+	 *
+	 * <p>The map allows mods to share data without directly referencing each other. This makes simple interaction
+	 * easier by eliminating any compile- or run-time dependencies if the map value type is independent of the mod
+	 * (only Java/game/Fabric types like collections, primitives, String, Consumer, Function, ...).
+	 *
+	 * <p>Active interaction is possible as well since the map values can be arbitrary Java objects. For example
+	 * exposing a {@code Runnable} or {@code Function} allows the "API" user to directly invoke some program logic.
+	 *
+	 * <p>It is recommended to prefix the map key with the mod id like {@code mymod:someProperty}. Mods should not
+	 * modify map entries by other mods. The map is thread safe.
+	 *
+	 * <p>Java 16 introduced a convenient syntax for type safe queries that combines null check, type check and cast:
+	 * <pre>
+	 * if (FabricLoader.getInstance().getBulletinMap().get("someMod:someValue") instanceof String value) {
+	 *   // use value here
+	 * }
+	 * </pre>
+	 *
+	 * @return the global bulletin map instance
+	 * @since 0.12.0
+	 */
+	Map<String, Object> getBulletinMap();
 
 	/**
 	 * Get the current mapping resolver.
