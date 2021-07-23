@@ -44,7 +44,7 @@ public interface ObjectShare {
 	 *
 	 * <p>A generic type still needs a second unchecked cast due to erasure:
 	 * <pre>
-	 * if (FabricLoader.getInstance().getObjectShare().get("mymod:fuel") instanceof Consumer<?> c) {
+	 * if (FabricLoader.getInstance().getObjectShare().get("mymod:fuel") instanceof Consumer{@code<?>} c) {
 	 *   ((Consumer{@code<ItemStack>}) c).accept(someStack);
 	 * }
 	 * </pre>
