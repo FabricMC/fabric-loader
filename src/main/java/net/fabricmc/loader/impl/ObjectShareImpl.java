@@ -82,16 +82,22 @@ final class ObjectShareImpl implements ObjectShare {
 	}
 
 	@Override
-	public synchronized void whenAvailable(String key, BiConsumer<String, Object> consumer) {
+	public void whenAvailable(String key, BiConsumer<String, Object> consumer) {
 		validateKey(key);
 
-		Object value = get(key);
+		Object value;
 
-		if (value != null) {
-			consumer.accept(key, value);
-		} else {
-			pendingMap.computeIfAbsent(key, ignore -> new ArrayList<>()).add(consumer);
+		synchronized (this) {
+			value = values.get(key);
+
+			if (value == null) { // value doesn't exist yet, queue invocation for when it gets added
+				pendingMap.computeIfAbsent(key, ignore -> new ArrayList<>()).add(consumer);
+				return;
+			}
 		}
+
+		// value exists already, invoke directly
+		consumer.accept(key, value);
 	}
 
 	private static void validateKey(String key) {
