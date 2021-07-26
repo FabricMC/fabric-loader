@@ -27,7 +27,7 @@ import net.fabricmc.loader.api.ObjectShare;
 
 final class ObjectShareImpl implements ObjectShare {
 	private final Map<String, Object> values = new HashMap<>();
-	private final Map<String, List<BiConsumer<String, Object>>> pending = new HashMap<>();
+	private final Map<String, List<BiConsumer<String, Object>>> pendingMap = new HashMap<>();
 
 	@Override
 	public synchronized Object get(String key) {
@@ -37,31 +37,41 @@ final class ObjectShareImpl implements ObjectShare {
 	}
 
 	@Override
-	public synchronized Object put(String key, Object value) {
+	public Object put(String key, Object value) {
 		validateKey(key);
 		Objects.requireNonNull(value, "null value");
 
-		Object prev = values.put(key, value);
+		List<BiConsumer<String, Object>> pending;
 
-		if (prev == null) {
-			invokePending(key, value);
+		synchronized (this) {
+			Object prev = values.put(key, value);
+			if (prev != null) return prev; // no new entry -> can't have pending entries for it
+
+			pending = pendingMap.remove(key);
 		}
 
-		return prev;
+		if (pending != null) invokePending(key, value, pending);
+
+		return null;
 	}
 
 	@Override
-	public synchronized Object putIfAbsent(String key, Object value) {
+	public Object putIfAbsent(String key, Object value) {
 		validateKey(key);
 		Objects.requireNonNull(value, "null value");
 
-		Object prev = values.putIfAbsent(key, value);
+		List<BiConsumer<String, Object>> pending;
 
-		if (prev == null) {
-			invokePending(key, value);
+		synchronized (this) {
+			Object prev = values.putIfAbsent(key, value);
+			if (prev != null) return prev; // no new entry -> can't have pending entries for it
+
+			pending = pendingMap.remove(key);
 		}
 
-		return prev;
+		if (pending != null) invokePending(key, value, pending);
+
+		return null;
 	}
 
 	@Override
@@ -80,7 +90,7 @@ final class ObjectShareImpl implements ObjectShare {
 		if (value != null) {
 			consumer.accept(key, value);
 		} else {
-			pending.computeIfAbsent(key, ignore -> new ArrayList<>()).add(consumer);
+			pendingMap.computeIfAbsent(key, ignore -> new ArrayList<>()).add(consumer);
 		}
 	}
 
@@ -91,13 +101,9 @@ final class ObjectShareImpl implements ObjectShare {
 		if (pos <= 0 || pos >= key.length() - 1) throw new IllegalArgumentException("invalid key, must be modid:subkey");
 	}
 
-	private void invokePending(String key, Object value) {
-		List<BiConsumer<String, Object>> pendingEntries = pending.remove(key);
-
-		if (pendingEntries != null) {
-			for (BiConsumer<String, Object> consumer : pendingEntries) {
-				consumer.accept(key, value);
-			}
+	private static void invokePending(String key, Object value, List<BiConsumer<String, Object>> pending) {
+		for (BiConsumer<String, Object> consumer : pending) {
+			consumer.accept(key, value);
 		}
 	}
 }
