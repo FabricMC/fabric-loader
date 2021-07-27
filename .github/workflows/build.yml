@@ -4,10 +4,10 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [8-jdk, 11-jdk, 15-jdk]
+        java: [8-jdk, 11-jdk, 16-jdk]
     runs-on: ubuntu-20.04
     container:
-      image: openjdk:${{ matrix.java }}
+      image: adoptopenjdk:${{ matrix.java }}
       options: --user root
     steps:
       - uses: actions/checkout@v1

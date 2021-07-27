@@ -1,0 +1,35 @@
+apply plugin: "fabric-loom"
+
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
+
+loom {
+	runConfigs.configureEach {
+		ideConfigGenerated = true
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:1.17.1"
+	mappings "net.fabricmc:yarn:1.17.1+build.31:v2"
+
+	implementation project(":minecraft")
+
+	// Required for mixin annotation processor
+	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-analysis:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+
+	testAnnotationProcessor "org.ow2.asm:asm:${project.asm_version}"
+	testAnnotationProcessor "org.ow2.asm:asm-analysis:${project.asm_version}"
+	testAnnotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
+	testAnnotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
+	testAnnotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = 16
+}

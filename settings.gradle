@@ -8,3 +8,11 @@ pluginManagement {
 	}
 }
 rootProject.name='fabric-loader'
+
+include "minecraft"
+
+if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+	include "minecraft:test"
+} else {
+	println("Minecraft test sub project requires java 16 or higher!")
+}

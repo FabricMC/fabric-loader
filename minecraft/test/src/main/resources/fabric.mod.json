@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-test",
+  "name": "Minecraft Test Mod",
+  "version": "1.0.0",
+  "mixins": [
+    {
+      "config": "fabricmc.test.mixins.client.json",
+      "environment": "client"
+    }
+  ]
+}

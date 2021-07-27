@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.test.mixin;
+package net.fabricmc.minecraft.test.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
