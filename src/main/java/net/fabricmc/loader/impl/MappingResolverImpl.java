@@ -57,16 +57,15 @@ class MappingResolverImpl implements MappingResolver {
 
 			NamespaceData data = new NamespaceData();
 			TinyTree mappings = mappingsSupplier.get();
-			Map<String, String> classNameMap = new HashMap<>();
 
 			for (ClassDef classEntry : mappings.getClasses()) {
-				String fromClass = mapClassName(classNameMap, classEntry.getName(fromNamespace));
-				String toClass = mapClassName(classNameMap, classEntry.getName(targetNamespace));
+				String fromClass = classEntry.getName(fromNamespace);
+				String toClass = classEntry.getName(targetNamespace);
 
 				data.classNames.put(fromClass, toClass);
 				data.classNamesInverse.put(toClass, fromClass);
 
-				String mappedClassName = mapClassName(classNameMap, fromClass);
+				String mappedClassName = fromClass;
 
 				recordMember(fromNamespace, classEntry.getFields(), data.fieldNames, mappedClassName);
 				recordMember(fromNamespace, classEntry.getMethods(), data.methodNames, mappedClassName);
@@ -74,14 +73,6 @@ class MappingResolverImpl implements MappingResolver {
 
 			return data;
 		});
-	}
-
-	private static String replaceSlashesWithDots(String cname) {
-		return cname.replace('/', '.');
-	}
-
-	private String mapClassName(Map<String, String> classNameMap, String s) {
-		return classNameMap.computeIfAbsent(s, MappingResolverImpl::replaceSlashesWithDots);
 	}
 
 	private <T extends Descriptored> void recordMember(String fromNamespace, Collection<T> descriptoredList, Map<EntryTriple, String> putInto, String fromClass) {
@@ -103,36 +94,28 @@ class MappingResolverImpl implements MappingResolver {
 
 	@Override
 	public String mapClassName(String namespace, String className) {
-		if (className.indexOf('/') >= 0) {
-			throw new IllegalArgumentException("Class names must be provided in dot format: " + className);
-		}
+		className = className.replace('.', '/'); // maintain backwards compatibility with dotty format requirement
 
 		return getNamespaceData(namespace).classNames.getOrDefault(className, className);
 	}
 
 	@Override
 	public String unmapClassName(String namespace, String className) {
-		if (className.indexOf('/') >= 0) {
-			throw new IllegalArgumentException("Class names must be provided in dot format: " + className);
-		}
+		className = className.replace('.', '/'); // maintain backwards compatibility with dotty format requirement
 
 		return getNamespaceData(namespace).classNamesInverse.getOrDefault(className, className);
 	}
 
 	@Override
 	public String mapFieldName(String namespace, String owner, String name, String descriptor) {
-		if (owner.indexOf('/') >= 0) {
-			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
-		}
+		owner = owner.replace('.', '/'); // maintain backwards compatibility with dotty format requirement
 
 		return getNamespaceData(namespace).fieldNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
 	}
 
 	@Override
 	public String mapMethodName(String namespace, String owner, String name, String descriptor) {
-		if (owner.indexOf('/') >= 0) {
-			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
-		}
+		owner = owner.replace('.', '/'); // maintain backwards compatibility with dotty format requirement
 
 		return getNamespaceData(namespace).methodNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
 	}
