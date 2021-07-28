@@ -23,7 +23,7 @@ archivesBaseName = "fabric-loader"
 def ENV = System.getenv()
 
 allprojects {
-	apply plugin: "java-library"
+	apply plugin: 'java-library'
 	apply plugin: 'eclipse'
 	apply plugin: 'checkstyle'
 
