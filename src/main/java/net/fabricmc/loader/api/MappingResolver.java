@@ -49,7 +49,7 @@ public interface MappingResolver {
 	 * Map a class name to the mapping currently used at runtime.
 	 *
 	 * @param namespace the namespace of the provided class name
-	 * @param className the provided binary class name
+	 * @param className the provided internal/binary class name
 	 * @return the mapped class name, or {@code className} if no such mapping is present
 	 */
 	String mapClassName(String namespace, String className);
@@ -58,7 +58,7 @@ public interface MappingResolver {
 	 * Unmap a class name to the mapping currently used at runtime.
 	 *
 	 * @param targetNamespace The target namespace for unmapping.
-	 * @param className the provided binary class name of the mapping form currently used at runtime
+	 * @param className the provided internal/binary class name of the mapping form currently used at runtime
 	 * @return the mapped class name, or {@code className} if no such mapping is present
 	 */
 	String unmapClassName(String targetNamespace, String className);
@@ -67,7 +67,7 @@ public interface MappingResolver {
 	 * Map a field name to the mapping currently used at runtime.
 	 *
 	 * @param namespace the namespace of the provided field name and descriptor
-	 * @param owner the binary name of the owner class of the field
+	 * @param owner the internal/binary name of the owner class of the field
 	 * @param name the name of the field
 	 * @param descriptor the descriptor of the field
 	 * @return the mapped field name, or {@code name} if no such mapping is present
@@ -78,7 +78,7 @@ public interface MappingResolver {
 	 * Map a method name to the mapping currently used at runtime.
 	 *
 	 * @param namespace the namespace of the provided method name and descriptor
-	 * @param owner the binary name of the owner class of the method
+	 * @param owner the internal/binary name of the owner class of the method
 	 * @param name the name of the method
 	 * @param descriptor the descriptor of the method
 	 * @return the mapped method name, or {@code name} if no such mapping is present
