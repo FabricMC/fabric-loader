@@ -7,7 +7,6 @@ buildscript {
 plugins {
 	id 'java'
 	id 'java-library'
-	id 'idea'
 	id 'eclipse'
 	id 'maven-publish'
 	id 'checkstyle'
@@ -24,6 +23,10 @@ archivesBaseName = "fabric-loader"
 def ENV = System.getenv()
 
 allprojects {
+	apply plugin: "java-library"
+	apply plugin: 'eclipse'
+	apply plugin: 'checkstyle'
+
 	version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 	repositories {
