@@ -1,0 +1,30 @@
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+	api project(":")
+
+	// launchwrapper + dependencies
+	implementation ('net.minecraft:launchwrapper:1.12') {
+		transitive = false
+	}
+	implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
+}
+
+sourceSets {
+	main {
+		java.srcDirs = ['src/main/java', 'src/main/legacyJava']
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
+}
+
+jar {
+	enabled = false
+}

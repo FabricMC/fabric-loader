@@ -1,0 +1,6 @@
+# Ignore everything
+/*
+
+!/src
+!/build.gradle
+!/.gitignore
