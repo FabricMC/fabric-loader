@@ -20,8 +20,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,7 +32,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.spongepowered.asm.launch.MixinBootstrap;
 
@@ -38,7 +44,6 @@ import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.game.GameProvider;
-import net.fabricmc.loader.impl.game.GameProviders;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -92,30 +97,8 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		// TODO: Restore these undocumented features
-		// String proposedEntrypoint = System.getProperty("fabric.loader.entrypoint");
-
-		List<GameProvider> providers = GameProviders.create();
-		provider = null;
-
-		for (GameProvider p : providers) {
-			if (p.locateGame(envType, args, this.getClass().getClassLoader())) {
-				provider = p;
-				break;
-			}
-		}
-
-		if (provider != null) {
-			Log.info(LogCategory.GAME_PROVIDER, "Loading for game %s %s", provider.getGameName(), provider.getRawGameVersion());
-		} else {
-			Log.error(LogCategory.GAME_PROVIDER, "Could not find valid game provider!");
-
-			for (GameProvider p : providers) {
-				Log.error(LogCategory.GAME_PROVIDER, "- %s", p.getGameName());
-			}
-
-			throw new RuntimeException("Could not find valid game provider!");
-		}
+		provider = createGameProvider(envType, args);
+		Log.info(LogCategory.GAME_PROVIDER, "Loading for game %s %s", provider.getGameName(), provider.getRawGameVersion());
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
 
@@ -156,6 +139,96 @@ public final class Knot extends FabricLauncherBase {
 		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 
 		return cl;
+	}
+
+	private static GameProvider createGameProvider(EnvType envType, String[] args) {
+		// fast path with direct lookup
+
+		GameProvider embeddedGameProvider = findEmbedddedGameProvider();
+		ClassLoader cl = Knot.class.getClassLoader();
+
+		if (embeddedGameProvider != null
+				&& embeddedGameProvider.isEnabled()
+				&& embeddedGameProvider.locateGame(envType, args, cl)) {
+			return embeddedGameProvider;
+		}
+
+		// slow path with service loader
+
+		List<GameProvider> failedProviders = new ArrayList<>();
+
+		for (GameProvider provider : ServiceLoader.load(GameProvider.class)) {
+			if (!provider.isEnabled()) continue; // don't attempt disabled providers and don't include them in the error report
+
+			if (provider != embeddedGameProvider // don't retry already failed provider
+					&& provider.locateGame(envType, args, cl)) {
+				return provider;
+			}
+
+			failedProviders.add(provider);
+		}
+
+		// nothing found
+
+		String msg;
+
+		if (failedProviders.isEmpty()) {
+			msg = "No game providers present on the class path!";
+		} else if (failedProviders.size() == 1) {
+			msg = String.format("%s game provider couldn't locate the game! "
+					+ "The game may be absent from the class path, lacks some expected files, suffers from jar "
+					+ "corruption or is of an unsupported variety/version.",
+					failedProviders.get(0).getGameName());
+		} else {
+			msg = String.format("None of the game providers (%s) were able to locate their game!",
+					failedProviders.stream().map(GameProvider::getGameName).collect(Collectors.joining(", ")));
+		}
+
+		Log.error(LogCategory.GAME_PROVIDER, msg);
+
+		throw new RuntimeException(msg);
+	}
+
+	/**
+	 * Find game provider embedded into the Fabric Loader jar, best effort.
+	 *
+	 * <p>This is faster than going through service loader because it only looks at a single jar.
+	 */
+	private static GameProvider findEmbedddedGameProvider() {
+		try {
+			Path flPath = UrlUtil.asPath(Knot.class.getProtectionDomain().getCodeSource().getLocation());
+			if (!flPath.getFileName().toString().endsWith(".jar")) return null; // not a jar
+
+			try (ZipFile zf = new ZipFile(flPath.toFile())) {
+				ZipEntry entry = zf.getEntry("META-INF/services/net.fabricmc.loader.impl.game.GameProvider"); // same file as used by service loader
+				if (entry == null) return null;
+
+				try (InputStream is = zf.getInputStream(entry)) {
+					byte[] buffer = new byte[100];
+					int offset = 0;
+					int len;
+
+					while ((len = is.read(buffer, offset, buffer.length - offset)) >= 0) {
+						offset += len;
+						if (offset == buffer.length) buffer = Arrays.copyOf(buffer, buffer.length * 2);
+					}
+
+					String content = new String(buffer, 0, offset, StandardCharsets.UTF_8).trim();
+					if (content.indexOf('\n') >= 0) return null; // potentially more than one entry -> bail out
+
+					int pos = content.indexOf('#');
+					if (pos >= 0) content = content.substring(0, pos).trim();
+
+					if (!content.isEmpty()) {
+						return (GameProvider) Class.forName(content).getConstructor().newInstance();
+					}
+				}
+			}
+
+			return null;
+		} catch (IOException | URISyntaxException | ReflectiveOperationException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

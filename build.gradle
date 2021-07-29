@@ -67,7 +67,7 @@ dependencies {
 	implementation 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	implementation 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 
-	// TODO move to minecraft project along with the log4j wrapper
+	// TODO remove after mixin stopped depending on log4j
 	implementation 'org.apache.logging.log4j:log4j-api:2.8.1'
 	implementation 'org.apache.logging.log4j:log4j-core:2.8.1'
 
