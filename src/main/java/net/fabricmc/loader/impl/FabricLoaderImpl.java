@@ -41,6 +41,7 @@ import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
+import net.fabricmc.loader.api.ObjectShare;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
@@ -81,6 +82,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
 	private final AccessWidener accessWidener = new AccessWidener();
+
+	private final ObjectShare objectShare = new ObjectShareImpl();
 
 	private boolean frozen = false;
 
@@ -314,6 +317,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		return mappingResolver;
+	}
+
+	@Override
+	public ObjectShare getObjectShare() {
+		return objectShare;
 	}
 
 	@Override
