@@ -41,6 +41,7 @@ final class ResultAnalyzer {
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
 			String prefix = "";
+			boolean suggestFix = true;
 
 			if (result.fix != null) {
 				pw.print("\nA potential solution has been determined.");
@@ -81,9 +82,8 @@ final class ResultAnalyzer {
 
 				pw.print("\nUnmet dependency listing:");
 				prefix = "\t";
+				suggestFix = false;
 			}
-
-			boolean suggestFix = true;
 
 			List<ModCandidate> matches = new ArrayList<>();
 

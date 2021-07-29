@@ -57,6 +57,22 @@ public final class ModDependencyImpl implements ModDependency {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof ModDependency)) return false;
+
+		ModDependency o = (ModDependency) obj;
+
+		return kind == o.getKind()
+				&& modId.equals(o.getModId())
+				&& ranges.equals(o.getVersionRequirements());
+	}
+
+	@Override
+	public int hashCode() {
+		return (kind.ordinal() * 31 + modId.hashCode()) * 257 + ranges.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder("{");
 		builder.append(kind.getKey());
