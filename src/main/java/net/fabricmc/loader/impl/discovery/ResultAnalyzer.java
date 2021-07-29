@@ -23,14 +23,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
+import net.fabricmc.loader.impl.discovery.ModSolver.AddModVar;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
+import net.fabricmc.loader.impl.util.Localization;
 import net.fabricmc.loader.impl.util.StringUtil;
 
 final class ResultAnalyzer {
@@ -38,26 +40,70 @@ final class ResultAnalyzer {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
+			String prefix = "";
+
+			if (result.fix != null) {
+				pw.print("\nA potential solution has been determined.");
+
+				for (AddModVar mod : result.fix.modsToAdd) {
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), mod.getVersion().getFriendlyString()));
+				}
+
+				for (ModCandidate mod : result.fix.modsToRemove) {
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getPath()));
+				}
+
+				for (Entry<AddModVar, List<ModCandidate>> entry : result.fix.modReplacements.entrySet()) {
+					AddModVar newMod = entry.getKey();
+					List<ModCandidate> oldMods = entry.getValue();
+					List<String> oldModEntries = new ArrayList<>(oldMods.size());
+
+					for (ModCandidate m : oldMods) {
+						if (m.hasPath() && !m.isBuiltin()) {
+							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getPath()));
+						} else {
+							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
+						}
+					}
+
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newMod.getId(), newMod.getVersion().getFriendlyString()));
+				}
+
+				pw.print("\nUnmet dependency listing:");
+				prefix = "\t";
+			}
+
+			boolean suggestFix = true;
+
+			List<ModCandidate> matches = new ArrayList<>();
+
 			for (Explanation explanation : result.reason) {
 				assert explanation.error.isDependencyError;
 
+				ModDependency dep = explanation.dep;
+				ModCandidate selected = selectedMods.get(dep.getModId());
+
+				if (selected != null) {
+					matches.add(selected);
+				} else {
+					List<ModCandidate> candidates = modsById.get(dep.getModId());
+					if (candidates != null) matches.addAll(candidates);
+				}
+
 				switch (explanation.error) {
 				case HARD_DEP_NO_CANDIDATE:
-					addErrorToList(explanation.mod, explanation.dep, (ModCandidate) null, pw);
-					break;
 				case HARD_DEP_INCOMPATIBLE_PRESELECTED:
-					addErrorToList(explanation.mod, explanation.dep, selectedMods.get(explanation.dep.getModId()), pw);
-					break;
 				case PRESELECT_HARD_DEP:
 				case HARD_DEP:
-					addErrorToList(explanation.mod, explanation.dep, modsById.get(explanation.dep.getModId()), pw);
-					break;
 				case PRESELECT_NEG_HARD_DEP:
 				case NEG_HARD_DEP:
+					addErrorToList(explanation.mod, explanation.dep, matches, suggestFix, prefix, pw);
 					break;
 				default:
 					// ignore
 				}
+
+				matches.clear();
 			}
 		}
 
@@ -77,7 +123,7 @@ final class ResultAnalyzer {
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod == null || !dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, depMod, pw);
+							addErrorToList(mod, dep, toList(depMod), true, "", pw);
 						}
 
 						break;
@@ -85,7 +131,7 @@ final class ResultAnalyzer {
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod != null && dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, depMod, pw);
+							addErrorToList(mod, dep, toList(depMod), true, "", pw);
 						}
 
 						break;
@@ -103,87 +149,37 @@ final class ResultAnalyzer {
 		}
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, ModCandidate match, PrintWriter pw) {
-		addErrorToList(mod, dep, match != null ? Collections.singletonList(match) : Collections.emptyList(), pw);
+	private static List<ModCandidate> toList(ModCandidate mod) {
+		return mod != null ? Collections.singletonList(mod) : Collections.emptyList();
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, PrintWriter pw) {
-		if (matches == null) matches = Collections.emptyList();
+	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean suggestFix, String prefix, PrintWriter pw) {
+		Object[] args = new Object[] {
+				getName(mod),
+				(matches.isEmpty() ? dep.getModId() : getName(matches.get(0))),
+				getDependencyVersionRequirements(dep),
+				getVersions(matches),
+				matches.size()
+		};
 
-		matches = matches.stream().filter(m -> dep.matches(m.getVersion())).collect(Collectors.toList());
+		String key = String.format("resolution.%s.%s", dep.getKind().getKey(), matches.isEmpty() ? "missing" : "invalid");
+		pw.printf("\n%s - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 
-		String errorType;
-
-		switch (dep.getKind()) {
-		case DEPENDS: errorType = "requires"; break;
-		case RECOMMENDS: errorType = "recommends"; break;
-		case BREAKS: errorType = "is incompatible with"; break;
-		case CONFLICTS: errorType = "conflicts with"; break;
-		default: throw new IllegalStateException("unknown dep kind: "+dep.getKind());
+		if (suggestFix) {
+			key = String.format("resolution.%s.suggestion", dep.getKind().getKey());
+			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 		}
 
-		pw.printf("\n - %s %s %s of %s, ",
-				StringUtil.capitalize(getCandidateName(mod)), errorType, getDependencyVersionRequirements(dep),
-				(matches.isEmpty() ? dep.getModId() : getCandidateName(matches.get(0))));
-
-		if (matches.isEmpty()) {
-			appendMissingDependencyError(dep, pw);
-		} else if (dep.getKind().isPositive()) {
-			appendUnsatisfiedDependencyError(dep, matches, pw);
-		} else if (dep.getKind() == Kind.CONFLICTS) {
-			appendConflictError(mod, matches, pw);
-		} else {
-			appendBreakingError(mod, matches, pw);
-		}
-
-		if (matches != null) {
-			appendJiJInfo(matches, pw);
-		}
+		appendJijInfo(matches, prefix, pw);
 	}
 
-	private static void appendMissingDependencyError(ModDependency dependency, PrintWriter pw) {
-		pw.printf("which is missing!\n\t - You %s install %s of %s.",
-				(dependency.getKind().isSoft() ? "should" : "need to"),
-				getDependencyVersionRequirements(dependency),
-				dependency.getModId());
-	}
-
-	private static void appendUnsatisfiedDependencyError(ModDependency dependency, List<ModCandidate> matches, PrintWriter pw) {
-		pw.printf("but a non-matching version is present: %s!\n\t - You must %s %s of %s.",
-				getCandidateFriendlyVersions(matches),
-				(dependency.getKind().isSoft() ? "should" : "need to"),
-				getDependencyVersionRequirements(dependency),
-				getCandidateName(matches.get(0)));
-	}
-
-	private static void appendConflictError(ModCandidate candidate, List<ModCandidate> matches, PrintWriter pw) {
-		final String depCandidateVer = getCandidateFriendlyVersions(matches);
-
-		pw.printf("but a matching version is present: %s!\n"
-				+ "\t - While this won't prevent you from starting the game,  the developer(s) of %s have found that "
-				+ "version %s of %s may cause issues when used at the same time.\n"
-				+ "\t - It is recommended to remove one of the two or potentially upgrade them.",
-				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
-	}
-
-	private static void appendBreakingError(ModCandidate candidate, List<ModCandidate> matches, PrintWriter pw) {
-		final String depCandidateVer = getCandidateFriendlyVersions(matches);
-
-		pw.printf("but a matching version is present: %s!\n"
-				+ "\t - The developer(s) of %s have found that version %s of %s is incompatible and can't be used at the same time.\n"
-				+ "\t - You need to remove one of the two or potentially upgrade them.",
-				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
-	}
-
-	private static void appendJiJInfo(List<ModCandidate> mods, PrintWriter pw) {
+	private static void appendJijInfo(List<ModCandidate> mods, String prefix, PrintWriter pw) {
 		for (ModCandidate mod : mods) {
 			if (mod.getMetadata().getType().equals(AbstractModMetadata.TYPE_BUILTIN)) {
-				pw.printf("\n\t - %s v%s is an environment reference any usually requires installation or launcher changes to adjust.",
-						StringUtil.capitalize(getCandidateName(mod)), getCandidateFriendlyVersion(mod));
+				pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.builtin", getName(mod), getVersion(mod))));
 				return;
 			} else if (mod.getMinNestLevel() < 1) {
-				pw.printf("\n\t - %s v%s is being loaded from the mods directory or supplied through the command line.",
-						StringUtil.capitalize(getCandidateName(mod)), getCandidateFriendlyVersion(mod));
+				pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.root", getName(mod), getVersion(mod))));
 				return;
 			}
 
@@ -206,16 +202,15 @@ final class ResultAnalyzer {
 				ModCandidate m = path.get(i);
 
 				if (pathSb.length() > 0) pathSb.append(" -> ");
-				pathSb.append(String.format("%s v%s", getCandidateName(m), getCandidateFriendlyVersion(m)));
+				pathSb.append(String.format("%s %s", getName(m), getVersion(m)));
 			}
 
 			// now we have the proper data, yay
-			pw.printf("\n\t - %s v%s is being provided through e.g. %s.",
-					getCandidateName(mod), getCandidateFriendlyVersion(mod), pathSb);
+			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.normal", getName(mod), getVersion(mod), pathSb)));
 		}
 	}
 
-	private static String getCandidateName(ModCandidate candidate) {
+	private static String getName(ModCandidate candidate) {
 		String typePrefix;
 
 		switch (candidate.getMetadata().getType()) {
@@ -230,12 +225,12 @@ final class ResultAnalyzer {
 		return String.format("%s'%s' (%s)", typePrefix, candidate.getMetadata().getName(), candidate.getId());
 	}
 
-	private static String getCandidateFriendlyVersion(ModCandidate candidate) {
+	private static String getVersion(ModCandidate candidate) {
 		return candidate.getVersion().getFriendlyString();
 	}
 
-	private static String getCandidateFriendlyVersions(Collection<ModCandidate> candidates) {
-		return candidates.stream().map(ResultAnalyzer::getCandidateFriendlyVersion).collect(Collectors.joining("/"));
+	private static String getVersions(Collection<ModCandidate> candidates) {
+		return candidates.stream().map(ResultAnalyzer::getVersion).collect(Collectors.joining("/"));
 	}
 
 	private static String getDependencyVersionRequirements(ModDependency dependency) {
