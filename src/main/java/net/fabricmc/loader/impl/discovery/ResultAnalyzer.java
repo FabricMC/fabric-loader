@@ -66,7 +66,17 @@ final class ResultAnalyzer {
 						}
 					}
 
-					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newMod.getId(), newMod.getVersion().getFriendlyString()));
+					String newModName = newMod.getId();
+					ModCandidate alt = selectedMods.get(newMod.getId());
+
+					if (alt != null) {
+						newModName = getName(alt);
+					} else {
+						List<ModCandidate> alts = modsById.get(newMod.getId());
+						if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
+					}
+
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newModName, newMod.getVersion().getFriendlyString()));
 				}
 
 				pw.print("\nUnmet dependency listing:");
