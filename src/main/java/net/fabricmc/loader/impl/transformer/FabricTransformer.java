@@ -23,27 +23,9 @@ import org.objectweb.asm.ClassWriter;
 import net.fabricmc.accesswidener.AccessWidenerVisitor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 public final class FabricTransformer {
-	public static byte[] lwTransformerHook(String name, String transformedName, byte[] bytes) {
-		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
-		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
-
-		byte[] input = MinecraftGameProvider.TRANSFORMER.transform(name);
-
-		if (input != null) {
-			return FabricTransformer.transform(isDevelopment, envType, name, input);
-		} else {
-			if (bytes != null) {
-				return FabricTransformer.transform(isDevelopment, envType, name, bytes);
-			} else {
-				return null;
-			}
-		}
-	}
-
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.startsWith("com.mojang.blaze3d.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();

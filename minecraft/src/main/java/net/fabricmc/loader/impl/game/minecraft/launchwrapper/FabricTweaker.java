@@ -112,7 +112,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		GameProvider provider = new MinecraftGameProvider();
 
-		if (!provider.locateGame(getEnvironmentType(), arguments.toArray(), launchClassLoader)) {
+		if (!provider.isEnabled()
+				|| !provider.locateGame(getEnvironmentType(), arguments.toArray(), launchClassLoader)) {
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 

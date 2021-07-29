@@ -135,6 +135,11 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
+	public boolean isEnabled() {
+		return System.getProperty(SystemProperties.SKIP_MC_PROVIDER) == null;
+	}
+
+	@Override
 	public boolean locateGame(EnvType envType, String[] args, ClassLoader loader) {
 		this.envType = envType;
 		this.arguments = new Arguments();

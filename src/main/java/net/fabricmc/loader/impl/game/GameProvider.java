@@ -26,7 +26,7 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.util.Arguments;
 
-public interface GameProvider {
+public interface GameProvider { // name directly referenced in net.fabricmc.loader.impl.launch.knot.Knot.findEmbedddedGameProvider() and service loader records
 	String getGameId();
 	String getGameName();
 	String getRawGameVersion();
@@ -39,6 +39,7 @@ public interface GameProvider {
 	boolean requiresUrlClassLoader();
 	List<Path> getGameContextJars();
 
+	boolean isEnabled();
 	boolean locateGame(EnvType envType, String[] args, ClassLoader loader);
 	GameTransformer getEntrypointTransformer();
 	void launch(ClassLoader loader);
