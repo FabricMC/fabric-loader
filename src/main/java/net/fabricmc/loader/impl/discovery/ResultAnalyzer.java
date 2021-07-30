@@ -44,7 +44,7 @@ final class ResultAnalyzer {
 			boolean suggestFix = true;
 
 			if (result.fix != null) {
-				pw.print("\nA potential solution has been determined.");
+				pw.printf("\n%s", Localization.format("resolution.solutionHeader"));
 
 				for (AddModVar mod : result.fix.modsToAdd) {
 					pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), mod.getVersion().getFriendlyString()));
@@ -80,7 +80,7 @@ final class ResultAnalyzer {
 					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newModName, newMod.getVersion().getFriendlyString()));
 				}
 
-				pw.print("\nUnmet dependency listing:");
+				pw.printf("\n%s", Localization.format("resolution.depListHeader"));
 				prefix = "\t";
 				suggestFix = false;
 			}
@@ -100,19 +100,7 @@ final class ResultAnalyzer {
 					if (candidates != null) matches.addAll(candidates);
 				}
 
-				switch (explanation.error) {
-				case HARD_DEP_NO_CANDIDATE:
-				case HARD_DEP_INCOMPATIBLE_PRESELECTED:
-				case PRESELECT_HARD_DEP:
-				case HARD_DEP:
-				case PRESELECT_NEG_HARD_DEP:
-				case NEG_HARD_DEP:
-					addErrorToList(explanation.mod, explanation.dep, matches, suggestFix, prefix, pw);
-					break;
-				default:
-					// ignore
-				}
-
+				addErrorToList(explanation.mod, explanation.dep, matches, suggestFix, prefix, pw);
 				matches.clear();
 			}
 		}
@@ -225,7 +213,7 @@ final class ResultAnalyzer {
 
 		switch (candidate.getMetadata().getType()) {
 		case AbstractModMetadata.TYPE_FABRIC_MOD:
-			typePrefix = "mod ";
+			typePrefix = String.format("%s ", Localization.format("resolution.type.mod"));
 			break;
 		case AbstractModMetadata.TYPE_BUILTIN:
 		default:
@@ -249,7 +237,7 @@ final class ResultAnalyzer {
 		Collection<VersionPredicate> predicates = dependency.getVersionRequirements();
 
 		for (VersionPredicate predicate : predicates) {
-			if (sb.length() > 0) sb.append(" or ");
+			if (sb.length() > 0) sb.append(String.format(" %s ", Localization.format("resolution.version.or")));
 
 			VersionInterval interval = predicate.getInterval();
 
@@ -257,39 +245,40 @@ final class ResultAnalyzer {
 				// empty interval, skip
 			} else if (interval.getMin() == null) {
 				if (interval.getMax() == null) {
-					return "any version";
+					return Localization.format("resolution.version.any");
 				} else if (interval.isMaxInclusive()) {
-					sb.append(String.format("version %s or earlier", interval.getMax()));
+					sb.append(Localization.format("resolution.version.lessEqual", interval.getMax()));
 				} else {
-					sb.append(String.format("any version before %s", interval.getMax()));
+					sb.append(Localization.format("resolution.version.less", interval.getMax()));
 				}
 			} else if (interval.getMax() == null) {
 				if (interval.isMinInclusive()) {
-					sb.append(String.format("version %s or later", interval.getMin()));
+					sb.append(Localization.format("resolution.version.greaterEqual", interval.getMin()));
 				} else {
-					sb.append(String.format("any version after %s", interval.getMin()));
+					sb.append(Localization.format("resolution.version.greater", interval.getMin()));
 				}
 			} else if (interval.getMin().equals(interval.getMax())) {
 				if (interval.isMinInclusive() && interval.isMaxInclusive()) {
-					sb.append(String.format("version %s", interval.getMin()));
+					sb.append(Localization.format("resolution.version.equal", interval.getMin()));
 				} else {
 					// empty interval, skip
 				}
 			} else if (isWildcard(interval, 0)) { // major.x wildcard
 				SemanticVersion version = (SemanticVersion) interval.getMin();
-				sb.append(String.format("any %d.x version", version.getVersionComponent(0)));
+				sb.append(Localization.format("resolution.version.major", version.getVersionComponent(0)));
 			} else if (isWildcard(interval, 1)) { // major.minor.x wildcard
 				SemanticVersion version = (SemanticVersion) interval.getMin();
-				sb.append(String.format("any %d.%d.x version", version.getVersionComponent(0), version.getVersionComponent(1)));
+				sb.append(Localization.format("resolution.version.majorMinor", version.getVersionComponent(0), version.getVersionComponent(1)));
 			} else {
-				sb.append(String.format("any version between %s (%s) and %s (%s)",
-						interval.getMin(), (interval.isMinInclusive() ? "inclusive" : "exclusive"),
-						interval.getMax(), (interval.isMaxInclusive() ? "inclusive" : "exclusive")));
+				String key = String.format("resolution.version.rangeMin%sMax%s",
+						(interval.isMinInclusive() ? "Inc" : "Exc"),
+						(interval.isMaxInclusive() ? "Inc" : "Exc"));
+				sb.append(Localization.format(key, interval.getMin(), interval.getMax()));
 			}
 		}
 
 		if (sb.length() == 0) {
-			return "an unsatisfiable version range";
+			return Localization.format("resolution.version.none");
 		} else {
 			return sb.toString();
 		}
