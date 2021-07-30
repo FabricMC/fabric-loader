@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.impl.util;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -39,10 +40,10 @@ public final class Localization {
 
 	private static ResourceBundle createBundle(String name) {
 		if (System.getProperty("java.version", "").startsWith("1.")) { // below java 9
-			return ResourceBundle.getBundle("net.fabricmc.loader.Messages", Locale.getDefault(), new ResourceBundle.Control() {
+			return ResourceBundle.getBundle(name, Locale.getDefault(), new ResourceBundle.Control() {
 				@Override
 				public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload)
-						throws IllegalAccessException, InstantiationException, java.io.IOException {
+						throws IllegalAccessException, InstantiationException, IOException {
 					if (format.equals("java.properties")) {
 						InputStream is = loader.getResourceAsStream(toResourceName(toBundleName(baseName, locale), "properties"));
 
