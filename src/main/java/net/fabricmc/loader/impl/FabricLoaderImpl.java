@@ -71,12 +71,15 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
+	public static final String MOD_ID = "fabricloader";
+
 	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
 	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to cache dir
 	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to cache dir
 	private static final String TMP_DIR_NAME = "tmp"; // relative to cache dir
 
 	protected final Map<String, ModContainerImpl> modMap = new HashMap<>();
+	private List<ModCandidate> modCandidates;
 	protected List<ModContainerImpl> mods = new ArrayList<>();
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
@@ -189,13 +192,14 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
-		List<ModCandidate> mods = ModResolver.resolve(discoverer.discoverMods(this));
+		modCandidates = discoverer.discoverMods(this);
+		modCandidates = ModResolver.resolve(modCandidates);
 
-		String modListText = mods.stream()
+		String modListText = modCandidates.stream()
 				.map(candidate -> String.format("\t- %s %s", candidate.getId(), candidate.getVersion().getFriendlyString()))
 				.collect(Collectors.joining("\n"));
 
-		int count = mods.size();
+		int count = modCandidates.size();
 		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
 
 		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
@@ -211,26 +215,26 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			if (System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
 				Log.warn(LogCategory.MOD_REMAP, "Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			} else {
-				RuntimeModRemapper.remap(mods, cacheDir.resolve(TMP_DIR_NAME), outputdir);
+				RuntimeModRemapper.remap(modCandidates, cacheDir.resolve(TMP_DIR_NAME), outputdir);
 			}
 		}
 
 		// shuffle mods in-dev to reduce the risk of false order reliance, apply late load requests
 
 		if (isDevelopmentEnvironment() && System.getProperty(SystemProperties.DEBUG_DISABLE_MOD_SHUFFLE) == null) {
-			Collections.shuffle(mods);
+			Collections.shuffle(modCandidates);
 		}
 
 		String modsToLoadLate = System.getProperty(SystemProperties.DEBUG_LOAD_LATE);
 
 		if (modsToLoadLate != null) {
 			for (String modId : modsToLoadLate.split(",")) {
-				for (Iterator<ModCandidate> it = mods.iterator(); it.hasNext(); ) {
+				for (Iterator<ModCandidate> it = modCandidates.iterator(); it.hasNext(); ) {
 					ModCandidate mod = it.next();
 
 					if (mod.getId().equals(modId)) {
 						it.remove();
-						mods.add(mod);
+						modCandidates.add(mod);
 						break;
 					}
 				}
@@ -239,7 +243,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// add mods
 
-		for (ModCandidate mod : mods) {
+		for (ModCandidate mod : modCandidates) {
 			if (!mod.hasPath() && !mod.isBuiltin()) {
 				try {
 					mod.setPath(mod.copyToDir(outputdir, false));
@@ -250,13 +254,15 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			addMod(mod);
 		}
+
+		modCandidates = null;
 	}
 
 	private void finishModLoading() {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainerImpl mod : mods) {
-			if (!mod.getInfo().getId().equals("fabricloader") && !mod.getInfo().getType().equals("builtin")) {
+			if (!mod.getInfo().getId().equals(MOD_ID) && !mod.getInfo().getType().equals("builtin")) {
 				FabricLauncherBase.getLauncher().addToClassPath(mod.getOriginPath());
 			}
 		}
@@ -322,6 +328,16 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	@Override
 	public ObjectShare getObjectShare() {
 		return objectShare;
+	}
+
+	public ModCandidate getModCandidate(String id) {
+		if (modCandidates == null) return null;
+
+		for (ModCandidate mod : modCandidates) {
+			if (mod.getId().equals(id)) return mod;
+		}
+
+		return null;
 	}
 
 	@Override

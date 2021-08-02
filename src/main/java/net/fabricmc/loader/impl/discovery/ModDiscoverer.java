@@ -67,7 +67,7 @@ public final class ModDiscoverer {
 		candidateFinders.add(f);
 	}
 
-	public Collection<ModCandidate> discoverMods(FabricLoaderImpl loader) throws ModResolutionException {
+	public List<ModCandidate> discoverMods(FabricLoaderImpl loader) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
 		Set<Path> paths = new HashSet<>(); // suppresses duplicate paths

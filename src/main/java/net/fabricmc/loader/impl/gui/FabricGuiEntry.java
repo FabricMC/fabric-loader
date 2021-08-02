@@ -24,13 +24,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
+import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
@@ -99,13 +99,13 @@ public final class FabricGuiEntry {
 		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
 
 		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
-			Optional<ModContainer> loaderMod = FabricLoader.getInstance().getModContainer("fabricloader");
+			Version loaderVersion = getLoaderVersion();
 			String title;
 
-			if (!loaderMod.isPresent()) {
+			if (loaderVersion == null) {
 				title = "Fabric Loader";
 			} else {
-				title = "Fabric Loader " + loaderMod.get().getMetadata().getVersion().getFriendlyString();
+				title = "Fabric Loader " + loaderVersion.getFriendlyString();
 			}
 
 			FabricStatusTree tree = new FabricStatusTree(title, "Failed to launch!");
@@ -131,6 +131,16 @@ public final class FabricGuiEntry {
 		if (exitAfter) {
 			System.exit(1);
 		}
+	}
+
+	private static Version getLoaderVersion() {
+		ModContainer mod = FabricLoaderImpl.INSTANCE.getModContainer(FabricLoaderImpl.MOD_ID).orElse(null);
+		if (mod != null) return mod.getMetadata().getVersion();
+
+		ModCandidate candidate = FabricLoaderImpl.INSTANCE.getModCandidate(FabricLoaderImpl.MOD_ID);
+		if (candidate != null) return candidate.getVersion();
+
+		return null;
 	}
 
 	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
