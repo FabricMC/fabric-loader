@@ -23,41 +23,85 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModDependency.Kind;
-import net.fabricmc.loader.api.metadata.version.VersionComparisonOperator;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
-import net.fabricmc.loader.api.metadata.version.VersionPredicate.PredicateTerm;
+import net.fabricmc.loader.impl.discovery.ModSolver.AddModVar;
+import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
+import net.fabricmc.loader.impl.util.Localization;
+import net.fabricmc.loader.impl.util.StringUtil;
 
 final class ResultAnalyzer {
 	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
+			String prefix = "";
+			boolean suggestFix = true;
+
+			if (result.fix != null) {
+				pw.printf("\n%s", Localization.format("resolution.solutionHeader"));
+
+				for (AddModVar mod : result.fix.modsToAdd) {
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), mod.getVersion().getFriendlyString()));
+				}
+
+				for (ModCandidate mod : result.fix.modsToRemove) {
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getPath()));
+				}
+
+				for (Entry<AddModVar, List<ModCandidate>> entry : result.fix.modReplacements.entrySet()) {
+					AddModVar newMod = entry.getKey();
+					List<ModCandidate> oldMods = entry.getValue();
+					List<String> oldModEntries = new ArrayList<>(oldMods.size());
+
+					for (ModCandidate m : oldMods) {
+						if (m.hasPath() && !m.isBuiltin()) {
+							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getPath()));
+						} else {
+							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
+						}
+					}
+
+					String newModName = newMod.getId();
+					ModCandidate alt = selectedMods.get(newMod.getId());
+
+					if (alt != null) {
+						newModName = getName(alt);
+					} else {
+						List<ModCandidate> alts = modsById.get(newMod.getId());
+						if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
+					}
+
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newModName, newMod.getVersion().getFriendlyString()));
+				}
+
+				pw.printf("\n%s", Localization.format("resolution.depListHeader"));
+				prefix = "\t";
+				suggestFix = false;
+			}
+
+			List<ModCandidate> matches = new ArrayList<>();
+
 			for (Explanation explanation : result.reason) {
 				assert explanation.error.isDependencyError;
 
-				switch (explanation.error) {
-				case HARD_DEP_NO_CANDIDATE:
-					addErrorToList(explanation.mod, explanation.dep, (ModCandidate) null, pw);
-					break;
-				case HARD_DEP_INCOMPATIBLE_PRESELECTED:
-					addErrorToList(explanation.mod, explanation.dep, selectedMods.get(explanation.dep.getModId()), pw);
-					break;
-				case PRESELECT_HARD_DEP:
-				case HARD_DEP:
-					addErrorToList(explanation.mod, explanation.dep, modsById.get(explanation.dep.getModId()), pw);
-					break;
-				case PRESELECT_NEG_HARD_DEP:
-				case NEG_HARD_DEP:
-					break;
-				default:
-					// ignore
+				ModDependency dep = explanation.dep;
+				ModCandidate selected = selectedMods.get(dep.getModId());
+
+				if (selected != null) {
+					matches.add(selected);
+				} else {
+					List<ModCandidate> candidates = modsById.get(dep.getModId());
+					if (candidates != null) matches.addAll(candidates);
 				}
+
+				addErrorToList(explanation.mod, explanation.dep, matches, suggestFix, prefix, pw);
+				matches.clear();
 			}
 		}
 
@@ -77,7 +121,7 @@ final class ResultAnalyzer {
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod == null || !dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, depMod, pw);
+							addErrorToList(mod, dep, toList(depMod), true, "", pw);
 						}
 
 						break;
@@ -85,7 +129,7 @@ final class ResultAnalyzer {
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod != null && dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, depMod, pw);
+							addErrorToList(mod, dep, toList(depMod), true, "", pw);
 						}
 
 						break;
@@ -103,83 +147,37 @@ final class ResultAnalyzer {
 		}
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, ModCandidate match, PrintWriter pw) {
-		addErrorToList(mod, dep, match != null ? Collections.singletonList(match) : Collections.emptyList(), pw);
+	private static List<ModCandidate> toList(ModCandidate mod) {
+		return mod != null ? Collections.singletonList(mod) : Collections.emptyList();
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, PrintWriter pw) {
-		if (matches == null) matches = Collections.emptyList();
+	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean suggestFix, String prefix, PrintWriter pw) {
+		Object[] args = new Object[] {
+				getName(mod),
+				(matches.isEmpty() ? dep.getModId() : getName(matches.get(0))),
+				getDependencyVersionRequirements(dep),
+				getVersions(matches),
+				matches.size()
+		};
 
-		matches = matches.stream().filter(m -> dep.matches(m.getVersion())).collect(Collectors.toList());
+		String key = String.format("resolution.%s.%s", dep.getKind().getKey(), matches.isEmpty() ? "missing" : "invalid");
+		pw.printf("\n%s - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 
-		String errorType;
-
-		switch (dep.getKind()) {
-		case DEPENDS: errorType = "requires"; break;
-		case RECOMMENDS: errorType = "recommends"; break;
-		case BREAKS: errorType = "is incompatible with"; break;
-		case CONFLICTS: errorType = "conflicts with"; break;
-		default: throw new IllegalStateException("unknown dep kind: "+dep.getKind());
+		if (suggestFix) {
+			key = String.format("resolution.%s.suggestion", dep.getKind().getKey());
+			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 		}
 
-		pw.printf("\n - Mod %s %s %s of mod %s, ",
-				getCandidateName(mod), errorType, getDependencyVersionRequirements(dep),
-				(matches.isEmpty() ? dep.getModId() : getCandidateName(matches.get(0))));
-
-		if (matches.isEmpty()) {
-			appendMissingDependencyError(dep, pw);
-		} else if (dep.getKind().isPositive()) {
-			appendUnsatisfiedDependencyError(dep, matches, pw);
-		} else if (dep.getKind() == Kind.CONFLICTS) {
-			appendConflictError(mod, matches, pw);
-		} else {
-			appendBreakingError(mod, matches, pw);
-		}
-
-		if (matches != null) {
-			appendJiJInfo(matches, pw);
-		}
+		appendJijInfo(matches, prefix, pw);
 	}
 
-	private static void appendMissingDependencyError(ModDependency dependency, PrintWriter pw) {
-		pw.printf("which is missing!\n\t - You %s install %s of %s.",
-				(dependency.getKind().isSoft() ? "should" : "need to"),
-				getDependencyVersionRequirements(dependency),
-				dependency.getModId());
-	}
-
-	private static void appendUnsatisfiedDependencyError(ModDependency dependency, List<ModCandidate> matches, PrintWriter pw) {
-		pw.printf("but a non-matching version is present: %s!\n\t - You must %s %s of %s.",
-				getCandidateFriendlyVersions(matches),
-				(dependency.getKind().isSoft() ? "should" : "need to"),
-				getDependencyVersionRequirements(dependency),
-				getCandidateName(matches.get(0)));
-	}
-
-	private static void appendConflictError(ModCandidate candidate, List<ModCandidate> matches, PrintWriter pw) {
-		final String depCandidateVer = getCandidateFriendlyVersions(matches);
-
-		pw.printf("but a matching version is present: %s!\n"
-				+ "\t - While this won't prevent you from starting the game,  the developer(s) of %s have found that "
-				+ "version %s of %s conflicts with their mod.\n"
-				+ "\t - It is recommended to remove one of the mods.",
-				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
-	}
-
-	private static void appendBreakingError(ModCandidate candidate, List<ModCandidate> matches, PrintWriter pw) {
-		final String depCandidateVer = getCandidateFriendlyVersions(matches);
-
-		pw.printf("but a matching version is present: %s!\n"
-				+ "\t - The developer(s) of %s have found that version %s of %s critically conflicts with their mod.\n"
-				+ "\t - You need to remove one of the mods.",
-				depCandidateVer, getCandidateName(candidate), depCandidateVer, getCandidateName(matches.get(0)));
-	}
-
-	private static void appendJiJInfo(List<ModCandidate> mods, PrintWriter pw) {
+	private static void appendJijInfo(List<ModCandidate> mods, String prefix, PrintWriter pw) {
 		for (ModCandidate mod : mods) {
-			if (mod.getMinNestLevel() < 1) {
-				pw.printf("\n\t - Mod %s v%s is being loaded from the mods directory.",
-						getCandidateName(mod), getCandidateFriendlyVersion(mod));
+			if (mod.getMetadata().getType().equals(AbstractModMetadata.TYPE_BUILTIN)) {
+				pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.builtin", getName(mod), getVersion(mod))));
+				return;
+			} else if (mod.getMinNestLevel() < 1) {
+				pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.root", getName(mod), getVersion(mod))));
 				return;
 			}
 
@@ -202,25 +200,35 @@ final class ResultAnalyzer {
 				ModCandidate m = path.get(i);
 
 				if (pathSb.length() > 0) pathSb.append(" -> ");
-				pathSb.append(String.format("%s v%s", getCandidateName(m), getCandidateFriendlyVersion(m)));
+				pathSb.append(String.format("%s %s", getName(m), getVersion(m)));
 			}
 
 			// now we have the proper data, yay
-			pw.printf("\n\t - Mod %s v%s is being provided through e.g. %s.",
-					getCandidateName(mod), getCandidateFriendlyVersion(mod), pathSb);
+			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.normal", getName(mod), getVersion(mod), pathSb)));
 		}
 	}
 
-	private static String getCandidateName(ModCandidate candidate) {
-		return String.format("'%s' (%s)", candidate.getMetadata().getName(), candidate.getId());
+	private static String getName(ModCandidate candidate) {
+		String typePrefix;
+
+		switch (candidate.getMetadata().getType()) {
+		case AbstractModMetadata.TYPE_FABRIC_MOD:
+			typePrefix = String.format("%s ", Localization.format("resolution.type.mod"));
+			break;
+		case AbstractModMetadata.TYPE_BUILTIN:
+		default:
+			typePrefix = "";
+		}
+
+		return String.format("%s'%s' (%s)", typePrefix, candidate.getMetadata().getName(), candidate.getId());
 	}
 
-	private static String getCandidateFriendlyVersion(ModCandidate candidate) {
+	private static String getVersion(ModCandidate candidate) {
 		return candidate.getVersion().getFriendlyString();
 	}
 
-	private static String getCandidateFriendlyVersions(Collection<ModCandidate> candidates) {
-		return candidates.stream().map(ResultAnalyzer::getCandidateFriendlyVersion).collect(Collectors.joining("/"));
+	private static String getVersions(Collection<ModCandidate> candidates) {
+		return candidates.stream().map(ResultAnalyzer::getVersion).collect(Collectors.joining("/"));
 	}
 
 	private static String getDependencyVersionRequirements(ModDependency dependency) {
@@ -229,64 +237,86 @@ final class ResultAnalyzer {
 		Collection<VersionPredicate> predicates = dependency.getVersionRequirements();
 
 		for (VersionPredicate predicate : predicates) {
-			if (sb.length() > 0) sb.append(" or ");
+			if (sb.length() > 0) sb.append(String.format(" %s ", Localization.format("resolution.version.or")));
 
-			Collection<? extends PredicateTerm> terms = predicate.getTerms();
-			if (terms.isEmpty()) return "any version";
+			VersionInterval interval = predicate.getInterval();
 
-			boolean useBrackets = predicates.size() > 1 && terms.size() > 1;
-			if (useBrackets) sb.append('(');
-
-			boolean first = true;
-
-			for (PredicateTerm term : terms) {
-				Version version = term.getReferenceVersion();
-				VersionComparisonOperator operator;
-
-				if (version instanceof SemanticVersion) {
-					operator = term.getOperator();
+			if (interval == null) {
+				// empty interval, skip
+			} else if (interval.getMin() == null) {
+				if (interval.getMax() == null) {
+					return Localization.format("resolution.version.any");
+				} else if (interval.isMaxInclusive()) {
+					sb.append(Localization.format("resolution.version.lessEqual", interval.getMax()));
 				} else {
-					operator = VersionComparisonOperator.EQUAL;
+					sb.append(Localization.format("resolution.version.less", interval.getMax()));
 				}
-
-				if (first) {
-					first = false;
+			} else if (interval.getMax() == null) {
+				if (interval.isMinInclusive()) {
+					sb.append(Localization.format("resolution.version.greaterEqual", interval.getMin()));
 				} else {
-					sb.append(" and ");
+					sb.append(Localization.format("resolution.version.greater", interval.getMin()));
 				}
-
-				switch (operator) {
-				case EQUAL:
-					sb.append(String.format("version %s", version));
-					break;
-				case GREATER:
-					sb.append(String.format("any version after %s", version));
-					break;
-				case LESS:
-					sb.append(String.format("any version before %s", version));
-					break;
-				case GREATER_EQUAL:
-					sb.append(String.format("version %s or later", version));
-					break;
-				case LESS_EQUAL:
-					sb.append(String.format("version %s or earlier", version));
-					break;
-				case SAME_TO_NEXT_MAJOR:
-					sb.append(String.format("version %d.x", ((SemanticVersion) version).getVersionComponent(0)));
-					break;
-				case SAME_TO_NEXT_MINOR: {
-					SemanticVersion semVer = (SemanticVersion) version;
-					sb.append(String.format("version %d.%d.x", semVer.getVersionComponent(0), semVer.getVersionComponent(1)));
-					break;
+			} else if (interval.getMin().equals(interval.getMax())) {
+				if (interval.isMinInclusive() && interval.isMaxInclusive()) {
+					sb.append(Localization.format("resolution.version.equal", interval.getMin()));
+				} else {
+					// empty interval, skip
 				}
-				default:
-					throw new IllegalStateException(operator.toString());
-				}
+			} else if (isWildcard(interval, 0)) { // major.x wildcard
+				SemanticVersion version = (SemanticVersion) interval.getMin();
+				sb.append(Localization.format("resolution.version.major", version.getVersionComponent(0)));
+			} else if (isWildcard(interval, 1)) { // major.minor.x wildcard
+				SemanticVersion version = (SemanticVersion) interval.getMin();
+				sb.append(Localization.format("resolution.version.majorMinor", version.getVersionComponent(0), version.getVersionComponent(1)));
+			} else {
+				String key = String.format("resolution.version.rangeMin%sMax%s",
+						(interval.isMinInclusive() ? "Inc" : "Exc"),
+						(interval.isMaxInclusive() ? "Inc" : "Exc"));
+				sb.append(Localization.format(key, interval.getMin(), interval.getMax()));
 			}
-
-			if (useBrackets) sb.append(')');
 		}
 
-		return sb.toString();
+		if (sb.length() == 0) {
+			return Localization.format("resolution.version.none");
+		} else {
+			return sb.toString();
+		}
+	}
+
+	/**
+	 * Determine whether an interval can be represented by a .x wildcard version string.
+	 *
+	 * <p>Example: [1.2.0-,1.3.0-) is the same as 1.2.x (incrementedComponent=1)
+	 */
+	private static boolean isWildcard(VersionInterval interval, int incrementedComponent) {
+		if (interval == null || interval.getMin() == null || interval.getMax() == null // not an interval with lower+upper bounds
+				|| !interval.isMinInclusive() || interval.isMaxInclusive() // not an [a,b) interval
+				|| !interval.isSemantic()) {
+			return false;
+		}
+
+		SemanticVersion min = (SemanticVersion) interval.getMin();
+		SemanticVersion max = (SemanticVersion) interval.getMax();
+
+		// min and max need to use the empty prerelease (a.b.c-)
+		if (!"".equals(min.getPrereleaseKey().orElse(null))
+				|| !"".equals(max.getPrereleaseKey().orElse(null))) {
+			return false;
+		}
+
+		// max needs to be min + 1 for the covered component
+		if (max.getVersionComponent(incrementedComponent) != min.getVersionComponent(incrementedComponent) + 1) {
+			return false;
+		}
+
+		for (int i = incrementedComponent + 1; i < 3; i++) {
+			// all following components need to be 0
+			if (min.getVersionComponent(i) != 0 || max.getVersionComponent(i) != 0) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

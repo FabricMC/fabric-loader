@@ -160,7 +160,11 @@ class KnotClassDelegate {
 			return transformedClassArray;
 		}
 
-		return getMixinTransformer().transformClassBytes(name, name, transformedClassArray);
+		try {
+			return getMixinTransformer().transformClassBytes(name, name, transformedClassArray);
+		} catch (Throwable t) {
+			throw new RuntimeException(String.format("Mixin transformation of %s failed", name), t);
+		}
 	}
 
 	/**

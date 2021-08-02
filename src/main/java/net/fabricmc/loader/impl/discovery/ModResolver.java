@@ -137,7 +137,7 @@ public class ModResolver {
 						result.fix.modReplacements.entrySet().stream().map(e -> String.format("%s -> %s", e.getValue(), e.getKey())).collect(Collectors.joining(", ")));
 			}
 
-			throw new ModResolutionException("Errors were found!%s", ResultAnalyzer.gatherErrors(result, selectedMods, modsById));
+			throw new ModResolutionException("Mod resolution encountered an incompatible mod set!%s", ResultAnalyzer.gatherErrors(result, selectedMods, modsById));
 		}
 
 		uniqueSelectedMods.sort(Comparator.comparing(ModCandidate::getId));
