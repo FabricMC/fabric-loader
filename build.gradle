@@ -147,6 +147,7 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 
 	relocate 'org.sat4j', 'net.fabricmc.loader.impl.lib.sat4j'
 
+	exclude 'about.html'
 	exclude 'sat4j.version'
 	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
 }
