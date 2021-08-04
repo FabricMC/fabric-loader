@@ -89,6 +89,7 @@ public final class FabricGuiEntry {
 	public static void main(String[] args) throws Exception {
 		FabricStatusTree tree = new FabricStatusTree(new DataInputStream(System.in));
 		FabricMainWindow.open(tree, true);
+		System.exit(-1);
 	}
 
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
