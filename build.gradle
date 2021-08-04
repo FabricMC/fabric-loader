@@ -138,7 +138,7 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 
 	manifest {
 		attributes (
-				'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher'
+			'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher'
 		)
 	}
 
@@ -150,6 +150,8 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	exclude 'about.html'
 	exclude 'sat4j.version'
 	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
+
+	outputs.upToDateWhen { false }
 }
 
 File proguardFile = file("build/libs/fabric-loader-${version}.jar")

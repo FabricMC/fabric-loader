@@ -25,12 +25,14 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
+import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -73,6 +75,10 @@ class FabricMainWindow {
 			throw new HeadlessException();
 		}
 
+		// Set MacOS specific system props
+		System.setProperty("apple.awt.application.appearance", "system");
+		System.setProperty("apple.awt.application.name", tree.title);
+
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		open0(tree, shouldWait);
 	}
@@ -95,7 +101,9 @@ class FabricMainWindow {
 		window.setTitle(tree.title);
 
 		try {
-			window.setIconImage(loadImage("/ui/icon/fabric_x128.png"));
+			Image image = loadImage("/ui/icon/fabric_x128.png");
+			window.setIconImage(image);
+			setTaskBarImage(image);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -208,6 +216,19 @@ class FabricMainWindow {
 		}
 
 		return stream;
+	}
+
+	private static void setTaskBarImage(Image image) {
+		try {
+			// TODO Remove reflection when updating past Java 8
+			Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
+			Method getTaskbar = taskbarClass.getDeclaredMethod("getTaskbar");
+			Method setIconImage = taskbarClass.getDeclaredMethod("setIconImage", Image.class);
+			Object taskbar = getTaskbar.invoke(null);
+			setIconImage.invoke(taskbar, image);
+		} catch (Exception e) {
+			// Ignored
+		}
 	}
 
 	static final class IconSet {
