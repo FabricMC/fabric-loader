@@ -25,6 +25,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.util.Arguments;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 
 public interface GameProvider { // name directly referenced in net.fabricmc.loader.impl.launch.knot.Knot.findEmbedddedGameProvider() and service loader records
 	String getGameId();
@@ -49,6 +50,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 
 	default boolean canOpenErrorGui() {
 		return true;
+	}
+
+	default boolean hasAwtSupport() {
+		return LoaderUtil.hasAwtSupport();
 	}
 
 	class BuiltinMod {

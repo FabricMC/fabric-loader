@@ -39,6 +39,7 @@ import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 
@@ -248,17 +249,18 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public boolean canOpenErrorGui() {
-		// Disabled on macs due to -XstartOnFirstThread being incompatible with awt but required for lwjgl
-		if (System.getProperty("os.name").equals("Mac OS X")) {
-			return false;
-		}
-
 		if (arguments == null || envType == EnvType.CLIENT) {
 			return true;
 		}
 
 		List<String> extras = arguments.getExtraArgs();
 		return !extras.contains("nogui") && !extras.contains("--nogui");
+	}
+
+	@Override
+	public boolean hasAwtSupport() {
+		// MC always sets -XstartOnFirstThread for LWJGL
+		return !LoaderUtil.hasMacOs();
 	}
 
 	@Override

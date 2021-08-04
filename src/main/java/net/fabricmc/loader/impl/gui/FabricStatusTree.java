@@ -16,11 +16,15 @@
 
 package net.fabricmc.loader.impl.gui;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public final class FabricStatusTree {
 	public enum FabricTreeWarningLevel {
@@ -51,48 +55,73 @@ public final class FabricStatusTree {
 
 	/** No icon is displayed. */
 	public static final String ICON_TYPE_DEFAULT = "";
-
 	/** Generic folder. */
 	public static final String ICON_TYPE_FOLDER = "folder";
-
 	/** Generic (unknown contents) file. */
 	public static final String ICON_TYPE_UNKNOWN_FILE = "file";
-
 	/** Generic non-Fabric jar file. */
 	public static final String ICON_TYPE_JAR_FILE = "jar";
-
 	/** Generic Fabric-related jar file. */
 	public static final String ICON_TYPE_FABRIC_JAR_FILE = "jar+fabric";
-
 	/** Something related to Fabric (It's not defined what exactly this is for, but it uses the main Fabric logo). */
 	public static final String ICON_TYPE_FABRIC = "fabric";
-
 	/** Generic JSON file. */
 	public static final String ICON_TYPE_JSON = "json";
-
 	/** A file called "fabric.mod.json". */
 	public static final String ICON_TYPE_FABRIC_JSON = "json+fabric";
-
 	/** Java bytecode class file. */
 	public static final String ICON_TYPE_JAVA_CLASS = "java_class";
-
 	/** A folder inside of a Java JAR. */
 	public static final String ICON_TYPE_PACKAGE = "package";
-
 	/** A folder that contains Java class files. */
 	public static final String ICON_TYPE_JAVA_PACKAGE = "java_package";
-
 	/** A tick symbol, used to indicate that something matched. */
 	public static final String ICON_TYPE_TICK = "tick";
-
 	/** A cross symbol, used to indicate that something didn't match (although it's not an error). Used as the opposite
 	 * of {@link #ICON_TYPE_TICK} */
 	public static final String ICON_TYPE_LESSER_CROSS = "lesser_cross";
 
+	public final String title;
+	public final String mainText;
 	public final List<FabricStatusTab> tabs = new ArrayList<>();
 	public final List<FabricStatusButton> buttons = new ArrayList<>();
 
-	public String mainText = null;
+	public FabricStatusTree(String title, String mainText) {
+		Objects.requireNonNull(title, "null title");
+		Objects.requireNonNull(mainText, "null mainText");
+
+		this.title = title;
+		this.mainText = mainText;
+	}
+
+	public FabricStatusTree(DataInputStream is) throws IOException {
+		title = is.readUTF();
+		mainText = is.readUTF();
+
+		for (int i = is.readInt(); i > 0; i--) {
+			tabs.add(new FabricStatusTab(is));
+		}
+
+		for (int i = is.readInt(); i > 0; i--) {
+			buttons.add(new FabricStatusButton(is));
+		}
+	}
+
+	public void writeTo(DataOutputStream os) throws IOException {
+		os.writeUTF(title);
+		os.writeUTF(mainText);
+		os.writeInt(tabs.size());
+
+		for (FabricStatusTab tab : tabs) {
+			tab.writeTo(os);
+		}
+
+		os.writeInt(buttons.size());
+
+		for (FabricStatusButton button : buttons) {
+			button.writeTo(os);
+		}
+	}
 
 	public FabricStatusTab addTab(String name) {
 		FabricStatusTab tab = new FabricStatusTab(name);
@@ -111,7 +140,21 @@ public final class FabricStatusTree {
 		public boolean shouldClose, shouldContinue;
 
 		public FabricStatusButton(String text) {
+			Objects.requireNonNull(text, "null text");
+
 			this.text = text;
+		}
+
+		public FabricStatusButton(DataInputStream is) throws IOException {
+			text = is.readUTF();
+			shouldClose = is.readBoolean();
+			shouldContinue = is.readBoolean();
+		}
+
+		public void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(text);
+			os.writeBoolean(shouldClose);
+			os.writeBoolean(shouldContinue);
 		}
 
 		public FabricStatusButton makeClose() {
@@ -135,6 +178,16 @@ public final class FabricStatusTree {
 			this.node = new FabricStatusNode(null, name);
 		}
 
+		public FabricStatusTab(DataInputStream is) throws IOException {
+			node = new FabricStatusNode(null, is);
+			filterLevel = FabricTreeWarningLevel.valueOf(is.readUTF());
+		}
+
+		public void writeTo(DataOutputStream os) throws IOException {
+			node.writeTo(os);
+			os.writeUTF(filterLevel.name());
+		}
+
 		public FabricStatusNode addChild(String name) {
 			return node.addChild(name);
 		}
@@ -142,26 +195,50 @@ public final class FabricStatusTree {
 
 	public static final class FabricStatusNode {
 		private FabricStatusNode parent;
-
 		public String name;
-
 		/** The icon type. There can be a maximum of 2 decorations (added with "+" symbols), or 3 if the
 		 * {@link #setWarningLevel(FabricTreeWarningLevel) warning level} is set to
 		 * {@link FabricTreeWarningLevel#NONE } */
 		public String iconType = ICON_TYPE_DEFAULT;
-
 		private FabricTreeWarningLevel warningLevel = FabricTreeWarningLevel.NONE;
-
 		public boolean expandByDefault = false;
-
-		public final List<FabricStatusNode> children = new ArrayList<>();
-
 		/** Extra text for more information. Lines should be separated by "\n". */
 		public String details;
+		public final List<FabricStatusNode> children = new ArrayList<>();
 
 		private FabricStatusNode(FabricStatusNode parent, String name) {
+			Objects.requireNonNull(name, "null name");
+
 			this.parent = parent;
 			this.name = name;
+		}
+
+		public FabricStatusNode(FabricStatusNode parent, DataInputStream is) throws IOException {
+			this.parent = parent;
+
+			name = is.readUTF();
+			iconType = is.readUTF();
+			warningLevel = FabricTreeWarningLevel.valueOf(is.readUTF());
+			expandByDefault = is.readBoolean();
+			if (is.readBoolean()) details = is.readUTF();
+
+			for (int i = is.readInt(); i > 0; i--) {
+				children.add(new FabricStatusNode(this, is));
+			}
+		}
+
+		public void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(name);
+			os.writeUTF(iconType);
+			os.writeUTF(warningLevel.name());
+			os.writeBoolean(expandByDefault);
+			os.writeBoolean(details != null);
+			if (details != null) os.writeUTF(details);
+			os.writeInt(children.size());
+
+			for (FabricStatusNode child : children) {
+				child.writeTo(os);
+			}
 		}
 
 		public void moveTo(FabricStatusNode newParent) {

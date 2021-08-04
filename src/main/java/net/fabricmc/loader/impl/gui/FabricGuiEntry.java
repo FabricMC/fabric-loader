@@ -17,13 +17,24 @@
 package net.fabricmc.loader.impl.gui;
 
 import java.awt.GraphicsEnvironment;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
+import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -33,11 +44,51 @@ public final class FabricGuiEntry {
 	 *
 	 * @throws Exception if something went wrong while opening the window. */
 	public static void open(FabricStatusTree tree) throws Exception {
-		openWindow(tree, true);
+		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
+
+		if (provider == null && LoaderUtil.hasAwtSupport()
+				|| provider != null && provider.hasAwtSupport()) {
+			FabricMainWindow.open(tree, true);
+		} else {
+			openForked(tree);
+		}
 	}
 
-	private static void openWindow(FabricStatusTree tree, boolean shouldWait) throws Exception {
-		FabricMainWindow.open(tree, shouldWait);
+	private static void openForked(FabricStatusTree tree) throws IOException, InterruptedException {
+		Path javaBinDir = Paths.get(System.getProperty("java.home"), "bin").toAbsolutePath();
+		String[] executables = { "javaw.exe", "java.exe", "java" };
+		Path javaPath = null;
+
+		for (String executable : executables) {
+			Path path = javaBinDir.resolve(executable);
+
+			if (Files.isRegularFile(path)) {
+				javaPath = path;
+				break;
+			}
+		}
+
+		if (javaPath == null) throw new RuntimeException("can't find java executable in "+javaBinDir);
+
+		Path loaderPath = ClasspathModCandidateFinder.getFabricLoaderPath();
+		if (loaderPath == null) throw new RuntimeException("can't determine Fabric Loader path");
+
+		Process process = new ProcessBuilder(javaPath.toString(), "-Xmx100M", "-cp", loaderPath.toString(), FabricGuiEntry.class.getName())
+				.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+				.redirectError(ProcessBuilder.Redirect.INHERIT)
+				.start();
+
+		try (DataOutputStream os = new DataOutputStream(process.getOutputStream())) {
+			tree.writeTo(os);
+		}
+
+		int rVal = process.waitFor();
+		if (rVal != 0) throw new IOException("subprocess exited with code "+rVal);
+	}
+
+	public static void main(String[] args) throws Exception {
+		FabricStatusTree tree = new FabricStatusTree(new DataInputStream(System.in));
+		FabricMainWindow.open(tree, true);
 	}
 
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
@@ -47,11 +98,19 @@ public final class FabricGuiEntry {
 
 		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
 
-		if ((provider == null || provider.canOpenErrorGui()) && !GraphicsEnvironment.isHeadless()) {
-			FabricStatusTree tree = new FabricStatusTree();
+		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
+			Version loaderVersion = getLoaderVersion();
+			String title;
+
+			if (loaderVersion == null) {
+				title = "Fabric Loader";
+			} else {
+				title = "Fabric Loader " + loaderVersion.getFriendlyString();
+			}
+
+			FabricStatusTree tree = new FabricStatusTree(title, "Failed to launch!");
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
-			tree.mainText = "Failed to launch!";
 			addThrowable(crashTab.node, exception, new HashSet<>());
 
 			// Maybe add an "open mods folder" button?
@@ -72,6 +131,16 @@ public final class FabricGuiEntry {
 		if (exitAfter) {
 			System.exit(1);
 		}
+	}
+
+	private static Version getLoaderVersion() {
+		ModContainer mod = FabricLoaderImpl.INSTANCE.getModContainer(FabricLoaderImpl.MOD_ID).orElse(null);
+		if (mod != null) return mod.getMetadata().getVersion();
+
+		ModCandidate candidate = FabricLoaderImpl.INSTANCE.getModCandidate(FabricLoaderImpl.MOD_ID);
+		if (candidate != null) return candidate.getVersion();
+
+		return null;
 	}
 
 	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
