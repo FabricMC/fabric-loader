@@ -1,6 +1,7 @@
 buildscript {
 	dependencies {
 		classpath 'org.kohsuke:github-api:1.114'
+		classpath 'com.guardsquare:proguard-gradle:7.1.0'
 	}
 }
 
@@ -10,8 +11,9 @@ plugins {
 	id 'eclipse'
 	id 'maven-publish'
 	id 'checkstyle'
-	id("org.cadixdev.licenser") version "0.6.1"
-	id("fabric-loom") version "0.9-SNAPSHOT" apply false
+	id 'org.cadixdev.licenser' version '0.6.1'
+	id 'fabric-loom' version '0.9-SNAPSHOT' apply false
+	id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -48,6 +50,14 @@ sourceSets {
 	}
 }
 
+configurations {
+	include
+
+	implementation {
+		extendsFrom include
+	}
+}
+
 dependencies {
 	// fabric-loader dependencies
 	api "org.ow2.asm:asm:${project.asm_version}"
@@ -64,8 +74,8 @@ dependencies {
 	api 'net.fabricmc:tiny-remapper:0.4.2'
 	api 'net.fabricmc:access-widener:1.0.0'
 
-	implementation 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
-	implementation 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
+	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
+	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 
 	// TODO remove after mixin stopped depending on log4j
 	implementation 'org.apache.logging.log4j:log4j-api:2.8.1'
@@ -90,18 +100,81 @@ java {
 }
 
 jar {
-	from sourceSets.main.output
-	from project(":minecraft").sourceSets.main.output
+	enabled = false
+}
 
-	manifest {
-		attributes (
-			'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher'
-		)
+shadowJar {
+	// Has stupid defaults, make our own
+	enabled = false
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+// Renaming in the shadow jar task doesnt seem to work, so do it here
+task getSat4jAbout(type: Copy) {
+	dependsOn project.configurations.include
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+	from {
+		configurations.include.collect {
+			zipTree(it).matching {
+				include 'about.html'
+			}
+		}
 	}
 
+	rename 'about.html', 'net/fabricmc/loader/impl/lib/sat4j/about-sat4j.html'
+
+	into layout.buildDirectory.dir("sat4j")
+}
+
+task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
+	from sourceSets.main.output
+	from project(":minecraft").sourceSets.main.output
+	from getSat4jAbout.destinationDir
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}
 	}
+
+	manifest {
+		attributes (
+				'Main-Class': 'net.fabricmc.loader.impl.launch.server.FabricServerLauncher'
+		)
+	}
+
+	archiveClassifier = "fat"
+	configurations = [project.configurations.include]
+
+	relocate 'org.sat4j', 'net.fabricmc.loader.impl.lib.sat4j'
+
+	exclude 'about.html'
+	exclude 'sat4j.version'
+	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
+}
+
+File proguardFile = file("build/libs/fabric-loader-${version}.jar")
+
+import proguard.gradle.ProGuardTask
+task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
+	doFirst {
+		project(":minecraft").configurations.compileClasspath.resolve().forEach {
+			libraryjars it
+		}
+	}
+
+	outputs.upToDateWhen { false }
+
+	libraryjars JavaVersion.current().java9Compatible ? "${System.getProperty('java.home')}/jmods" : "${System.getProperty('java.home')}/lib/rt.jar"
+
+	injars fatJar.archiveFile
+	outjars proguardFile
+	configuration file("proguard.conf")
+}
+build.dependsOn proguardJar
+
+tasks.withType(AbstractArchiveTask) {
+	preserveFileTimestamps = false
+	reproducibleFileOrder = true
 }
 
 sourcesJar {
@@ -115,14 +188,14 @@ task testJar(type: Jar) {
 	from sourceSets.test.output
 }
 
-task copyJson(type: Copy, dependsOn: ["jar"]) {
+task copyJson(type: Copy) {
 	from('src/main/resources/fabric-installer.json') {
 		rename { "${archivesBaseName}-${version}.json" }
 	}
 	into 'build/libs'
 }
 
-task copyJsonLw(type: Copy, dependsOn: ["jar"]) {
+task copyJsonLw(type: Copy) {
 	from('src/main/resources/fabric-installer.launchwrapper.json') {
 		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
 	}
@@ -190,11 +263,18 @@ allprojects {
 	}
 }
 
+// Causes more trouble than its worth
+tasks.withType(GenerateModuleMetadata) {
+	enabled = false
+}
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
-			artifact(jar)
+			artifact(proguardFile) {
+				builtBy proguardJar
+			}
 			artifact(sourcesJar)
 			artifact javadocJar
 			artifact(file('src/main/resources/fabric-installer.json')) {
