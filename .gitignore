@@ -19,5 +19,6 @@
 !/LICENSE
 !/README.md
 !/settings.gradle
+!/proguard.conf
 
 !/minecraft
