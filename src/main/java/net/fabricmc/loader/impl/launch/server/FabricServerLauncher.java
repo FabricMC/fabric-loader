@@ -17,12 +17,16 @@
 package net.fabricmc.loader.impl.launch.server;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import net.fabricmc.loader.impl.launch.knot.KnotServer;
@@ -39,8 +43,8 @@ public class FabricServerLauncher {
 		if (propUrl != null) {
 			Properties properties = new Properties();
 
-			try (InputStream is = propUrl.openStream()) {
-				properties.load(is);
+			try (InputStreamReader reader = new InputStreamReader(propUrl.openStream(), StandardCharsets.UTF_8)) {
+				properties.load(reader);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -100,12 +104,12 @@ public class FabricServerLauncher {
 
 	private static String getServerJarPath() throws IOException {
 		// Pre-load "fabric-server-launcher.properties"
-		File propertiesFile = new File("fabric-server-launcher.properties");
+		Path propertiesFile = Paths.get("fabric-server-launcher.properties");
 		Properties properties = new Properties();
 
-		if (propertiesFile.exists()) {
-			try (FileInputStream stream = new FileInputStream(propertiesFile)) {
-				properties.load(stream);
+		if (Files.exists(propertiesFile)) {
+			try (Reader reader = Files.newBufferedReader(propertiesFile)) {
+				properties.load(reader);
 			}
 		}
 
@@ -116,8 +120,8 @@ public class FabricServerLauncher {
 		if (!properties.containsKey("serverJar")) {
 			properties.put("serverJar", "server.jar");
 
-			try (FileOutputStream stream = new FileOutputStream(propertiesFile)) {
-				properties.store(stream, null);
+			try (Writer writer = Files.newBufferedWriter(propertiesFile)) {
+				properties.store(writer, null);
 			}
 		}
 
