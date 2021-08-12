@@ -23,8 +23,13 @@ import java.net.URL;
 interface KnotClassLoaderInterface {
 	KnotClassDelegate getDelegate();
 	boolean isClassLoaded(String name);
-	void addURL(URL url);
+
+	@Deprecated
+	default void addURL(URL url) {
+		this.addURL(url, false);
+	}
+
+	void addURL(URL url, boolean restricted);
 	InputStream getResourceAsStream(String filename, boolean skipOriginalLoader) throws IOException;
-	void addRestrictedUrl(URL url);
 	void releaseRestriction();
 }

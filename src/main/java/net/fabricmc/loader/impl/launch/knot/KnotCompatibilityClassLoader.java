@@ -78,8 +78,12 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 	}
 
 	@Override
-	public void addRestrictedUrl(URL url) {
-		this.restrictedUrl.add(url);
+	public void addURL(URL url, boolean restricted) {
+		if (restricted) {
+			this.restrictedUrl.add(url);
+		} else {
+			this.addURL(url);
+		}
 	}
 
 	@Override
