@@ -20,16 +20,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 
 class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLoaderInterface {
 	private final KnotClassDelegate delegate;
+	private final Collection<URL> restrictedUrl;
+
+	static {
+		registerAsParallelCapable();
+	}
 
 	KnotCompatibilityClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
 		super(new URL[0], KnotCompatibilityClassLoader.class.getClassLoader());
 		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
+		this.restrictedUrl = new ArrayList<>();
 	}
 
 	@Override
@@ -45,41 +53,23 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 	}
 
 	@Override
+	protected Class<?> findClass(final String name) throws ClassNotFoundException {
+		byte[] input = delegate.getPostMixinClassByteArray(name);
+
+		if (input == null) throw new ClassNotFoundException("[PostMixin]" + name);
+
+		KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, getResource(delegate.getClassFileName(name)));
+
+		final Class<?> result = defineClass(name, input, 0, input.length, metadata.codeSource);
+
+		if (result == null) throw new ClassNotFoundException(name);
+
+		return result;
+	}
+
+	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			Class<?> c = findLoadedClass(name);
-
-			if (c == null) {
-				byte[] input = delegate.getPostMixinClassByteArray(name);
-
-				if (input != null) {
-					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, getResource(delegate.getClassFileName(name)));
-
-					int pkgDelimiterPos = name.lastIndexOf('.');
-
-					if (pkgDelimiterPos > 0) {
-						// TODO: package definition stub
-						String pkgString = name.substring(0, pkgDelimiterPos);
-
-						if (getPackage(pkgString) == null) {
-							definePackage(pkgString, null, null, null, null, null, null, null);
-						}
-					}
-
-					c = defineClass(name, input, 0, input.length, metadata.codeSource);
-				}
-			}
-
-			if (c == null) {
-				c = getParent().loadClass(name);
-			}
-
-			if (resolve) {
-				resolveClass(c);
-			}
-
-			return c;
-		}
+		return super.loadClass(name, resolve);	// Please see findClass for more detail
 	}
 
 	@Override
@@ -87,16 +77,22 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 		super.addURL(url);
 	}
 
-	static {
-		registerAsParallelCapable();
+	public void addRestrictedUrl(URL url) {
+		this.restrictedUrl.add(url);
+	}
+
+	public void releaseRestriction() {
+		for (URL url : restrictedUrl) {
+			this.addURL(url);
+		}
+
+		restrictedUrl.clear();
 	}
 
 	@Override
 	public InputStream getResourceAsStream(String classFile, boolean skipOriginalLoader) throws IOException {
-		if (skipOriginalLoader) {
-			if (findResource(classFile) == null) {
-				return null;
-			}
+		if (skipOriginalLoader && findResource(classFile) == null) {
+			return null;
 		}
 
 		return super.getResourceAsStream(classFile);
