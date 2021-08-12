@@ -263,7 +263,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainerImpl mod : mods) {
 			if (!mod.getInfo().getId().equals(MOD_ID) && !mod.getInfo().getType().equals("builtin")) {
-				FabricLauncherBase.getLauncher().addToClassPath(mod.getOriginPath());
+				FabricLauncherBase.getLauncher().addToClassPath(mod.getOriginPath(), false);
 			}
 		}
 
@@ -289,7 +289,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 				Path path = Paths.get(pathName).toAbsolutePath().normalize();
 
 				if (Files.isDirectory(path) && knownModPaths.add(path)) {
-					FabricLauncherBase.getLauncher().addToClassPath(path);
+					FabricLauncherBase.getLauncher().addToClassPath(path, false);
 				}
 			}
 		}

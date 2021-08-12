@@ -43,7 +43,7 @@ public class ModClassLoader_125_FML extends URLClassLoader {
 	@Override
 	protected void addURL(URL url) {
 		try {
-			FabricLauncherBase.getLauncher().addToClassPath(UrlUtil.asPath(url));
+			FabricLauncherBase.getLauncher().addToClassPath(UrlUtil.asPath(url), false);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

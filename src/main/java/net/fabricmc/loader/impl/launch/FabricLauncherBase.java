@@ -117,7 +117,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 			jarFile = deobfJarFile;
 		}
 
-		launcher.addToClassPath(jarFile);
+		launcher.addToClassPath(jarFile, true);
 
 		if (minecraftJar == null) {
 			minecraftJar = jarFile;

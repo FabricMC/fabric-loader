@@ -128,6 +128,8 @@ public final class Knot extends FabricLauncherBase {
 		loader.load();
 		loader.freeze();
 
+		FabricLauncherBase.getLauncher().releaseClassPathRestriction();
+
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 
 		MixinBootstrap.init();

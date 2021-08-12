@@ -149,6 +149,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			}
 		}
 
+		FabricLauncherBase.getLauncher().releaseClassPathRestriction();
+
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 
 		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
