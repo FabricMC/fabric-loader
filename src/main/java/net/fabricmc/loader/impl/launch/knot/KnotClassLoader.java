@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.SecureClassLoader;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 
 import net.fabricmc.api.EnvType;
@@ -44,6 +46,7 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 
 	private final DynamicURLClassLoader urlLoader;
 	private final KnotClassDelegate delegate;
+	private final Collection<URL> restrictedUrl;
 
 	static {
 		registerAsParallelCapable();
@@ -53,6 +56,7 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 		super(KnotClassLoader.class.getClassLoader());
 		this.urlLoader = new DynamicURLClassLoader(new URL[0]);
 		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
+		this.restrictedUrl = new ArrayList<>();
 	}
 
 	@Override
@@ -115,6 +119,20 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	@Override
 	public void addURL(URL url) {
 		urlLoader.addURL(url);
+	}
+
+	@Override
+	public void addRestrictedUrl(URL url) {
+		this.restrictedUrl.add(url);
+	}
+
+	@Override
+	public void releaseRestriction() {
+		for (URL url : restrictedUrl) {
+			this.addURL(url);
+		}
+
+		restrictedUrl.clear();
 	}
 
 	@Override
