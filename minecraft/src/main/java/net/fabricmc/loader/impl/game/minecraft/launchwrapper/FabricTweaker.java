@@ -167,13 +167,16 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
-	public void addToClassPath(Path path) {
+	public void addToClassPath(Path path, boolean restricted) {
 		try {
 			launchClassLoader.addURL(UrlUtil.asUrl(path));
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
+
+	@Override
+	public void releaseClassPathRestriction() { }
 
 	@Override
 	public Collection<URL> getLoadTimeDependencies() {

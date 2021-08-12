@@ -27,7 +27,14 @@ import net.fabricmc.api.EnvType;
 public interface FabricLauncher {
 	MappingConfiguration getMappingConfiguration();
 
-	void addToClassPath(Path path);
+	@Deprecated
+	default void addToClassPath(Path path) {
+		this.addToClassPath(path, false);
+	}
+
+	void addToClassPath(Path path, boolean restricted);
+
+	void releaseClassPathRestriction();
 
 	EnvType getEnvironmentType();
 

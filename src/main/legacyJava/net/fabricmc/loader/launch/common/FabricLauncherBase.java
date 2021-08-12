@@ -49,7 +49,7 @@ public class FabricLauncherBase implements FabricLauncher {
 	@Override
 	public void propose(URL url) {
 		try {
-			parent.addToClassPath(UrlUtil.asPath(url));
+			parent.addToClassPath(UrlUtil.asPath(url), false);
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		}

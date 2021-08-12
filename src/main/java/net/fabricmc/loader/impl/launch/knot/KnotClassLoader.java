@@ -117,23 +117,18 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	}
 
 	@Override
-	public void addURL(URL url) {
-		urlLoader.addURL(url);
-	}
-
-	@Override
 	public void addURL(URL url, boolean restricted) {
 		if (restricted) {
 			this.restrictedUrl.add(url);
 		} else {
-			this.addURL(url);
+			this.urlLoader.addURL(url);
 		}
 	}
 
 	@Override
 	public void releaseRestriction() {
 		for (URL url : restrictedUrl) {
-			this.addURL(url);
+			this.urlLoader.addURL(url);
 		}
 
 		restrictedUrl.clear();
