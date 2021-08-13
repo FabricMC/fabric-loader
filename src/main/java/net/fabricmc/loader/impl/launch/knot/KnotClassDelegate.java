@@ -28,8 +28,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
 
 import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
@@ -55,7 +55,7 @@ class KnotClassDelegate {
 		}
 	}
 
-	private final Map<String, Metadata> metadataCache = new HashMap<>();
+	private final Map<String, Metadata> metadataCache = new ConcurrentHashMap<>();
 	private final KnotClassLoaderInterface itf;
 	private final GameProvider provider;
 	private final boolean isDevelopment;
