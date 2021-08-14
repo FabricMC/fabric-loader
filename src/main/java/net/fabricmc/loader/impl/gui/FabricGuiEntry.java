@@ -97,6 +97,10 @@ public final class FabricGuiEntry {
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
 		Log.error(LogCategory.GENERAL, "A critical error occurred", exception);
 
+		displayError("Failed to launch!", exception, exitAfter);
+	}
+
+	public static void displayError(String mainText, Throwable exception, boolean exitAfter) {
 		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
 
 		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
@@ -109,7 +113,7 @@ public final class FabricGuiEntry {
 				title = "Fabric Loader " + loaderVersion.getFriendlyString();
 			}
 
-			FabricStatusTree tree = new FabricStatusTree(title, "Failed to launch!");
+			FabricStatusTree tree = new FabricStatusTree(title, mainText);
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
 			addThrowable(crashTab.node, exception, new HashSet<>());

@@ -44,6 +44,7 @@ import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -136,7 +137,12 @@ public final class Knot extends FabricLauncherBase {
 
 		classLoader.getDelegate().initializeTransformers();
 
-		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		try {
+			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		} catch (RuntimeException e) {
+			FabricGuiEntry.displayError("Failed preparing to start", e, false);
+			throw e;
+		}
 
 		return cl;
 	}
