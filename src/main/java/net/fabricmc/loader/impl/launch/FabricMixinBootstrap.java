@@ -16,17 +16,17 @@
 
 package net.fabricmc.loader.impl.launch;
 
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
 
 import org.spongepowered.asm.launch.MixinBootstrap;
-import org.spongepowered.asm.mixin.FabricData;
+import org.spongepowered.asm.mixin.FabricUtil;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
+import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
+import org.spongepowered.asm.mixin.transformer.Config;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -35,7 +35,6 @@ import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.ModContainerImpl;
-import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -77,71 +76,78 @@ public final class FabricMixinBootstrap {
 
 		MixinBootstrap.init();
 
+		Map<String, ModContainerImpl> configToModMap = new HashMap<>();
+
+		for (ModContainerImpl mod : loader.getModsInternal()) {
+			for (String config : mod.getMetadata().getMixinConfigs(side)) {
+				ModContainerImpl prev = configToModMap.putIfAbsent(config, mod);
+				if (prev != null) throw new RuntimeException(String.format("Non-unique mixin config name %s used by %s and %s", config, prev.getMetadata().getId(), mod.getMetadata().getId()));
+
+				Mixins.addConfiguration(config);
+			}
+		}
+
+		for (Config config : Mixins.getConfigs()) {
+			ModContainerImpl mod = configToModMap.get(config.getName());
+			if (mod == null) continue;
+		}
+
 		try {
-			// try to add the config and extra data through fabric-mixin's proprietary API
-			// this shouldn't retain any fabric-mixin specific references (static final string/int get inlined by javac)
-
-			Method addConfigurationFabric = Mixins.class.getMethod("addConfigurationFabric", String.class, Map.class);
-			Map<String, Object> dataMap = new HashMap<>();
-
-			for (ModContainerImpl mod : loader.getModsInternal()) {
-				LoaderModMetadata metadata = mod.getMetadata();
-				Collection<String> configs = metadata.getMixinConfigs(side);
-				if (configs.isEmpty()) continue;
-
-				dataMap.put(FabricData.KEY_MOD_ID, metadata.getId());
-				dataMap.put(FabricData.KEY_COMPATIBILITY, getMixinCompat(mod));
-
-				for (String config : configs) {
-					addConfigurationFabric.invoke(null, config, dataMap); // this doesn't hold onto dataMap -> ok to reuse the same map for the next mod
-				}
-			}
-		} catch (NoSuchMethodException e) { // fallback for non-fabric Mixin version
-			for (ModContainerImpl mod : loader.getModsInternal()) {
-				for (String config : mod.getMetadata().getMixinConfigs(side)) {
-					Mixins.addConfiguration(config);
-				}
-			}
-		} catch (ReflectiveOperationException e) {
-			throw new RuntimeException(e);
+			IMixinConfig.class.getMethod("decorate", String.class, Object.class);
+			MixinConfigDecorator.apply(configToModMap);
+		} catch (NoSuchMethodException e) {
+			Log.info(LogCategory.MIXIN, "Detected old Mixin version without config decoration support");
 		}
 
 		initialized = true;
 	}
 
-	private static final SemanticVersion LAST_LOADER_MIXIN_0_9_2 = new SemanticVersionImpl(new int[] { 0, 11, 9999 }, null, null);
+	private static final class MixinConfigDecorator {
+		private static final SemanticVersion LAST_LOADER_MIXIN_0_9_2 = new SemanticVersionImpl(new int[] { 0, 11, 9999 }, null, null);
 
-	private static int getMixinCompat(ModContainerImpl mod) {
-		Manifest manifest = FabricLauncherBase.getLauncher().getManifest(mod.getOriginPath());
-		String versionStr;
+		static void apply(Map<String, ModContainerImpl> configToModMap) {
+			for (Config rawConfig : Mixins.getConfigs()) {
+				ModContainerImpl mod = configToModMap.get(rawConfig.getName());
+				if (mod == null) continue;
 
-		if (manifest != null
-				&& "net.fabricmc".equals(ManifestUtil.getManifestValue(manifest, ManifestUtil.NAME_MIXIN_GROUP))
-				&& (versionStr = ManifestUtil.getManifestValue(manifest, ManifestUtil.NAME_MIXIN_VERSION)) != null) {
-			try {
-				SemanticVersion version = SemanticVersion.parse(versionStr);
-				int major = version.getVersionComponent(0);
-				int minor = Math.min(version.getVersionComponent(1), 999);
-				int patch = Math.min(version.getVersionComponent(2), 999);
-
-				return (major * 1000 + minor) * 1000 + patch;
-			} catch (VersionParsingException e) {
-				Log.warn(LogCategory.GENERAL, "Error parsing Mixin Version from Manifest for %s", mod, e);
+				IMixinConfig config = rawConfig.getConfig();
+				config.decorate(FabricUtil.KEY_MOD_ID, mod.getMetadata().getId());
+				config.decorate(FabricUtil.KEY_COMPATIBILITY, getMixinCompat(mod));
 			}
 		}
 
-		// no manifest record, try to infer from loader dependency being >= 0.12.x (first with fabrix-mixin 0.9.4+)
+		private static int getMixinCompat(ModContainerImpl mod) {
+			Manifest manifest = FabricLauncherBase.getLauncher().getManifest(mod.getOriginPath());
+			String versionStr;
 
-		for (ModDependency dep : mod.getMetadata().getDependencies()) {
-			if (dep.getKind() == Kind.DEPENDS && (dep.getModId().equals("fabricloader") || dep.getModId().equals("fabric-loader"))) {
-				if (!dep.matches(LAST_LOADER_MIXIN_0_9_2)) { // not satisfied by a loader version with the old mixin version
-					return FabricData.COMPATIBILITY_0_9_4;
+			if (manifest != null
+					&& "net.fabricmc".equals(ManifestUtil.getManifestValue(manifest, ManifestUtil.NAME_MIXIN_GROUP))
+					&& (versionStr = ManifestUtil.getManifestValue(manifest, ManifestUtil.NAME_MIXIN_VERSION)) != null) {
+				try {
+					SemanticVersion version = SemanticVersion.parse(versionStr);
+					int major = version.getVersionComponent(0);
+					int minor = Math.min(version.getVersionComponent(1), 999);
+					int patch = Math.min(version.getVersionComponent(2), 999);
+
+					return (major * 1000 + minor) * 1000 + patch;
+				} catch (VersionParsingException e) {
+					Log.warn(LogCategory.GENERAL, "Error parsing Mixin Version from Manifest for %s", mod, e);
 				}
 			}
+
+			// no manifest record, try to infer from loader dependency being >= 0.12.x (first with fabrix-mixin 0.9.4+)
+
+			for (ModDependency dep : mod.getMetadata().getDependencies()) {
+				if (dep.getKind() == Kind.DEPENDS && (dep.getModId().equals("fabricloader") || dep.getModId().equals("fabric-loader"))) {
+					if (!dep.matches(LAST_LOADER_MIXIN_0_9_2)) { // not satisfied by a loader version with the old mixin version
+						return FabricUtil.COMPATIBILITY_0_9_4;
+					}
+				}
+			}
+
+			// default to old fabric-mixin
+
+			return FabricUtil.COMPATIBILITY_0_9_2;
 		}
-
-		// default to old fabric-mixin
-
-		return FabricData.COMPATIBILITY_0_9_2;
 	}
 }
