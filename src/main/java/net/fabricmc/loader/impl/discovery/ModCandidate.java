@@ -22,6 +22,7 @@ import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -247,7 +248,7 @@ public final class ModCandidate implements DomainObject.Mod {
 			ByteBuffer data = dataRef.get();
 
 			if (data != null) {
-				Files.copy(new ByteArrayInputStream(data.array(), data.arrayOffset() + data.position(), data.arrayOffset() + data.limit()), out);
+				Files.copy(new ByteArrayInputStream(data.array(), data.arrayOffset() + data.position(), data.arrayOffset() + data.limit()), out, StandardCopyOption.REPLACE_EXISTING);
 				return;
 			}
 		}

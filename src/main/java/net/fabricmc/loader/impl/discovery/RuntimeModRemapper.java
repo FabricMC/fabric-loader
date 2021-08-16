@@ -158,6 +158,10 @@ public final class RuntimeModRemapper {
 			remapper.finish();
 
 			for (RemapInfo info : infoMap.values()) {
+				if (info.outputPath == null) {
+					continue;
+				}
+
 				try {
 					Files.deleteIfExists(info.outputPath);
 				} catch (IOException e) {
