@@ -27,6 +27,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.launch.platform.container.ContainerHandleURI;
 import org.spongepowered.asm.launch.platform.container.IContainerHandle;
+import org.spongepowered.asm.logging.ILogger;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformerFactory;
@@ -228,6 +229,11 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	@Override
 	public MixinEnvironment.CompatibilityLevel getMaxCompatibilityLevel() {
 		return MixinEnvironment.CompatibilityLevel.JAVA_17;
+	}
+
+	@Override
+	public ILogger getLogger(String name) {
+		return MixinLogger.get(name);
 	}
 
 	static IMixinTransformer getTransformer() {
