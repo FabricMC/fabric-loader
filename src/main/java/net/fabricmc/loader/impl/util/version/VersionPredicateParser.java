@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import net.fabricmc.loader.api.SemanticVersion;
@@ -144,6 +145,8 @@ public final class VersionPredicateParser {
 
 		@Override
 		public boolean test(Version version) {
+			Objects.requireNonNull(version, "null version");
+
 			return operator.test(version, refVersion);
 		}
 
@@ -205,6 +208,8 @@ public final class VersionPredicateParser {
 
 		@Override
 		public boolean test(Version version) {
+			Objects.requireNonNull(version, "null version");
+
 			for (SingleVersionPredicate predicate : predicates) {
 				if (!predicate.test(version)) return false;
 			}
