@@ -31,6 +31,8 @@ import net.fabricmc.loader.impl.util.version.VersionIntervalImpl;
  * @code (x,x)} with x being a non-{@code null} version and both endpoints being exclusive.
  */
 public interface VersionInterval {
+	VersionInterval INFINITE = new VersionIntervalImpl(null, false, null, false);
+
 	/**
 	 * Get whether the interval uses {@link SemanticVersion} compatible bounds.
 	 *
@@ -74,6 +76,10 @@ public interface VersionInterval {
 		return or(o, this);
 	}
 
+	default List<VersionInterval> not() {
+		return not(this);
+	}
+
 	/**
 	 * Compute the intersection between two version intervals.
 	 */
@@ -82,9 +88,24 @@ public interface VersionInterval {
 	}
 
 	/**
+	 * Compute the intersection between two potentially disjoint of version intervals.
+	 */
+	static List<VersionInterval> and(Collection<VersionInterval> a, Collection<VersionInterval> b) {
+		return VersionIntervalImpl.and(a, b);
+	}
+
+	/**
 	 * Compute the union between multiple version intervals.
 	 */
 	static List<VersionInterval> or(Collection<VersionInterval> a, VersionInterval b) {
 		return VersionIntervalImpl.or(a, b);
+	}
+
+	static List<VersionInterval> not(VersionInterval interval) {
+		return VersionIntervalImpl.not(interval);
+	}
+
+	static List<VersionInterval> not(Collection<VersionInterval> intervals) {
+		return VersionIntervalImpl.not(intervals);
 	}
 }

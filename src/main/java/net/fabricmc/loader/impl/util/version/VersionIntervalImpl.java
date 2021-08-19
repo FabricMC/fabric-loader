@@ -18,6 +18,7 @@ package net.fabricmc.loader.impl.util.version;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,14 +27,12 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 
 public final class VersionIntervalImpl implements VersionInterval {
-	static final VersionInterval INFINITE = new VersionIntervalImpl(null, false, null, false);
-
 	private final Version min;
 	private final boolean minInclusive;
 	private final Version max;
 	private final boolean maxInclusive;
 
-	VersionIntervalImpl(Version min, boolean minInclusive,
+	public VersionIntervalImpl(Version min, boolean minInclusive,
 			Version max, boolean maxInclusive) {
 		this.min = min;
 		this.minInclusive = min != null ? minInclusive : false;
@@ -183,7 +182,46 @@ public final class VersionIntervalImpl implements VersionInterval {
 		}
 	}
 
+	public static List<VersionInterval> and(Collection<VersionInterval> a, Collection<VersionInterval> b) {
+		if (a.isEmpty() || b.isEmpty()) return Collections.emptyList();
+
+		if (a.size() == 1 && b.size() == 1) {
+			VersionInterval merged = and(a.iterator().next(), b.iterator().next());
+			return merged != null ? Collections.singletonList(merged) : Collections.emptyList();
+		}
+
+		// (a0 || a1 || a2) && (b0 || b1 || b2) == a0 && b0 && b1 && b2 || a1 && b0 && b1 && b2 || a2 && b0 && b1 && b2
+
+		List<VersionInterval> allMerged = new ArrayList<>();
+
+		for (VersionInterval intervalA : a) {
+			for (VersionInterval intervalB : b) {
+				VersionInterval merged = and(intervalA, intervalB);
+				if (merged != null) allMerged.add(merged);
+			}
+		}
+
+		if (allMerged.isEmpty()) return Collections.emptyList();
+		if (allMerged.size() == 1) return allMerged;
+
+		List<VersionInterval> ret = new ArrayList<>(allMerged.size());
+
+		for (VersionInterval v : allMerged) {
+			merge(v, ret);
+		}
+
+		return ret;
+	}
+
 	public static List<VersionInterval> or(Collection<VersionInterval> a, VersionInterval b) {
+		if (a.isEmpty()) {
+			if (b == null) {
+				return Collections.emptyList();
+			} else {
+				return Collections.singletonList(b);
+			}
+		}
+
 		List<VersionInterval> ret = new ArrayList<>(a.size() + 1);
 
 		for (VersionInterval v : a) {
@@ -389,5 +427,50 @@ public final class VersionIntervalImpl implements VersionInterval {
 		} else { // cmp == 0 && a.maxInclusive() == b.maxInclusive() -> a == b
 			return 0;
 		}
+	}
+
+	public static List<VersionInterval> not(VersionInterval interval) {
+		if (interval == null) { // () = empty interval -> infinite
+			return Collections.singletonList(INFINITE);
+		} else if (interval.getMin() == null) { // (-∞, = at least half-open towards min
+			if (interval.getMax() == null) { // (-∞,∞) = infinite -> empty
+				return Collections.emptyList();
+			} else { // (-∞,x = left open towards min -> half open towards max
+				return Collections.singletonList(new VersionIntervalImpl(interval.getMax(), !interval.isMaxInclusive(), null, false));
+			}
+		} else if (interval.getMax() == null) { // x,∞) = half open towards max -> half open towards min
+			return Collections.singletonList(new VersionIntervalImpl(null, false, interval.getMin(), !interval.isMinInclusive()));
+		} else if (interval.getMin().equals(interval.getMax()) && !interval.isMinInclusive() && !interval.isMaxInclusive()) { // (x,x) = effectively empty interval -> infinite
+			return Collections.singletonList(INFINITE);
+		} else { // closed interval -> 2 half open intervals on each side
+			List<VersionInterval> ret = new ArrayList<>(2);
+			ret.add(new VersionIntervalImpl(null, false, interval.getMin(), !interval.isMinInclusive()));
+			ret.add(new VersionIntervalImpl(interval.getMax(), !interval.isMaxInclusive(), null, false));
+
+			return ret;
+		}
+	}
+
+	public static List<VersionInterval> not(Collection<VersionInterval> intervals) {
+		if (intervals.isEmpty()) return Collections.singletonList(INFINITE);
+		if (intervals.size() == 1) return not(intervals.iterator().next());
+
+		// !(i0 || i1 || i2) == !i0 && !i1 && !i2
+
+		List<VersionInterval> ret = null;
+
+		for (VersionInterval v : intervals) {
+			List<VersionInterval> inverted = not(v);
+
+			if (ret == null) {
+				ret = inverted;
+			} else {
+				ret = and(ret, inverted);
+			}
+
+			if (ret.isEmpty()) break;
+		}
+
+		return ret;
 	}
 }
