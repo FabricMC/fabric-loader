@@ -18,9 +18,11 @@ package net.fabricmc.loader.api.metadata;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 /**
@@ -50,6 +52,13 @@ public interface ModDependency {
 	 * @return representation of the dependency's version requirements
 	 */
 	Collection<VersionPredicate> getVersionRequirements();
+
+	/**
+	 * Returns the version intervals covered by the dependency's version requirements.
+	 *
+	 * <p>There may be multiple because the allowed range may not be consecutive.
+	 */
+	List<VersionInterval> getVersionIntervals();
 
 	enum Kind {
 		DEPENDS("depends", true, false),
