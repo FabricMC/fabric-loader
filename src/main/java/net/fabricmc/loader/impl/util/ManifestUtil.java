@@ -24,10 +24,6 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 
 public final class ManifestUtil {
-	public static final Name NAME_MAPPING_NAMESPACE = new Name("Fabric-Mapping-Namespace");
-	public static final Name NAME_MIXIN_GROUP = new Name("Fabric-Mixin-Group");
-	public static final Name NAME_MIXIN_VERSION = new Name("Fabric-Mixin-Version");
-
 	public static Manifest readManifest(Path basePath) throws IOException {
 		Path path = basePath.resolve("META-INF").resolve("MANIFEST.MF");
 		if (!Files.exists(path)) return null;

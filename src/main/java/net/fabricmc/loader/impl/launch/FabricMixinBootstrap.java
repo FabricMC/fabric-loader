@@ -16,10 +16,11 @@
 
 package net.fabricmc.loader.impl.launch;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.Manifest;
 
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.FabricUtil;
@@ -30,16 +31,16 @@ import org.spongepowered.asm.mixin.transformer.Config;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.ModContainerImpl;
-import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
-import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.mapping.tree.TinyTree;
 
 public final class FabricMixinBootstrap {
@@ -103,7 +104,15 @@ public final class FabricMixinBootstrap {
 	}
 
 	private static final class MixinConfigDecorator {
-		private static final SemanticVersion LAST_LOADER_MIXIN_0_9_2 = new SemanticVersionImpl(new int[] { 0, 11, 9999 }, null, null);
+		private static final List<LoaderMixinVersionEntry> versions = new ArrayList<>();
+
+		static {
+			// maximum loader version and bundled fabric mixin version, DESCENDING ORDER, LATEST FIRST
+			// loader versions with new mixin versions need to be added here
+
+			// addVersion("0.13", FabricUtil.COMPATIBILITY_0_11_0); // example for next entry (latest first!)
+			addVersion("0.12.0-", FabricUtil.COMPATIBILITY_0_10_0);
+		}
 
 		static void apply(Map<String, ModContainerImpl> configToModMap) {
 			for (Config rawConfig : Mixins.getConfigs()) {
@@ -117,37 +126,54 @@ public final class FabricMixinBootstrap {
 		}
 
 		private static int getMixinCompat(ModContainerImpl mod) {
-			Manifest manifest = FabricLauncherBase.getLauncher().getManifest(mod.getOriginPath());
-			String versionStr;
+			// infer from loader dependency by determining the least relevant loader version the mod accepts
+			// AND any loader deps
 
-			if (manifest != null
-					&& "net.fabricmc".equals(ManifestUtil.getManifestValue(manifest, ManifestUtil.NAME_MIXIN_GROUP))
-					&& (versionStr = ManifestUtil.getManifestValue(manifest, ManifestUtil.NAME_MIXIN_VERSION)) != null) {
-				try {
-					SemanticVersion version = SemanticVersion.parse(versionStr);
-					int major = version.getVersionComponent(0);
-					int minor = Math.min(version.getVersionComponent(1), 999);
-					int patch = Math.min(version.getVersionComponent(2), 999);
-
-					return (major * 1000 + minor) * 1000 + patch;
-				} catch (VersionParsingException e) {
-					Log.warn(LogCategory.GENERAL, "Error parsing Mixin Version from Manifest for %s", mod, e);
-				}
-			}
-
-			// no manifest record, try to infer from loader dependency being >= 0.12.x (first with fabrix-mixin 0.9.4+)
+			List<VersionInterval> reqIntervals = Collections.singletonList(VersionInterval.INFINITE);
 
 			for (ModDependency dep : mod.getMetadata().getDependencies()) {
-				if (dep.getKind() == Kind.DEPENDS && (dep.getModId().equals("fabricloader") || dep.getModId().equals("fabric-loader"))) {
-					if (!dep.matches(LAST_LOADER_MIXIN_0_9_2)) { // not satisfied by a loader version with the old mixin version
-						return FabricUtil.COMPATIBILITY_0_9_4;
+				if (dep.getModId().equals("fabricloader") || dep.getModId().equals("fabric-loader")) {
+					if (dep.getKind() == Kind.DEPENDS) {
+						reqIntervals = VersionInterval.and(reqIntervals, dep.getVersionIntervals());
+					} else if (dep.getKind() == Kind.BREAKS) {
+						reqIntervals = VersionInterval.and(reqIntervals, VersionInterval.not(dep.getVersionIntervals()));
 					}
 				}
 			}
 
-			// default to old fabric-mixin
+			if (reqIntervals.isEmpty()) throw new IllegalStateException("mod "+mod+" is incompatible with every loader version?"); // shouldn't get there
+
+			Version minLoaderVersion = reqIntervals.get(0).getMin(); // it is sorted, to 0 has the absolute lower bound
+
+			if (minLoaderVersion != null) { // has a lower bound
+				for (LoaderMixinVersionEntry version : versions) {
+					if (minLoaderVersion.compareTo(version.loaderVersion) >= 0) { // lower bound is >= current version
+						return version.mixinVersion;
+					} else {
+						break;
+					}
+				}
+			}
 
 			return FabricUtil.COMPATIBILITY_0_9_2;
+		}
+
+		private static void addVersion(String minLoaderVersion, int mixinCompat) {
+			try {
+				versions.add(new LoaderMixinVersionEntry(SemanticVersion.parse(minLoaderVersion), mixinCompat));
+			} catch (VersionParsingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		private static final class LoaderMixinVersionEntry {
+			final SemanticVersion loaderVersion;
+			final int mixinVersion;
+
+			LoaderMixinVersionEntry(SemanticVersion loaderVersion, int mixinVersion) {
+				this.loaderVersion = loaderVersion;
+				this.mixinVersion = mixinVersion;
+			}
 		}
 	}
 }
