@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.impl.launch.server;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -81,16 +80,16 @@ public class FabricServerLauncher {
 			System.setProperty(SystemProperties.GAME_JAR_PATH, getServerJarPath());
 		}
 
-		File serverJar = new File(System.getProperty(SystemProperties.GAME_JAR_PATH));
+		Path serverJar = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH)).toAbsolutePath().normalize();
 
-		if (!serverJar.exists()) {
-			System.err.println("Could not find Minecraft server .JAR (" + serverJar.getName() + ")!");
+		if (!Files.exists(serverJar)) {
+			System.err.println("The Minecraft server .JAR is missing (" + serverJar + ")!");
 			System.err.println();
 			System.err.println("Fabric's server-side launcher expects the server .JAR to be provided.");
 			System.err.println("You can edit its location in fabric-server-launcher.properties.");
 			System.err.println();
 			System.err.println("Without the official Minecraft server .JAR, Fabric Loader cannot launch.");
-			throw new RuntimeException("Searched for '" + serverJar.getName() + "' but could not find it.");
+			throw new RuntimeException("Missing game jar at " + serverJar);
 		}
 
 		try {
