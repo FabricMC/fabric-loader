@@ -137,7 +137,8 @@ public final class FabricStatusTree {
 
 	public static final class FabricStatusButton {
 		public final String text;
-		public boolean shouldClose, shouldContinue;
+		public String clipboard;
+		public boolean shouldClose, shouldContinue, isReusable;
 
 		public FabricStatusButton(String text) {
 			Objects.requireNonNull(text, "null text");
@@ -149,12 +150,23 @@ public final class FabricStatusTree {
 			text = is.readUTF();
 			shouldClose = is.readBoolean();
 			shouldContinue = is.readBoolean();
+			isReusable = is.readBoolean();
+
+			if (is.readBoolean()) clipboard = is.readUTF();
 		}
 
 		public void writeTo(DataOutputStream os) throws IOException {
 			os.writeUTF(text);
 			os.writeBoolean(shouldClose);
 			os.writeBoolean(shouldContinue);
+			os.writeBoolean(isReusable);
+
+			if (clipboard != null) {
+				os.writeBoolean(true);
+				os.writeUTF(clipboard);
+			} else {
+				os.writeBoolean(false);
+			}
 		}
 
 		public FabricStatusButton makeClose() {
@@ -164,6 +176,16 @@ public final class FabricStatusTree {
 
 		public FabricStatusButton makeContinue() {
 			this.shouldContinue = true;
+			return this;
+		}
+
+		public FabricStatusButton makeReusable() {
+			isReusable = true;
+			return this;
+		}
+
+		public FabricStatusButton withClipboard(String clipboard) {
+			this.clipboard = clipboard;
 			return this;
 		}
 	}

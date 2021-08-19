@@ -26,6 +26,8 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -154,8 +156,17 @@ class FabricMainWindow {
 			for (FabricStatusButton button : tree.buttons) {
 				JButton btn = new JButton(button.text);
 				buttons.add(btn);
-				btn.addActionListener(e -> {
-					btn.setEnabled(false);
+				btn.addActionListener(event -> {
+					if (!button.isReusable) btn.setEnabled(false);
+
+					if (button.clipboard != null) {
+						try {
+							StringSelection clipboard = new StringSelection(button.clipboard);
+							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(clipboard, clipboard);
+						} catch (IllegalStateException e) {
+							//Clipboard unavailable?
+						}
+					}
 
 					if (button.shouldClose) {
 						window.dispose();
