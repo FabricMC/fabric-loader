@@ -17,11 +17,13 @@
 package net.fabricmc.loader.impl.metadata;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 public final class ModDependencyImpl implements ModDependency {
@@ -95,5 +97,16 @@ public final class ModDependencyImpl implements ModDependency {
 	@Override
 	public Collection<VersionPredicate> getVersionRequirements() {
 		return ranges;
+	}
+
+	@Override
+	public List<VersionInterval> getVersionIntervals() {
+		List<VersionInterval> ret = Collections.emptyList();
+
+		for (VersionPredicate predicate : ranges) {
+			ret = VersionInterval.or(ret, predicate.getInterval());
+		}
+
+		return ret;
 	}
 }
