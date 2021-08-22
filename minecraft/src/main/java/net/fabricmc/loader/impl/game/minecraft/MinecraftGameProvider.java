@@ -281,6 +281,7 @@ public class MinecraftGameProvider implements GameProvider {
 			FabricGuiEntry.displayError("Minecraft has crashed!", e.getCause(), false);
 			throw new RuntimeException("Minecraft has crashed", e.getCause()); // Pass it on
 		} catch (ReflectiveOperationException e) {
+			FabricGuiEntry.displayError("Failed to start Minecraft!", e, false);
 			throw new RuntimeException("Failed to start Minecraft", e);
 		}
 	}

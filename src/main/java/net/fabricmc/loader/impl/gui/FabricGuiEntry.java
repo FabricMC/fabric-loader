@@ -20,11 +20,14 @@ import java.awt.GraphicsEnvironment;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
@@ -101,6 +104,14 @@ public final class FabricGuiEntry {
 	}
 
 	public static void displayError(String mainText, Throwable exception, boolean exitAfter) {
+		displayError(mainText, exception, tree -> {
+			StringWriter error = new StringWriter();
+			exception.printStackTrace(new PrintWriter(error));
+			tree.addButton("Copy stacktrace").makeReusable().withClipboard(error.toString());
+		}, exitAfter);
+	}
+
+	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomiser, boolean exitAfter) {
 		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
 
 		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
@@ -121,6 +132,7 @@ public final class FabricGuiEntry {
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?
 			tree.addButton("Exit").makeClose();
+			treeCustomiser.accept(tree);
 
 			try {
 				open(tree);
