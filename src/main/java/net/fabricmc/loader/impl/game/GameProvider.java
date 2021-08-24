@@ -44,6 +44,7 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	boolean locateGame(EnvType envType, String[] args, ClassLoader loader);
 	GameTransformer getEntrypointTransformer();
 	void launch(ClassLoader loader);
+	boolean onCrash(Throwable exception, String context);
 
 	Arguments getArguments();
 	String[] getLaunchArguments(boolean sanitize);

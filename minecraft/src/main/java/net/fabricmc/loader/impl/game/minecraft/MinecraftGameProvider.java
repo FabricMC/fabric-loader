@@ -278,11 +278,19 @@ public class MinecraftGameProvider implements GameProvider {
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) arguments.toArray());
 		} catch (InvocationTargetException e) {
-			FabricGuiEntry.displayError("Minecraft has crashed!", e.getCause(), false);
-			throw new RuntimeException("Minecraft has crashed", e.getCause()); // Pass it on
+			if (!onCrash(e.getCause(), "Minecraft has crashed!")) {
+				throw new RuntimeException("Minecraft has crashed", e.getCause()); // Pass it on
+			}
 		} catch (ReflectiveOperationException e) {
-			FabricGuiEntry.displayError("Failed to start Minecraft!", e, false);
-			throw new RuntimeException("Failed to start Minecraft", e);
+			if (!onCrash(e, "Failed to start Minecraft!")) {
+				throw new RuntimeException("Failed to start Minecraft", e);
+			}
 		}
+	}
+
+	@Override
+	public boolean onCrash(Throwable exception, String context) {
+		FabricGuiEntry.displayError(context, exception, false);
+		return false; // Allow the crash to propagate
 	}
 }

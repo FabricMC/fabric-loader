@@ -48,7 +48,6 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
-import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -162,8 +161,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 		} catch (RuntimeException e) {
-			FabricGuiEntry.displayError("Failed preparing to start", e, false);
-			throw e;
+			if (!provider.onCrash(e, "A mod crashed on startup")) {
+				throw e;
+			}
 		}
 	}
 
