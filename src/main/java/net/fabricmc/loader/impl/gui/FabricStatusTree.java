@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.UnaryOperator;
 
 public final class FabricStatusTree {
@@ -411,15 +412,18 @@ public final class FabricStatusTree {
 				uniqueFrames--;
 			}
 
-			for (int i = 0; i <= uniqueFrames; i++) {
-				sub.addChild("at " + trace[i]).iconType = ICON_TYPE_JAVA_CLASS;
-			}
-
+			StringJoiner frames = new StringJoiner("<br/>", "<html>", "</html>");
 			int inheritedFrames = trace.length - 1 - uniqueFrames;
 
-			if (inheritedFrames > 0) {
-				sub.addChild("... " + inheritedFrames + " more").iconType = ICON_TYPE_JAVA_CLASS;
+			for (int i = 0; i <= uniqueFrames; i++) {
+				frames.add("at " + trace[i]);
 			}
+
+			if (inheritedFrames > 0) {
+				frames.add("... " + inheritedFrames + " more");
+			}
+
+			sub.addChild(frames.toString()).iconType = ICON_TYPE_JAVA_CLASS;
 
 			StringWriter sw = new StringWriter();
 			exception.printStackTrace(new PrintWriter(sw));

@@ -193,6 +193,7 @@ class FabricMainWindow {
 		DefaultTreeModel model = new DefaultTreeModel(treeNode);
 		JTree tree = new JTree(model);
 		tree.setRootVisible(false);
+		tree.setRowHeight(0); // Allow rows to be multiple lines tall
 
 		for (int row = 0; row < tree.getRowCount(); row++) {
 			if (!tree.isVisible(tree.getPathForRow(row))) {
@@ -415,6 +416,7 @@ class FabricMainWindow {
 
 		private CustomTreeCellRenderer(IconSet icons) {
 			this.iconSet = icons;
+			//setVerticalTextPosition(TOP); // Move icons to top rather than centre
 		}
 
 		@Override
