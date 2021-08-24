@@ -64,6 +64,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
@@ -157,7 +158,7 @@ class FabricMainWindow {
 				JButton btn = new JButton(button.text);
 				buttons.add(btn);
 				btn.addActionListener(event -> {
-					if (!button.isReusable) btn.setEnabled(false);
+					if (button.type == FabricBasicButtonType.CLICK_ONCE) btn.setEnabled(false);
 
 					if (button.clipboard != null) {
 						try {

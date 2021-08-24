@@ -55,7 +55,9 @@ public final class FabricStatusTree {
 
 	public enum FabricBasicButtonType {
 		/** Sends the status message to the main application, then disables itself. */
-		CLICK_ONCE;
+		CLICK_ONCE,
+		/** Sends the status message to the main application, remains enabled */
+		CLICK_MANY;
 	}
 
 	/** No icon is displayed. */
@@ -134,37 +136,39 @@ public final class FabricStatusTree {
 		return tab;
 	}
 
-	public FabricStatusButton addButton(String text) {
-		FabricStatusButton button = new FabricStatusButton(text);
+	public FabricStatusButton addButton(String text, FabricBasicButtonType type) {
+		FabricStatusButton button = new FabricStatusButton(text, type);
 		buttons.add(button);
 		return button;
 	}
 
 	public static final class FabricStatusButton {
 		public final String text;
+		public final FabricBasicButtonType type;
 		public String clipboard;
-		public boolean shouldClose, shouldContinue, isReusable;
+		public boolean shouldClose, shouldContinue;
 
-		public FabricStatusButton(String text) {
+		public FabricStatusButton(String text, FabricBasicButtonType type) {
 			Objects.requireNonNull(text, "null text");
 
 			this.text = text;
+			this.type = type;
 		}
 
 		public FabricStatusButton(DataInputStream is) throws IOException {
 			text = is.readUTF();
+			type = FabricBasicButtonType.valueOf(is.readUTF());
 			shouldClose = is.readBoolean();
 			shouldContinue = is.readBoolean();
-			isReusable = is.readBoolean();
 
 			if (is.readBoolean()) clipboard = is.readUTF();
 		}
 
 		public void writeTo(DataOutputStream os) throws IOException {
 			os.writeUTF(text);
+			os.writeUTF(type.name());
 			os.writeBoolean(shouldClose);
 			os.writeBoolean(shouldContinue);
-			os.writeBoolean(isReusable);
 
 			if (clipboard != null) {
 				os.writeBoolean(true);
@@ -181,11 +185,6 @@ public final class FabricStatusTree {
 
 		public FabricStatusButton makeContinue() {
 			this.shouldContinue = true;
-			return this;
-		}
-
-		public FabricStatusButton makeReusable() {
-			isReusable = true;
 			return this;
 		}
 

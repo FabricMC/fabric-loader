@@ -33,6 +33,7 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -104,7 +105,7 @@ public final class FabricGuiEntry {
 		displayError(mainText, exception, tree -> {
 			StringWriter error = new StringWriter();
 			exception.printStackTrace(new PrintWriter(error));
-			tree.addButton("Copy stacktrace").makeReusable().withClipboard(error.toString());
+			tree.addButton("Copy stacktrace", FabricBasicButtonType.CLICK_MANY).withClipboard(error.toString());
 		}, exitAfter);
 	}
 
@@ -128,7 +129,7 @@ public final class FabricGuiEntry {
 
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?
-			tree.addButton("Exit").makeClose();
+			tree.addButton("Exit", FabricBasicButtonType.CLICK_ONCE).makeClose();
 			treeCustomiser.accept(tree);
 
 			try {
