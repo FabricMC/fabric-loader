@@ -56,7 +56,7 @@ public final class FabricStatusTree {
 	public enum FabricBasicButtonType {
 		/** Sends the status message to the main application, then disables itself. */
 		CLICK_ONCE,
-		/** Sends the status message to the main application, remains enabled */
+		/** Sends the status message to the main application, remains enabled. */
 		CLICK_MANY;
 	}
 
