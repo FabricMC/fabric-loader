@@ -25,8 +25,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import net.fabricmc.loader.api.ModContainer;
@@ -35,7 +33,6 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.game.GameProvider;
-import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -127,7 +124,7 @@ public final class FabricGuiEntry {
 			FabricStatusTree tree = new FabricStatusTree(title, mainText);
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
-			addThrowable(crashTab.node, exception, new HashSet<>());
+			crashTab.node.addCleanedException(exception);
 
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?
@@ -158,43 +155,5 @@ public final class FabricGuiEntry {
 		if (candidate != null) return candidate.getVersion();
 
 		return null;
-	}
-
-	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
-		if (!seen.add(e)) {
-			return;
-		}
-
-		// Remove some self-repeating exception traces from the tree
-		// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
-		Throwable cause;
-
-		while ((cause = e.getCause()) != null) {
-			if (e.getSuppressed().length > 0) {
-				break;
-			}
-
-			String msg = e.getMessage();
-
-			if (msg == null) {
-				msg = e.getClass().getName();
-			}
-
-			if (!msg.equals(cause.getMessage()) && !msg.equals(cause.toString())) {
-				break;
-			}
-
-			e = cause;
-		}
-
-		FabricStatusNode sub = node.addException(e);
-
-		if (e.getCause() != null) {
-			addThrowable(sub, e.getCause(), seen);
-		}
-
-		for (Throwable t : e.getSuppressed()) {
-			addThrowable(sub, t, seen);
-		}
 	}
 }
