@@ -201,7 +201,7 @@ class FabricMainWindow {
 
 			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
 
-			if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(FabricTreeWarningLevel.WARN)) {
+			if (node.node.expandByDefault) {
 				tree.expandRow(row);
 			}
 		}

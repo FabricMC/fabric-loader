@@ -291,6 +291,7 @@ public final class FabricStatusTree {
 				}
 
 				this.warningLevel = level;
+				expandByDefault |= level.isAtLeast(FabricTreeWarningLevel.WARN);
 			}
 		}
 
