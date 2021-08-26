@@ -129,7 +129,8 @@ public final class ModDiscoverer {
 					}
 
 					try {
-						data.target.add(future.get());
+						ModCandidate candidate = future.get();
+						if (candidate != null) data.target.add(candidate);
 					} catch (ExecutionException e) {
 						exception = ExceptionUtil.gatherExceptions(e, exception, exc -> new ModResolutionException("Mod discovery failed!", exc));
 					}
