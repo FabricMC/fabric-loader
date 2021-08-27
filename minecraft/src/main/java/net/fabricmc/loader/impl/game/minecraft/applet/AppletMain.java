@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.fabricmc.loader.impl.game.minecraft.patch.applet;
+package net.fabricmc.loader.impl.game.minecraft.applet;
 
 import java.io.File;
 
