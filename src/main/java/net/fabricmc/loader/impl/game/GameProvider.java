@@ -39,6 +39,7 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
 	List<Path> getGameContextJars();
+	void setGameContextJars(List<Path> files); // used by loader to write deobfuscated paths back, same order+size as getGameContextJars
 
 	boolean isEnabled();
 	boolean locateGame(EnvType envType, String[] args, ClassLoader loader);
