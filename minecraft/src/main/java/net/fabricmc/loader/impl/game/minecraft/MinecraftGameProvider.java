@@ -268,7 +268,7 @@ public class MinecraftGameProvider implements GameProvider {
 		String targetClass = entrypoint;
 
 		if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
-			targetClass = "net.fabricmc.loader.impl.game.minecraft.entrypoint.applet.AppletMain";
+			targetClass = "net.fabricmc.loader.impl.game.minecraft.applet.AppletMain";
 		}
 
 		try {
