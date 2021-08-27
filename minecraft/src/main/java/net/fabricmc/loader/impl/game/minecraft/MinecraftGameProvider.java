@@ -29,8 +29,10 @@ import java.util.List;
 import java.util.Optional;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.ObjectShare;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
@@ -138,6 +140,15 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
+	public void setGameContextJars(List<Path> files) {
+		gameJar = files.get(0);
+
+		if (files.size() > 1) {
+			realmsJar = files.get(1);
+		}
+	}
+
+	@Override
 	public boolean isEnabled() {
 		return System.getProperty(SystemProperties.SKIP_MC_PROVIDER) == null;
 	}
@@ -168,6 +179,11 @@ public class MinecraftGameProvider implements GameProvider {
 		gameJar = entrypointResult.get().entrypointPath;
 		realmsJar = GameProviderHelper.getSource(loader, "realmsVersion").orElse(null);
 		hasModLoader = GameProviderHelper.getSource(loader, "ModLoader.class").isPresent();
+
+		// expose obfuscated jar locations for mods to more easily remap code from obfuscated to intermediary
+		ObjectShare share = FabricLoaderImpl.INSTANCE.getObjectShare();
+		share.put("fabric-loader:inputGameJar", gameJar);
+		if (realmsJar != null) share.put("fabric-loader:inputRealmsJar", realmsJar);
 
 		String version = arguments.remove(Arguments.GAME_VERSION);
 		if (version == null) version = System.getProperty(SystemProperties.GAME_VERSION);

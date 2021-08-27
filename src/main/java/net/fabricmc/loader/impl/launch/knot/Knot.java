@@ -110,13 +110,15 @@ public final class Knot extends FabricLauncherBase {
 		ClassLoader cl = (ClassLoader) classLoader;
 
 		if (provider.isObfuscated()) {
-			for (Path path : provider.getGameContextJars()) {
-				FabricLauncherBase.deobfuscate(
-						provider.getGameId(), provider.getNormalizedGameVersion(),
-						provider.getLaunchDirectory(),
-						path,
-						this);
-			}
+			provider.setGameContextJars(FabricLauncherBase.deobfuscate(
+					provider.getGameId(), provider.getNormalizedGameVersion(),
+					provider.getLaunchDirectory(),
+					provider.getGameContextJars(),
+					this));
+		}
+
+		for (Path path : provider.getGameContextJars()) {
+			addToClassPath(path);
 		}
 
 		// Locate entrypoints before switching class loaders

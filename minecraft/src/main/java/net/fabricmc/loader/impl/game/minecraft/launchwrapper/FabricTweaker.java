@@ -29,6 +29,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
@@ -143,10 +144,17 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 				}
 
 				Path obfuscated = jarFile.toPath();
-				Path remapped = FabricLauncherBase.deobfuscate(provider.getGameId(), provider.getNormalizedGameVersion(), provider.getLaunchDirectory(), obfuscated, this);
+				Path remapped = FabricLauncherBase.deobfuscate(provider.getGameId(),
+						provider.getNormalizedGameVersion(),
+						provider.getLaunchDirectory(),
+						Collections.singletonList(obfuscated),
+						this)
+						.get(0);
 
 				if (remapped != obfuscated) {
+					addToClassPath(remapped);
 					preloadRemappedJar(remapped);
+					provider.setGameContextJars(Collections.singletonList(remapped));
 				}
 			} catch (IOException | URISyntaxException e) {
 				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);

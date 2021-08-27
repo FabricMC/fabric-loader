@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
 
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
@@ -89,7 +90,7 @@ public class ModClassLoader_125_FML extends URLClassLoader {
 	 */
 	public File getParentSource() {
 		try {
-			return UrlUtil.asFile(UrlUtil.asUrl(FabricLauncherBase.minecraftJar));
+			return UrlUtil.asFile(UrlUtil.asUrl(FabricLoaderImpl.INSTANCE.getGameProvider().getGameContextJars().get(0)));
 		} catch (MalformedURLException | URISyntaxException e) {
 			throw new RuntimeException(e);
 		}
