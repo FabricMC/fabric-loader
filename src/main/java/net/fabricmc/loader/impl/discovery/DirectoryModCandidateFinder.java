@@ -53,6 +53,11 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 			}
 		}
 
+		// If the folder does not exist at this point it shouldn't be searched for mods
+		if (!Files.exists(path)) {
+			return;
+		}
+
 		if (!Files.isDirectory(path)) {
 			throw new RuntimeException(path + " is not a directory!");
 		}
