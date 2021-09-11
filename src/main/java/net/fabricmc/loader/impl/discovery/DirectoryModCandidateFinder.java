@@ -31,15 +31,21 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 public class DirectoryModCandidateFinder implements ModCandidateFinder {
 	private final Path path;
 	private final boolean requiresRemap;
+	private final boolean shouldCreateFolder;
 
 	public DirectoryModCandidateFinder(Path path, boolean requiresRemap) {
+		this(path, requiresRemap, true);
+	}
+
+	public DirectoryModCandidateFinder(Path path, boolean requiresRemap, boolean shouldCreateFolder) {
 		this.path = path;
 		this.requiresRemap = requiresRemap;
+		this.shouldCreateFolder = shouldCreateFolder;
 	}
 
 	@Override
 	public void findCandidates(ModCandidateConsumer out) {
-		if (!Files.exists(path)) {
+		if (shouldCreateFolder && !Files.exists(path)) {
 			try {
 				Files.createDirectory(path);
 			} catch (IOException e) {
