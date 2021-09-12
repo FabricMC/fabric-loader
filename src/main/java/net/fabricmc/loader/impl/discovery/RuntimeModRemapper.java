@@ -16,12 +16,8 @@
 
 package net.fabricmc.loader.impl.discovery;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -37,7 +33,6 @@ import java.util.stream.Collectors;
 
 import org.objectweb.asm.commons.Remapper;
 
-import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.accesswidener.AccessWidenerRemapper;
 import net.fabricmc.accesswidener.AccessWidenerWriter;
@@ -182,22 +177,11 @@ public final class RuntimeModRemapper {
 	}
 
 	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
-		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(input), StandardCharsets.UTF_8))) {
-			AccessWidener accessWidener = new AccessWidener();
-			AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
-			accessWidenerReader.read(bufferedReader, "intermediary");
-
-			AccessWidenerRemapper accessWidenerRemapper = new AccessWidenerRemapper(accessWidener, remapper, "named");
-			AccessWidener remapped = accessWidenerRemapper.remap();
-			AccessWidenerWriter accessWidenerWriter = new AccessWidenerWriter(remapped);
-
-			try (StringWriter writer = new StringWriter()) {
-				accessWidenerWriter.write(writer);
-				return writer.toString().getBytes(StandardCharsets.UTF_8);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		AccessWidenerWriter writer = new AccessWidenerWriter();
+		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
+		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
+		accessWidenerReader.read(input, "intermediary");
+		return writer.write();
 	}
 
 	private static List<Path> getRemapClasspath() throws IOException {
