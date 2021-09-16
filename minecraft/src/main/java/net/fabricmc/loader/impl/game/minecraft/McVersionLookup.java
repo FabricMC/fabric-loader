@@ -206,7 +206,7 @@ public final class McVersionLookup {
 
 			if (name != null && release != null) {
 				builder.setName(name);
-				builder.setName(release);
+				builder.setRelease(release);
 
 				return true;
 			}
