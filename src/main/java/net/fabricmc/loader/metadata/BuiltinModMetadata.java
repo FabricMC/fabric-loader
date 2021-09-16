@@ -19,6 +19,7 @@ package net.fabricmc.loader.metadata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -59,11 +60,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			ContactInformation contact,
 			Collection<String> license,
 			NavigableMap<Integer, String> icons,
-			Collection<ModDependency> depends,
-			Collection<ModDependency> recommends,
-			Collection<ModDependency> suggests,
-			Collection<ModDependency> conflicts,
-			Collection<ModDependency> breaks) {
+			Map<String, ModDependency> depends,
+			Map<String, ModDependency> recommends,
+			Map<String, ModDependency> suggests,
+			Map<String, ModDependency> conflicts,
+			Map<String, ModDependency> breaks) {
 		this.id = id;
 		this.version = version;
 		this.environment = environment;
@@ -74,11 +75,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		this.contact = contact;
 		this.license = license;
 		this.icons = icons;
-		this.depends = depends;
-		this.recommends = recommends;
-		this.suggests = suggests;
-		this.conflicts = conflicts;
-		this.breaks = breaks;
+		this.depends = DependencyOverrides.INSTANCE.getActiveDependencyMap("depends", id, Collections.unmodifiableMap(depends)).values();
+		this.recommends = DependencyOverrides.INSTANCE.getActiveDependencyMap("recommends", id, Collections.unmodifiableMap(recommends)).values();
+		this.suggests = DependencyOverrides.INSTANCE.getActiveDependencyMap("suggests", id, Collections.unmodifiableMap(suggests)).values();
+		this.conflicts = DependencyOverrides.INSTANCE.getActiveDependencyMap("conflicts", id, Collections.unmodifiableMap(conflicts)).values();
+		this.breaks = DependencyOverrides.INSTANCE.getActiveDependencyMap("breaks", id, Collections.unmodifiableMap(breaks)).values();
 	}
 
 	@Override
@@ -198,11 +199,11 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		private ContactInformation contact = ContactInformation.EMPTY;
 		private final Collection<String> license = new ArrayList<>();
 		private final NavigableMap<Integer, String> icons = new TreeMap<>();
-		private final Collection<ModDependency> depends = new ArrayList<>();
-		private final Collection<ModDependency> recommends = new ArrayList<>();
-		private final Collection<ModDependency> suggests = new ArrayList<>();
-		private final Collection<ModDependency> conflicts = new ArrayList<>();
-		private final Collection<ModDependency> breaks = new ArrayList<>();
+		private final Map<String, ModDependency> depends = new HashMap<>();
+		private final Map<String, ModDependency> recommends = new HashMap<>();
+		private final Map<String, ModDependency> suggests = new HashMap<>();
+		private final Map<String, ModDependency> conflicts = new HashMap<>();
+		private final Map<String, ModDependency> breaks = new HashMap<>();
 
 		public Builder(String id, String version) {
 			this.name = this.id = id;
@@ -255,28 +256,34 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		}
 
 		public Builder addDepends(ModDependency dependency) {
-			this.depends.add(dependency);
+			addDependency("depends", this.depends, dependency);
 			return this;
 		}
 
 		public Builder addRecommends(ModDependency dependency) {
-			this.recommends.add(dependency);
+			addDependency("recommends", this.recommends, dependency);
 			return this;
 		}
 
 		public Builder addSuggests(ModDependency dependency) {
-			this.suggests.add(dependency);
+			addDependency("suggests", this.suggests, dependency);
 			return this;
 		}
 
 		public Builder addConflicts(ModDependency dependency) {
-			this.conflicts.add(dependency);
+			addDependency("conflicts", this.conflicts, dependency);
 			return this;
 		}
 
 		public Builder addBreaks(ModDependency dependency) {
-			this.breaks.add(dependency);
+			addDependency("breaks", this.breaks, dependency);
 			return this;
+		}
+
+		private void addDependency(String type, Map<String, ModDependency> to, ModDependency dependency) {
+			if (to.put(dependency.getModId(), dependency) != null) {
+				throw new IllegalArgumentException("Duplicate " + type + " specified for " + dependency.getModId());
+			}
 		}
 
 		public ModMetadata build() {
