@@ -52,7 +52,7 @@ dependencies {
 		exclude module: 'guava'
 	}
 	implementation 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
-	implementation 'net.fabricmc:tiny-remapper:0.4.2'
+	implementation 'net.fabricmc:tiny-remapper:0.6.0'
 	implementation 'net.fabricmc:access-widener:1.0.0'
 
 	implementation 'com.google.jimfs:jimfs:1.2-fabric'
