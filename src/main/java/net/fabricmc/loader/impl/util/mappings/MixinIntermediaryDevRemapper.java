@@ -138,27 +138,31 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 			}
 		}
 
-		Queue<ClassInfo> classInfos = new ArrayDeque<>();
-		classInfos.add(ClassInfo.forName(owner));
+		ClassInfo classInfo = ClassInfo.forName(owner);
 
-		while (!classInfos.isEmpty()) {
-			ClassInfo c = classInfos.remove();
-			String ownerO = unmap(c.getName());
+		if (classInfo == null) { // unknown class?
+			return name;
+		}
+
+		Queue<ClassInfo> queue = new ArrayDeque<>();
+
+		do {
+			String ownerO = unmap(classInfo.getName());
 			String s;
 
 			if (!(s = mapMethodNameInner(ownerO, name, desc)).equals(name)) {
 				return s;
 			}
 
-			if (!c.getSuperName().startsWith("java/")) {
-				ClassInfo cSuper = c.getSuperClass();
+			if (!classInfo.getSuperName().startsWith("java/")) {
+				ClassInfo cSuper = classInfo.getSuperClass();
 
 				if (cSuper != null) {
-					classInfos.add(cSuper);
+					queue.add(cSuper);
 				}
 			}
 
-			for (String itf : c.getInterfaces()) {
+			for (String itf : classInfo.getInterfaces()) {
 				if (itf.startsWith("java/")) {
 					continue;
 				}
@@ -166,10 +170,10 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 				ClassInfo cItf = ClassInfo.forName(itf);
 
 				if (cItf != null) {
-					classInfos.add(cItf);
+					queue.add(cItf);
 				}
 			}
-		}
+		} while ((classInfo = queue.poll()) != null);
 
 		return name;
 	}
