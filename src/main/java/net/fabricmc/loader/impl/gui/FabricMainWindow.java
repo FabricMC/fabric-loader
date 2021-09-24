@@ -26,6 +26,8 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -62,6 +64,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
@@ -154,8 +157,17 @@ class FabricMainWindow {
 			for (FabricStatusButton button : tree.buttons) {
 				JButton btn = new JButton(button.text);
 				buttons.add(btn);
-				btn.addActionListener(e -> {
-					btn.setEnabled(false);
+				btn.addActionListener(event -> {
+					if (button.type == FabricBasicButtonType.CLICK_ONCE) btn.setEnabled(false);
+
+					if (button.clipboard != null) {
+						try {
+							StringSelection clipboard = new StringSelection(button.clipboard);
+							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(clipboard, clipboard);
+						} catch (IllegalStateException e) {
+							//Clipboard unavailable?
+						}
+					}
 
 					if (button.shouldClose) {
 						window.dispose();
@@ -182,6 +194,7 @@ class FabricMainWindow {
 		DefaultTreeModel model = new DefaultTreeModel(treeNode);
 		JTree tree = new JTree(model);
 		tree.setRootVisible(false);
+		tree.setRowHeight(0); // Allow rows to be multiple lines tall
 
 		for (int row = 0; row < tree.getRowCount(); row++) {
 			if (!tree.isVisible(tree.getPathForRow(row))) {
@@ -190,7 +203,7 @@ class FabricMainWindow {
 
 			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
 
-			if (node.node.expandByDefault || node.node.getMaximumWarningLevel().isAtLeast(FabricTreeWarningLevel.WARN)) {
+			if (node.node.expandByDefault) {
 				tree.expandRow(row);
 			}
 		}
@@ -404,6 +417,7 @@ class FabricMainWindow {
 
 		private CustomTreeCellRenderer(IconSet icons) {
 			this.iconSet = icons;
+			//setVerticalTextPosition(TOP); // Move icons to top rather than centre
 		}
 
 		@Override

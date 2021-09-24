@@ -20,11 +20,12 @@ import java.awt.GraphicsEnvironment;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.function.Consumer;
 
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
@@ -32,7 +33,7 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.game.GameProvider;
-import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -97,6 +98,18 @@ public final class FabricGuiEntry {
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
 		Log.error(LogCategory.GENERAL, "A critical error occurred", exception);
 
+		displayError("Failed to launch!", exception, exitAfter);
+	}
+
+	public static void displayError(String mainText, Throwable exception, boolean exitAfter) {
+		displayError(mainText, exception, tree -> {
+			StringWriter error = new StringWriter();
+			exception.printStackTrace(new PrintWriter(error));
+			tree.addButton("Copy stacktrace", FabricBasicButtonType.CLICK_MANY).withClipboard(error.toString());
+		}, exitAfter);
+	}
+
+	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomiser, boolean exitAfter) {
 		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
 
 		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
@@ -109,14 +122,15 @@ public final class FabricGuiEntry {
 				title = "Fabric Loader " + loaderVersion.getFriendlyString();
 			}
 
-			FabricStatusTree tree = new FabricStatusTree(title, "Failed to launch!");
+			FabricStatusTree tree = new FabricStatusTree(title, mainText);
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
-			addThrowable(crashTab.node, exception, new HashSet<>());
+			crashTab.node.addCleanedException(exception);
 
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?
-			tree.addButton("Exit").makeClose();
+			tree.addButton("Exit", FabricBasicButtonType.CLICK_ONCE).makeClose();
+			treeCustomiser.accept(tree);
 
 			try {
 				open(tree);
@@ -142,43 +156,5 @@ public final class FabricGuiEntry {
 		if (candidate != null) return candidate.getVersion();
 
 		return null;
-	}
-
-	private static void addThrowable(FabricStatusNode node, Throwable e, Set<Throwable> seen) {
-		if (!seen.add(e)) {
-			return;
-		}
-
-		// Remove some self-repeating exception traces from the tree
-		// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
-		Throwable cause;
-
-		while ((cause = e.getCause()) != null) {
-			if (e.getSuppressed().length > 0) {
-				break;
-			}
-
-			String msg = e.getMessage();
-
-			if (msg == null) {
-				msg = e.getClass().getName();
-			}
-
-			if (!msg.equals(cause.getMessage()) && !msg.equals(cause.toString())) {
-				break;
-			}
-
-			e = cause;
-		}
-
-		FabricStatusNode sub = node.addException(e);
-
-		if (e.getCause() != null) {
-			addThrowable(sub, e.getCause(), seen);
-		}
-
-		for (Throwable t : e.getSuppressed()) {
-			addThrowable(sub, t, seen);
-		}
 	}
 }

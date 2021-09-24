@@ -22,9 +22,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.UnaryOperator;
 
 public final class FabricStatusTree {
 	public enum FabricTreeWarningLevel {
@@ -50,7 +55,9 @@ public final class FabricStatusTree {
 
 	public enum FabricBasicButtonType {
 		/** Sends the status message to the main application, then disables itself. */
-		CLICK_ONCE;
+		CLICK_ONCE,
+		/** Sends the status message to the main application, remains enabled. */
+		CLICK_MANY;
 	}
 
 	/** No icon is displayed. */
@@ -129,32 +136,46 @@ public final class FabricStatusTree {
 		return tab;
 	}
 
-	public FabricStatusButton addButton(String text) {
-		FabricStatusButton button = new FabricStatusButton(text);
+	public FabricStatusButton addButton(String text, FabricBasicButtonType type) {
+		FabricStatusButton button = new FabricStatusButton(text, type);
 		buttons.add(button);
 		return button;
 	}
 
 	public static final class FabricStatusButton {
 		public final String text;
+		public final FabricBasicButtonType type;
+		public String clipboard;
 		public boolean shouldClose, shouldContinue;
 
-		public FabricStatusButton(String text) {
+		public FabricStatusButton(String text, FabricBasicButtonType type) {
 			Objects.requireNonNull(text, "null text");
 
 			this.text = text;
+			this.type = type;
 		}
 
 		public FabricStatusButton(DataInputStream is) throws IOException {
 			text = is.readUTF();
+			type = FabricBasicButtonType.valueOf(is.readUTF());
 			shouldClose = is.readBoolean();
 			shouldContinue = is.readBoolean();
+
+			if (is.readBoolean()) clipboard = is.readUTF();
 		}
 
 		public void writeTo(DataOutputStream os) throws IOException {
 			os.writeUTF(text);
+			os.writeUTF(type.name());
 			os.writeBoolean(shouldClose);
 			os.writeBoolean(shouldContinue);
+
+			if (clipboard != null) {
+				os.writeBoolean(true);
+				os.writeUTF(clipboard);
+			} else {
+				os.writeBoolean(false);
+			}
 		}
 
 		public FabricStatusButton makeClose() {
@@ -164,6 +185,11 @@ public final class FabricStatusTree {
 
 		public FabricStatusButton makeContinue() {
 			this.shouldContinue = true;
+			return this;
+		}
+
+		public FabricStatusButton withClipboard(String clipboard) {
+			this.clipboard = clipboard;
 			return this;
 		}
 	}
@@ -265,6 +291,7 @@ public final class FabricStatusTree {
 				}
 
 				this.warningLevel = level;
+				expandByDefault |= level.isAtLeast(FabricTreeWarningLevel.WARN);
 			}
 		}
 
@@ -312,22 +339,90 @@ public final class FabricStatusTree {
 		}
 
 		public FabricStatusNode addException(Throwable exception) {
-			FabricStatusNode sub = new FabricStatusNode(this, "...");
-			children.add(sub);
+			return addException(this, Collections.newSetFromMap(new IdentityHashMap<>()), exception, UnaryOperator.identity(), new StackTraceElement[0]);
+		}
 
-			sub.setError();
-			String msg = exception.getMessage();
-			String[] lines = (msg == null ? exception.toString() : msg).split("\n");
+		public FabricStatusNode addCleanedException(Throwable exception) {
+			return addException(this, Collections.newSetFromMap(new IdentityHashMap<>()), exception, e -> {
+				// Remove some self-repeating exception traces from the tree
+				// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
+				Throwable cause;
 
-			if (lines.length == 0) {
-				sub.name = exception.toString();
-			} else {
-				sub.name = lines[0];
+				while ((cause = e.getCause()) != null) {
+					if (e.getSuppressed().length > 0) {
+						break;
+					}
 
-				for (int i = 1; i < lines.length; i++) {
-					sub.addChild(lines[i]);
+					String msg = e.getMessage();
+
+					if (msg == null) {
+						msg = e.getClass().getName();
+					}
+
+					if (!msg.equals(cause.getMessage()) && !msg.equals(cause.toString())) {
+						break;
+					}
+
+					e = cause;
 				}
+
+				return e;
+			}, new StackTraceElement[0]);
+		}
+
+		private static FabricStatusNode addException(FabricStatusNode node, Set<Throwable> seen, Throwable exception, UnaryOperator<Throwable> filter, StackTraceElement[] parentTrace) {
+			if (!seen.add(exception)) {
+				return node;
 			}
+
+			exception = filter.apply(exception);
+			FabricStatusNode sub = node.addException(exception, parentTrace);
+			StackTraceElement[] trace = exception.getStackTrace();
+
+			for (Throwable t : exception.getSuppressed()) {
+				FabricStatusNode suppressed = addException(sub, seen, t, filter, trace);
+				suppressed.name += " (suppressed)";
+				suppressed.expandByDefault = false;
+			}
+
+			if (exception.getCause() != null) {
+				addException(sub, seen, exception.getCause(), filter, trace);
+			}
+
+			return sub;
+		}
+
+		private FabricStatusNode addException(Throwable exception, StackTraceElement[] parentTrace) {
+			String msg = exception.getMessage();
+			String[] lines = (msg == null || msg.isEmpty() ? exception.toString() : msg).split("\n");
+
+			FabricStatusNode sub = new FabricStatusNode(this, lines[0]);
+			children.add(sub);
+			sub.setError();
+
+			for (int i = 1; i < lines.length; i++) {
+				sub.addChild(lines[i]);
+			}
+
+			StackTraceElement[] trace = exception.getStackTrace();
+			int uniqueFrames = trace.length - 1;
+
+			for (int i = parentTrace.length - 1; uniqueFrames >= 0 && i >= 0 && trace[uniqueFrames].equals(parentTrace[i]); i--) {
+				uniqueFrames--;
+			}
+
+			StringJoiner frames = new StringJoiner("<br/>", "<html>", "</html>");
+			int inheritedFrames = trace.length - 1 - uniqueFrames;
+
+			for (int i = 0; i <= uniqueFrames; i++) {
+				frames.add("at " + trace[i]);
+			}
+
+			if (inheritedFrames > 0) {
+				frames.add("... " + inheritedFrames + " more");
+			}
+
+			sub.addChild(frames.toString()).iconType = ICON_TYPE_JAVA_CLASS;
 
 			StringWriter sw = new StringWriter();
 			exception.printStackTrace(new PrintWriter(sw));

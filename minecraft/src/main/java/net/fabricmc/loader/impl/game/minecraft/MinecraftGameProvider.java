@@ -17,6 +17,7 @@
 package net.fabricmc.loader.impl.game.minecraft;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
+import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -275,8 +277,20 @@ public class MinecraftGameProvider implements GameProvider {
 			Class<?> c = loader.loadClass(targetClass);
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) arguments.toArray());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			if (!onCrash(e.getCause(), "Minecraft has crashed!")) {
+				throw new RuntimeException("Minecraft has crashed", e.getCause()); // Pass it on
+			}
+		} catch (ReflectiveOperationException e) {
+			if (!onCrash(e, "Failed to start Minecraft!")) {
+				throw new RuntimeException("Failed to start Minecraft", e);
+			}
 		}
+	}
+
+	@Override
+	public boolean onCrash(Throwable exception, String context) {
+		FabricGuiEntry.displayError(context, exception, false);
+		return false; // Allow the crash to propagate
 	}
 }

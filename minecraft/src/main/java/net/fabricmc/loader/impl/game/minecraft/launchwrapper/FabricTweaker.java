@@ -162,7 +162,13 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoaderImpl.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
-		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		try {
+			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		} catch (RuntimeException e) {
+			if (!provider.onCrash(e, "A mod crashed on startup")) {
+				throw e;
+			}
+		}
 	}
 
 	@Override

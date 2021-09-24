@@ -137,7 +137,13 @@ public final class Knot extends FabricLauncherBase {
 
 		classLoader.getDelegate().initializeTransformers();
 
-		EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		try {
+			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		} catch (RuntimeException e) {
+			if (!provider.onCrash(e, "A mod crashed on startup")) {
+				throw e;
+			}
+		}
 
 		return cl;
 	}
