@@ -80,7 +80,7 @@ public final class FabricMixinBootstrap {
 		Map<String, ModContainerImpl> configToModMap = new HashMap<>();
 
 		for (ModContainerImpl mod : loader.getModsInternal()) {
-			for (String config : mod.getMetadata().getMixinConfigs(side)) {
+			for (String config : mod.getMetadata().getMixinConfigs(side, loader)) {
 				ModContainerImpl prev = configToModMap.putIfAbsent(config, mod);
 				if (prev != null) throw new RuntimeException(String.format("Non-unique mixin config name %s used by %s and %s", config, prev.getMetadata().getId(), mod.getMetadata().getId()));
 

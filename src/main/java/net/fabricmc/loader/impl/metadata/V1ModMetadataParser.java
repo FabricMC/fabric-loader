@@ -18,11 +18,14 @@ package net.fabricmc.loader.impl.metadata;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -104,7 +107,7 @@ final class V1ModMetadataParser {
 				break;
 			case "id":
 				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Mod id must be a non-empty string with a length of 3-64 characters.", reader);
+					throw new ParseMetadataException("Mod id must be a non-empty string with a length of 2-64 characters.", reader);
 				}
 
 				id = reader.nextString();
@@ -382,13 +385,14 @@ final class V1ModMetadataParser {
 			switch (reader.peek()) {
 			case STRING:
 				// All mixin configs specified via string are assumed to be universal
-				mixins.add(new V1ModMetadata.MixinEntry(reader.nextString(), ModEnvironment.UNIVERSAL));
+				mixins.add(new V1ModMetadata.MixinEntry(reader.nextString(), ModEnvironment.UNIVERSAL, Collections.emptySet()));
 				break;
 			case BEGIN_OBJECT:
 				reader.beginObject();
 
 				String config = null;
 				ModEnvironment environment = null;
+				Set<String> depends = null;
 
 				while (reader.hasNext()) {
 					final String key = reader.nextName();
@@ -397,6 +401,25 @@ final class V1ModMetadataParser {
 					// Environment is optional
 					case "environment":
 						environment = V1ModMetadataParser.readEnvironment(reader);
+						break;
+					case "depends":
+						if (reader.peek() != JsonToken.BEGIN_ARRAY) {
+							throw new ParseMetadataException("Value of \"depends\" must be an array", reader);
+						}
+
+						reader.beginArray();
+						depends = new HashSet<>();
+
+						while (reader.hasNext()) {
+							if (reader.peek() == JsonToken.STRING) {
+								depends.add(reader.nextString());
+							} else {
+								warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), "Invalid mixin config dependency type"));
+								reader.skipValue();
+							}
+						}
+
+						reader.endArray();
 						break;
 					case "config":
 						if (reader.peek() != JsonToken.STRING) {
@@ -417,11 +440,15 @@ final class V1ModMetadataParser {
 					environment = ModEnvironment.UNIVERSAL; // Default to universal
 				}
 
+				if (depends == null) {
+					depends = Collections.emptySet(); // Default to depending on nothing
+				}
+
 				if (config == null) {
 					throw new ParseMetadataException.MissingField("Missing mandatory key 'config' in mixin entry!");
 				}
 
-				mixins.add(new V1ModMetadata.MixinEntry(config, environment));
+				mixins.add(new V1ModMetadata.MixinEntry(config, environment, depends));
 				break;
 			default:
 				warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), "Invalid mixin entry type"));
