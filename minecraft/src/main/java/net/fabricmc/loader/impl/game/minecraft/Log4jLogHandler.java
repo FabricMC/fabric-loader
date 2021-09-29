@@ -25,7 +25,7 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.log.LogHandler;
 import net.fabricmc.loader.impl.util.log.LogLevel;
 
-final class Log4jLogHandler implements LogHandler {
+public final class Log4jLogHandler implements LogHandler {
 	@Override
 	public boolean shouldLog(LogLevel level, LogCategory category) {
 		return getLogger(category).isEnabled(translateLogLevel(level));

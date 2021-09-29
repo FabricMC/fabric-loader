@@ -40,19 +40,24 @@ import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.gui.FabricGuiEntry;
+import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogHandler;
 
 public class MinecraftGameProvider implements GameProvider {
+	private static final String[] RESTRICTED_CLASS_PREFIXES = { "net.minecraft.", "com.mojang." };
+
 	private EnvType envType;
 	private String entrypoint;
 	private Arguments arguments;
 	private Path gameJar, realmsJar;
 	private McVersion versionData;
+	private boolean shadedLog4j;
 	private boolean hasModLoader = false;
 
 	public static final GameTransformer TRANSFORMER = new GameTransformer(it -> Arrays.asList(
@@ -128,34 +133,13 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
-	public List<Path> getGameContextJars() {
-		List<Path> list = new ArrayList<>();
-		list.add(gameJar);
-
-		if (realmsJar != null) {
-			list.add(realmsJar);
-		}
-
-		return list;
-	}
-
-	@Override
-	public void setGameContextJars(List<Path> files) {
-		gameJar = files.get(0);
-
-		if (files.size() > 1) {
-			realmsJar = files.get(1);
-		}
-	}
-
-	@Override
 	public boolean isEnabled() {
 		return System.getProperty(SystemProperties.SKIP_MC_PROVIDER) == null;
 	}
 
 	@Override
-	public boolean locateGame(EnvType envType, String[] args, ClassLoader loader) {
-		this.envType = envType;
+	public boolean locateGame(FabricLauncher launcher, String[] args, ClassLoader loader) {
+		this.envType = launcher.getEnvironmentType();
 		this.arguments = new Arguments();
 		arguments.parse(args);
 
@@ -173,12 +157,15 @@ public class MinecraftGameProvider implements GameProvider {
 			return false;
 		}
 
-		Log.init(new Log4jLogHandler(), true);
-
 		entrypoint = entrypointResult.get().entrypointName;
 		gameJar = entrypointResult.get().entrypointPath;
 		realmsJar = GameProviderHelper.getSource(loader, "realmsVersion").orElse(null);
+		shadedLog4j = gameJar.equals(GameProviderHelper.getSource(loader, "org/apache/logging/log4j/LogManager.class").orElse(null));
 		hasModLoader = GameProviderHelper.getSource(loader, "ModLoader.class").isPresent();
+
+		if (!shadedLog4j) { // use Log4J log handler directly if it is not shaded into the game jar, otherwise delay it to initialize() after deobfuscation
+			setupLog4jLogHandler(launcher);
+		}
 
 		// expose obfuscated jar locations for mods to more easily remap code from obfuscated to intermediary
 		ObjectShare share = FabricLoaderImpl.INSTANCE.getObjectShare();
@@ -231,6 +218,49 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
+	public void initialize(FabricLauncher launcher) {
+		List<Path> gameJars = new ArrayList<>(2);
+		gameJars.add(gameJar);
+
+		if (realmsJar != null) {
+			gameJars.add(realmsJar);
+		}
+
+		if (isObfuscated()) {
+			gameJars = GameProviderHelper.deobfuscate(gameJars,
+					getGameId(), getNormalizedGameVersion(),
+					getLaunchDirectory(),
+					launcher);
+
+			gameJar = gameJars.get(0);
+			if (gameJars.size() > 1) realmsJar = gameJars.get(1);
+		}
+
+		if (shadedLog4j) {
+			launcher.addToClassPath(gameJar);
+			launcher.setClassRestrictions(RESTRICTED_CLASS_PREFIXES);
+			setupLog4jLogHandler(launcher);
+		}
+	}
+
+	private void setupLog4jLogHandler(FabricLauncher launcher) {
+		try {
+			final String logHandlerClsName = "net.fabricmc.loader.impl.game.minecraft.Log4jLogHandler";
+			Class<?> logHandlerCls;
+
+			if (shadedLog4j) {
+				logHandlerCls = launcher.loadIntoTarget(logHandlerClsName);
+			} else {
+				logHandlerCls = Class.forName(logHandlerClsName);
+			}
+
+			Log.init((LogHandler) logHandlerCls.getConstructor().newInstance(), true);
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public Arguments getArguments() {
 		return arguments;
 	}
@@ -279,6 +309,17 @@ public class MinecraftGameProvider implements GameProvider {
 	public boolean hasAwtSupport() {
 		// MC always sets -XstartOnFirstThread for LWJGL
 		return !LoaderUtil.hasMacOs();
+	}
+
+	@Override
+	public void unlockClassPath(FabricLauncher launcher) {
+		if (shadedLog4j) {
+			launcher.setClassRestrictions(new String[0]);
+		} else {
+			launcher.addToClassPath(gameJar);
+		}
+
+		if (realmsJar != null) launcher.addToClassPath(realmsJar);
 	}
 
 	@Override

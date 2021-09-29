@@ -18,12 +18,11 @@ package net.fabricmc.loader.impl.game;
 
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
+import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 
@@ -38,12 +37,12 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	Path getLaunchDirectory();
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
-	List<Path> getGameContextJars();
-	void setGameContextJars(List<Path> files); // used by loader to write deobfuscated paths back, same order+size as getGameContextJars
 
 	boolean isEnabled();
-	boolean locateGame(EnvType envType, String[] args, ClassLoader loader);
+	boolean locateGame(FabricLauncher launcher, String[] args, ClassLoader loader);
+	void initialize(FabricLauncher launcher);
 	GameTransformer getEntrypointTransformer();
+	void unlockClassPath(FabricLauncher launcher);
 	void launch(ClassLoader loader);
 	boolean onCrash(Throwable exception, String context);
 

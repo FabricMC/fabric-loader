@@ -25,6 +25,7 @@ import java.net.URLClassLoader;
 import java.util.Enumeration;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
@@ -89,11 +90,7 @@ public class ModClassLoader_125_FML extends URLClassLoader {
 	 * @return The "parent source" file.
 	 */
 	public File getParentSource() {
-		try {
-			return UrlUtil.asFile(UrlUtil.asUrl(FabricLoaderImpl.INSTANCE.getGameProvider().getGameContextJars().get(0)));
-		} catch (MalformedURLException | URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		return ((MinecraftGameProvider) FabricLoaderImpl.INSTANCE.getGameProvider()).getGameJar().toFile();
 	}
 
 	/**

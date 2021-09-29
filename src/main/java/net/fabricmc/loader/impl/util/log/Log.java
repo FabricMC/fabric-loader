@@ -99,11 +99,13 @@ public final class Log {
 	}
 
 	public static void log(LogLevel level, LogCategory category, String msg) {
-		log(handler, level, category, msg, null);
+		LogHandler handler = Log.handler;
+		if (handler.shouldLog(level, category)) log(handler, level, category, msg, null);
 	}
 
 	public static void log(LogLevel level, LogCategory category, String msg, Throwable exc) {
-		log(handler, level, category, msg, exc);
+		LogHandler handler = Log.handler;
+		if (handler.shouldLog(level, category)) log(handler, level, category, msg, exc);
 	}
 
 	public static void logFormat(LogLevel level, LogCategory category, String format, Object... args) {

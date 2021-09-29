@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.CodeSource;
 import java.security.SecureClassLoader;
 import java.util.Enumeration;
 import java.util.Objects;
@@ -27,7 +28,7 @@ import java.util.Objects;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 
-class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
+final class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
 	private static class DynamicURLClassLoader extends URLClassLoader {
 		private DynamicURLClassLoader(URL[] urls) {
 			super(urls, new DummyClassLoader());
@@ -80,7 +81,9 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	}
 
 	@Override
-	protected URL findResource(String name) {
+	public URL findResource(String name) {
+		Objects.requireNonNull(name);
+
 		return urlLoader.findResource(name);
 	}
 
@@ -148,31 +151,12 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 		synchronized (getClassLoadingLock(name)) {
 			Class<?> c = findLoadedClass(name);
 
-			// FIXME: remove the GSON exclusion once loader stops using gson.
-			// We now repackage Gson's JsonReader so removal is now possible
-			if (c == null && !name.startsWith("com.google.gson.") && !name.startsWith("java.")) {
-				byte[] input = delegate.getPostMixinClassByteArray(name);
-
-				if (input != null) {
-					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, urlLoader.getResource(delegate.getClassFileName(name)));
-
-					int pkgDelimiterPos = name.lastIndexOf('.');
-
-					if (pkgDelimiterPos > 0) {
-						// TODO: package definition stub
-						String pkgString = name.substring(0, pkgDelimiterPos);
-
-						if (getPackage(pkgString) == null) {
-							definePackage(pkgString, null, null, null, null, null, null, null);
-						}
-					}
-
-					c = defineClass(name, input, 0, input.length, metadata.codeSource);
-				}
-			}
-
 			if (c == null) {
-				c = originalLoader.loadClass(name);
+				c = delegate.tryLoadClass(name, false);
+
+				if (c == null) {
+					c = originalLoader.loadClass(name);
+				}
 			}
 
 			if (resolve) {
@@ -184,22 +168,57 @@ class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterf
 	}
 
 	@Override
+	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
+		synchronized (getClassLoadingLock(name)) {
+			Class<?> c = findLoadedClass(name);
+
+			if (c == null) {
+				c = delegate.tryLoadClass(name, true);
+
+				if (c == null) {
+					throw new ClassNotFoundException("can't find class "+name);
+				}
+			}
+
+			resolveClass(c);
+
+			return c;
+		}
+	}
+
+	@Override
 	public void addURL(URL url) {
 		urlLoader.addURL(url);
 	}
 
-	static {
-		registerAsParallelCapable();
-	}
-
 	@Override
-	public InputStream getResourceAsStream(String classFile, boolean skipOriginalLoader) throws IOException {
+	public InputStream getResourceAsStream(String classFile, boolean allowFromParent) throws IOException {
 		InputStream inputStream = urlLoader.getResourceAsStream(classFile);
 
-		if (inputStream == null && !skipOriginalLoader) {
+		if (inputStream == null && allowFromParent) {
 			inputStream = originalLoader.getResourceAsStream(classFile);
 		}
 
 		return inputStream;
+	}
+
+	@Override
+	public Package getPackage(String name) {
+		return super.getPackage(name);
+	}
+
+	@Override
+	public Package definePackage(String name, String specTitle, String specVersion, String specVendor,
+			String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException {
+		return super.definePackage(name, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
+	}
+
+	@Override
+	public Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs) {
+		return super.defineClass(name, b, off, len, cs);
+	}
+
+	static {
+		registerAsParallelCapable();
 	}
 }

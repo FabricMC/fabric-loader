@@ -46,7 +46,7 @@ import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
-class KnotClassDelegate {
+final class KnotClassDelegate {
 	static class Metadata {
 		static final Metadata EMPTY = new Metadata(null, null);
 
@@ -66,6 +66,7 @@ class KnotClassDelegate {
 	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
+	private volatile String[] restrictedPrefixes = new String[0];
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
@@ -99,6 +100,34 @@ class KnotClassDelegate {
 	private IMixinTransformer getMixinTransformer() {
 		assert mixinTransformer != null;
 		return mixinTransformer;
+	}
+
+	Class<?> tryLoadClass(String name, boolean allowFromParent) throws ClassNotFoundException {
+		if (name.startsWith("java.")) {
+			return null;
+		}
+
+		for (String prefix : restrictedPrefixes) {
+			if (name.startsWith(prefix)) throw new ClassNotFoundException("class "+name+" is currently restricted from being loaded");
+		}
+
+		byte[] input = getPostMixinClassByteArray(name, allowFromParent);
+		if (input == null) return null;
+
+		KnotClassDelegate.Metadata metadata = getMetadata(name, itf.getResource(getClassFileName(name)));
+
+		int pkgDelimiterPos = name.lastIndexOf('.');
+
+		if (pkgDelimiterPos > 0) {
+			// TODO: package definition stub
+			String pkgString = name.substring(0, pkgDelimiterPos);
+
+			if (itf.getPackage(pkgString) == null) {
+				itf.definePackage(pkgString, null, null, null, null, null, null, null);
+			}
+		}
+
+		return itf.defineClassFwd(name, input, 0, input.length, metadata.codeSource);
 	}
 
 	Metadata getMetadata(String name, URL resourceURL) {
@@ -164,8 +193,8 @@ class KnotClassDelegate {
 		});
 	}
 
-	public byte[] getPostMixinClassByteArray(String name) {
-		byte[] transformedClassArray = getPreMixinClassByteArray(name, true);
+	public byte[] getPostMixinClassByteArray(String name, boolean allowFromParent) {
+		byte[] transformedClassArray = getPreMixinClassByteArray(name, allowFromParent);
 
 		if (!transformInitialized || !canTransformClass(name)) {
 			return transformedClassArray;
@@ -181,13 +210,13 @@ class KnotClassDelegate {
 	/**
 	 * Runs all the class transformers except mixin.
 	 */
-	public byte[] getPreMixinClassByteArray(String name, boolean skipOriginalLoader) {
+	public byte[] getPreMixinClassByteArray(String name, boolean allowFromParent) {
 		// some of the transformers rely on dot notation
 		name = name.replace('/', '.');
 
 		if (!transformInitialized || !canTransformClass(name)) {
 			try {
-				return getRawClassByteArray(name, skipOriginalLoader);
+				return getRawClassByteArray(name, allowFromParent);
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}
@@ -197,7 +226,7 @@ class KnotClassDelegate {
 
 		if (input == null) {
 			try {
-				input = getRawClassByteArray(name, skipOriginalLoader);
+				input = getRawClassByteArray(name, allowFromParent);
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}
@@ -220,9 +249,9 @@ class KnotClassDelegate {
 		return name.replace('.', '/') + ".class";
 	}
 
-	public byte[] getRawClassByteArray(String name, boolean skipOriginalLoader) throws IOException {
+	public byte[] getRawClassByteArray(String name, boolean allowFromParent) throws IOException {
 		String classFile = getClassFileName(name);
-		InputStream inputStream = itf.getResourceAsStream(classFile, skipOriginalLoader);
+		InputStream inputStream = itf.getResourceAsStream(classFile, allowFromParent);
 		if (inputStream == null) return null;
 
 		int a = inputStream.available();
@@ -236,5 +265,9 @@ class KnotClassDelegate {
 
 		inputStream.close();
 		return outputStream.toByteArray();
+	}
+
+	void setRestrictions(String... prefixes) {
+		restrictedPrefixes = prefixes;
 	}
 }
