@@ -26,12 +26,11 @@ import org.objectweb.asm.ClassReader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 
 @Deprecated
 public class JavaLanguageAdapter implements LanguageAdapter {
 	private static boolean canApplyInterface(String itfString) throws IOException {
-		String className = itfString + ".class";
-
 		// TODO: Be a bit more involved
 		switch (itfString) {
 		case "net/fabricmc/api/ClientModInitializer":
@@ -46,7 +45,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 			}
 		}
 
-		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(className);
+		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(LoaderUtil.getClassFileName(itfString));
 		if (stream == null) return false;
 
 		ClassReader reader = new ClassReader(stream);
@@ -63,9 +62,8 @@ public class JavaLanguageAdapter implements LanguageAdapter {
 	}
 
 	public static Class<?> getClass(String className, Options options) throws ClassNotFoundException, IOException {
-		String classFilename = className.replace('.', '/') + ".class";
-		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(classFilename);
-		if (stream == null) throw new ClassNotFoundException("Could not find or load class " + classFilename);
+		InputStream stream = FabricLauncherBase.getLauncher().getResourceAsStream(LoaderUtil.getClassFileName(className));
+		if (stream == null) throw new ClassNotFoundException("Could not find or load class " + className);
 
 		ClassReader reader = new ClassReader(stream);
 

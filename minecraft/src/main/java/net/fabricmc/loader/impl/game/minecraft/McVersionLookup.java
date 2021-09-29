@@ -41,6 +41,7 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
@@ -77,8 +78,7 @@ public final class McVersionLookup {
 
 			// Determine class version
 			for (String entrypointClass : entrypointClasses) {
-				String fileString = entrypointClass.replace('.', '/') + ".class";
-				Path file = fs.getPath(fileString);
+				Path file = fs.getPath(LoaderUtil.getClassFileName(entrypointClass));
 
 				if (Files.isRegularFile(file)) {
 					try (DataInputStream is = new DataInputStream(Files.newInputStream(file))) {
