@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.MappingConfiguration;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -100,7 +101,7 @@ public final class GameProviderHelper {
 
 	public static Optional<EntrypointResult> findFirstClass(ClassLoader loader, List<String> classNames) {
 		List<String> entrypointFilenames = classNames.stream()
-				.map((ep) -> ep.replace('.', '/') + ".class")
+				.map(LoaderUtil::getClassFileName)
 				.collect(Collectors.toList());
 
 		for (int i = 0; i < entrypointFilenames.size(); i++) {

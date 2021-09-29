@@ -40,6 +40,7 @@ import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.transformer.FabricTransformer;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
@@ -114,7 +115,7 @@ final class KnotClassDelegate {
 		byte[] input = getPostMixinClassByteArray(name, allowFromParent);
 		if (input == null) return null;
 
-		KnotClassDelegate.Metadata metadata = getMetadata(name, itf.getResource(getClassFileName(name)));
+		KnotClassDelegate.Metadata metadata = getMetadata(name, itf.getResource(LoaderUtil.getClassFileName(name)));
 
 		int pkgDelimiterPos = name.lastIndexOf('.');
 
@@ -134,10 +135,9 @@ final class KnotClassDelegate {
 		if (resourceURL == null) return Metadata.EMPTY;
 
 		URL codeSourceUrl = null;
-		String filename = name.replace('.', '/') + ".class";
 
 		try {
-			codeSourceUrl = UrlUtil.getSource(filename, resourceURL);
+			codeSourceUrl = UrlUtil.getSource(LoaderUtil.getClassFileName(name), resourceURL);
 		} catch (UrlConversionException e) {
 			System.err.println("Could not find code source for " + resourceURL + ": " + e.getMessage());
 		}
@@ -245,13 +245,8 @@ final class KnotClassDelegate {
 		return /* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j");
 	}
 
-	String getClassFileName(String name) {
-		return name.replace('.', '/') + ".class";
-	}
-
 	public byte[] getRawClassByteArray(String name, boolean allowFromParent) throws IOException {
-		String classFile = getClassFileName(name);
-		InputStream inputStream = itf.getResourceAsStream(classFile, allowFromParent);
+		InputStream inputStream = itf.getResourceAsStream(LoaderUtil.getClassFileName(name), allowFromParent);
 		if (inputStream == null) return null;
 
 		int a = inputStream.available();

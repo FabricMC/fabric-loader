@@ -19,6 +19,10 @@ package net.fabricmc.loader.impl.util;
 import java.util.Locale;
 
 public final class LoaderUtil {
+	public static String getClassFileName(String className) {
+		return className.replace('.', '/').concat(".class");
+	}
+
 	public static boolean hasMacOs() {
 		return System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("mac");
 	}
