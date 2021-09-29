@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.CodeSource;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
@@ -50,28 +51,11 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 			Class<?> c = findLoadedClass(name);
 
 			if (c == null) {
-				byte[] input = delegate.getPostMixinClassByteArray(name);
+				c = delegate.tryLoadClass(name, false);
 
-				if (input != null) {
-					KnotClassDelegate.Metadata metadata = delegate.getMetadata(name, getResource(delegate.getClassFileName(name)));
-
-					int pkgDelimiterPos = name.lastIndexOf('.');
-
-					if (pkgDelimiterPos > 0) {
-						// TODO: package definition stub
-						String pkgString = name.substring(0, pkgDelimiterPos);
-
-						if (getPackage(pkgString) == null) {
-							definePackage(pkgString, null, null, null, null, null, null, null);
-						}
-					}
-
-					c = defineClass(name, input, 0, input.length, metadata.codeSource);
+				if (c == null) {
+					c = getParent().loadClass(name);
 				}
-			}
-
-			if (c == null) {
-				c = getParent().loadClass(name);
 			}
 
 			if (resolve) {
@@ -83,22 +67,57 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 	}
 
 	@Override
+	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
+		synchronized (getClassLoadingLock(name)) {
+			Class<?> c = findLoadedClass(name);
+
+			if (c == null) {
+				c = delegate.tryLoadClass(name, true);
+
+				if (c == null) {
+					throw new ClassNotFoundException("can't find class "+name);
+				}
+			}
+
+			resolveClass(c);
+
+			return c;
+		}
+	}
+
+	@Override
 	public void addURL(URL url) {
 		super.addURL(url);
 	}
 
-	static {
-		registerAsParallelCapable();
-	}
-
 	@Override
-	public InputStream getResourceAsStream(String classFile, boolean skipOriginalLoader) throws IOException {
-		if (skipOriginalLoader) {
+	public InputStream getResourceAsStream(String classFile, boolean allowFromParent) throws IOException {
+		if (!allowFromParent) {
 			if (findResource(classFile) == null) {
 				return null;
 			}
 		}
 
 		return super.getResourceAsStream(classFile);
+	}
+
+	@Override
+	public Package getPackage(String name) {
+		return super.getPackage(name);
+	}
+
+	@Override
+	public Package definePackage(String name, String specTitle, String specVersion, String specVendor,
+			String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException {
+		return super.definePackage(name, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
+	}
+
+	@Override
+	public Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs) {
+		return super.defineClass(name, b, off, len, cs);
+	}
+
+	static {
+		registerAsParallelCapable();
 	}
 }

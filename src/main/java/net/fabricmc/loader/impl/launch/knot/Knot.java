@@ -98,7 +98,7 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		provider = createGameProvider(envType, args);
+		provider = createGameProvider(args);
 		Log.info(LogCategory.GAME_PROVIDER, "Loading for game %s %s", provider.getGameName(), provider.getRawGameVersion());
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
@@ -109,17 +109,7 @@ public final class Knot extends FabricLauncherBase {
 		classLoader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider) : new KnotClassLoader(isDevelopment(), envType, provider);
 		ClassLoader cl = (ClassLoader) classLoader;
 
-		if (provider.isObfuscated()) {
-			provider.setGameContextJars(FabricLauncherBase.deobfuscate(
-					provider.getGameId(), provider.getNormalizedGameVersion(),
-					provider.getLaunchDirectory(),
-					provider.getGameContextJars(),
-					this));
-		}
-
-		for (Path path : provider.getGameContextJars()) {
-			addToClassPath(path);
-		}
+		provider.initialize(this);
 
 		// Locate entrypoints before switching class loaders
 		provider.getEntrypointTransformer().locateEntrypoints(this);
@@ -139,6 +129,8 @@ public final class Knot extends FabricLauncherBase {
 
 		classLoader.getDelegate().initializeTransformers();
 
+		provider.unlockClassPath(this);
+
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 		} catch (RuntimeException e) {
@@ -150,7 +142,7 @@ public final class Knot extends FabricLauncherBase {
 		return cl;
 	}
 
-	private static GameProvider createGameProvider(EnvType envType, String[] args) {
+	private GameProvider createGameProvider(String[] args) {
 		// fast path with direct lookup
 
 		GameProvider embeddedGameProvider = findEmbedddedGameProvider();
@@ -158,7 +150,7 @@ public final class Knot extends FabricLauncherBase {
 
 		if (embeddedGameProvider != null
 				&& embeddedGameProvider.isEnabled()
-				&& embeddedGameProvider.locateGame(envType, args, cl)) {
+				&& embeddedGameProvider.locateGame(this, args, cl)) {
 			return embeddedGameProvider;
 		}
 
@@ -170,7 +162,7 @@ public final class Knot extends FabricLauncherBase {
 			if (!provider.isEnabled()) continue; // don't attempt disabled providers and don't include them in the error report
 
 			if (provider != embeddedGameProvider // don't retry already failed provider
-					&& provider.locateGame(envType, args, cl)) {
+					&& provider.locateGame(this, args, cl)) {
 				return provider;
 			}
 
@@ -285,6 +277,11 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
+	public void setClassRestrictions(String... prefixes) {
+		classLoader.getDelegate().setRestrictions(prefixes);
+	}
+
+	@Override
 	public EnvType getEnvironmentType() {
 		return envType;
 	}
@@ -292,6 +289,11 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public boolean isClassLoaded(String name) {
 		return classLoader.isClassLoaded(name);
+	}
+
+	@Override
+	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
+		return classLoader.loadIntoTarget(name);
 	}
 
 	@Override
@@ -311,9 +313,9 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
 		if (runTransformers) {
-			return classLoader.getDelegate().getPreMixinClassByteArray(name, false);
+			return classLoader.getDelegate().getPreMixinClassByteArray(name, true);
 		} else {
-			return classLoader.getDelegate().getRawClassByteArray(name, false);
+			return classLoader.getDelegate().getRawClassByteArray(name, true);
 		}
 	}
 

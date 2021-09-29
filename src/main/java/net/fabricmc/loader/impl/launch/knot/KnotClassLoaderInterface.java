@@ -19,10 +19,17 @@ package net.fabricmc.loader.impl.launch.knot;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.CodeSource;
 
 interface KnotClassLoaderInterface {
 	KnotClassDelegate getDelegate();
 	boolean isClassLoaded(String name);
+	Class<?> loadIntoTarget(String name) throws ClassNotFoundException;
 	void addURL(URL url);
+	URL getResource(String name);
 	InputStream getResourceAsStream(String filename, boolean skipOriginalLoader) throws IOException;
+
+	Package getPackage(String name);
+	Package definePackage(String name, String specTitle, String specVersion, String specVendor, String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException;
+	Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs);
 }

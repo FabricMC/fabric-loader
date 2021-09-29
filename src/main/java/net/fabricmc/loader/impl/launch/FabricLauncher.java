@@ -29,10 +29,16 @@ public interface FabricLauncher {
 	MappingConfiguration getMappingConfiguration();
 
 	void addToClassPath(Path path);
+	void setClassRestrictions(String... prefixes);
 
 	EnvType getEnvironmentType();
 
 	boolean isClassLoaded(String name);
+
+	/**
+	 * Load a class into the game's class loader even if its bytes are only available from the parent class loader.
+	 */
+	Class<?> loadIntoTarget(String name) throws ClassNotFoundException;
 
 	InputStream getResourceAsStream(String name);
 

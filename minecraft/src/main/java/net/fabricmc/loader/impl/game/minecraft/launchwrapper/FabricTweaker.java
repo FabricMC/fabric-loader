@@ -22,14 +22,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.net.JarURLConnection;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
@@ -112,63 +109,32 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.ClientModInitializer");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.DedicatedServerModInitializer");
 
-		// FIXME: remove the GSON exclusion once loader stops using it (or repackages it)
-		launchClassLoader.addClassLoaderExclusion("com.google.gson.");
-
 		GameProvider provider = new MinecraftGameProvider();
 
 		if (!provider.isEnabled()
-				|| !provider.locateGame(getEnvironmentType(), arguments.toArray(), launchClassLoader)) {
+				|| !provider.locateGame(this, arguments.toArray(), launchClassLoader)) {
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 
 		arguments = null;
+
+		provider.initialize(this);
+
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
 		loader.load();
 		loader.freeze();
 
 		launchClassLoader.registerTransformer(FabricClassTransformer.class.getName());
-
-		if (!isDevelopment) {
-			// Obfuscated environment
-
-			try {
-				String target = getLaunchTarget();
-				URL loc = launchClassLoader.findResource(target.replace('.', '/') + ".class");
-				JarURLConnection locConn = (JarURLConnection) loc.openConnection();
-				File jarFile = UrlUtil.asFile(locConn.getJarFileURL());
-
-				if (!jarFile.exists()) {
-					throw new RuntimeException("Could not locate Minecraft: " + jarFile.getAbsolutePath() + " not found");
-				}
-
-				Path obfuscated = jarFile.toPath();
-				Path remapped = FabricLauncherBase.deobfuscate(provider.getGameId(),
-						provider.getNormalizedGameVersion(),
-						provider.getLaunchDirectory(),
-						Collections.singletonList(obfuscated),
-						this)
-						.get(0);
-
-				if (remapped != obfuscated) {
-					addToClassPath(remapped);
-					preloadRemappedJar(remapped);
-					provider.setGameContextJars(Collections.singletonList(remapped));
-				}
-			} catch (IOException | URISyntaxException e) {
-				throw new RuntimeException("Failed to deobfuscate Minecraft!", e);
-			}
-		}
-
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
-
 		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoaderImpl.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
+
+		provider.unlockClassPath(this);
 
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
@@ -194,6 +160,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
+	public void setClassRestrictions(String... prefixes) {
+		// not implemented (no-op)
+	}
+
+	@Override
 	public Collection<URL> getLoadTimeDependencies() {
 		return launchClassLoader.getSources();
 	}
@@ -201,6 +172,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	@Override
 	public boolean isClassLoaded(String name) {
 		throw new RuntimeException("TODO isClassLoaded/launchwrapper");
+	}
+
+	@Override
+	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
+		return launchClassLoader.loadClass(name); // TODO: implement properly, this may load the class into the system class loader
 	}
 
 	@Override
