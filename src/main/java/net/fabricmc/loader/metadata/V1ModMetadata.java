@@ -289,7 +289,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public void emitFormatWarnings(Logger logger) {
 		if (!this.requires.isEmpty()) {
-			logger.warn("Mod `{}` ({}) uses 'requires' key in fabric.mod.json, which is not supported - use 'depends'", this.id, this.version);
+			logger.warn("Mod `%s` (%s) uses 'requires' key in fabric.mod.json, which is not supported - use 'depends'", this.id, this.version);
 		}
 	}
 
