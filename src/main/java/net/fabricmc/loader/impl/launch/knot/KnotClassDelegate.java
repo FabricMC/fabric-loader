@@ -67,7 +67,7 @@ final class KnotClassDelegate {
 	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
-	private volatile String[] restrictedPrefixes = new String[0];
+	private final Map<URL, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
@@ -108,8 +108,26 @@ final class KnotClassDelegate {
 			return null;
 		}
 
-		for (String prefix : restrictedPrefixes) {
-			if (name.startsWith(prefix)) throw new ClassNotFoundException("class "+name+" is currently restricted from being loaded");
+		if (!allowedPrefixes.isEmpty()) {
+			URL url = itf.getResource(LoaderUtil.getClassFileName(name));
+			String[] prefixes;
+
+			if (url != null
+					&& (prefixes = allowedPrefixes.get(url)) != null) {
+				assert prefixes.length > 0;
+				boolean found = false;
+
+				for (String prefix : prefixes) {
+					if (name.startsWith(prefix)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					throw new ClassNotFoundException("class "+name+" is currently restricted from being loaded");
+				}
+			}
 		}
 
 		byte[] input = getPostMixinClassByteArray(name, allowFromParent);
@@ -262,7 +280,11 @@ final class KnotClassDelegate {
 		return outputStream.toByteArray();
 	}
 
-	void setRestrictions(String... prefixes) {
-		restrictedPrefixes = prefixes;
+	void setAllowedPrefixes(URL url, String... prefixes) {
+		if (prefixes.length == 0) {
+			allowedPrefixes.remove(url);
+		} else {
+			allowedPrefixes.put(url, prefixes);
+		}
 	}
 }

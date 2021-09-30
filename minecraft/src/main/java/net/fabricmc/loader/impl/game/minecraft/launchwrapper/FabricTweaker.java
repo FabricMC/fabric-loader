@@ -150,16 +150,17 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
-	public void addToClassPath(Path path) {
+	public void addToClassPath(Path path, String... allowedPrefixes) {
 		try {
 			launchClassLoader.addURL(UrlUtil.asUrl(path));
+			// allowedPrefixes handling is not implemented (no-op)
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public void setClassRestrictions(String... prefixes) {
+	public void setAllowedPrefixes(Path path, String... prefixes) {
 		// not implemented (no-op)
 	}
 
