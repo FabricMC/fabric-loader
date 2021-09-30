@@ -5,7 +5,7 @@
     ],
     "common": [
       {
-        "name": "net.fabricmc:tiny-mappings-parser:0.2.2.14",
+        "name": "net.fabricmc:tiny-mappings-parser:0.3.0+build.17",
         "url": "https://maven.fabricmc.net/"
       },
       {
