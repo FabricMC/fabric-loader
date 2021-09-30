@@ -70,7 +70,7 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	api 'net.fabricmc:tiny-mappings-parser:0.2.2.14'
+	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
 	api 'net.fabricmc:tiny-remapper:0.6.0'
 	api 'net.fabricmc:access-widener:2.0.0'
 
