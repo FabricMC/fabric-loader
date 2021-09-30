@@ -127,7 +127,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		launchClassLoader.registerTransformer(FabricClassTransformer.class.getName());
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
-		MinecraftGameProvider.TRANSFORMER.locateEntrypoints(this);
 
 		// Setup Mixin environment
 		MixinBootstrap.init();

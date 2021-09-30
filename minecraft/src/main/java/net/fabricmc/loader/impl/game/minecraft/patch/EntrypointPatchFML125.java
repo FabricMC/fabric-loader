@@ -16,15 +16,15 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
-import java.io.IOException;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.ClassNode;
 
 import net.fabricmc.loader.impl.game.patch.GamePatch;
-import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -36,35 +36,27 @@ public class EntrypointPatchFML125 extends GamePatch {
 	private static final String FROM_INTERNAL = FROM.replace('.', '/');
 	private static final String TO_INTERNAL = "cpw/mods/fml/common/ModClassLoader";
 
-	public EntrypointPatchFML125(GameTransformer transformer) {
-		super(transformer);
-	}
-
 	@Override
-	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
-		if (classExists(launcher, TO)
-				&& !classExists(launcher, "cpw.mods.fml.relauncher.FMLRelauncher")) {
+	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
+		if (classSource.apply(TO) != null
+				&& classSource.apply("cpw.mods.fml.relauncher.FMLRelauncher") == null) {
 			if (!(launcher instanceof Knot)) {
 				throw new RuntimeException("1.2.5 FML patch only supported on Knot!");
 			}
 
 			Log.debug(LogCategory.GAME_PATCH, "Detected 1.2.5 FML - Knotifying ModClassLoader...");
 
-			try {
-				ClassNode patchedClassLoader = loadClass(launcher, FROM);
-				ClassNode remappedClassLoader = new ClassNode();
+			ClassNode patchedClassLoader = readClass(classSource.apply(FROM));
+			ClassNode remappedClassLoader = new ClassNode();
 
-				patchedClassLoader.accept(new ClassRemapper(remappedClassLoader, new Remapper() {
-					@Override
-					public String map(String internalName) {
-						return FROM_INTERNAL.equals(internalName) ? TO_INTERNAL : internalName;
-					}
-				}));
+			patchedClassLoader.accept(new ClassRemapper(remappedClassLoader, new Remapper() {
+				@Override
+				public String map(String internalName) {
+					return FROM_INTERNAL.equals(internalName) ? TO_INTERNAL : internalName;
+				}
+			}));
 
-				classEmitter.accept(remappedClassLoader);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			classEmitter.accept(remappedClassLoader);
 		}
 	}
 }

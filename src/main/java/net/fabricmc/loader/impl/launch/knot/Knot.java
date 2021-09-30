@@ -60,6 +60,7 @@ public final class Knot extends FabricLauncherBase {
 	private EnvType envType;
 	private final File gameJarFile;
 	private GameProvider provider;
+	private boolean unlocked;
 
 	public static void launch(String[] args, EnvType type) {
 		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
@@ -111,9 +112,6 @@ public final class Knot extends FabricLauncherBase {
 
 		provider.initialize(this);
 
-		// Locate entrypoints before switching class loaders
-		provider.getEntrypointTransformer().locateEntrypoints(this);
-
 		Thread.currentThread().setContextClassLoader(cl);
 
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
@@ -130,6 +128,7 @@ public final class Knot extends FabricLauncherBase {
 		classLoader.getDelegate().initializeTransformers();
 
 		provider.unlockClassPath(this);
+		unlocked = true;
 
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
@@ -312,6 +311,8 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
+		if (!unlocked) throw new IllegalStateException("early getClassByteArray access");
+
 		if (runTransformers) {
 			return classLoader.getDelegate().getPreMixinClassByteArray(name, true);
 		} else {
