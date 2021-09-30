@@ -28,8 +28,8 @@ import net.fabricmc.api.EnvType;
 public interface FabricLauncher {
 	MappingConfiguration getMappingConfiguration();
 
-	void addToClassPath(Path path);
-	void setClassRestrictions(String... prefixes);
+	void addToClassPath(Path path, String... allowedPrefixes);
+	void setAllowedPrefixes(Path path, String... prefixes);
 
 	EnvType getEnvironmentType();
 

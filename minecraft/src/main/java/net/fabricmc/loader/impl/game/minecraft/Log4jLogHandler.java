@@ -49,13 +49,12 @@ public final class Log4jLogHandler implements LogHandler {
 	}
 
 	private static Level translateLogLevel(LogLevel level) {
-		switch (level) {
-		case ERROR: return Level.ERROR;
-		case WARN: return Level.WARN;
-		case INFO: return Level.INFO;
-		case DEBUG: return Level.DEBUG;
-		case TRACE: return Level.TRACE;
-		}
+		// can't use enum due to it generating a nested class, which would have to be on the same class loader as Log4jLogHandler
+		if (level == LogLevel.ERROR) return Level.ERROR;
+		if (level == LogLevel.WARN) return Level.WARN;
+		if (level == LogLevel.INFO) return Level.INFO;
+		if (level == LogLevel.DEBUG) return Level.DEBUG;
+		if (level == LogLevel.TRACE) return Level.TRACE;
 
 		throw new IllegalArgumentException("unknown log level: "+level);
 	}

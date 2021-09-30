@@ -68,8 +68,10 @@ public class MinecraftGameProvider implements GameProvider {
 	private static final String REALMS_CHECK_PATH = "realmsVersion";
 	private static final String LOG4J_API_CHECK_PATH = "org/apache/logging/log4j/LogManager.class";
 	private static final String[] LOG4J_IMPL_CHECK_PATHS = { "META-INF/services/org.apache.logging.log4j.spi.Provider", "META-INF/log4j-provider.properties" };
+	private static final String LOG4J_CONFIG_CHECK_PATH = "log4j2.xml";
+	private static final String LOG4J_PLUGIN_CHECK_PATH = "com/mojang/util/QueueLogAppender.class";
 
-	private static final String[] RESTRICTED_CLASS_PREFIXES = { "net.minecraft.", "com.mojang." };
+	private static final String[] ALLOWED_CLASS_PREFIXES = { "org.apache.logging.log4j.", "com.mojang.util." };
 
 	private EnvType envType;
 	private String entrypoint;
@@ -180,7 +182,10 @@ public class MinecraftGameProvider implements GameProvider {
 			entrypoint = entrypointResult.get().entrypointName;
 			gameJar = entrypointResult.get().entrypointPath;
 			realmsJar = GameProviderHelper.getSource(cl, REALMS_CHECK_PATH).orElse(null);
-			useGameJarForLogging = gameJar.equals(GameProviderHelper.getSource(cl, LOG4J_API_CHECK_PATH).orElse(null));
+			if (realmsJar != null && realmsJar.equals(gameJar)) realmsJar = null;
+
+			useGameJarForLogging = gameJar.equals(GameProviderHelper.getSource(cl, LOG4J_API_CHECK_PATH).orElse(null))
+					|| cl.getResource(LOG4J_CONFIG_CHECK_PATH) == null;
 			hasModLoader = GameProviderHelper.getSource(cl, "ModLoader.class").isPresent();
 		}
 
@@ -210,7 +215,7 @@ public class MinecraftGameProvider implements GameProvider {
 		URL[] urls;
 
 		try {
-			cl = new ClassLoader(cl) {
+			ClassLoader bundlerCl = new ClassLoader(cl) {
 				@Override
 				protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 					synchronized (getClassLoadingLock(name)) {
@@ -221,7 +226,6 @@ public class MinecraftGameProvider implements GameProvider {
 								URL url = getResource(LoaderUtil.getClassFileName(name));
 
 								if (url != null) {
-
 									try (InputStream is = url.openConnection().getInputStream()) {
 										byte[] data = new byte[Math.max(is.available() + 1, 1000)];
 										int offset = 0;
@@ -257,7 +261,7 @@ public class MinecraftGameProvider implements GameProvider {
 				}
 			};
 
-			Class<?> cls = Class.forName(BUNDLER_ENTRYPOINT, true, cl);
+			Class<?> cls = Class.forName(BUNDLER_ENTRYPOINT, true, bundlerCl);
 			Method method = cls.getMethod("main", String[].class);
 
 			// save + restore the system property and context class loader just in case
@@ -285,10 +289,31 @@ public class MinecraftGameProvider implements GameProvider {
 
 		// analyze urls to determine game/realms/log4j/misc libs and the entrypoint
 
+		useGameJarForLogging = false;
+
 		boolean hasGameJar = false;
 		boolean hasRealmsJar = false;
-		boolean hasLog4jApiJar = false;
-		boolean hasLog4jImplJar = false;
+
+		Object[] logCheckPaths = { LOG4J_API_CHECK_PATH, LOG4J_IMPL_CHECK_PATHS, LOG4J_CONFIG_CHECK_PATH, LOG4J_PLUGIN_CHECK_PATH };
+		int locatedLog4jPaths = 0;
+
+		for (int i = 0; i < logCheckPaths.length; i++) {
+			Object logCheckPath = logCheckPaths[i];
+			boolean found = false;
+
+			if (logCheckPath instanceof String) {
+				found = cl.getResource((String) logCheckPath) != null;
+			} else {
+				for (String p : (String[]) logCheckPath) {
+					if (cl.getResource(p) != null) {
+						found = true;
+						break;
+					}
+				}
+			}
+
+			if (found) locatedLog4jPaths |= 1 << i;
+		}
 
 		for (URL url : urls) {
 			Path path;
@@ -299,12 +324,11 @@ public class MinecraftGameProvider implements GameProvider {
 				throw new RuntimeException("invalid url: "+url);
 			}
 
-			if (hasGameJar && hasRealmsJar && hasLog4jApiJar && hasLog4jImplJar) {
+			if (hasGameJar && hasRealmsJar && Integer.bitCount(locatedLog4jPaths) == logCheckPaths.length) {
 				miscGameLibraries.add(path);
 				continue;
 			}
 
-			useGameJarForLogging = false;
 			boolean isMiscLibrary = true; // not game/realms/log4j
 
 			try (ZipFile zf = new ZipFile(path.toFile())) {
@@ -322,14 +346,31 @@ public class MinecraftGameProvider implements GameProvider {
 
 				if (!hasRealmsJar) {
 					if (zf.getEntry(REALMS_CHECK_PATH) != null) {
-						realmsJar = path;
+						if (!path.equals(gameJar)) realmsJar = path;
 						hasRealmsJar = true;
 						isMiscLibrary = false;
 					}
 				}
 
-				if (!hasLog4jApiJar) {
-					if (zf.getEntry(LOG4J_API_CHECK_PATH) != null) {
+				for (int i = 0; i < logCheckPaths.length; i++) {
+					if ((locatedLog4jPaths & (1 << i)) != 0) continue;
+
+					Object logCheckPath = logCheckPaths[i];
+					boolean found = false;
+
+					if (logCheckPath instanceof String) {
+						found = zf.getEntry((String) logCheckPath) != null;
+					} else {
+						for (String p : (String[]) logCheckPath) {
+							if (zf.getEntry(p) != null) {
+								found = true;
+								break;
+							}
+						}
+					}
+
+					if (found) {
+						locatedLog4jPaths |= 1 << i;
 						boolean isGameJar = path.equals(gameJar);
 						useGameJarForLogging |= isGameJar;
 
@@ -337,25 +378,7 @@ public class MinecraftGameProvider implements GameProvider {
 							log4jJars.add(path);
 						}
 
-						hasLog4jApiJar = true;
 						isMiscLibrary = false;
-					}
-				}
-
-				if (!hasLog4jImplJar) {
-					for (String name : LOG4J_IMPL_CHECK_PATHS) {
-						if (zf.getEntry(name) != null) {
-							boolean isGameJar = path.equals(gameJar);
-							useGameJarForLogging |= isGameJar;
-
-							if (!isGameJar) {
-								log4jJars.add(path);
-							}
-
-							hasLog4jImplJar = true;
-							isMiscLibrary = false;
-							break;
-						}
 					}
 				}
 			} catch (IOException e) {
@@ -366,8 +389,10 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		if (!hasGameJar) return false;
-		if (!hasLog4jApiJar) throw new UnsupportedOperationException("MC server bundler didn't yield a jar containing the Log4J API");
-		if (!hasLog4jImplJar) throw new UnsupportedOperationException("MC server bundler didn't yield a jar containing the Log4J implementaion");
+
+		if ((locatedLog4jPaths & 0b11) != 0b11) { // require the first two (api+impl)
+			throw new UnsupportedOperationException("MC server bundler didn't yield the Log4J API and/or implementation JARs");
+		}
 
 		hasModLoader = false; // bundler + modloader don't normally coexist
 
@@ -431,8 +456,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 		if (useGameJarForLogging || !log4jJars.isEmpty()) {
 			if (useGameJarForLogging) {
-				launcher.addToClassPath(gameJar);
-				launcher.setClassRestrictions(RESTRICTED_CLASS_PREFIXES);
+				launcher.addToClassPath(gameJar, ALLOWED_CLASS_PREFIXES);
 			}
 
 			if (!log4jJars.isEmpty()) {
@@ -518,7 +542,7 @@ public class MinecraftGameProvider implements GameProvider {
 	@Override
 	public void unlockClassPath(FabricLauncher launcher) {
 		if (useGameJarForLogging) {
-			launcher.setClassRestrictions(new String[0]);
+			launcher.setAllowedPrefixes(gameJar);
 		} else {
 			launcher.addToClassPath(gameJar);
 		}

@@ -265,19 +265,25 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public void addToClassPath(Path path) {
+	public void addToClassPath(Path path, String... allowedPrefixes) {
 		Log.debug(LogCategory.KNOT, "Adding " + path + " to classpath.");
 
 		try {
-			classLoader.addURL(UrlUtil.asUrl(path));
+			URL url = UrlUtil.asUrl(path);
+			classLoader.getDelegate().setAllowedPrefixes(url, allowedPrefixes);
+			classLoader.addURL(url);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	public void setClassRestrictions(String... prefixes) {
-		classLoader.getDelegate().setRestrictions(prefixes);
+	public void setAllowedPrefixes(Path path, String... prefixes) {
+		try {
+			classLoader.getDelegate().setAllowedPrefixes(UrlUtil.asUrl(path), prefixes);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
