@@ -97,6 +97,8 @@ java {
 
 jar {
 	enabled = false
+	// Set the classifier to fix gradle task validation confusion.
+	archiveClassifier = "disabled"
 }
 
 shadowJar {
@@ -154,13 +156,17 @@ File proguardFile = file("build/libs/fabric-loader-${version}.jar")
 
 import proguard.gradle.ProGuardTask
 task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
+	def classpath = project(":minecraft").configurations.compileClasspath
+
+	inputs.files(fatJar, classpath)
+	outputs.files(proguardFile)
+	outputs.upToDateWhen { false }
+
 	doFirst {
-		project(":minecraft").configurations.compileClasspath.resolve().forEach {
+		classpath.resolve().forEach {
 			libraryjars it
 		}
 	}
-
-	outputs.upToDateWhen { false }
 
 	libraryjars JavaVersion.current().java9Compatible ? "${System.getProperty('java.home')}/jmods" : "${System.getProperty('java.home')}/lib/rt.jar"
 
@@ -186,22 +192,23 @@ task testJar(type: Jar) {
 	from sourceSets.test.output
 }
 
-task copyJson(type: Copy) {
-	from('src/main/resources/fabric-installer.json') {
-		rename { "${archivesBaseName}-${version}.json" }
-	}
-	into 'build/libs'
-}
+task copyJson() {
+	def inJson = file('src/main/resources/fabric-installer.json')
+	def inLwJson = file('src/main/resources/fabric-installer.launchwrapper.json')
 
-task copyJsonLw(type: Copy) {
-	from('src/main/resources/fabric-installer.launchwrapper.json') {
-		rename { "${archivesBaseName}-${version}.launchwrapper.json" }
+	def outJson = file("build/libs/${archivesBaseName}-${version}.json")
+	def outLwJson = file("build/libs/${archivesBaseName}-${version}.launchwrapper.json")
+
+	inputs.files (inJson, inLwJson)
+	outputs.files(outJson, outLwJson)
+
+	doLast {
+		outJson.text = inJson.text
+		outLwJson.text = inLwJson.text
 	}
-	into 'build/libs'
 }
 
 tasks.build.dependsOn "copyJson"
-tasks.build.dependsOn "copyJsonLw"
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
@@ -279,7 +286,7 @@ publishing {
 				builtBy copyJson
 			}
 			artifact(file('src/main/resources/fabric-installer.launchwrapper.json')) {
-				builtBy copyJsonLw
+				builtBy copyJson
 				classifier = "launchwrapper"
 			}
 		}
