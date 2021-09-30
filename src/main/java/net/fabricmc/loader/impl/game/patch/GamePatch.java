@@ -16,13 +16,14 @@
 
 package net.fabricmc.loader.impl.game.patch;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -32,22 +33,12 @@ import org.objectweb.asm.tree.MethodNode;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 
 public abstract class GamePatch {
-	private final GameTransformer transformer;
+	protected static ClassNode readClass(ClassReader reader) {
+		if (reader == null) return null;
 
-	public GamePatch(GameTransformer transformer) {
-		this.transformer = transformer;
-	}
-
-	protected boolean classExists(FabricLauncher launcher, String className) {
-		try {
-			return launcher.getClassByteArray(className, false) != null;
-		} catch (IOException e) {
-			return false;
-		}
-	}
-
-	protected ClassNode loadClass(FabricLauncher launcher, String className) throws IOException {
-		return transformer.loadClass(launcher, className);
+		ClassNode node = new ClassNode();
+		reader.accept(node, 0);
+		return node;
 	}
 
 	protected FieldNode findField(ClassNode node, Predicate<FieldNode> predicate) {
@@ -137,5 +128,5 @@ public abstract class GamePatch {
 		return ((access & 0x0F) == (Opcodes.ACC_PUBLIC | 0 /* non-static */));
 	}
 
-	public abstract void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter);
+	public abstract void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter);
 }

@@ -81,11 +81,10 @@ public class MinecraftGameProvider implements GameProvider {
 	private boolean useGameJarForLogging;
 	private boolean hasModLoader = false;
 
-	public static final GameTransformer TRANSFORMER = new GameTransformer(it -> Arrays.asList(
-			new EntrypointPatch(it),
-			new BrandingPatch(it),
-			new EntrypointPatchFML125(it)
-			));
+	private static final GameTransformer TRANSFORMER = new GameTransformer(
+			new EntrypointPatch(),
+			new BrandingPatch(),
+			new EntrypointPatchFML125());
 
 	@Override
 	public String getGameId() {
@@ -444,6 +443,8 @@ public class MinecraftGameProvider implements GameProvider {
 
 			setupLog4jLogHandler(launcher, true);
 		}
+
+		TRANSFORMER.locateEntrypoints(launcher, gameJar);
 	}
 
 	private void setupLog4jLogHandler(FabricLauncher launcher, boolean useTargetCl) {

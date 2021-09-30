@@ -16,10 +16,11 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
-import java.io.IOException;
 import java.util.ListIterator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -28,32 +29,23 @@ import org.objectweb.asm.tree.MethodNode;
 
 import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
-import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class BrandingPatch extends GamePatch {
-	public BrandingPatch(GameTransformer transformer) {
-		super(transformer);
-	}
-
 	@Override
-	public void process(FabricLauncher launcher, Consumer<ClassNode> classEmitter) {
+	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
 		for (String brandClassName : new String[] {
 				"net.minecraft.client.ClientBrandRetriever",
 				"net.minecraft.server.MinecraftServer"
 		}) {
-			try {
-				ClassNode brandClass = loadClass(launcher, brandClassName);
+			ClassNode brandClass = readClass(classSource.apply(brandClassName));
 
-				if (brandClass != null) {
-					if (applyBrandingPatch(brandClass)) {
-						classEmitter.accept(brandClass);
-					}
+			if (brandClass != null) {
+				if (applyBrandingPatch(brandClass)) {
+					classEmitter.accept(brandClass);
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}
