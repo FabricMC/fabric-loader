@@ -339,7 +339,8 @@ public final class McVersionLookup {
 	 */
 	protected static String normalizeVersion(String name, String release) {
 		if (release == null || name.equals(release)) {
-			return normalizeVersion(name);
+			String ret = normalizeSpecialVersion(name);
+			return ret != null ? ret : normalizeVersion(name);
 		}
 
 		Matcher matcher;
@@ -375,11 +376,18 @@ public final class McVersionLookup {
 					} else {
 						name = String.format("beta.%s", matcher.group(1));
 					}
+				} else {
+					String ret = normalizeSpecialVersion(name);
+					if (ret != null) return ret;
 				}
 			}
 		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {
 			name = String.format("alpha.%s.%s.%s", matcher.group(1), matcher.group(2), matcher.group(3));
 		} else {
+			// Try short-circuiting special versions which are complete on their own
+			String ret = normalizeSpecialVersion(name);
+			if (ret != null) return ret;
+
 			name = normalizeVersion(name);
 		}
 
@@ -453,6 +461,91 @@ public final class McVersionLookup {
 		while (end > start && ret.charAt(end - 1) == '.') end--;
 
 		return ret.substring(start, end);
+	}
+
+	private static String normalizeSpecialVersion(String version ) {
+		switch (version) {
+		case "13w12~":
+			// A pair of debug snapshots immediately before 1.5.1-pre
+			return "1.5.1-alpha.13.12.~";
+
+		case "15w14a":
+			// The Love and Hugs Update, forked from 1.8.3
+			return "1.8.4-alpha.1";
+
+		case "1.RV-Pre1":
+			// The Trendy Update, probably forked from 1.9.2 (although the protocol/data versions immediately follow 1.9.1-pre3)
+			return "1.9.2-alpha.1";
+
+		case "3D Shareware v1.34":
+			// Minecraft 3D, forked from 19w13b
+			return "1.14-alpha.19.13.shareware";
+
+		case "20w14~":
+			// The Ultimate Content update, forked from 20w13b
+			return "1.16-alpha.20.13.inf"; // Not to be confused with the actual 20w14a
+
+		case "1.14.3 - Combat Test":
+			// The first Combat Test, forked from 1.14.3 Pre-Release 4
+			return "1.14.3-rc.5";
+
+		case "Combat Test 2":
+			// The second Combat Test, forked from 1.14.4
+			return "1.14.5-alpha.1";
+
+		case "Combat Test 3":
+			// The third Combat Test, forked from 1.14.4
+			return "1.14.5-alpha.2";
+
+		case "Combat Test 4":
+			// The fourth Combat Test, forked from 1.15 Pre-release 3
+			return "1.15-rc.3.9"; // Not to be confused with 1.15 Pre-release 4
+
+		case "Combat Test 5":
+			// The fifth Combat Test, forked from 1.15.2 Pre-release 2
+			return "1.15.2-rc.3";
+
+		case "Combat Test 6":
+			// The sixth Combat Test, forked from 1.16.2 Pre-release 3
+			return "1.16.2-beta.4";
+
+		case "Combat Test 7":
+			// Private testing Combat Test 7, forked from 1.16.2
+			return "1.16.3-alpha.1";
+
+		case "1.16_combat-2":
+			// Private testing Combat Test 7b, forked from 1.16.2
+			return "1.16.3-alpha.2";
+
+		case "1.16_combat-3":
+			// The seventh Combat Test 7c, forked from 1.16.2
+			return "1.16.3-alpha.3";
+
+		case "1.16_combat-4":
+			// Private testing Combat Test 8(a?), forked from 1.16.2
+			return "1.16.3-alpha.4";
+
+		case "1.16_combat-5":
+			// The eighth Combat Test 8b, forked from 1.16.2
+			return "1.16.3-alpha.5";
+
+		case "1.16_combat-6":
+			// The ninth Combat Test 8c, forked from 1.16.2
+			return "1.16.3-alpha.6";
+
+		case "1.18 Experimental Snapshot 1":
+		case "1.18 experimental snapshot 2":
+		case "1.18 experimental snapshot 3":
+		case "1.18 experimental snapshot 4":
+		case "1.18 experimental snapshot 5":
+		case "1.18 experimental snapshot 6":
+		case "1.18 experimental snapshot 7":
+			// Pre-snapshot snapshots for 1.18 before the first (21w37a)
+			return "1.18-alpha.".concat(version.substring(27));
+
+		default:
+			return null; //Don't recognise the version
+		}
 	}
 
 	private interface Analyzer {
