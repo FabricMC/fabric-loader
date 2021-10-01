@@ -463,7 +463,7 @@ public final class McVersionLookup {
 		return ret.substring(start, end);
 	}
 
-	private static String normalizeSpecialVersion(String version ) {
+	private static String normalizeSpecialVersion(String version) {
 		switch (version) {
 		case "13w12~":
 			// A pair of debug snapshots immediately before 1.5.1-pre
