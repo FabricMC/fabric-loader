@@ -467,15 +467,15 @@ public final class McVersionLookup {
 		switch (version) {
 		case "13w12~":
 			// A pair of debug snapshots immediately before 1.5.1-pre
-			return "1.5.1-alpha.13.12.~";
+			return "1.5.1-alpha.13.12.a";
 
 		case "15w14a":
 			// The Love and Hugs Update, forked from 1.8.3
-			return "1.8.4-alpha.1";
+			return "1.8.4-alpha.15.14.a+loveandhugs";
 
 		case "1.RV-Pre1":
 			// The Trendy Update, probably forked from 1.9.2 (although the protocol/data versions immediately follow 1.9.1-pre3)
-			return "1.9.2-alpha.1";
+			return "1.9.2-rv+trendy";
 
 		case "3D Shareware v1.34":
 			// Minecraft 3D, forked from 19w13b
@@ -487,51 +487,51 @@ public final class McVersionLookup {
 
 		case "1.14.3 - Combat Test":
 			// The first Combat Test, forked from 1.14.3 Pre-Release 4
-			return "1.14.3-rc.5";
+			return "1.14.3-rc.4.combat.1";
 
 		case "Combat Test 2":
 			// The second Combat Test, forked from 1.14.4
-			return "1.14.5-alpha.1";
+			return "1.14.5-combat.2";
 
 		case "Combat Test 3":
 			// The third Combat Test, forked from 1.14.4
-			return "1.14.5-alpha.2";
+			return "1.14.5-combat.3";
 
 		case "Combat Test 4":
 			// The fourth Combat Test, forked from 1.15 Pre-release 3
-			return "1.15-rc.3.9"; // Not to be confused with 1.15 Pre-release 4
+			return "1.15-rc.3.combat.4";
 
 		case "Combat Test 5":
 			// The fifth Combat Test, forked from 1.15.2 Pre-release 2
-			return "1.15.2-rc.3";
+			return "1.15.2-rc.2.combat.5";
 
 		case "Combat Test 6":
 			// The sixth Combat Test, forked from 1.16.2 Pre-release 3
-			return "1.16.2-beta.4";
+			return "1.16.2-beta.3.combat.6";
 
 		case "Combat Test 7":
 			// Private testing Combat Test 7, forked from 1.16.2
-			return "1.16.3-alpha.1";
+			return "1.16.3-combat.7";
 
 		case "1.16_combat-2":
 			// Private testing Combat Test 7b, forked from 1.16.2
-			return "1.16.3-alpha.2";
+			return "1.16.3-combat.7.b";
 
 		case "1.16_combat-3":
 			// The seventh Combat Test 7c, forked from 1.16.2
-			return "1.16.3-alpha.3";
+			return "1.16.3-combat.7.c";
 
 		case "1.16_combat-4":
 			// Private testing Combat Test 8(a?), forked from 1.16.2
-			return "1.16.3-alpha.4";
+			return "1.16.3-combat.8";
 
 		case "1.16_combat-5":
 			// The eighth Combat Test 8b, forked from 1.16.2
-			return "1.16.3-alpha.5";
+			return "1.16.3-combat.8.b";
 
 		case "1.16_combat-6":
 			// The ninth Combat Test 8c, forked from 1.16.2
-			return "1.16.3-alpha.6";
+			return "1.16.3-combat.8.c";
 
 		case "1.18 Experimental Snapshot 1":
 		case "1.18 experimental snapshot 2":
@@ -541,7 +541,8 @@ public final class McVersionLookup {
 		case "1.18 experimental snapshot 6":
 		case "1.18 experimental snapshot 7":
 			// Pre-snapshot snapshots for 1.18 before the first (21w37a)
-			return "1.18-alpha.".concat(version.substring(27));
+			// Characters are compared lexically, so E(xperimental) < a(lpha)
+			return "1.18-Experimental.".concat(version.substring(27));
 
 		default:
 			return null; //Don't recognise the version
