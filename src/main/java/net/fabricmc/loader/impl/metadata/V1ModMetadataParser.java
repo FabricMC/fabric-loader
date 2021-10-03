@@ -404,7 +404,9 @@ final class V1ModMetadataParser {
 						break;
 					case "depends":
 						if (reader.peek() != JsonToken.BEGIN_ARRAY) {
-							throw new ParseMetadataException("Value of \"depends\" must be an array", reader);
+							warnings.add(new ParseWarning(reader.getLineNumber(), reader.getColumn(), "Mixin config \"depends\" must be an array"));
+							reader.skipValue();
+							continue;
 						}
 
 						reader.beginArray();
