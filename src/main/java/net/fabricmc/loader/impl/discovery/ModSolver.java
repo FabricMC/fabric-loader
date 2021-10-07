@@ -293,14 +293,22 @@ final class ModSolver {
 			return null;
 		}
 
-		List<ModCandidate> activeMods = new ArrayList<>();
+		Map<String, ModCandidate> activeMods = new HashMap<>();
+		Map<ModCandidate, InactiveReason> inactiveMods = new IdentityHashMap<>(allModsSorted.size());
 		List<AddModVar> modsToAdd = new ArrayList<>();
 		List<ModCandidate> modsToRemove = new ArrayList<>();
 		Map<AddModVar, List<ModCandidate>> modReplacements = new HashMap<>();
 
+		for (ModCandidate mod : allModsSorted) {
+			inactiveMods.put(mod, InactiveReason.UNKNOWN);
+		}
+
 		for (DomainObject obj : dependencyHelper.getASolution()) {
 			if (obj instanceof ModCandidate) {
-				activeMods.add((ModCandidate) obj);
+				ModCandidate mod = (ModCandidate) obj;
+
+				activeMods.put(mod.getId(), mod);
+				inactiveMods.remove(mod);
 			} else if (obj instanceof AddModVar) {
 				List<ModCandidate> replaced = new ArrayList<>();
 
@@ -308,13 +316,16 @@ final class ModSolver {
 				if (selectedMod != null) replaced.add(selectedMod);
 
 				List<ModCandidate> mods = modsById.get(obj.getId());
-
 				if (mods != null) replaced.addAll(mods);
 
 				if (replaced.isEmpty()) {
 					modsToAdd.add((AddModVar) obj);
 				} else {
 					modReplacements.put((AddModVar) obj, replaced);
+
+					for (ModCandidate m : replaced) {
+						inactiveMods.put(m, InactiveReason.TO_REPLACE);
+					}
 				}
 			} else if (obj instanceof RemoveModVar) {
 				boolean found = false;
@@ -323,6 +334,7 @@ final class ModSolver {
 
 				if (mod != null) {
 					modsToRemove.add(mod);
+					inactiveMods.put(mod, InactiveReason.TO_REMOVE);
 					found = true;
 				}
 
@@ -332,6 +344,7 @@ final class ModSolver {
 					for (ModCandidate m : mods) {
 						if (m.isRoot()) {
 							modsToRemove.add(m);
+							inactiveMods.put(m, InactiveReason.TO_REMOVE);
 							found = true;
 						}
 					}
@@ -343,9 +356,47 @@ final class ModSolver {
 			}
 		}
 
+		inactiveModLoop: for (Map.Entry<ModCandidate, InactiveReason> entry : inactiveMods.entrySet()) {
+			if (entry.getValue() != InactiveReason.UNKNOWN) continue;
+
+			ModCandidate mod = entry.getKey();
+			ModCandidate active = activeMods.get(mod.getId());
+
+			if (active != null) {
+				if (allModsSorted.indexOf(mod) > allModsSorted.indexOf(active)) { // entry has lower prio (=higher index) than active
+					if (mod.getVersion().equals(active.getVersion())) {
+						entry.setValue(InactiveReason.SAME_ACTIVE);
+					} else {
+						assert mod.getVersion().compareTo(active.getVersion()) < 0;
+						entry.setValue(InactiveReason.NEWER_ACTIVE);
+					}
+				} else {
+					entry.setValue(InactiveReason.INCOMPATIBLE);
+				}
+
+				continue inactiveModLoop;
+			}
+
+			if (!mod.getParentMods().isEmpty()) {
+				boolean found = false;
+
+				for (ModCandidate m : mod.getParentMods()) {
+					if (activeMods.get(m.getId()) == m) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					entry.setValue(InactiveReason.INACTIVE_PARENT);
+					continue inactiveModLoop;
+				}
+			}
+		}
+
 		// TODO: test if the solution is actually valid?
 
-		return new Fix(modsToAdd, modsToRemove, modReplacements, activeMods);
+		return new Fix(modsToAdd, modsToRemove, modReplacements, activeMods.values(), inactiveMods);
 	}
 
 	static long fixSolveTime;
@@ -434,13 +485,32 @@ final class ModSolver {
 		final Collection<ModCandidate> modsToRemove;
 		final Map<AddModVar, List<ModCandidate>> modReplacements;
 		final Collection<ModCandidate> activeMods;
+		final Map<ModCandidate, InactiveReason> inactiveMods;
 
 		Fix(Collection<AddModVar> modsToAdd, Collection<ModCandidate> modsToRemove, Map<AddModVar, List<ModCandidate>> modReplacements,
-				Collection<ModCandidate> activeMods) {
+				Collection<ModCandidate> activeMods, Map<ModCandidate, InactiveReason> inactiveMods) {
 			this.modsToAdd = modsToAdd;
 			this.modsToRemove = modsToRemove;
 			this.modReplacements = modReplacements;
 			this.activeMods = activeMods;
+			this.inactiveMods = inactiveMods;
+		}
+	}
+
+	enum InactiveReason {
+		INACTIVE_PARENT("inactive_parent"),
+		INCOMPATIBLE("incompatible"),
+		NEWER_ACTIVE("newer_active"),
+		SAME_ACTIVE("same_active"),
+		TO_REMOVE("to_remove"),
+		TO_REPLACE("to_replace"),
+		UNKNOWN("unknown"),
+		WRONG_ENVIRONMENT("wrong_environment");
+
+		final String id;
+
+		InactiveReason(String id) {
+			this.id = id;
 		}
 	}
 
