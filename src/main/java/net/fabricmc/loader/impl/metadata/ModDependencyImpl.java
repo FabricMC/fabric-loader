@@ -27,7 +27,7 @@ import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 
 public final class ModDependencyImpl implements ModDependency {
-	private final Kind kind;
+	private Kind kind;
 	private final String modId;
 	private final List<String> matcherStringList;
 	private final Collection<VersionPredicate> ranges;
@@ -42,6 +42,10 @@ public final class ModDependencyImpl implements ModDependency {
 	@Override
 	public Kind getKind() {
 		return kind;
+	}
+
+	public void setKind(Kind kind) {
+		this.kind = kind;
 	}
 
 	@Override

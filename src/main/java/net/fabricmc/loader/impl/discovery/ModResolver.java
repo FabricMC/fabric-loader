@@ -35,7 +35,10 @@ import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.TimeoutException;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
+import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -87,6 +90,29 @@ public class ModResolver {
 
 			for (String provided : mod.getProvides()) {
 				modsById.computeIfAbsent(provided, ignore -> new ArrayList<>()).add(mod);
+			}
+		}
+
+		// soften positive hard deps from schema 0 or 1 mods on mods that are present but disabled for the current env
+		// this is a workaround necessary due to many mods declaring deps that are unsatisfiable in some envs and loader before 0.12x not verifying them properly
+
+		for (ModCandidate mod : allModsSorted) {
+			if (mod.getMetadata().getSchemaVersion() >= 2) continue;
+
+			for (ModDependency dep : mod.getMetadata().getDependencies()) {
+				if (dep.getKind() != Kind.DEPENDS) continue; // no positive hard dep
+				if (!(dep instanceof ModDependencyImpl)) continue; // can't modify dep kind
+				if (modsById.containsKey(dep.getModId())) continue; // non-disabled match available
+
+				Collection<ModCandidate> disabledMatches = disabledMods.get(dep.getModId());
+				if (disabledMatches == null) continue; // no disabled id matches
+
+				for (ModCandidate m : disabledMatches) {
+					if (dep.matches(m.getVersion())) { // disabled version match -> remove dep
+						((ModDependencyImpl) dep).setKind(Kind.SUGGESTS);
+						break;
+					}
+				}
 			}
 		}
 
