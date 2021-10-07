@@ -21,22 +21,28 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.discovery.ModSolver.AddModVar;
+import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.util.Localization;
 import net.fabricmc.loader.impl.util.StringUtil;
 
 final class ResultAnalyzer {
-	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById) {
+	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
+			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
@@ -47,11 +53,20 @@ final class ResultAnalyzer {
 				pw.printf("\n%s", Localization.format("resolution.solutionHeader"));
 
 				for (AddModVar mod : result.fix.modsToAdd) {
-					pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), mod.getVersion().getFriendlyString()));
+					if (envDisabledMods.containsKey(mod.getId())) {
+						String envKey = String.format("environment.%s", envType.name().toLowerCase(Locale.ENGLISH));
+
+						pw.printf("\n\t - %s", Localization.format("resolution.solution.addModEnvDisabled",
+								mod.getId(),
+								mod.getVersion().getFriendlyString(),
+								Localization.format(envKey)));
+					} else {
+						pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), mod.getVersion().getFriendlyString()));
+					}
 				}
 
 				for (ModCandidate mod : result.fix.modsToRemove) {
-					pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getPath()));
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getLocalPath()));
 				}
 
 				for (Entry<AddModVar, List<ModCandidate>> entry : result.fix.modReplacements.entrySet()) {
@@ -61,7 +76,7 @@ final class ResultAnalyzer {
 
 					for (ModCandidate m : oldMods) {
 						if (m.hasPath() && !m.isBuiltin()) {
-							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getPath()));
+							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
 						} else {
 							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
 						}
@@ -100,15 +115,52 @@ final class ResultAnalyzer {
 					if (candidates != null) matches.addAll(candidates);
 				}
 
-				addErrorToList(explanation.mod, explanation.dep, matches, suggestFix, prefix, pw);
+				addErrorToList(explanation.mod, explanation.dep, matches, envDisabledMods.containsKey(dep.getModId()), suggestFix, prefix, pw);
 				matches.clear();
+			}
+
+			if (result.fix != null && !result.fix.inactiveMods.isEmpty()) {
+				pw.printf("\n%s", Localization.format("resolution.inactiveMods"));
+
+				List<Map.Entry<ModCandidate, InactiveReason>> entries = new ArrayList<>(result.fix.inactiveMods.entrySet());
+
+				// sort by root, id, version
+				entries.sort(new Comparator<Map.Entry<ModCandidate, ?>>() {
+					@Override
+					public int compare(Entry<ModCandidate, ?> o1, Entry<ModCandidate, ?> o2) {
+						ModCandidate a = o1.getKey();
+						ModCandidate b = o2.getKey();
+
+						if (a.isRoot() != b.isRoot()) {
+							return a.isRoot() ? -1 : 1;
+						}
+
+						int cmp = a.getId().compareTo(b.getId());
+						if (cmp != 0) return cmp;
+
+						return a.getVersion().compareTo(b.getVersion());
+					}
+				});
+
+				for (Map.Entry<ModCandidate, InactiveReason> entry : entries) {
+					ModCandidate mod = entry.getKey();
+					InactiveReason reason = entry.getValue();
+					String reasonKey = String.format("resolution.inactive.%s", reason.id);
+
+					pw.printf("\n\t - %s", Localization.format("resolution.inactive",
+							getName(mod),
+							getVersion(mod),
+							Localization.format(reasonKey)));
+					//appendJijInfo(mod, "\t", false, pw); TODO: show this without spamming too much
+				}
 			}
 		}
 
 		return sw.toString();
 	}
 
-	static String gatherWarnings(List<ModCandidate> uniqueSelectedMods, Map<String, ModCandidate> selectedMods) {
+	static String gatherWarnings(List<ModCandidate> uniqueSelectedMods, Map<String, ModCandidate> selectedMods,
+			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
@@ -121,7 +173,7 @@ final class ResultAnalyzer {
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod == null || !dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, toList(depMod), true, "", pw);
+							addErrorToList(mod, dep, toList(depMod), envDisabledMods.containsKey(dep.getModId()), true, "", pw);
 						}
 
 						break;
@@ -129,7 +181,7 @@ final class ResultAnalyzer {
 						depMod = selectedMods.get(dep.getModId());
 
 						if (depMod != null && dep.matches(depMod.getVersion())) {
-							addErrorToList(mod, dep, toList(depMod), true, "", pw);
+							addErrorToList(mod, dep, toList(depMod), false, true, "", pw);
 						}
 
 						break;
@@ -151,7 +203,7 @@ final class ResultAnalyzer {
 		return mod != null ? Collections.singletonList(mod) : Collections.emptyList();
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean suggestFix, String prefix, PrintWriter pw) {
+	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean presentForOtherEnv, boolean suggestFix, String prefix, PrintWriter pw) {
 		Object[] args = new Object[] {
 				getName(mod),
 				(matches.isEmpty() ? dep.getModId() : getName(matches.get(0))),
@@ -160,7 +212,17 @@ final class ResultAnalyzer {
 				matches.size()
 		};
 
-		String key = String.format("resolution.%s.%s", dep.getKind().getKey(), matches.isEmpty() ? "missing" : "invalid");
+		String reason;
+
+		if (!matches.isEmpty()) {
+			reason = "invalid";
+		} else if (presentForOtherEnv && dep.getKind().isPositive()) {
+			reason = "envDisabled";
+		} else {
+			reason = "missing";
+		}
+
+		String key = String.format("resolution.%s.%s", dep.getKind().getKey(), reason);
 		pw.printf("\n%s - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 
 		if (suggestFix) {
@@ -168,44 +230,80 @@ final class ResultAnalyzer {
 			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 		}
 
-		appendJijInfo(matches, prefix, pw);
+		for (ModCandidate m : matches) {
+			appendJijInfo(m, prefix, true, pw);
+		}
 	}
 
-	private static void appendJijInfo(List<ModCandidate> mods, String prefix, PrintWriter pw) {
-		for (ModCandidate mod : mods) {
-			if (mod.getMetadata().getType().equals(AbstractModMetadata.TYPE_BUILTIN)) {
-				pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.builtin", getName(mod), getVersion(mod))));
-				return;
-			} else if (mod.getMinNestLevel() < 1) {
-				pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.root", getName(mod), getVersion(mod))));
-				return;
-			}
+	private static void appendJijInfo(ModCandidate mod, String prefix, boolean mentionMod, PrintWriter pw) {
+		String loc;
+		String path;
 
-			List<ModCandidate> path = new ArrayList<>();
+		if (mod.getMetadata().getType().equals(AbstractModMetadata.TYPE_BUILTIN)) {
+			loc = "builtin";
+			path = null;
+		} else if (mod.isRoot()) {
+			loc = "root";
+			path = mod.getLocalPath();
+		} else {
+			loc = "normal";
+
+			List<ModCandidate> paths = new ArrayList<>();
+			paths.add(mod);
+
 			ModCandidate cur = mod;
 
 			do {
+				ModCandidate best = null;
+				int maxDiff = 0;
+
 				for (ModCandidate parent : cur.getParentMods()) {
-					if (parent.getMinNestLevel() < cur.getMinNestLevel()) {
-						path.add(parent);
-						cur = parent;
-						break;
+					int diff = cur.getMinNestLevel() - parent.getMinNestLevel();
+
+					if (diff > maxDiff) {
+						best = parent;
+						maxDiff = diff;
 					}
 				}
-			} while (cur.getMinNestLevel() > 0);
+
+				if (best == null) break;
+
+				paths.add(best);
+				cur = best;
+			} while (!cur.isRoot());
 
 			StringBuilder pathSb = new StringBuilder();
 
-			for (int i = path.size() - 1; i >= 0; i--) {
-				ModCandidate m = path.get(i);
+			for (int i = paths.size() - 1; i >= 0; i--) {
+				ModCandidate m = paths.get(i);
 
 				if (pathSb.length() > 0) pathSb.append(" -> ");
-				pathSb.append(String.format("%s %s", getName(m), getVersion(m)));
+				pathSb.append(m.getLocalPath());
 			}
 
-			// now we have the proper data, yay
-			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format("resolution.jij.normal", getName(mod), getVersion(mod), pathSb)));
+			path = pathSb.toString();
 		}
+
+		String key = String.format("resolution.jij.%s%s", loc, mentionMod ? "" : "NoMention");
+		String text;
+
+		if (mentionMod) {
+			if (path == null) {
+				text = Localization.format(key, getName(mod), getVersion(mod));
+			} else {
+				text = Localization.format(key, getName(mod), getVersion(mod), path);
+			}
+		} else {
+			if (path == null) {
+				text = Localization.format(key);
+			} else {
+				text = Localization.format(key, path);
+			}
+		}
+
+		pw.printf("\n%s\t - %s",
+				prefix,
+				StringUtil.capitalize(text));
 	}
 
 	private static String getName(ModCandidate candidate) {

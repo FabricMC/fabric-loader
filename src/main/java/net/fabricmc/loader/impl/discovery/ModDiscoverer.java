@@ -212,10 +212,6 @@ public final class ModDiscoverer {
 				metadata = ModMetadataParser.parseMetadata(is, localPath, parentPaths);
 			}
 
-			if (!metadata.loadsInEnvironment(envType)) {
-				return null;
-			}
-
 			return ModCandidate.createPlain(path, metadata, requiresRemap, Collections.emptyList());
 		}
 
@@ -231,7 +227,7 @@ public final class ModDiscoverer {
 				}
 
 				if (!metadata.loadsInEnvironment(envType)) {
-					return null;
+					return ModCandidate.createPlain(path, metadata, requiresRemap, Collections.emptyList());
 				}
 
 				List<ModScanTask> nestedModTasks;
@@ -304,7 +300,7 @@ public final class ModDiscoverer {
 			if (metadata == null) return null;
 
 			if (!metadata.loadsInEnvironment(envType)) {
-				return null;
+				return ModCandidate.createNested(localPath, hash, metadata, requiresRemap, Collections.emptyList());
 			}
 
 			Collection<NestedJarEntry> nestedJars = metadata.getJars();

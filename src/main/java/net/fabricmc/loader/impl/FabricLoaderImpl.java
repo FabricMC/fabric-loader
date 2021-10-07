@@ -194,7 +194,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		modCandidates = discoverer.discoverMods(this);
-		modCandidates = ModResolver.resolve(modCandidates);
+		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType());
 
 		String modListText = modCandidates.stream()
 				.map(candidate -> String.format("\t- %s %s", candidate.getId(), candidate.getVersion().getFriendlyString()))

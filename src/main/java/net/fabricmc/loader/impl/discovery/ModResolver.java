@@ -19,9 +19,11 @@ package net.fabricmc.loader.impl.discovery;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +34,15 @@ import java.util.stream.Collectors;
 import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.TimeoutException;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public class ModResolver {
-	public static List<ModCandidate> resolve(Collection<ModCandidate> candidates) throws ModResolutionException {
+	public static List<ModCandidate> resolve(Collection<ModCandidate> candidates, EnvType envType) throws ModResolutionException {
 		long startTime = System.nanoTime();
-		List<ModCandidate> result = findCompatibleSet(candidates);
+		List<ModCandidate> result = findCompatibleSet(candidates, envType);
 
 		long endTime = System.nanoTime();
 		Log.debug(LogCategory.RESOLUTION, "Mod resolution time: %.1f ms", (endTime - startTime) * 1e-6);
@@ -46,10 +50,11 @@ public class ModResolver {
 		return result;
 	}
 
-	private static List<ModCandidate> findCompatibleSet(Collection<ModCandidate> candidates) throws ModResolutionException {
+	private static List<ModCandidate> findCompatibleSet(Collection<ModCandidate> candidates, EnvType envType) throws ModResolutionException {
 		// gather all mods (root+nested)
 
 		Set<ModCandidate> allMods = new HashSet<>();
+		Map<String, Set<ModCandidate>> disabledMods = new HashMap<>();
 		Queue<ModCandidate> queue = new ArrayDeque<>();
 
 		{
@@ -57,8 +62,12 @@ public class ModResolver {
 			ModCandidate mod;
 
 			while ((mod = queue.poll()) != null) {
-				if (allMods.add(mod)) {
-					queue.addAll(mod.getNestedMods());
+				if (mod.getMetadata().loadsInEnvironment(envType)) {
+					if (allMods.add(mod)) {
+						queue.addAll(mod.getNestedMods());
+					}
+				} else {
+					disabledMods.computeIfAbsent(mod.getId(), ignore -> Collections.newSetFromMap(new IdentityHashMap<>())).add(mod);
 				}
 			}
 		}
@@ -127,6 +136,7 @@ public class ModResolver {
 			Log.warn(LogCategory.RESOLUTION, "Mod resolution failed");
 			Log.info(LogCategory.RESOLUTION, "Immediate reason: %s%n", result.immediateReason);
 			Log.info(LogCategory.RESOLUTION, "Reason: %s%n", result.reason);
+			if (!disabledMods.isEmpty()) Log.info(LogCategory.RESOLUTION, "%s environment disabled: %s%n", envType.name(), disabledMods.keySet());
 
 			if (result.fix == null) {
 				Log.info(LogCategory.RESOLUTION, "No fix?");
@@ -135,9 +145,16 @@ public class ModResolver {
 						result.fix.modsToAdd,
 						result.fix.modsToRemove,
 						result.fix.modReplacements.entrySet().stream().map(e -> String.format("%s -> %s", e.getValue(), e.getKey())).collect(Collectors.joining(", ")));
+
+				for (Collection<ModCandidate> mods : disabledMods.values()) {
+					for (ModCandidate m : mods) {
+						result.fix.inactiveMods.put(m, InactiveReason.WRONG_ENVIRONMENT);
+					}
+				}
 			}
 
-			throw new ModResolutionException("Mod resolution encountered an incompatible mod set!%s", ResultAnalyzer.gatherErrors(result, selectedMods, modsById));
+			throw new ModResolutionException("Mod resolution encountered an incompatible mod set!%s",
+					ResultAnalyzer.gatherErrors(result, selectedMods, modsById, disabledMods, envType));
 		}
 
 		uniqueSelectedMods.sort(Comparator.comparing(ModCandidate::getId));
@@ -176,7 +193,8 @@ public class ModResolver {
 			}
 		}
 
-		String warnings = ResultAnalyzer.gatherWarnings(uniqueSelectedMods, selectedMods);
+		String warnings = ResultAnalyzer.gatherWarnings(uniqueSelectedMods, selectedMods,
+				disabledMods, envType);
 
 		if (warnings != null) {
 			Log.warn(LogCategory.RESOLUTION, "Warnings were found!%s", warnings);
