@@ -43,6 +43,8 @@ public final class SystemProperties {
 	public static final String DEBUG_DISCOVERY_TIMEOUT = "fabric.debug.discoveryTimeout";
 	// override the mod resolution timeout, unit in seconds, <= 0 to disable
 	public static final String DEBUG_RESOLUTION_TIMEOUT = "fabric.debug.resolutionTimeout";
+	// replace mod versions (modA:versionA,modB:versionB,...)
+	public static final String DEBUG_REPLACE_VERSION = "fabric.debug.replaceVersion";
 
 	private SystemProperties() {
 	}

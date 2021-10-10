@@ -35,7 +35,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private static final Mixins EMPTY_MIXINS = new Mixins(Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 	// Required
 	private final String id;
-	private final Version version;
+	private Version version;
 
 	// Optional (Environment)
 	private final Collection<ModDependency> dependencies;
@@ -105,6 +105,11 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public Version getVersion() {
 		return this.version;
+	}
+
+	@Override
+	public void setVersion(Version version) {
+		this.version = version;
 	}
 
 	@Override

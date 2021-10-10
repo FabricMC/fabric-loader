@@ -39,7 +39,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	// Required values
 	private final String id;
-	private final Version version;
+	private Version version;
 
 	// Optional (id provides)
 	private final Collection<String> provides;
@@ -144,6 +144,11 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public Version getVersion() {
 		return this.version;
+	}
+
+	@Override
+	public void setVersion(Version version) {
+		this.version = version;
 	}
 
 	@Override

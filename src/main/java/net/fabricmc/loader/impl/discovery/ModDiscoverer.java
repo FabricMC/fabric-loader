@@ -44,6 +44,8 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder.ModCandidateConsumer;
 import net.fabricmc.loader.impl.game.GameProvider.BuiltinMod;
@@ -56,6 +58,7 @@ import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.version.VersionParser;
 
 public final class ModDiscoverer {
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
@@ -157,11 +160,47 @@ public final class ModDiscoverer {
 			}
 		}
 
+		// apply version replacements
+
+		applyVersionReplacements(candidates);
+
 		long endTime = System.nanoTime();
 
 		Log.debug(LogCategory.DISCOVERY, "Mod discovery time: %.1f ms", (endTime - startTime) * 1e-6);
 
 		return candidates;
+	}
+
+	private static void applyVersionReplacements(List<ModCandidate> mods) {
+		String replacements = System.getProperty(SystemProperties.DEBUG_REPLACE_VERSION);
+		if (replacements == null) return;
+
+		for (String entry : replacements.split(",")) {
+			int pos = entry.indexOf(":");
+			if (pos <= 0 || pos >= entry.length() - 1) throw new RuntimeException("invalid version replacement entry: "+entry);
+
+			String id = entry.substring(0, pos);
+			String rawVersion = entry.substring(pos + 1);
+			Version version;
+
+			try {
+				version = VersionParser.parse(rawVersion, false);
+			} catch (VersionParsingException e) {
+				throw new RuntimeException(String.format("Invalid replacement version for mod %s: %s", id, rawVersion), e);
+			}
+
+			boolean found = false;
+
+			for (ModCandidate mod : mods) {
+				if (mod.getId().equals(id)) {
+					found = true;
+					mod.getMetadata().setVersion(version);
+					break;
+				}
+			}
+
+			if (!found) Log.warn(LogCategory.DISCOVERY, "Can't find mod %s referenced by a version replacement", id);
+		}
 	}
 
 	@SuppressWarnings("serial")

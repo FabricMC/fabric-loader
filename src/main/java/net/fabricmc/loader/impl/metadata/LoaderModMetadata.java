@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Version;
 
 /**
  * Internal variant of the ModMetadata interface.
@@ -48,4 +49,6 @@ public interface LoaderModMetadata extends net.fabricmc.loader.metadata.LoaderMo
 	Collection<String> getEntrypointKeys();
 
 	void emitFormatWarnings();
+
+	void setVersion(Version version);
 }

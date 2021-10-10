@@ -188,13 +188,21 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	private void setup() throws ModResolutionException {
 		boolean remapRegularMods = isDevelopmentEnvironment();
+
+		// discover mods
+
 		ModDiscoverer discoverer = new ModDiscoverer();
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		modCandidates = discoverer.discoverMods(this);
+
+		// resolve mods
+
 		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType());
+
+		// dump mod list
 
 		String modListText = modCandidates.stream()
 				.map(candidate -> String.format("\t- %s %s", candidate.getId(), candidate.getVersion().getFriendlyString()))
