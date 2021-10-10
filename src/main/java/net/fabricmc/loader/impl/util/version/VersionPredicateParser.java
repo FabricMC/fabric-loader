@@ -62,7 +62,7 @@ public final class VersionPredicateParser {
 
 				if (semVer.hasWildcard()) { // .x version -> replace with conventional version by replacing the operator
 					if (operator != VersionComparisonOperator.EQUAL) {
-						throw new VersionParsingException("Version ranges with wildcards (.X) require using the equality operator or no operator at all!");
+						throw new VersionParsingException("Invalid predicate: "+predicate+", version ranges with wildcards (.X) require using the equality operator or no operator at all!");
 					}
 
 					assert !semVer.getPrereleaseKey().isPresent();
@@ -81,7 +81,7 @@ public final class VersionPredicateParser {
 					version = new SemanticVersionImpl(newComponents, "", semVer.getBuildKey().orElse(null));
 				}
 			} else if (!operator.isMinInclusive() && !operator.isMaxInclusive()) { // non-semver without inclusive bound
-				throw new VersionParsingException("Version ranges need to be semantic version compatible to use operators that exclude the bound!");
+				throw new VersionParsingException("Invalid predicate: "+predicate+", version ranges need to be semantic version compatible to use operators that exclude the bound!");
 			} else { // non-semver with inclusive bound
 				operator = VersionComparisonOperator.EQUAL;
 			}
