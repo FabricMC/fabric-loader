@@ -22,9 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.CustomValue;
@@ -220,12 +222,12 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public Collection<String> getMixinConfigs(EnvType type) {
+	public Collection<String> getMixinConfigs(EnvType type, FabricLoader loader) {
 		final List<String> mixinConfigs = new ArrayList<>();
 
 		// This is only ever called once, so no need to store the result of this.
 		for (MixinEntry mixin : this.mixins) {
-			if (mixin.environment.matches(type)) {
+			if (mixin.environment.matches(type) && mixin.areDependencesMet(loader)) {
 				mixinConfigs.add(mixin.config);
 			}
 		}
@@ -306,10 +308,22 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	static final class MixinEntry {
 		private final String config;
 		private final ModEnvironment environment;
+		private final Set<String> depends;
 
-		MixinEntry(String config, ModEnvironment environment) {
+		MixinEntry(String config, ModEnvironment environment, Set<String> depends) {
 			this.config = config;
 			this.environment = environment;
+			this.depends = depends;
+		}
+
+		public boolean areDependencesMet(FabricLoader loader) {
+			for (String modid : depends) {
+				if (!loader.isModLoaded(modid)) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 	}
 

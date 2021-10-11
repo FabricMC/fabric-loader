@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * Internal variant of the ModMetadata interface.
@@ -35,7 +36,7 @@ public interface LoaderModMetadata extends net.fabricmc.loader.metadata.LoaderMo
 
 	Map<String, String> getLanguageAdapterDefinitions();
 	Collection<NestedJarEntry> getJars();
-	Collection<String> getMixinConfigs(EnvType type);
+	Collection<String> getMixinConfigs(EnvType type, FabricLoader loader);
 	/* @Nullable */
 	String getAccessWidener();
 	@Override
