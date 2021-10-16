@@ -332,7 +332,7 @@ task github(dependsOn: publish) {
 		releaseBuilder.name("Fabric Loader $version")
 		releaseBuilder.body(ENV.CHANGELOG ?: "No changelog provided")
 		releaseBuilder.commitish(getBranch())
-		releaseBuilder.prerelease(Globals.preRelease)
+		releaseBuilder.prerelease(false)
 
 		releaseBuilder.create()
 	}
