@@ -66,13 +66,13 @@ dependencies {
 	api "org.ow2.asm:asm-tree:${project.asm_version}"
 	api "org.ow2.asm:asm-util:${project.asm_version}"
 
-	api('net.fabricmc:sponge-mixin:0.10.3+mixin.0.8.4') {
+	api('net.fabricmc:sponge-mixin:0.10.4+mixin.0.8.4') {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
 	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
 	api 'net.fabricmc:tiny-remapper:0.6.0'
-	api 'net.fabricmc:access-widener:2.0.0'
+	api 'net.fabricmc:access-widener:2.0.1'
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
