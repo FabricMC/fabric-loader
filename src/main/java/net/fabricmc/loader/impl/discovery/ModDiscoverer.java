@@ -228,16 +228,26 @@ public final class ModDiscoverer {
 
 		@Override
 		protected ModCandidate compute() {
-			try {
-				if (is != null) {
+			if (is != null) { // nested jar
+				try {
 					return computeJarStream();
-				} else if (Files.isDirectory(path)) {
-					return computeDir();
-				} else {
-					return computeJarFile();
+				} catch (ParseMetadataException e) { // already contains all context
+					throw ExceptionUtil.wrap(e);
+				} catch (Throwable t) {
+					throw new RuntimeException(String.format("Error analyzing nested jar %s from %s: %s", localPath, parentPaths, t), t);
 				}
-			} catch (IOException | ParseMetadataException e) {
-				throw ExceptionUtil.wrap(e);
+			} else { // regular classes-dir or jar
+				try {
+					if (Files.isDirectory(path)) {
+						return computeDir();
+					} else {
+						return computeJarFile();
+					}
+				} catch (ParseMetadataException e) { // already contains all context
+					throw ExceptionUtil.wrap(e);
+				} catch (Throwable t) {
+					throw new RuntimeException(String.format("Error analyzing %s: %s", path, t), t);
+				}
 			}
 		}
 
