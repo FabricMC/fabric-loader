@@ -142,7 +142,11 @@ final class KnotClassDelegate {
 			String pkgString = name.substring(0, pkgDelimiterPos);
 
 			if (itf.getPackage(pkgString) == null) {
-				itf.definePackage(pkgString, null, null, null, null, null, null, null);
+				try {
+					itf.definePackage(pkgString, null, null, null, null, null, null, null);
+				} catch (IllegalArgumentException e) { // presumably concurrent package definition
+					if (itf.getPackage(pkgString) == null) throw e; // still not defined?
+				}
 			}
 		}
 
