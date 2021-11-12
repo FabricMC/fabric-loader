@@ -60,10 +60,6 @@ public final class UrlUtil {
 		}
 	}
 
-	public static File asFile(URL url) throws URISyntaxException {
-		return new File(url.toURI());
-	}
-
 	public static Path asPath(URL url) throws URISyntaxException {
 		return Paths.get(url.toURI());
 	}
