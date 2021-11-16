@@ -52,7 +52,7 @@ final class MixinLogger extends LoggerAdapterAbstract {
 
 	@Override
 	public void catching(Level level, Throwable t) {
-		log(Level.WARN, "Catching ".concat(t.toString()), t);
+		log(level, "Catching ".concat(t.toString()), t);
 	}
 
 	@Override
@@ -115,7 +115,7 @@ final class MixinLogger extends LoggerAdapterAbstract {
 
 	@Override
 	public <T extends Throwable> T throwing(T t) {
-		log(Level.WARN, "Throwing ".concat(t.toString()), t);
+		log(Level.ERROR, "Throwing ".concat(t.toString()), t);
 
 		return t;
 	}
