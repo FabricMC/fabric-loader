@@ -21,16 +21,18 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
+import java.util.List;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Tweaker;
 import net.fabricmc.loader.impl.game.GameProvider;
 
 class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLoaderInterface {
 	private final KnotClassDelegate delegate;
 
-	KnotCompatibilityClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
+	KnotCompatibilityClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider, List<Tweaker> tweakers) {
 		super(new URL[0], KnotCompatibilityClassLoader.class.getClassLoader());
-		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
+		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider, tweakers);
 	}
 
 	@Override

@@ -29,10 +29,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
 
+import net.fabricmc.loader.api.Tweaker;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 
 import net.fabricmc.api.EnvType;
@@ -68,12 +70,14 @@ final class KnotClassDelegate {
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
 	private final Map<URL, String[]> allowedPrefixes = new ConcurrentHashMap<>();
+	private final List<Tweaker> tweakers;
 
-	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
+	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider, List<Tweaker> tweakers) {
 		this.isDevelopment = isDevelopment;
 		this.envType = envType;
 		this.itf = itf;
 		this.provider = provider;
+		this.tweakers = tweakers;
 	}
 
 	public void initializeTransformers() {
@@ -127,6 +131,21 @@ final class KnotClassDelegate {
 				if (!found) {
 					throw new ClassNotFoundException("class "+name+" is currently restricted from being loaded");
 				}
+			}
+		}
+
+		byte[] classBytes;
+		List<Tweaker> tweakers = this.tweakers;
+
+		for (int i = 0, j = tweakers.size(); i < j; i++) {
+			if ((classBytes = tweakers.get(i).getClassBytes(name)) != null) {
+				KnotClassDelegate.Metadata metadata = getMetadata(name, itf.getResource(LoaderUtil.getClassFileName(name)));
+
+				i = 0;
+				for (; i < j; i++) {
+					tweakers.get(i).postApply(name, classBytes);
+				}
+				return itf.defineClassFwd(name, classBytes, 0, classBytes.length, metadata.codeSource);
 			}
 		}
 

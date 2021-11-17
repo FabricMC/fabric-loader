@@ -23,9 +23,11 @@ import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.security.SecureClassLoader;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Objects;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.Tweaker;
 import net.fabricmc.loader.impl.game.GameProvider;
 
 final class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
@@ -48,11 +50,11 @@ final class KnotClassLoader extends SecureClassLoader implements KnotClassLoader
 	private final ClassLoader originalLoader;
 	private final KnotClassDelegate delegate;
 
-	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
+	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider, List<Tweaker> tweakers) {
 		super(new DynamicURLClassLoader(new URL[0]));
 		this.originalLoader = getClass().getClassLoader();
 		this.urlLoader = (DynamicURLClassLoader) getParent();
-		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
+		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider, tweakers);
 	}
 
 	@Override

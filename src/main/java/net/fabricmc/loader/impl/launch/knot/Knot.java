@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import net.fabricmc.loader.api.Tweaker;
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import net.fabricmc.api.EnvType;
@@ -106,8 +107,9 @@ public final class Knot extends FabricLauncherBase {
 
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
+		List<Tweaker> tweakers = new ArrayList<>();
 		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
-		classLoader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider) : new KnotClassLoader(isDevelopment(), envType, provider);
+		classLoader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider, tweakers) : new KnotClassLoader(isDevelopment(), envType, provider, tweakers);
 		ClassLoader cl = (ClassLoader) classLoader;
 
 		provider.initialize(this);
@@ -118,6 +120,13 @@ public final class Knot extends FabricLauncherBase {
 		loader.setGameProvider(provider);
 		loader.load();
 		loader.freeze();
+
+		List<Tweaker> tmp = new ArrayList<>();
+		for (Tweaker tweaker : ServiceLoader.load(Tweaker.class)) {
+			tweaker.initialize();
+			tmp.add(tweaker);
+		}
+		tweakers.addAll(tmp);
 
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 
