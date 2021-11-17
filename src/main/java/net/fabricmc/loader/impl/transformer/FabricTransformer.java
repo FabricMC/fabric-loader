@@ -37,7 +37,7 @@ public final class FabricTransformer {
 		}
 
 		ClassReader classReader = new ClassReader(bytes);
-		ClassWriter classWriter = new ClassWriter(0);
+		ClassWriter classWriter = new ClassWriter(classReader, 0);
 		ClassVisitor visitor = classWriter;
 		int visitorCount = 0;
 
