@@ -26,6 +26,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -38,6 +39,15 @@ import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 
 public final class ModCandidate implements DomainObject.Mod {
+	static final Comparator<ModCandidate> ID_VERSION_COMPARATOR = new Comparator<ModCandidate>() {
+		@Override
+		public int compare(ModCandidate a, ModCandidate b) {
+			int cmp = a.getId().compareTo(b.getId());
+
+			return cmp != 0 ? cmp : a.getVersion().compareTo(b.getVersion());
+		}
+	};
+
 	private Path path;
 	private final String localPath;
 	private final long hash;

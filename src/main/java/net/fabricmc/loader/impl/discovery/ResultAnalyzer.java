@@ -22,10 +22,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,10 +96,7 @@ final class ResultAnalyzer {
 							return a.isRoot() ? -1 : 1;
 						}
 
-						int cmp = a.getId().compareTo(b.getId());
-						if (cmp != 0) return cmp;
-
-						return a.getVersion().compareTo(b.getVersion());
+						return ModCandidate.ID_VERSION_COMPARATOR.compare(a, b);
 					}
 				});
 
@@ -123,15 +122,20 @@ final class ResultAnalyzer {
 			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType,
 			PrintWriter pw) {
 		for (AddModVar mod : fix.modsToAdd) {
-			if (envDisabledMods.containsKey(mod.getId())) {
+			Set<ModCandidate> envDisabledAlternatives = envDisabledMods.get(mod.getId());
+
+			if (envDisabledAlternatives == null) {
+				pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod",
+						mod.getId(),
+						formatVersionRequirements(mod.getVersionIntervals())));
+			} else {
 				String envKey = String.format("environment.%s", envType.name().toLowerCase(Locale.ENGLISH));
 
-				pw.printf("\n\t - %s", Localization.format("resolution.solution.addModEnvDisabled",
+				pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModEnvDisabled",
+						formatOldMods(envDisabledAlternatives),
 						mod.getId(),
-						mod.getVersion().getFriendlyString(),
+						formatVersionRequirements(mod.getVersionIntervals()),
 						Localization.format(envKey)));
-			} else {
-				pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), formatVersionRequirements(mod.getVersionIntervals())));
 			}
 		}
 
@@ -142,15 +146,7 @@ final class ResultAnalyzer {
 		for (Entry<AddModVar, List<ModCandidate>> entry : fix.modReplacements.entrySet()) {
 			AddModVar newMod = entry.getKey();
 			List<ModCandidate> oldMods = entry.getValue();
-			List<String> oldModEntries = new ArrayList<>(oldMods.size());
-
-			for (ModCandidate m : oldMods) {
-				if (m.hasPath() && !m.isBuiltin()) {
-					oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
-				} else {
-					oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
-				}
-			}
+			String oldModsFormatted = formatOldMods(oldMods);
 
 			if (oldMods.size() != 1 || !oldMods.get(0).getId().equals(newMod.getId())) { // replace mods with another mod (different mod id)
 				String newModName = newMod.getId();
@@ -163,7 +159,10 @@ final class ResultAnalyzer {
 					if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
 				}
 
-				pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newModName, newMod.getVersion().getFriendlyString()));
+				pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod",
+						oldModsFormatted,
+						newModName,
+						formatVersionRequirements(newMod.getVersionIntervals())));
 			} else { // replace mod version only
 				ModCandidate oldMod = oldMods.get(0);
 				boolean hasOverlap = !VersionInterval.and(newMod.getVersionIntervals(),
@@ -171,33 +170,38 @@ final class ResultAnalyzer {
 
 				if (!hasOverlap) { // required version range doesn't overlap installed version, recommend range as-is
 					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModVersion",
-							oldModEntries.get(0),
+							oldModsFormatted,
 							formatVersionRequirements(newMod.getVersionIntervals())));
 				} else { // required version range overlaps installed version, recommend range without
-					List<ModCandidate> reqMods = new ArrayList<>();
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent",
+							oldModsFormatted,
+							formatVersionRequirements(newMod.getVersionIntervals())));
 
-					for (Explanation explanation : result.reason) {
-						assert explanation.error.isDependencyError;
-						if (explanation.mod != oldMods.get(0)) continue;
+					// check old deps against future mod set to highlight inconsistencies
+					for (ModDependency dep : oldMod.getDependencies()) {
+						if (dep.getKind().isSoft()) continue;
 
-						assert explanation.dep.getKind().isPositive(); // shouldn't have a breaks-like conflict with an overlapping version range
+						ModCandidate mod = fix.activeMods.get(dep.getModId());
 
-						ModCandidate reqMod = fix.activeMods.get(explanation.dep.getModId());
+						if (mod != null) {
+							if (dep.matches(mod.getVersion()) != dep.getKind().isPositive()) {
+								pw.printf("\n\t\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent.reqSupportedModVersion",
+										mod.getId(),
+										getVersion(mod)));
+							}
 
-						if (reqMod == null) {
-							assert false;
-						} else {
-							reqMods.add(reqMod);
+							continue;
+						}
+
+						for (AddModVar addMod : fix.modReplacements.keySet()) {
+							if (addMod.getId().equals(dep.getModId())) {
+								pw.printf("\n\t\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent.reqSupportedModVersions",
+										addMod.getId(),
+										formatVersionRequirements(addMod.getVersionIntervals())));
+								break;
+							}
 						}
 					}
-
-					assert !reqMods.isEmpty();
-					reqMods.sort(Comparator.comparing(ModCandidate::getId));
-
-					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent",
-							oldModEntries.get(0),
-							formatVersionRequirements(newMod.getVersionIntervals()),
-							reqMods.stream().map(ModCandidate::toString).collect(Collectors.joining(", "))));
 				}
 			}
 		}
@@ -350,6 +354,22 @@ final class ResultAnalyzer {
 				StringUtil.capitalize(text));
 	}
 
+	private static String formatOldMods(Collection<ModCandidate> mods) {
+		List<ModCandidate> modsSorted = new ArrayList<>(mods);
+		modsSorted.sort(ModCandidate.ID_VERSION_COMPARATOR);
+		List<String> ret = new ArrayList<>(modsSorted.size());
+
+		for (ModCandidate m : modsSorted) {
+			if (m.hasPath() && !m.isBuiltin()) {
+				ret.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
+			} else {
+				ret.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
+			}
+		}
+
+		return formatEnumeration(ret, true);
+	}
+
 	private static String getName(ModCandidate candidate) {
 		String typePrefix;
 
@@ -374,51 +394,55 @@ final class ResultAnalyzer {
 	}
 
 	private static String formatVersionRequirements(Collection<VersionInterval> intervals) {
-		StringBuilder sb = new StringBuilder();
+		List<String> ret = new ArrayList<>();
 
 		for (VersionInterval interval : intervals) {
-			if (sb.length() > 0) sb.append(String.format(" %s ", Localization.format("resolution.version.or")));
+			String str;
 
 			if (interval == null) {
 				// empty interval, skip
+				continue;
 			} else if (interval.getMin() == null) {
 				if (interval.getMax() == null) {
 					return Localization.format("resolution.version.any");
 				} else if (interval.isMaxInclusive()) {
-					sb.append(Localization.format("resolution.version.lessEqual", interval.getMax()));
+					str = Localization.format("resolution.version.lessEqual", interval.getMax());
 				} else {
-					sb.append(Localization.format("resolution.version.less", interval.getMax()));
+					str = Localization.format("resolution.version.less", interval.getMax());
 				}
 			} else if (interval.getMax() == null) {
 				if (interval.isMinInclusive()) {
-					sb.append(Localization.format("resolution.version.greaterEqual", interval.getMin()));
+					str = Localization.format("resolution.version.greaterEqual", interval.getMin());
 				} else {
-					sb.append(Localization.format("resolution.version.greater", interval.getMin()));
+					str = Localization.format("resolution.version.greater", interval.getMin());
 				}
 			} else if (interval.getMin().equals(interval.getMax())) {
 				if (interval.isMinInclusive() && interval.isMaxInclusive()) {
-					sb.append(Localization.format("resolution.version.equal", interval.getMin()));
+					str = Localization.format("resolution.version.equal", interval.getMin());
 				} else {
 					// empty interval, skip
+					continue;
 				}
 			} else if (isWildcard(interval, 0)) { // major.x wildcard
 				SemanticVersion version = (SemanticVersion) interval.getMin();
-				sb.append(Localization.format("resolution.version.major", version.getVersionComponent(0)));
+				str = Localization.format("resolution.version.major", version.getVersionComponent(0));
 			} else if (isWildcard(interval, 1)) { // major.minor.x wildcard
 				SemanticVersion version = (SemanticVersion) interval.getMin();
-				sb.append(Localization.format("resolution.version.majorMinor", version.getVersionComponent(0), version.getVersionComponent(1)));
+				str = Localization.format("resolution.version.majorMinor", version.getVersionComponent(0), version.getVersionComponent(1));
 			} else {
 				String key = String.format("resolution.version.rangeMin%sMax%s",
 						(interval.isMinInclusive() ? "Inc" : "Exc"),
 						(interval.isMaxInclusive() ? "Inc" : "Exc"));
-				sb.append(Localization.format(key, interval.getMin(), interval.getMax()));
+				str = Localization.format(key, interval.getMin(), interval.getMax());
 			}
+
+			ret.add(str);
 		}
 
-		if (sb.length() == 0) {
+		if (ret.isEmpty()) {
 			return Localization.format("resolution.version.none");
 		} else {
-			return sb.toString();
+			return formatEnumeration(ret, false);
 		}
 	}
 
@@ -456,5 +480,26 @@ final class ResultAnalyzer {
 		}
 
 		return true;
+	}
+
+	private static String formatEnumeration(Collection<?> elements, boolean isAnd) {
+		String keyPrefix = isAnd ? "enumerationAnd." : "enumerationOr.";
+		Iterator<?> it = elements.iterator();
+
+		switch (elements.size()) {
+		case 0: return "";
+		case 1: return Objects.toString(it.next());
+		case 2: return Localization.format(keyPrefix+"2", it.next(), it.next());
+		case 3: return Localization.format(keyPrefix+"3", it.next(), it.next(), it.next());
+		}
+
+		String ret = Localization.format(keyPrefix+"nPrefix", it.next());
+
+		do {
+			Object next = it.next();
+			ret = Localization.format(it.hasNext() ? keyPrefix+"n" : keyPrefix+"nSuffix", ret, next);
+		} while (it.hasNext());
+
+		return ret;
 	}
 }

@@ -343,7 +343,7 @@ final class ModSolver {
 
 				if (replaced.isEmpty()) {
 					modsToAdd.add(mod);
-				} else {
+				} else { // same id as mods picked previously -> replacement
 					modReplacements.put(mod, replaced);
 
 					for (ModCandidate m : replaced) {
@@ -379,6 +379,8 @@ final class ModSolver {
 			}
 		}
 
+		// compute version intervals compatible with the active mod set for all mods to add
+
 		for (Collection<AddModVar> mods : Arrays.asList(modsToAdd, modReplacements.keySet())) {
 			for (AddModVar mod : mods) {
 				List<VersionInterval> intervals = Collections.singletonList(VersionInterval.INFINITE);
@@ -398,6 +400,8 @@ final class ModSolver {
 				mod.setVersionIntervals(intervals);
 			}
 		}
+
+		// compute reasons for mods to be inactive
 
 		inactiveModLoop: for (Map.Entry<ModCandidate, InactiveReason> entry : inactiveMods.entrySet()) {
 			if (entry.getValue() != InactiveReason.UNKNOWN) continue;
