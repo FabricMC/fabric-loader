@@ -33,12 +33,12 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
-import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.discovery.ModSolver.AddModVar;
 import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.util.Localization;
 import net.fabricmc.loader.impl.util.StringUtil;
+import net.fabricmc.loader.impl.util.version.VersionIntervalImpl;
 
 final class ResultAnalyzer {
 	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
@@ -52,48 +52,7 @@ final class ResultAnalyzer {
 			if (result.fix != null) {
 				pw.printf("\n%s", Localization.format("resolution.solutionHeader"));
 
-				for (AddModVar mod : result.fix.modsToAdd) {
-					if (envDisabledMods.containsKey(mod.getId())) {
-						String envKey = String.format("environment.%s", envType.name().toLowerCase(Locale.ENGLISH));
-
-						pw.printf("\n\t - %s", Localization.format("resolution.solution.addModEnvDisabled",
-								mod.getId(),
-								mod.getVersion().getFriendlyString(),
-								Localization.format(envKey)));
-					} else {
-						pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), mod.getVersion().getFriendlyString()));
-					}
-				}
-
-				for (ModCandidate mod : result.fix.modsToRemove) {
-					pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getLocalPath()));
-				}
-
-				for (Entry<AddModVar, List<ModCandidate>> entry : result.fix.modReplacements.entrySet()) {
-					AddModVar newMod = entry.getKey();
-					List<ModCandidate> oldMods = entry.getValue();
-					List<String> oldModEntries = new ArrayList<>(oldMods.size());
-
-					for (ModCandidate m : oldMods) {
-						if (m.hasPath() && !m.isBuiltin()) {
-							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
-						} else {
-							oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
-						}
-					}
-
-					String newModName = newMod.getId();
-					ModCandidate alt = selectedMods.get(newMod.getId());
-
-					if (alt != null) {
-						newModName = getName(alt);
-					} else {
-						List<ModCandidate> alts = modsById.get(newMod.getId());
-						if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
-					}
-
-					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newModName, newMod.getVersion().getFriendlyString()));
-				}
+				formatFix(result.fix, result, selectedMods, modsById, envDisabledMods, envType, pw);
 
 				pw.printf("\n%s", Localization.format("resolution.depListHeader"));
 				prefix = "\t";
@@ -159,6 +118,91 @@ final class ResultAnalyzer {
 		return sw.toString();
 	}
 
+	private static void formatFix(ModSolver.Fix fix,
+			ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
+			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType,
+			PrintWriter pw) {
+		for (AddModVar mod : fix.modsToAdd) {
+			if (envDisabledMods.containsKey(mod.getId())) {
+				String envKey = String.format("environment.%s", envType.name().toLowerCase(Locale.ENGLISH));
+
+				pw.printf("\n\t - %s", Localization.format("resolution.solution.addModEnvDisabled",
+						mod.getId(),
+						mod.getVersion().getFriendlyString(),
+						Localization.format(envKey)));
+			} else {
+				pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod", mod.getId(), formatVersionRequirements(mod.getVersionIntervals())));
+			}
+		}
+
+		for (ModCandidate mod : fix.modsToRemove) {
+			pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getLocalPath()));
+		}
+
+		for (Entry<AddModVar, List<ModCandidate>> entry : fix.modReplacements.entrySet()) {
+			AddModVar newMod = entry.getKey();
+			List<ModCandidate> oldMods = entry.getValue();
+			List<String> oldModEntries = new ArrayList<>(oldMods.size());
+
+			for (ModCandidate m : oldMods) {
+				if (m.hasPath() && !m.isBuiltin()) {
+					oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
+				} else {
+					oldModEntries.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
+				}
+			}
+
+			if (oldMods.size() != 1 || !oldMods.get(0).getId().equals(newMod.getId())) { // replace mods with another mod (different mod id)
+				String newModName = newMod.getId();
+				ModCandidate alt = selectedMods.get(newMod.getId());
+
+				if (alt != null) {
+					newModName = getName(alt);
+				} else {
+					List<ModCandidate> alts = modsById.get(newMod.getId());
+					if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
+				}
+
+				pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceMod", String.join(", ", oldModEntries), newModName, newMod.getVersion().getFriendlyString()));
+			} else { // replace mod version only
+				ModCandidate oldMod = oldMods.get(0);
+				boolean hasOverlap = !VersionInterval.and(newMod.getVersionIntervals(),
+						Collections.singletonList(new VersionIntervalImpl(oldMod.getVersion(), true, oldMod.getVersion(), true))).isEmpty();
+
+				if (!hasOverlap) { // required version range doesn't overlap installed version, recommend range as-is
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModVersion",
+							oldModEntries.get(0),
+							formatVersionRequirements(newMod.getVersionIntervals())));
+				} else { // required version range overlaps installed version, recommend range without
+					List<ModCandidate> reqMods = new ArrayList<>();
+
+					for (Explanation explanation : result.reason) {
+						assert explanation.error.isDependencyError;
+						if (explanation.mod != oldMods.get(0)) continue;
+
+						assert explanation.dep.getKind().isPositive(); // shouldn't have a breaks-like conflict with an overlapping version range
+
+						ModCandidate reqMod = fix.activeMods.get(explanation.dep.getModId());
+
+						if (reqMod == null) {
+							assert false;
+						} else {
+							reqMods.add(reqMod);
+						}
+					}
+
+					assert !reqMods.isEmpty();
+					reqMods.sort(Comparator.comparing(ModCandidate::getId));
+
+					pw.printf("\n\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent",
+							oldModEntries.get(0),
+							formatVersionRequirements(newMod.getVersionIntervals()),
+							reqMods.stream().map(ModCandidate::toString).collect(Collectors.joining(", "))));
+				}
+			}
+		}
+	}
+
 	static String gatherWarnings(List<ModCandidate> uniqueSelectedMods, Map<String, ModCandidate> selectedMods,
 			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
 		StringWriter sw = new StringWriter();
@@ -207,7 +251,7 @@ final class ResultAnalyzer {
 		Object[] args = new Object[] {
 				getName(mod),
 				(matches.isEmpty() ? dep.getModId() : getName(matches.get(0))),
-				getDependencyVersionRequirements(dep),
+				formatVersionRequirements(dep.getVersionIntervals()),
 				getVersions(matches),
 				matches.size()
 		};
@@ -329,15 +373,11 @@ final class ResultAnalyzer {
 		return candidates.stream().map(ResultAnalyzer::getVersion).collect(Collectors.joining("/"));
 	}
 
-	private static String getDependencyVersionRequirements(ModDependency dependency) {
+	private static String formatVersionRequirements(Collection<VersionInterval> intervals) {
 		StringBuilder sb = new StringBuilder();
 
-		Collection<VersionPredicate> predicates = dependency.getVersionRequirements();
-
-		for (VersionPredicate predicate : predicates) {
+		for (VersionInterval interval : intervals) {
 			if (sb.length() > 0) sb.append(String.format(" %s ", Localization.format("resolution.version.or")));
-
-			VersionInterval interval = predicate.getInterval();
 
 			if (interval == null) {
 				// empty interval, skip
