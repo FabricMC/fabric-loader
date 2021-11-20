@@ -239,48 +239,47 @@ public class MinecraftGameProvider implements GameProvider {
 
 		URL[] urls;
 
-		try {
-			ClassLoader bundlerCl = new URLClassLoader(new URL[] { path.toUri().toURL() }, MinecraftGameProvider.class.getClassLoader()) {
-				@Override
-				protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-					synchronized (getClassLoadingLock(name)) {
-						Class<?> c = findLoadedClass(name);
+		try (URLClassLoader bundlerCl = new URLClassLoader(new URL[] { path.toUri().toURL() }, MinecraftGameProvider.class.getClassLoader()) {
+			@Override
+			protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+				synchronized (getClassLoadingLock(name)) {
+					Class<?> c = findLoadedClass(name);
 
-						if (c == null) {
-							if (name.startsWith("net.minecraft.")) {
-								URL url = getResource(LoaderUtil.getClassFileName(name));
+					if (c == null) {
+						if (name.startsWith("net.minecraft.")) {
+							URL url = getResource(LoaderUtil.getClassFileName(name));
 
-								if (url != null) {
-									try (InputStream is = url.openConnection().getInputStream()) {
-										byte[] data = new byte[Math.max(is.available() + 1, 1000)];
-										int offset = 0;
-										int len;
+							if (url != null) {
+								try (InputStream is = url.openConnection().getInputStream()) {
+									byte[] data = new byte[Math.max(is.available() + 1, 1000)];
+									int offset = 0;
+									int len;
 
-										while ((len = is.read(data, offset, data.length - offset)) >= 0) {
-											offset += len;
-											if (offset == data.length) data = Arrays.copyOf(data, data.length * 2);
-										}
-
-										c = defineClass(name, data, 0, offset);
-									} catch (IOException e) {
-										throw new RuntimeException(e);
+									while ((len = is.read(data, offset, data.length - offset)) >= 0) {
+										offset += len;
+										if (offset == data.length) data = Arrays.copyOf(data, data.length * 2);
 									}
+
+									c = defineClass(name, data, 0, offset);
+								} catch (IOException e) {
+									throw new RuntimeException(e);
 								}
 							}
-
-							if (c == null) {
-								c = getParent().loadClass(name);
-							}
 						}
 
-						if (resolve) {
-							resolveClass(c);
+						if (c == null) {
+							c = getParent().loadClass(name);
 						}
-
-						return c;
 					}
+
+					if (resolve) {
+						resolveClass(c);
+					}
+
+					return c;
 				}
-			};
+			}
+		}) {
 			Class<?> cls = Class.forName(BUNDLER_ENTRYPOINT, true, bundlerCl);
 			Method method = cls.getMethod("main", String[].class);
 
