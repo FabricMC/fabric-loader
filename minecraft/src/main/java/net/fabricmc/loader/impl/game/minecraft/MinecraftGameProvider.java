@@ -23,15 +23,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipFile;
@@ -49,6 +53,7 @@ import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -60,9 +65,9 @@ import net.fabricmc.loader.impl.util.log.LogHandler;
 
 public class MinecraftGameProvider implements GameProvider {
 	private static final String[] CLIENT_ENTRYPOINTS = { "net.minecraft.client.main.Main", "net.minecraft.client.MinecraftApplet", "com.mojang.minecraft.MinecraftApplet" };
-	private static final String[] SERVER_ENTRYPOINTS = { "net.minecraft.server.Main", "net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer" };
-
 	private static final String BUNDLER_ENTRYPOINT = "net.minecraft.bundler.Main";
+	private static final String[] SERVER_ENTRYPOINTS = { BUNDLER_ENTRYPOINT, "net.minecraft.server.Main", "net.minecraft.server.MinecraftServer", "com.mojang.minecraft.server.MinecraftServer" };
+
 	private static final String BUNDLER_MAIN_CLASS_PROPERTY = "bundlerMainClass";
 
 	private static final String REALMS_CHECK_PATH = "realmsVersion";
@@ -160,33 +165,53 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
-	public boolean locateGame(FabricLauncher launcher, String[] args, ClassLoader cl) {
+	public boolean locateGame(FabricLauncher launcher, String[] args) {
 		this.envType = launcher.getEnvironmentType();
 		this.arguments = new Arguments();
 		arguments.parse(args);
 
-		List<String> entrypointClasses;
+		String[] entrypointClasses = envType == EnvType.CLIENT ? CLIENT_ENTRYPOINTS : SERVER_ENTRYPOINTS;
+		Map<Path, ZipFile> zipFiles = new HashMap<>();
 
-		if (envType == EnvType.CLIENT) {
-			entrypointClasses = Arrays.asList(CLIENT_ENTRYPOINTS);
-		} else {
-			entrypointClasses = Arrays.asList(SERVER_ENTRYPOINTS);
-		}
+		try {
+			String gameJarProperty = System.getProperty(SystemProperties.GAME_JAR_PATH);
+			GameProviderHelper.FindResult result;
 
-		Optional<GameProviderHelper.EntrypointResult> entrypointResult = GameProviderHelper.findFirstClass(cl, entrypointClasses);
+			if (gameJarProperty != null) {
+				Path path = Paths.get(gameJarProperty);
+				if (!Files.exists(path)) throw new RuntimeException("Game jar configured through "+SystemProperties.GAME_JAR_PATH+" system property doesn't exist");
 
-		if (!entrypointResult.isPresent()) {
-			// no entrypoint on the class path, try bundler
-			if (!processBundlerJar(cl)) return false;
-		} else {
-			entrypoint = entrypointResult.get().entrypointName;
-			gameJar = entrypointResult.get().entrypointPath;
-			realmsJar = GameProviderHelper.getSource(cl, REALMS_CHECK_PATH).orElse(null);
-			if (realmsJar != null && realmsJar.equals(gameJar)) realmsJar = null;
+				result = GameProviderHelper.findFirstClass(Collections.singletonList(path), zipFiles, entrypointClasses);
+			} else {
+				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, entrypointClasses);
+			}
 
-			useGameJarForLogging = gameJar.equals(GameProviderHelper.getSource(cl, LOG4J_API_CHECK_PATH).orElse(null))
-					|| cl.getResource(LOG4J_CONFIG_CHECK_PATH) == null;
-			hasModLoader = GameProviderHelper.getSource(cl, "ModLoader.class").isPresent();
+			if (result == null) return false;
+
+			if (result.className.equals(BUNDLER_ENTRYPOINT)) {
+				processBundlerJar(result.path);
+			} else {
+				entrypoint = result.className;
+				gameJar = result.path;
+
+				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, REALMS_CHECK_PATH);
+				realmsJar = result != null && !result.path.equals(gameJar) ? result.path : null;
+
+				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, LOG4J_API_CHECK_PATH);
+				useGameJarForLogging = result != null && gameJar.equals(result.path)
+						|| Knot.class.getClassLoader().getResource(LOG4J_CONFIG_CHECK_PATH) == null;
+
+				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, "ModLoader.class");
+				hasModLoader = result != null;
+			}
+		} finally {
+			for (ZipFile zf : zipFiles.values()) {
+				try {
+					zf.close();
+				} catch (IOException e) {
+					// ignore
+				}
+			}
 		}
 
 		if (!useGameJarForLogging && log4jJars.isEmpty()) { // use Log4J log handler directly if it is not shaded into the game jar, otherwise delay it to initialize() after deobfuscation
@@ -207,7 +232,7 @@ public class MinecraftGameProvider implements GameProvider {
 		return true;
 	}
 
-	private boolean processBundlerJar(ClassLoader cl) {
+	private boolean processBundlerJar(Path path) {
 		if (envType != EnvType.SERVER) return false;
 
 		// determine urls by running the bundler and extracting them from the context class loader
@@ -215,7 +240,7 @@ public class MinecraftGameProvider implements GameProvider {
 		URL[] urls;
 
 		try {
-			ClassLoader bundlerCl = new ClassLoader(cl) {
+			ClassLoader bundlerCl = new URLClassLoader(new URL[] { path.toUri().toURL() }, MinecraftGameProvider.class.getClassLoader()) {
 				@Override
 				protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 					synchronized (getClassLoadingLock(name)) {
@@ -255,12 +280,7 @@ public class MinecraftGameProvider implements GameProvider {
 						return c;
 					}
 				}
-
-				{
-					registerAsParallelCapable();
-				}
 			};
-
 			Class<?> cls = Class.forName(BUNDLER_ENTRYPOINT, true, bundlerCl);
 			Method method = cls.getMethod("main", String[].class);
 
@@ -270,6 +290,7 @@ public class MinecraftGameProvider implements GameProvider {
 			System.setProperty(BUNDLER_MAIN_CLASS_PROPERTY, BundlerClassPathCapture.class.getName());
 
 			ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
+			Thread.currentThread().setContextClassLoader(bundlerCl);
 
 			method.invoke(method, (Object) new String[0]);
 			urls = BundlerClassPathCapture.FUTURE.get(10, TimeUnit.SECONDS);
@@ -294,6 +315,7 @@ public class MinecraftGameProvider implements GameProvider {
 		boolean hasGameJar = false;
 		boolean hasRealmsJar = false;
 
+		ClassLoader cl = Knot.class.getClassLoader();
 		Object[] logCheckPaths = { LOG4J_API_CHECK_PATH, LOG4J_IMPL_CHECK_PATHS, LOG4J_CONFIG_CHECK_PATH, LOG4J_PLUGIN_CHECK_PATH };
 		int locatedLog4jPaths = 0;
 
@@ -316,8 +338,6 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 
 		for (URL url : urls) {
-			Path path;
-
 			try {
 				path = UrlUtil.asPath(url);
 			} catch (URISyntaxException e) {

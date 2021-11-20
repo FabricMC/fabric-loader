@@ -23,15 +23,15 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -59,7 +59,7 @@ public final class Knot extends FabricLauncherBase {
 	private KnotClassLoaderInterface classLoader;
 	private boolean isDevelopment;
 	private EnvType envType;
-	private final File gameJarFile;
+	private final List<Path> classPath = new ArrayList<>();
 	private GameProvider provider;
 	private boolean unlocked;
 
@@ -67,8 +67,7 @@ public final class Knot extends FabricLauncherBase {
 		setupUncaughtExceptionHandler();
 
 		try {
-			String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
-			Knot knot = new Knot(type, gameJarPath != null ? new File(gameJarPath) : null);
+			Knot knot = new Knot(type);
 			ClassLoader cl = knot.init(args);
 
 			if (knot.provider == null) {
@@ -81,9 +80,8 @@ public final class Knot extends FabricLauncherBase {
 		}
 	}
 
-	public Knot(EnvType type, File gameJarFile) {
+	public Knot(EnvType type) {
 		this.envType = type;
-		this.gameJarFile = gameJarFile;
 	}
 
 	protected ClassLoader init(String[] args) {
@@ -104,6 +102,24 @@ public final class Knot extends FabricLauncherBase {
 			default:
 				throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
 			}
+		}
+
+		classPath.clear();
+
+		for (String cpEntry : System.getProperty("java.class.path").split(File.pathSeparator)) {
+			if (cpEntry.equals("*") || cpEntry.endsWith(File.separator + "*")) {
+				Log.warn(LogCategory.KNOT, "Knot does not support wildcard classpath entries: %s - the game may not load properly!", cpEntry);
+				continue;
+			}
+
+			Path path = Paths.get(cpEntry);
+
+			if (!Files.exists(path)) {
+				Log.warn(LogCategory.KNOT, "Class path entry %s doesn't exist!", cpEntry);
+				continue;
+			}
+
+			classPath.add(path);
 		}
 
 		provider = createGameProvider(args);
@@ -150,11 +166,10 @@ public final class Knot extends FabricLauncherBase {
 		// fast path with direct lookup
 
 		GameProvider embeddedGameProvider = findEmbedddedGameProvider();
-		ClassLoader cl = Knot.class.getClassLoader();
 
 		if (embeddedGameProvider != null
 				&& embeddedGameProvider.isEnabled()
-				&& embeddedGameProvider.locateGame(this, args, cl)) {
+				&& embeddedGameProvider.locateGame(this, args)) {
 			return embeddedGameProvider;
 		}
 
@@ -166,7 +181,7 @@ public final class Knot extends FabricLauncherBase {
 			if (!provider.isEnabled()) continue; // don't attempt disabled providers and don't include them in the error report
 
 			if (provider != embeddedGameProvider // don't retry already failed provider
-					&& provider.locateGame(this, args, cl)) {
+					&& provider.locateGame(this, args)) {
 				return provider;
 			}
 
@@ -243,30 +258,8 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public Collection<URL> getLoadTimeDependencies() {
-		String cmdLineClasspath = System.getProperty("java.class.path");
-
-		return Arrays.stream(cmdLineClasspath.split(File.pathSeparator)).filter((s) -> {
-			if (s.equals("*") || s.endsWith(File.separator + "*")) {
-				Log.warn(LogCategory.KNOT, "Knot does not support wildcard classpath entries: %s - the game may not load properly!", s);
-				return false;
-			} else {
-				return true;
-			}
-		}).map((s) -> {
-			File file = new File(s);
-
-			if (!file.equals(gameJarFile)) {
-				try {
-					return (UrlUtil.asUrl(file));
-				} catch (MalformedURLException e) {
-					Log.debug(LogCategory.KNOT, "Can't determine url for %s", file, e);
-					return null;
-				}
-			} else {
-				return null;
-			}
-		}).filter(Objects::nonNull).collect(Collectors.toSet());
+	public List<Path> getClassPath() {
+		return classPath;
 	}
 
 	@Override
@@ -351,6 +344,6 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	public static void main(String[] args) {
-		new Knot(null, null).init(args);
+		new Knot(null).init(args);
 	}
 }

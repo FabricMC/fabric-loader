@@ -39,7 +39,7 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	boolean requiresUrlClassLoader();
 
 	boolean isEnabled();
-	boolean locateGame(FabricLauncher launcher, String[] args, ClassLoader loader);
+	boolean locateGame(FabricLauncher launcher, String[] args);
 	void initialize(FabricLauncher launcher);
 	GameTransformer getEntrypointTransformer();
 	void unlockClassPath(FabricLauncher launcher);
