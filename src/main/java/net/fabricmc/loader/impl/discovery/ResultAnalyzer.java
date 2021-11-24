@@ -254,6 +254,7 @@ final class ResultAnalyzer {
 	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean presentForOtherEnv, boolean suggestFix, String prefix, PrintWriter pw) {
 		Object[] args = new Object[] {
 				getName(mod),
+				getVersion(mod),
 				(matches.isEmpty() ? dep.getModId() : getName(matches.get(0))),
 				formatVersionRequirements(dep.getVersionIntervals()),
 				getVersions(matches),
