@@ -82,9 +82,13 @@ public final class FabricMixinBootstrap {
 		for (ModContainerImpl mod : loader.getModsInternal()) {
 			for (String config : mod.getMetadata().getMixinConfigs(side)) {
 				ModContainerImpl prev = configToModMap.putIfAbsent(config, mod);
-				if (prev != null) throw new RuntimeException(String.format("Non-unique mixin config name %s used by %s and %s", config, prev.getMetadata().getId(), mod.getMetadata().getId()));
+				if (prev != null) throw new RuntimeException(String.format("Non-unique Mixin config name %s used by the mods %s and %s", config, prev.getMetadata().getId(), mod.getMetadata().getId()));
 
-				Mixins.addConfiguration(config);
+				try {
+					Mixins.addConfiguration(config);
+				} catch (Throwable t) {
+					throw new RuntimeException(String.format("Error creating Mixin config %s for mod %s", config, mod.getMetadata().getId()), t);
+				}
 			}
 		}
 
