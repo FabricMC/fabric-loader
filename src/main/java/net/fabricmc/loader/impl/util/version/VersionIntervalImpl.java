@@ -85,6 +85,12 @@ public final class VersionIntervalImpl implements VersionInterval {
 	}
 
 	@Override
+	public int hashCode() {
+		return (Objects.hashCode(min) + (minInclusive ? 1 : 0)) * 31
+				+ (Objects.hashCode(max) + (maxInclusive ? 1 : 0)) * 31;
+	}
+
+	@Override
 	public String toString() {
 		if (min == null) {
 			if (max == null) {

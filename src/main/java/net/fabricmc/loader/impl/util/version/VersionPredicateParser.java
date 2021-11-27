@@ -108,6 +108,10 @@ public final class VersionPredicateParser {
 		return ret;
 	}
 
+	public static VersionPredicate getAny() {
+		return AnyVersionPredicate.INSTANCE;
+	}
+
 	static class AnyVersionPredicate implements VersionPredicate {
 		static final VersionPredicate INSTANCE = new AnyVersionPredicate();
 

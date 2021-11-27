@@ -49,6 +49,7 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
+import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 final class ModSolver {
 	static Result solve(List<ModCandidate> allModsSorted, Map<String, List<ModCandidate>> modsById,
@@ -214,12 +215,40 @@ final class ModSolver {
 			}
 		}
 
+		// add mods with unsatisfied deps as well so they can be replaced (remove+add)
+
+		Set<String> modsWithOnlyOutboundDepFailures = new HashSet<>();
+
+		for (ModCandidate mod : allModsSorted) {
+			if (!mod.getDependencies().isEmpty()
+					&& !depsById.containsKey(mod.getId())
+					&& !Collections.disjoint(mod.getDependencies(), failedDeps)) { // mod has unsatisfied deps
+				depsById.computeIfAbsent(mod.getId(), ignore -> new HashSet<>()).add(Collections.singleton(VersionPredicateParser.getAny()));
+				modsWithOnlyOutboundDepFailures.add(mod.getId());
+			}
+		}
+
+		// add deps that didn't fail to find all relevant boundary versions to test
+
+		for (ModCandidate mod : allModsSorted) {
+			for (ModDependency dep : mod.getDependencies()) {
+				if (dep.getKind() != ModDependency.Kind.DEPENDS) continue;
+
+				Set<Collection<VersionPredicate>> predicates = depsById.get(dep.getModId());
+
+				if (predicates != null) {
+					predicates.add(dep.getVersionRequirements());
+				}
+			}
+		}
+
 		// determine mod versions to try to add
 
 		Map<String, List<AddModVar>> installableMods = new HashMap<>();
 
 		for (Map.Entry<String, Set<Collection<VersionPredicate>>> entry : depsById.entrySet()) {
 			String id = entry.getKey();
+			boolean hadOnlyOutboundDepFailures = modsWithOnlyOutboundDepFailures.contains(id);
 
 			// extract all version bounds (resulting version needs to be part of one of them)
 
@@ -241,7 +270,7 @@ final class ModSolver {
 
 			VersionInterval commonInterval = null;
 			boolean commonVersionInitialized = false;
-			Map<Version, VersionInterval> versions = new HashMap<>();
+			Set<Version> versions = new HashSet<>();
 
 			for (VersionInterval interval : allIntervals) {
 				if (commonInterval == null) {
@@ -253,23 +282,16 @@ final class ModSolver {
 					commonInterval = interval.and(commonInterval);
 				}
 
-				Version version = deriveVersion(interval);
-
-				VersionInterval prev = versions.putIfAbsent(version, interval);
-
-				if (prev != null) {
-					VersionInterval newBounds = VersionInterval.and(prev, interval);
-					if (newBounds != null) versions.put(version, newBounds);
-				}
+				versions.add(deriveVersion(interval));
 			}
 
 			List<AddModVar> out = installableMods.computeIfAbsent(id, ignore -> new ArrayList<>());
 
 			if (commonInterval != null) {
-				out.add(new AddModVar(id, deriveVersion(commonInterval), Collections.singletonList(commonInterval)));
+				out.add(new AddModVar(id, deriveVersion(commonInterval), hadOnlyOutboundDepFailures));
 			} else {
-				for (Map.Entry<Version, VersionInterval> versionEntry : versions.entrySet()) {
-					out.add(new AddModVar(id, versionEntry.getKey(), Collections.singletonList(versionEntry.getValue())));
+				for (Version version : versions) {
+					out.add(new AddModVar(id, version, hadOnlyOutboundDepFailures));
 				}
 			}
 
@@ -310,6 +332,7 @@ final class ModSolver {
 				activeMods.put(mod.getId(), mod);
 				inactiveMods.remove(mod);
 			} else if (obj instanceof AddModVar) {
+				AddModVar mod = (AddModVar) obj;
 				List<ModCandidate> replaced = new ArrayList<>();
 
 				ModCandidate selectedMod = selectedMods.get(obj.getId());
@@ -319,9 +342,9 @@ final class ModSolver {
 				if (mods != null) replaced.addAll(mods);
 
 				if (replaced.isEmpty()) {
-					modsToAdd.add((AddModVar) obj);
-				} else {
-					modReplacements.put((AddModVar) obj, replaced);
+					modsToAdd.add(mod);
+				} else { // same id as mods picked previously -> replacement
+					modReplacements.put(mod, replaced);
 
 					for (ModCandidate m : replaced) {
 						inactiveMods.put(m, InactiveReason.TO_REPLACE);
@@ -355,6 +378,30 @@ final class ModSolver {
 				assert false : obj;
 			}
 		}
+
+		// compute version intervals compatible with the active mod set for all mods to add
+
+		for (Collection<AddModVar> mods : Arrays.asList(modsToAdd, modReplacements.keySet())) {
+			for (AddModVar mod : mods) {
+				List<VersionInterval> intervals = Collections.singletonList(VersionInterval.INFINITE);
+
+				for (ModCandidate m : activeMods.values()) {
+					for (ModDependency dep : m.getDependencies()) {
+						if (!dep.getModId().equals(mod.getId()) || dep.getKind().isSoft()) continue;
+
+						if (dep.getKind().isPositive()) {
+							intervals = VersionInterval.and(intervals, dep.getVersionIntervals());
+						} else {
+							intervals = VersionInterval.and(intervals, VersionInterval.not(dep.getVersionIntervals()));
+						}
+					}
+				}
+
+				mod.setVersionIntervals(intervals);
+			}
+		}
+
+		// compute reasons for mods to be inactive
 
 		inactiveModLoop: for (Map.Entry<ModCandidate, InactiveReason> entry : inactiveMods.entrySet()) {
 			if (entry.getValue() != InactiveReason.UNKNOWN) continue;
@@ -396,7 +443,7 @@ final class ModSolver {
 
 		// TODO: test if the solution is actually valid?
 
-		return new Fix(modsToAdd, modsToRemove, modReplacements, activeMods.values(), inactiveMods);
+		return new Fix(modsToAdd, modsToRemove, modReplacements, activeMods, inactiveMods);
 	}
 
 	static long fixSolveTime;
@@ -484,11 +531,11 @@ final class ModSolver {
 		final Collection<AddModVar> modsToAdd;
 		final Collection<ModCandidate> modsToRemove;
 		final Map<AddModVar, List<ModCandidate>> modReplacements;
-		final Collection<ModCandidate> activeMods;
+		final Map<String, ModCandidate> activeMods;
 		final Map<ModCandidate, InactiveReason> inactiveMods;
 
 		Fix(Collection<AddModVar> modsToAdd, Collection<ModCandidate> modsToRemove, Map<AddModVar, List<ModCandidate>> modReplacements,
-				Collection<ModCandidate> activeMods, Map<ModCandidate, InactiveReason> inactiveMods) {
+				Map<String, ModCandidate> activeMods, Map<ModCandidate, InactiveReason> inactiveMods) {
 			this.modsToAdd = modsToAdd;
 			this.modsToRemove = modsToRemove;
 			this.modReplacements = modReplacements;
@@ -852,8 +899,9 @@ final class ModSolver {
 		if (installableMods != null) {
 			for (List<AddModVar> variants : installableMods.values()) {
 				String id = variants.get(0).getId();
+				boolean isReplacement = modsById.containsKey(id);
 
-				if (!modsById.containsKey(id)) { // no single mod per id constraint yet
+				if (!isReplacement) { // no single mod per id constraint created yet
 					suitableMods.addAll(variants);
 
 					ModCandidate selectedMod = selectedMods.get(id);
@@ -868,7 +916,11 @@ final class ModSolver {
 
 				for (int i = 0; i < variants.size(); i++) {
 					AddModVar mod = variants.get(i);
-					weightedObjects.add(WeightedObject.newWO(mod, TWO.pow(priorities.size() + 4 + i)));
+					int weight = priorities.size() + 4 + i;
+					if (isReplacement) weight += 3;
+					if (mod.hadOnlyOutboundDepFailures) weight++;
+
+					weightedObjects.add(WeightedObject.newWO(mod, TWO.pow(weight)));
 				}
 			}
 		}
@@ -888,7 +940,8 @@ final class ModSolver {
 		if (ret != null) return ret;
 
 		ret = supplier.apply(id);
-		weightedObjects.add(WeightedObject.newWO(ret, TWO.pow(modCount + 2)));
+		int weight = modCount + 2;
+		weightedObjects.add(WeightedObject.newWO(ret, TWO.pow(weight)));
 
 		return ret;
 	}
@@ -948,12 +1001,13 @@ final class ModSolver {
 	static final class AddModVar implements DomainObject.Mod {
 		private final String id;
 		private final Version version;
-		private final List<VersionInterval> versionIntervals;
+		final boolean hadOnlyOutboundDepFailures;
+		private List<VersionInterval> versionIntervals;
 
-		AddModVar(String id, Version version, List<VersionInterval> versionIntervals) {
+		AddModVar(String id, Version version, boolean hadOnlyOutboundDepFailures) {
 			this.id = id;
 			this.version = version;
-			this.versionIntervals = versionIntervals;
+			this.hadOnlyOutboundDepFailures = hadOnlyOutboundDepFailures;
 		}
 
 		@Override
@@ -968,6 +1022,10 @@ final class ModSolver {
 
 		public List<VersionInterval> getVersionIntervals() {
 			return versionIntervals;
+		}
+
+		void setVersionIntervals(List<VersionInterval> versionIntervals) {
+			this.versionIntervals = versionIntervals;
 		}
 
 		@Override
