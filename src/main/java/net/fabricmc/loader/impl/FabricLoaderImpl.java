@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.objectweb.asm.Opcodes;
 
@@ -204,9 +203,21 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// dump mod list
 
-		String modListText = modCandidates.stream()
-				.map(candidate -> String.format("\t- %s %s", candidate.getId(), candidate.getVersion().getFriendlyString()))
-				.collect(Collectors.joining("\n"));
+		StringBuilder modListText = new StringBuilder();
+
+		for (ModCandidate mod : modCandidates) {
+			if (modListText.length() > 0) modListText.append('\n');
+
+			modListText.append("\t- ");
+			modListText.append(mod.getId());
+			modListText.append(' ');
+			modListText.append(mod.getVersion().getFriendlyString());
+
+			if (!mod.getParentMods().isEmpty()) {
+				modListText.append(" via ");
+				modListText.append(mod.getParentMods().iterator().next().getId());
+			}
+		}
 
 		int count = modCandidates.size();
 		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
