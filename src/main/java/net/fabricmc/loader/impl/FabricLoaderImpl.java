@@ -54,7 +54,6 @@ import net.fabricmc.loader.impl.discovery.ModResolver;
 import net.fabricmc.loader.impl.discovery.RuntimeModRemapper;
 import net.fabricmc.loader.impl.entrypoint.EntrypointStorage;
 import net.fabricmc.loader.impl.game.GameProvider;
-import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
@@ -114,6 +113,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public GameProvider getGameProvider() {
 		if (provider == null) throw new IllegalStateException("game provider not set (yet)");
 
+		return provider;
+	}
+
+	public GameProvider tryGetGameProvider() {
 		return provider;
 	}
 
@@ -181,7 +184,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		try {
 			setup();
 		} catch (ModResolutionException exception) {
-			FabricGuiEntry.displayCriticalError(exception, true);
+			throw new FormattedException("Incompatible mod set!", exception);
 		}
 	}
 

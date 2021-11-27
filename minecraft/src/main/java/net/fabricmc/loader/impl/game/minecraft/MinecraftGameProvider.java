@@ -41,13 +41,13 @@ import net.fabricmc.loader.api.ObjectShare;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
-import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
@@ -567,19 +567,9 @@ public class MinecraftGameProvider implements GameProvider {
 			Method m = c.getMethod("main", String[].class);
 			m.invoke(null, (Object) arguments.toArray());
 		} catch (InvocationTargetException e) {
-			if (!onCrash(e.getCause(), "Minecraft has crashed!")) {
-				throw new RuntimeException("Minecraft has crashed", e.getCause()); // Pass it on
-			}
+			throw new FormattedException("Minecraft has crashed!", e.getCause());
 		} catch (ReflectiveOperationException e) {
-			if (!onCrash(e, "Failed to start Minecraft!")) {
-				throw new RuntimeException("Failed to start Minecraft", e);
-			}
+			throw new FormattedException("Failed to start Minecraft", e);
 		}
-	}
-
-	@Override
-	public boolean onCrash(Throwable exception, String context) {
-		FabricGuiEntry.displayError(context, exception, false);
-		return false; // Allow the crash to propagate
 	}
 }

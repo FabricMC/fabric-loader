@@ -43,6 +43,7 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
@@ -63,15 +64,21 @@ public final class Knot extends FabricLauncherBase {
 	private boolean unlocked;
 
 	public static void launch(String[] args, EnvType type) {
-		String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
-		Knot knot = new Knot(type, gameJarPath != null ? new File(gameJarPath) : null);
-		ClassLoader cl = knot.init(args);
+		setupUncaughtExceptionHandler();
 
-		if (knot.provider == null) {
-			throw new IllegalStateException("Game provider was not initialized! (Knot#init(String[]))");
+		try {
+			String gameJarPath = System.getProperty(SystemProperties.GAME_JAR_PATH);
+			Knot knot = new Knot(type, gameJarPath != null ? new File(gameJarPath) : null);
+			ClassLoader cl = knot.init(args);
+
+			if (knot.provider == null) {
+				throw new IllegalStateException("Game provider was not initialized! (Knot#init(String[]))");
+			}
+
+			knot.provider.launch(cl);
+		} catch (FormattedException e) {
+			handleFormattedException(e);
 		}
-
-		knot.provider.launch(cl);
 	}
 
 	public Knot(EnvType type, File gameJarFile) {
@@ -133,9 +140,7 @@ public final class Knot extends FabricLauncherBase {
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 		} catch (RuntimeException e) {
-			if (!provider.onCrash(e, "A mod crashed on startup")) {
-				throw e;
-			}
+			throw new FormattedException("A mod crashed on startup!", e);
 		}
 
 		return cl;

@@ -45,7 +45,7 @@ public final class FabricGuiEntry {
 	 *
 	 * @throws Exception if something went wrong while opening the window. */
 	public static void open(FabricStatusTree tree) throws Exception {
-		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
+		GameProvider provider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
 
 		if (provider == null && LoaderUtil.hasAwtSupport()
 				|| provider != null && provider.hasAwtSupport()) {
@@ -110,7 +110,7 @@ public final class FabricGuiEntry {
 	}
 
 	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomiser, boolean exitAfter) {
-		GameProvider provider = FabricLoaderImpl.INSTANCE.getGameProvider();
+		GameProvider provider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
 
 		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
 			Version loaderVersion = getLoaderVersion();
