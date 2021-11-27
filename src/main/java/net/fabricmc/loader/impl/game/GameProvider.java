@@ -44,7 +44,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	GameTransformer getEntrypointTransformer();
 	void unlockClassPath(FabricLauncher launcher);
 	void launch(ClassLoader loader);
-	boolean onCrash(Throwable exception, String context);
+
+	default boolean displayCrash(Throwable exception, String context) {
+		return false;
+	}
 
 	Arguments getArguments();
 	String[] getLaunchArguments(boolean sanitize);

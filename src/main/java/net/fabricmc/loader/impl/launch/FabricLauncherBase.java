@@ -21,6 +21,13 @@ import java.util.Map;
 
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
+import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
+import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.gui.FabricGuiEntry;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
+
 public abstract class FabricLauncherBase implements FabricLauncher {
 	private static boolean mixinReady;
 	private static Map<String, Object> properties;
@@ -62,6 +69,47 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	public static Map<String, Object> getProperties() {
 		return properties;
+	}
+
+	protected static void handleFormattedException(FormattedException exc) {
+		Log.error(LogCategory.GENERAL, exc.getMainText(), exc.getCause());
+
+		GameProvider gameProvider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
+
+		if (gameProvider == null || !gameProvider.displayCrash(exc.getCause(), exc.getMainText())) {
+			FabricGuiEntry.displayError(exc.getMainText(), exc.getCause(), true);
+		} else {
+			System.exit(1);
+		}
+
+		throw new AssertionError("exited");
+	}
+
+	protected static void setupUncaughtExceptionHandler() {
+		Thread mainThread = Thread.currentThread();
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				try {
+					if (e instanceof FormattedException) {
+						handleFormattedException((FormattedException) e);
+					} else {
+						String mainText = String.format("Uncaught exception in thread \"%s\"", t.getName());
+						Log.error(LogCategory.GENERAL, mainText, e);
+
+						GameProvider gameProvider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
+
+						if (Thread.currentThread() == mainThread
+								&& (gameProvider == null || !gameProvider.displayCrash(e, mainText))) {
+							FabricGuiEntry.displayError(mainText, e, false);
+						}
+					}
+				} catch (Throwable e2) { // just in case
+					e.addSuppressed(e2);
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	protected static void finishMixinBootstrapping() {

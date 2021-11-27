@@ -45,6 +45,7 @@ import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
@@ -109,6 +110,16 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.ClientModInitializer");
 		launchClassLoader.addClassLoaderExclusion("net.fabricmc.api.DedicatedServerModInitializer");
 
+		try {
+			init();
+		} catch (FormattedException e) {
+			handleFormattedException(e);
+		}
+	}
+
+	private void init() {
+		setupUncaughtExceptionHandler();
+
 		GameProvider provider = new MinecraftGameProvider();
 
 		if (!provider.isEnabled()
@@ -138,9 +149,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 		} catch (RuntimeException e) {
-			if (!provider.onCrash(e, "A mod crashed on startup")) {
-				throw e;
-			}
+			throw new FormattedException("A mod crashed on startup!", e);
 		}
 	}
 
