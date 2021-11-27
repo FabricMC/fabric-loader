@@ -42,12 +42,15 @@ import net.fabricmc.loader.impl.transformer.FabricTransformer;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 final class KnotClassDelegate {
+	private static final boolean LOG_TRANSFORM_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS) != null;
+
 	static class Metadata {
 		static final Metadata EMPTY = new Metadata(null, null);
 
@@ -225,7 +228,10 @@ final class KnotClassDelegate {
 		try {
 			return getMixinTransformer().transformClassBytes(name, name, transformedClassArray);
 		} catch (Throwable t) {
-			throw new RuntimeException(String.format("Mixin transformation of %s failed", name), t);
+			String msg = String.format("Mixin transformation of %s failed", name);
+			if (LOG_TRANSFORM_ERRORS) Log.warn(LogCategory.KNOT, msg, t);
+
+			throw new RuntimeException(msg, t);
 		}
 	}
 
