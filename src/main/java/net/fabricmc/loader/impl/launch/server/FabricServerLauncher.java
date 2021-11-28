@@ -21,7 +21,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,7 +29,6 @@ import java.util.Properties;
 
 import net.fabricmc.loader.impl.launch.knot.KnotServer;
 import net.fabricmc.loader.impl.util.SystemProperties;
-import net.fabricmc.loader.impl.util.UrlUtil;
 
 public class FabricServerLauncher {
 	private static final ClassLoader parentLoader = FabricServerLauncher.class.getClassLoader();
@@ -61,14 +59,10 @@ public class FabricServerLauncher {
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to setup Fabric server environment!", e);
 			}
-		} else {
-			launch(mainClass, FabricServerLauncher.class.getClassLoader(), args);
 		}
-	}
 
-	private static void launch(String mainClass, ClassLoader loader, String[] args) {
 		try {
-			Class<?> c = loader.loadClass(mainClass);
+			Class<?> c = Class.forName(mainClass);
 			c.getMethod("main", String[].class).invoke(null, (Object) args);
 		} catch (Exception e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
@@ -90,14 +84,6 @@ public class FabricServerLauncher {
 			System.err.println();
 			System.err.println("Without the official Minecraft server .JAR, Fabric Loader cannot launch.");
 			throw new RuntimeException("Missing game jar at " + serverJar);
-		}
-
-		try {
-			URLClassLoader newClassLoader = new InjectingURLClassLoader(new URL[] { FabricServerLauncher.class.getProtectionDomain().getCodeSource().getLocation(), UrlUtil.asUrl(serverJar) }, parentLoader, "com.google.common.jimfs.");
-			Thread.currentThread().setContextClassLoader(newClassLoader);
-			launch(mainClass, newClassLoader, runArguments);
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
 		}
 	}
 

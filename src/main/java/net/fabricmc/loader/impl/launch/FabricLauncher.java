@@ -18,9 +18,8 @@ package net.fabricmc.loader.impl.launch;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.jar.Manifest;
 
 import net.fabricmc.api.EnvType;
@@ -60,5 +59,5 @@ public interface FabricLauncher {
 
 	String getTargetNamespace();
 
-	Collection<URL> getLoadTimeDependencies();
+	List<Path> getClassPath();
 }

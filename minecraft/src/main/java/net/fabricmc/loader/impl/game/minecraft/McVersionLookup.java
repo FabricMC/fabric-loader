@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,7 +65,7 @@ public final class McVersionLookup {
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
-	public static McVersion getVersion(Path gameJar, List<String> entrypointClasses, String versionName) {
+	public static McVersion getVersion(Path gameJar, String[] entrypointClasses, String versionName) {
 		McVersion.Builder builder = new McVersion.Builder();
 
 		if (versionName != null) {

@@ -23,10 +23,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
@@ -63,6 +64,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	private static final LogCategory LOG_CATEGORY = new LogCategory("GameProvider", "Tweaker");
 	protected Arguments arguments;
 	private LaunchClassLoader launchClassLoader;
+	private final List<Path> classPath = new ArrayList<>();
 	private boolean isDevelopment;
 
 	@SuppressWarnings("unchecked")
@@ -120,10 +122,20 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	private void init() {
 		setupUncaughtExceptionHandler();
 
+		classPath.clear();
+
+		for (URL url : launchClassLoader.getSources()) {
+			try {
+				classPath.add(UrlUtil.asPath(url));
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+			}
+		}
+
 		GameProvider provider = new MinecraftGameProvider();
 
 		if (!provider.isEnabled()
-				|| !provider.locateGame(this, arguments.toArray(), launchClassLoader)) {
+				|| !provider.locateGame(this, arguments.toArray())) {
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 
@@ -174,8 +186,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
-	public Collection<URL> getLoadTimeDependencies() {
-		return launchClassLoader.getSources();
+	public List<Path> getClassPath() {
+		return classPath;
 	}
 
 	@Override

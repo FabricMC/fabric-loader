@@ -18,7 +18,6 @@ package net.fabricmc.loader.impl.game;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -28,10 +27,11 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.jar.JarFile;
-import java.util.stream.Collectors;
+import java.util.zip.ZipFile;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
@@ -49,16 +49,6 @@ import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 public final class GameProviderHelper {
-	public static class EntrypointResult {
-		public final String entrypointName;
-		public final Path entrypointPath;
-
-		EntrypointResult(String entrypointName, Path entrypointPath) {
-			this.entrypointName = entrypointName;
-			this.entrypointPath = entrypointPath;
-		}
-	}
-
 	private GameProviderHelper() { }
 
 	public static Optional<Path> getSource(ClassLoader loader, String filename) {
@@ -99,22 +89,45 @@ public final class GameProviderHelper {
 		}
 	}
 
-	public static Optional<EntrypointResult> findFirstClass(ClassLoader loader, List<String> classNames) {
-		List<String> entrypointFilenames = classNames.stream()
-				.map(LoaderUtil::getClassFileName)
-				.collect(Collectors.toList());
+	public static FindResult findFirstClass(List<Path> paths, Map<Path, ZipFile> zipFiles, String... classNames) {
+		for (String className : classNames) {
+			String classFilename = LoaderUtil.getClassFileName(className);
 
-		for (int i = 0; i < entrypointFilenames.size(); i++) {
-			String className = classNames.get(i);
-			String classFilename = entrypointFilenames.get(i);
-			Optional<Path> classSourcePath = getSource(loader, classFilename);
+			for (Path path : paths) {
+				if (Files.isDirectory(path)) {
+					if (Files.exists(path.resolve(classFilename))) {
+						return new FindResult(className, path);
+					}
+				} else {
+					ZipFile zipFile = zipFiles.get(path);
 
-			if (classSourcePath.isPresent()) {
-				return Optional.of(new EntrypointResult(className, classSourcePath.get()));
+					if (zipFile == null) {
+						try {
+							zipFile = new ZipFile(path.toFile());
+							zipFiles.put(path, zipFile);
+						} catch (IOException e) {
+							throw new RuntimeException("Error reading "+path, e);
+						}
+					}
+
+					if (zipFile.getEntry(classFilename) != null) {
+						return new FindResult(className, path);
+					}
+				}
 			}
 		}
 
-		return Optional.empty();
+		return null;
+	}
+
+	public static final class FindResult {
+		public final String className;
+		public final Path path;
+
+		FindResult(String className, Path path) {
+			this.className = className;
+			this.path = path;
+		}
 	}
 
 	private static boolean emittedInfo = false;
@@ -202,22 +215,12 @@ public final class GameProviderHelper {
 
 		Set<Path> depPaths = new HashSet<>();
 
-		for (URL url : launcher.getLoadTimeDependencies()) {
-			try {
-				Path path = UrlUtil.asPath(url);
+		for (Path path : launcher.getClassPath()) {
+			if (!inputFiles.contains(path)) {
+				depPaths.add(path);
 
-				if (!Files.exists(path)) {
-					throw new RuntimeException("Path does not exist: " + path);
-				}
-
-				if (!inputFiles.contains(path)) {
-					depPaths.add(path);
-
-					Log.debug(LogCategory.GAME_REMAP, "Appending '%s' to remapper classpath", path);
-					remapper.readClassPathAsync(path);
-				}
-			} catch (URISyntaxException e) {
-				throw new RuntimeException("Failed to convert '" + url + "' to path!", e);
+				Log.debug(LogCategory.GAME_REMAP, "Appending '%s' to remapper classpath", path);
+				remapper.readClassPathAsync(path);
 			}
 		}
 
