@@ -205,9 +205,18 @@ public interface FabricLoader {
 	File getConfigDirectory();
 
 	/**
-	 * Gets the command line arguments used to launch the game. If this is printed for debugging, make sure {@code sanitize} is {@code true}.
-	 * @param sanitize Whether to remove sensitive information
-	 * @return the launch arguments
+	 * Gets the command line arguments used to launch the game.
+	 *
+	 * <p>The implementation will try to strip or obscure sensitive data like authentication tokens if {@code sanitize}
+	 * is set to true. Callers are highly encouraged to enable sanitization as compromising the information can easily
+	 * happen with logging, exceptions, serialization or other causes.
+	 *
+	 * <p>There is no guarantee that {@code sanitize} covers everything, so the launch arguments should still not be
+	 * logged or otherwise exposed routinely even if the parameter is set to {@code true}. In particular it won't
+	 * necessarily strip all information that can be used to identify the user.
+	 *
+	 * @param sanitize Whether to try to remove or obscure sensitive information
+	 * @return the launch arguments for the game
 	 */
 	String[] getLaunchArguments(boolean sanitize);
 }
