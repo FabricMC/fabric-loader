@@ -53,7 +53,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final String accessWidener;
 
 	// Optional (dependency resolution)
-	private final Collection<ModDependency> dependencies;
+	private Collection<ModDependency> dependencies;
 	// Happy little accidents
 	private final boolean hasRequires;
 
@@ -168,7 +168,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	@Override
 	public void setDependencies(Collection<ModDependency> dependencies) {
-		dependencies = Collections.unmodifiableCollection(dependencies);
+		this.dependencies = Collections.unmodifiableCollection(dependencies);
 	}
 
 	// General metadata

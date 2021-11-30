@@ -38,13 +38,11 @@ import net.fabricmc.loader.impl.metadata.NestedJarEntry;
 class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMetadata {
 	private final ModMetadata parent;
 	private Version version;
-	private final Collection<ModDependency> dependencies;
 
 	BuiltinMetadataWrapper(ModMetadata parent) {
 		this.parent = parent;
 
 		version = parent.getVersion();
-		dependencies = parent.getDependencies();
 	}
 
 	@Override
@@ -84,7 +82,7 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 
 	@Override
 	public void setDependencies(Collection<ModDependency> dependencies) {
-		dependencies = Collections.unmodifiableCollection(dependencies);
+		((LoaderModMetadata) parent).setDependencies(dependencies);
 	}
 
 	@Override
