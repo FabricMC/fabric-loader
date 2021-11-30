@@ -59,6 +59,7 @@ import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
 import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -200,6 +201,22 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		modCandidates = discoverer.discoverMods(this);
 
+		// apply version and dependency overrides
+
+		VersionOverrides versionOverrides = new VersionOverrides();
+		versionOverrides.apply(modCandidates);
+
+		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
+		depOverrides.apply(modCandidates);
+
+		if (!versionOverrides.getAffectedModIds().isEmpty()) {
+			Log.info(LogCategory.GENERAL, "Versions overridden for %s", String.join(", ", versionOverrides.getAffectedModIds()));
+		}
+
+		if (!depOverrides.getAffectedModIds().isEmpty()) {
+			Log.info(LogCategory.GENERAL, "Dependencies overridden for %s", String.join(", ", depOverrides.getAffectedModIds()));
+		}
+
 		// resolve mods
 
 		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType());
@@ -224,10 +241,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		int count = modCandidates.size();
 		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
-
-		if (DependencyOverrides.INSTANCE.getDependencyOverrides().size() > 0) {
-			Log.info(LogCategory.GENERAL, "Dependencies overridden for \"%s\"", String.join(", ", DependencyOverrides.INSTANCE.getDependencyOverrides()));
-		}
 
 		Path cacheDir = gameDir.resolve(CACHE_DIR_NAME);
 		Path outputdir = cacheDir.resolve(PROCESSED_MODS_DIR_NAME);

@@ -89,7 +89,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		this.jars = Collections.unmodifiableCollection(jars);
 		this.mixins = Collections.unmodifiableCollection(mixins);
 		this.accessWidener = accessWidener;
-		this.dependencies = Collections.unmodifiableCollection(DependencyOverrides.INSTANCE.apply(id, dependencies));
+		this.dependencies = Collections.unmodifiableCollection(dependencies);
 		this.hasRequires = hasRequires;
 		this.name = name;
 
@@ -164,6 +164,11 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	@Override
 	public Collection<ModDependency> getDependencies() {
 		return dependencies;
+	}
+
+	@Override
+	public void setDependencies(Collection<ModDependency> dependencies) {
+		dependencies = Collections.unmodifiableCollection(dependencies);
 	}
 
 	// General metadata

@@ -72,12 +72,13 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	}
 
 	protected static void handleFormattedException(FormattedException exc) {
-		Log.error(LogCategory.GENERAL, exc.getMainText(), exc.getCause());
+		Throwable actualExc = exc.getMessage() != null ? exc : exc.getCause();
+		Log.error(LogCategory.GENERAL, exc.getMainText(), actualExc);
 
 		GameProvider gameProvider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
 
-		if (gameProvider == null || !gameProvider.displayCrash(exc.getCause(), exc.getMainText())) {
-			FabricGuiEntry.displayError(exc.getMainText(), exc.getCause(), true);
+		if (gameProvider == null || !gameProvider.displayCrash(actualExc, exc.getMainText())) {
+			FabricGuiEntry.displayError(exc.getMainText(), actualExc, true);
 		} else {
 			System.exit(1);
 		}

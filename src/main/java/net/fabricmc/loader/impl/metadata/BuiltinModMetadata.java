@@ -66,7 +66,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		this.contact = contact;
 		this.license = Collections.unmodifiableCollection(license);
 		this.icons = icons;
-		this.dependencies = Collections.unmodifiableCollection(DependencyOverrides.INSTANCE.apply(id, dependencies));
+		this.dependencies = Collections.unmodifiableCollection(dependencies);
 	}
 
 	@Override
