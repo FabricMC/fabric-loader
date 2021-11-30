@@ -34,21 +34,18 @@ import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
+import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 
 public final class DependencyOverrides {
-	public static final DependencyOverrides INSTANCE = new DependencyOverrides();
-
-	private final boolean exists;
 	private final Map<String, List<Entry>> dependencyOverrides;
 
-	private DependencyOverrides() {
-		Path path = FabricLoaderImpl.INSTANCE.getConfigDir().resolve("fabric_loader_dependencies.json");
-		exists = Files.exists(path);
+	public DependencyOverrides(Path configDir) {
+		Path path = configDir.resolve("fabric_loader_dependencies.json").toAbsolutePath().normalize();
 
-		if (!exists) {
+		if (!Files.exists(path)) {
 			dependencyOverrides = Collections.emptyMap();
 			return;
 		}
@@ -56,7 +53,7 @@ public final class DependencyOverrides {
 		try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
 			dependencyOverrides = parse(reader);
 		} catch (IOException | ParseMetadataException e) {
-			throw new RuntimeException("Failed to parse " + path.toString(), e);
+			throw new FormattedException("Error parsing dependency overrides!", "Failed to parse " + path.toString(), e);
 		}
 	}
 
@@ -205,18 +202,24 @@ public final class DependencyOverrides {
 		return ret;
 	}
 
-	public Collection<ModDependency> apply(String modId, Collection<ModDependency> dependencies) {
-		if (!exists) return dependencies;
+	public void apply(Collection<ModCandidate> mods) {
+		if (dependencyOverrides.isEmpty()) return;
 
-		List<Entry> modOverrides = dependencyOverrides.get(modId);
-		if (modOverrides == null) return dependencies;
+		for (ModCandidate mod : mods) {
+			apply(mod.getMetadata());
+		}
+	}
 
-		List<ModDependency> ret = new ArrayList<>(dependencies);
+	private void apply(LoaderModMetadata metadata) {
+		List<Entry> modOverrides = dependencyOverrides.get(metadata.getId());
+		if (modOverrides == null) return;
+
+		List<ModDependency> deps = new ArrayList<>(metadata.getDependencies());
 
 		for (Entry entry : modOverrides) {
 			switch (entry.operation) {
 			case REPLACE:
-				for (Iterator<ModDependency> it = ret.iterator(); it.hasNext(); ) {
+				for (Iterator<ModDependency> it = deps.iterator(); it.hasNext(); ) {
 					ModDependency dep = it.next();
 
 					if (dep.getKind() == entry.kind) {
@@ -224,10 +227,10 @@ public final class DependencyOverrides {
 					}
 				}
 
-				ret.addAll(entry.values);
+				deps.addAll(entry.values);
 				break;
 			case REMOVE:
-				for (Iterator<ModDependency> it = ret.iterator(); it.hasNext(); ) {
+				for (Iterator<ModDependency> it = deps.iterator(); it.hasNext(); ) {
 					ModDependency dep = it.next();
 
 					if (dep.getKind() == entry.kind) {
@@ -242,15 +245,15 @@ public final class DependencyOverrides {
 
 				break;
 			case ADD:
-				ret.addAll(entry.values);
+				deps.addAll(entry.values);
 				break;
 			}
 		}
 
-		return ret;
+		metadata.setDependencies(deps);
 	}
 
-	public Collection<String> getDependencyOverrides() {
+	public Collection<String> getAffectedModIds() {
 		return dependencyOverrides.keySet();
 	}
 

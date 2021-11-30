@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.UnaryOperator;
 
+import net.fabricmc.loader.impl.FormattedException;
+
 public final class FabricStatusTree {
 	public enum FabricTreeWarningLevel {
 		ERROR,
@@ -393,8 +395,17 @@ public final class FabricStatusTree {
 		}
 
 		private FabricStatusNode addException(Throwable exception, StackTraceElement[] parentTrace) {
-			String msg = exception.getMessage();
-			String[] lines = (msg == null || msg.isEmpty() ? exception.toString() : msg).split("\n");
+			String msg;
+
+			if (exception instanceof FormattedException) {
+				msg = Objects.toString(exception.getMessage());
+			} else if (exception.getMessage() == null || exception.getMessage().isEmpty()) {
+				msg = exception.toString();
+			} else {
+				msg = String.format("%s: %s", exception.getClass().getSimpleName(), exception.getMessage());
+			}
+
+			String[] lines = msg.split("\n");
 
 			FabricStatusNode sub = new FabricStatusNode(this, lines[0]);
 			children.add(sub);
