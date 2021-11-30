@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.impl.game.minecraft;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -33,8 +32,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -77,6 +76,18 @@ public class MinecraftGameProvider implements GameProvider {
 	private static final String LOG4J_PLUGIN_CHECK_PATH = "com/mojang/util/QueueLogAppender.class";
 
 	private static final String[] ALLOWED_CLASS_PREFIXES = { "org.apache.logging.log4j.", "com.mojang.util." };
+
+	private static final Set<String> SENSITIVE_ARGS = new HashSet<>(Arrays.asList(
+			// all lowercase without --
+			"accesstoken",
+			"clientid",
+			"profileproperties",
+			"proxypass",
+			"proxyuser",
+			"username",
+			"userproperties",
+			"uuid",
+			"xuid"));
 
 	private EnvType envType;
 	private String entrypoint;
@@ -143,10 +154,10 @@ public class MinecraftGameProvider implements GameProvider {
 	@Override
 	public Path getLaunchDirectory() {
 		if (arguments == null) {
-			return new File(".").toPath();
+			return Paths.get(".");
 		}
 
-		return getLaunchDirectory(arguments).toPath();
+		return getLaunchDirectory(arguments);
 	}
 
 	@Override
@@ -438,7 +449,7 @@ public class MinecraftGameProvider implements GameProvider {
 			argMap.put("versionType", versionType + "Fabric");
 
 			if (!argMap.containsKey("gameDir")) {
-				argMap.put("gameDir", getLaunchDirectory(argMap).getAbsolutePath());
+				argMap.put("gameDir", getLaunchDirectory(argMap).toAbsolutePath().normalize().toString());
 			}
 
 			break;
@@ -450,8 +461,8 @@ public class MinecraftGameProvider implements GameProvider {
 		}
 	}
 
-	private static File getLaunchDirectory(Arguments argMap) {
-		return new File(argMap.getOrDefault("gameDir", "."));
+	private static Path getLaunchDirectory(Arguments argMap) {
+		return Paths.get(argMap.getOrDefault("gameDir", "."));
 	}
 
 	@Override
@@ -515,26 +526,27 @@ public class MinecraftGameProvider implements GameProvider {
 	@Override
 	public String[] getLaunchArguments(boolean sanitize) {
 		if (arguments == null) return new String[0];
-		if (!sanitize) return arguments.toArray();
 
-		List<String> list = new ArrayList<>(Arrays.asList(arguments.toArray()));
-		int remove = 0;
-		Iterator<String> iterator = list.iterator();
+		String[] ret = arguments.toArray();
+		if (!sanitize) return ret;
 
-		while (iterator.hasNext()) {
-			String next = iterator.next();
+		int writeIdx = 0;
 
-			if ("--accessToken".equals(next)) {
-				remove = 2;
-			}
+		for (int i = 0; i < ret.length; i++) {
+			String arg = ret[i];
 
-			if (remove > 0) {
-				iterator.remove();
-				remove--;
+			if (i + 1 < ret.length
+					&& arg.startsWith("--")
+					&& SENSITIVE_ARGS.contains(arg.substring(2).toLowerCase(Locale.ENGLISH))) {
+				i++; // skip value
+			} else {
+				ret[writeIdx++] = arg;
 			}
 		}
 
-		return list.toArray(new String[0]);
+		if (writeIdx < ret.length) ret = Arrays.copyOf(ret, writeIdx);
+
+		return ret;
 	}
 
 	@Override
