@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,7 @@ public final class ModDiscoverer {
 		candidateFinders.add(f);
 	}
 
-	public List<ModCandidate> discoverMods(FabricLoaderImpl loader) throws ModResolutionException {
+	public List<ModCandidate> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidate>> envDisabledModsOut) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
 		Set<Path> paths = new HashSet<>(); // suppresses duplicate paths
@@ -144,16 +145,23 @@ public final class ModDiscoverer {
 			throw exception;
 		}
 
-		// initialize parent data
+		// gather gather all mods (root+nested), initialize parent data
 
+		Set<ModCandidate> ret = Collections.newSetFromMap(new IdentityHashMap<>(candidates.size() * 2));
 		Queue<ModCandidate> queue = new ArrayDeque<>(candidates);
 		ModCandidate mod;
 
 		while ((mod = queue.poll()) != null) {
-			for (ModCandidate child : mod.getNestedMods()) {
-				if (child.addParent(mod)) {
-					queue.add(child);
+			if (mod.getMetadata().loadsInEnvironment(envType)) {
+				if (!ret.add(mod)) continue;
+
+				for (ModCandidate child : mod.getNestedMods()) {
+					if (child.addParent(mod)) {
+						queue.add(child);
+					}
 				}
+			} else {
+				envDisabledModsOut.computeIfAbsent(mod.getId(), ignore -> Collections.newSetFromMap(new IdentityHashMap<>())).add(mod);
 			}
 		}
 
@@ -161,7 +169,7 @@ public final class ModDiscoverer {
 
 		Log.debug(LogCategory.DISCOVERY, "Mod discovery time: %.1f ms", (endTime - startTime) * 1e-6);
 
-		return candidates;
+		return new ArrayList<>(ret);
 	}
 
 	@SuppressWarnings("serial")

@@ -199,7 +199,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
-		modCandidates = discoverer.discoverMods(this);
+		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
+		modCandidates = discoverer.discoverMods(this, envDisabledMods);
 
 		// apply version and dependency overrides
 
@@ -219,7 +220,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// resolve mods
 
-		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType());
+		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType(), envDisabledMods);
 
 		// dump mod list
 

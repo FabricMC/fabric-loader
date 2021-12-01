@@ -207,7 +207,6 @@ public final class DependencyOverrides {
 
 		for (ModCandidate mod : mods) {
 			apply(mod.getMetadata());
-			apply(mod.getNestedMods());
 		}
 	}
 
