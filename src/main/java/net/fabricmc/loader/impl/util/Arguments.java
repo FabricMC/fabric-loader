@@ -78,7 +78,7 @@ public final class Arguments {
 				String value = args.get(i + 1);
 
 				if (value.startsWith("--")) {
-					// Give arguments that have no value, and empty string.
+					// Give arguments that have no value an empty string.
 					value = "";
 				} else {
 					i += 1;
