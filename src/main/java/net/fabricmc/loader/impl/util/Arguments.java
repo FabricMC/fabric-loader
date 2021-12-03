@@ -75,7 +75,16 @@ public final class Arguments {
 			String arg = args.get(i);
 
 			if (arg.startsWith("--") && i < args.size() - 1) {
-				values.put(arg.substring(2), args.get(++i));
+				String value = args.get(i + 1);
+
+				if (value.startsWith("--")) {
+					// Give arguments that have no value an empty string.
+					value = "";
+				} else {
+					i += 1;
+				}
+
+				values.put(arg.substring(2), value);
 			} else {
 				extraArgs.add(arg);
 			}

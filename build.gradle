@@ -12,7 +12,7 @@ plugins {
 	id 'maven-publish'
 	id 'checkstyle'
 	id 'org.cadixdev.licenser' version '0.6.1'
-	id 'fabric-loom' version '0.9-SNAPSHOT' apply false
+	id 'fabric-loom' version '0.10-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
@@ -99,6 +99,10 @@ jar {
 	enabled = false
 	// Set the classifier to fix gradle task validation confusion.
 	archiveClassifier = "disabled"
+}
+
+test {
+	useJUnitPlatform()
 }
 
 shadowJar {

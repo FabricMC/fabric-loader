@@ -10,8 +10,8 @@ loom {
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:1.17.1"
-	mappings "net.fabricmc:yarn:1.17.1+build.31:v2"
+	minecraft "com.mojang:minecraft:1.18"
+	mappings "net.fabricmc:yarn:1.18+build.1:v2"
 
 	implementation project(":minecraft")
 
