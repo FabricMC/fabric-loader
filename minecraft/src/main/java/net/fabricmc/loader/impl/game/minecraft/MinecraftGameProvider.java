@@ -467,11 +467,12 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public void initialize(FabricLauncher launcher) {
-		List<Path> gameJars = new ArrayList<>(2);
-		gameJars.add(gameJar);
+		Map<String, Path> gameJars = new HashMap<>(2);
+		String name = envType.name().toLowerCase(Locale.ENGLISH);
+		gameJars.put(name, gameJar);
 
 		if (realmsJar != null) {
-			gameJars.add(realmsJar);
+			gameJars.put("realms", realmsJar);
 		}
 
 		if (isObfuscated()) {
@@ -480,8 +481,8 @@ public class MinecraftGameProvider implements GameProvider {
 					getLaunchDirectory(),
 					launcher);
 
-			gameJar = gameJars.get(0);
-			if (gameJars.size() > 1) realmsJar = gameJars.get(1);
+			gameJar = gameJars.get(name);
+			realmsJar = gameJars.get("realms");
 		}
 
 		if (useGameJarForLogging || !log4jJars.isEmpty()) {
