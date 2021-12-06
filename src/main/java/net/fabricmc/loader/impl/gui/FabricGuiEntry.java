@@ -27,11 +27,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 
-import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
-import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
@@ -113,15 +110,7 @@ public final class FabricGuiEntry {
 		GameProvider provider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
 
 		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
-			Version loaderVersion = getLoaderVersion();
-			String title;
-
-			if (loaderVersion == null) {
-				title = "Fabric Loader";
-			} else {
-				title = "Fabric Loader " + loaderVersion.getFriendlyString();
-			}
-
+			String title = "Fabric Loader " + FabricLoaderImpl.VERSION;
 			FabricStatusTree tree = new FabricStatusTree(title, mainText);
 			FabricStatusTab crashTab = tree.addTab("Crash");
 
@@ -146,15 +135,5 @@ public final class FabricGuiEntry {
 		if (exitAfter) {
 			System.exit(1);
 		}
-	}
-
-	private static Version getLoaderVersion() {
-		ModContainer mod = FabricLoaderImpl.INSTANCE.getModContainer(FabricLoaderImpl.MOD_ID).orElse(null);
-		if (mod != null) return mod.getMetadata().getVersion();
-
-		ModCandidate candidate = FabricLoaderImpl.INSTANCE.getModCandidate(FabricLoaderImpl.MOD_ID);
-		if (candidate != null) return candidate.getVersion();
-
-		return null;
 	}
 }
