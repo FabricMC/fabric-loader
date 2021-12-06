@@ -29,7 +29,8 @@ allprojects {
 	apply plugin: 'eclipse'
 	apply plugin: 'checkstyle'
 
-	version = version + (ENV.GITHUB_ACTIONS ? "" : "+local")
+	def constantsSource = rootProject.file("src/main/java/net/fabricmc/loader/impl/FabricLoaderImpl.java").text
+	version = (constantsSource =~ /\s+VERSION\s*=\s*"(.*)";/)[0][1] + (ENV.GITHUB_ACTIONS ? "" : "+local")
 
 	repositories {
 		maven {
