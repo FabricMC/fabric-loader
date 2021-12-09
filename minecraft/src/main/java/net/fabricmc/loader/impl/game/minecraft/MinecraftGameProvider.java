@@ -503,6 +503,8 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	private void setupLog4jLogHandler(FabricLauncher launcher, boolean useTargetCl) {
+		System.setProperty("log4j2.formatMsgNoLookups", "true"); // not used by mc, causes issues with older log4j2 versions
+
 		try {
 			final String logHandlerClsName = "net.fabricmc.loader.impl.game.minecraft.Log4jLogHandler";
 			Class<?> logHandlerCls;
