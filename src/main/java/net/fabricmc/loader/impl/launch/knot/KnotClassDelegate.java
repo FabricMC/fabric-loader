@@ -29,7 +29,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
 
@@ -71,6 +73,7 @@ final class KnotClassDelegate {
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
 	private final Map<URL, String[]> allowedPrefixes = new ConcurrentHashMap<>();
+	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
@@ -133,8 +136,23 @@ final class KnotClassDelegate {
 			}
 		}
 
+		if (!allowFromParent && !parentSourcedClasses.isEmpty()) {
+			int pos = name.length();
+
+			while ((pos = name.lastIndexOf('$', pos - 1)) > 0) {
+				if (parentSourcedClasses.contains(name.substring(0, pos))) {
+					allowFromParent = true;
+					break;
+				}
+			}
+		}
+
 		byte[] input = getPostMixinClassByteArray(name, allowFromParent);
 		if (input == null) return null;
+
+		if (allowFromParent) {
+			parentSourcedClasses.add(name);
+		}
 
 		KnotClassDelegate.Metadata metadata = getMetadata(name, itf.getResource(LoaderUtil.getClassFileName(name)));
 
