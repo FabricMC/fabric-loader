@@ -118,7 +118,7 @@ public final class Log4jLogHandler implements LogHandler {
 				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
 					if (evt.getPropertyName().equals("config")) {
-						removeJndiLookup();
+						removeSubstitutionLookups();
 					}
 				}
 			});
@@ -126,11 +126,11 @@ public final class Log4jLogHandler implements LogHandler {
 			Log.warn(LogCategory.GAME_PROVIDER, "Can't register Log4J2 PropertyChangeListener: %s", e);
 		}
 
-		removeJndiLookup();
+		removeSubstitutionLookups();
 	}
 
-	private static void removeJndiLookup() {
-		// strip the jndi lookup from the active org.apache.logging.log4j.core.lookup.Interpolator instance's lookups map
+	private static void removeSubstitutionLookups() {
+		// strip the jndi lookup and then all over lookups from the active org.apache.logging.log4j.core.lookup.Interpolator instance's lookups map
 
 		try {
 			LoggerContext context = LogManager.getContext(false);
@@ -146,16 +146,20 @@ public final class Log4jLogHandler implements LogHandler {
 					field.setAccessible(true);
 					@SuppressWarnings("unchecked")
 					Map<String, ?> map = (Map<String, ?>) field.get(varResolver);
-					removed = map.remove("jndi") != null;
-					if (removed) break;
+
+					if (map.remove("jndi") != null) {
+						map.clear();
+						removed = true;
+						break;
+					}
 				}
 			}
 
 			if (!removed) throw new RuntimeException("couldn't find JNDI lookup entry");
 
-			Log.debug(LogCategory.GAME_PROVIDER, "Removed Log4J2 JNDI Lookup");
+			Log.debug(LogCategory.GAME_PROVIDER, "Removed Log4J2 substitution lookups");
 		} catch (Exception e) {
-			Log.warn(LogCategory.GAME_PROVIDER, "Can't remove Log4J2 JNDI Lookup: %s", e);
+			Log.warn(LogCategory.GAME_PROVIDER, "Can't remove Log4J2 JNDI substitution Lookup: %s", e);
 		}
 	}
 }
