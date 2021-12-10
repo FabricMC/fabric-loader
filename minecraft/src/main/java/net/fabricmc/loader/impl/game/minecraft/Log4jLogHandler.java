@@ -80,7 +80,7 @@ public final class Log4jLogHandler implements LogHandler {
 		if (needsLookupRemoval()) {
 			patchJndi();
 		} else {
-			Log.debug(LogCategory.GAME_PROVIDER, "Log4J JNDI is unnecessary");
+			Log.debug(LogCategory.GAME_PROVIDER, "Log4J2 JNDI removal is unnecessary");
 		}
 	}
 
