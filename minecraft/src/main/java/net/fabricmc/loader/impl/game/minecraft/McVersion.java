@@ -20,7 +20,17 @@ import java.util.OptionalInt;
 
 public final class McVersion {
 	/**
+	 * The id from version.json, if available.
+	 */
+	private final String id;
+	/**
+	 * The name from version.json, if available.
+	 */
+	private final String name;
+	/**
 	 * The raw version, such as {@code 18w21a}.
+	 *
+	 * <p>This is derived from the version.json's id and name fields if available, otherwise through other sources.
 	 */
 	private final String raw;
 	/**
@@ -32,10 +42,20 @@ public final class McVersion {
 	private final String normalized;
 	private final OptionalInt classVersion;
 
-	private McVersion(String name, String release, OptionalInt classVersion) {
-		this.raw = name;
-		this.normalized = McVersionLookup.normalizeVersion(name, release);
+	private McVersion(String id, String name, String raw, String release, OptionalInt classVersion) {
+		this.id = id;
+		this.name = name;
+		this.raw = raw;
+		this.normalized = McVersionLookup.normalizeVersion(raw, release);
 		this.classVersion = classVersion;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	public String getRaw() {
@@ -52,17 +72,30 @@ public final class McVersion {
 
 	@Override
 	public String toString() {
-		return "McVersion{raw=" + this.raw + ", normalized=" + this.normalized + ", classVersion=" + this.classVersion + "}";
+		return String.format("McVersion{id=%s, name=%s, raw=%s, normalized=%s, classVersion=%s}",
+				id, name, raw, normalized, classVersion);
 	}
 
 	public static final class Builder {
-		private String name;
-		private String release;
+		private String id; // id as in version.json
+		private String name; // name as in version.json
+		private String version; // derived from version.json's id and name or other sources
+		private String release; // mc release (major.minor)
 		private OptionalInt classVersion = OptionalInt.empty();
 
 		// Setters
+		public Builder setId(String id) {
+			this.id = id;
+			return this;
+		}
+
 		public Builder setName(String name) {
 			this.name = name;
+			return this;
+		}
+
+		public Builder setVersion(String name) {
+			this.version = name;
 			return this;
 		}
 
@@ -78,9 +111,8 @@ public final class McVersion {
 
 		// Complex setters
 		public Builder setNameAndRelease(String name) {
-			return this
-				.setName(name)
-				.setRelease(McVersionLookup.getRelease(name));
+			return setVersion(name)
+					.setRelease(McVersionLookup.getRelease(name));
 		}
 
 		public Builder setFromFileName(String name) {
@@ -88,11 +120,11 @@ public final class McVersion {
 			int pos = name.lastIndexOf('.');
 			if (pos > 0) name = name.substring(0, pos);
 
-			return this.setNameAndRelease(name);
+			return setNameAndRelease(name);
 		}
 
 		public McVersion build() {
-			return new McVersion(this.name, this.release, this.classVersion);
+			return new McVersion(this.id, this.name, this.version, this.release, this.classVersion);
 		}
 	}
 }

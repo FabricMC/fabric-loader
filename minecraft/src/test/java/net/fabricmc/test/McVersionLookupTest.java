@@ -17,6 +17,8 @@
 package net.fabricmc.test;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,9 +28,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import net.fabricmc.loader.impl.game.minecraft.McVersion;
 import net.fabricmc.loader.impl.game.minecraft.McVersionLookup;
+import net.fabricmc.loader.impl.lib.gson.JsonReader;
 
 public final class McVersionLookupTest {
 	public static void main(String[] args) throws IOException {
@@ -68,8 +73,38 @@ public final class McVersionLookupTest {
 	}
 
 	private static void check(Path file, String name, List<String> invalid) {
+		String jsonId = null;
+		String jsonName = null;
+
+		try (ZipFile zf = new ZipFile(file.toFile())) {
+			ZipEntry entry = zf.getEntry("version.json");
+
+			if (entry != null) {
+				try (JsonReader reader = new JsonReader(new InputStreamReader(zf.getInputStream(entry), StandardCharsets.UTF_8))) {
+					reader.beginObject();
+
+					while (reader.hasNext()) {
+						switch (reader.nextName()) {
+						case "id":
+							jsonId = reader.nextString();
+							break;
+						case "name":
+							jsonName = reader.nextString();
+							break;
+						default:
+							reader.skipValue();
+						}
+					}
+
+					reader.endObject();
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 		McVersion result = McVersionLookup.getVersionExceptClassVersion(file);
-		String msg = String.format("%s: %s (%s)", name, result.getNormalized(), result.getRaw());
+		String msg = String.format("%s: %s (raw=%s id=%s name=%s)", name, result.getNormalized(), result.getRaw(), jsonId, jsonName);
 		System.out.println(msg);
 
 		if (!pattern.matcher(result.getNormalized()).matches()) {
@@ -86,6 +121,5 @@ public final class McVersionLookupTest {
 			+ "\\.(0|[1-9]\\d*)" // alpha major or pre-release major
 			+ "(\\.(0|[1-9]\\d*))?" // alpha minor or pre-release minor
 			+ "(\\.([1-9]\\d*|[a-z]))?" // alpha patch or pre-release suffix
-			+ ")?"
-	);
+			+ ")?");
 }
