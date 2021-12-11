@@ -20,6 +20,12 @@ package net.fabricmc.loader.impl;
 public final class FormattedException extends RuntimeException {
 	private final String mainText;
 
+	public FormattedException(String mainText, String message) {
+		super(message);
+
+		this.mainText = mainText;
+	}
+
 	public FormattedException(String mainText, String message, Throwable cause) {
 		super(message, cause);
 
