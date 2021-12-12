@@ -90,14 +90,14 @@ public final class GameProviderHelper {
 		}
 	}
 
-	public static FindResult findFirstClass(List<Path> paths, Map<Path, ZipFile> zipFiles, String... classNames) {
-		for (String className : classNames) {
-			String classFilename = LoaderUtil.getClassFileName(className);
+	public static FindResult findFirst(List<Path> paths, Map<Path, ZipFile> zipFiles, boolean isClassName, String... names) {
+		for (String name : names) {
+			String file = isClassName ? LoaderUtil.getClassFileName(name) : name;
 
 			for (Path path : paths) {
 				if (Files.isDirectory(path)) {
-					if (Files.exists(path.resolve(classFilename))) {
-						return new FindResult(className, path);
+					if (Files.exists(path.resolve(file))) {
+						return new FindResult(name, path);
 					}
 				} else {
 					ZipFile zipFile = zipFiles.get(path);
@@ -111,8 +111,8 @@ public final class GameProviderHelper {
 						}
 					}
 
-					if (zipFile.getEntry(classFilename) != null) {
-						return new FindResult(className, path);
+					if (zipFile.getEntry(file) != null) {
+						return new FindResult(name, path);
 					}
 				}
 			}
@@ -122,11 +122,11 @@ public final class GameProviderHelper {
 	}
 
 	public static final class FindResult {
-		public final String className;
+		public final String name;
 		public final Path path;
 
-		FindResult(String className, Path path) {
-			this.className = className;
+		FindResult(String name, Path path) {
+			this.name = name;
 			this.path = path;
 		}
 	}
