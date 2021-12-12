@@ -186,33 +186,36 @@ public class MinecraftGameProvider implements GameProvider {
 
 		try {
 			String gameJarProperty = System.getProperty(SystemProperties.GAME_JAR_PATH);
-			GameProviderHelper.FindResult result;
+			List<Path> lookupPaths;
 
 			if (gameJarProperty != null) {
-				Path path = Paths.get(gameJarProperty);
-				if (!Files.exists(path)) throw new RuntimeException("Game jar configured through "+SystemProperties.GAME_JAR_PATH+" system property doesn't exist");
+				Path path = Paths.get(gameJarProperty).toAbsolutePath().normalize();
+				if (!Files.exists(path)) throw new RuntimeException("Game jar "+path+" configured through "+SystemProperties.GAME_JAR_PATH+" system property doesn't exist");
 
-				result = GameProviderHelper.findFirstClass(Collections.singletonList(path), zipFiles, entrypointClasses);
+				lookupPaths = new ArrayList<>();
+				lookupPaths.add(path);
+				lookupPaths.addAll(launcher.getClassPath());
 			} else {
-				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, entrypointClasses);
+				lookupPaths = launcher.getClassPath();
 			}
 
+			GameProviderHelper.FindResult result = GameProviderHelper.findFirst(lookupPaths, zipFiles, true, entrypointClasses);
 			if (result == null) return false;
 
-			if (result.className.equals(BUNDLER_ENTRYPOINT)) {
+			if (result.name.equals(BUNDLER_ENTRYPOINT)) {
 				processBundlerJar(result.path);
 			} else {
-				entrypoint = result.className;
+				entrypoint = result.name;
 				gameJar = result.path;
 
-				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, REALMS_CHECK_PATH);
+				result = GameProviderHelper.findFirst(lookupPaths, zipFiles, false, REALMS_CHECK_PATH);
 				realmsJar = result != null && !result.path.equals(gameJar) ? result.path : null;
 
-				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, LOG4J_API_CHECK_PATH);
+				result = GameProviderHelper.findFirst(lookupPaths, zipFiles, false, LOG4J_API_CHECK_PATH);
 				useGameJarForLogging = result != null && gameJar.equals(result.path)
 						|| Knot.class.getClassLoader().getResource(LOG4J_CONFIG_CHECK_PATH) == null;
 
-				result = GameProviderHelper.findFirstClass(launcher.getClassPath(), zipFiles, "ModLoader.class");
+				result = GameProviderHelper.findFirst(lookupPaths, zipFiles, true, "ModLoader");
 				hasModLoader = result != null;
 			}
 		} finally {
@@ -507,15 +510,18 @@ public class MinecraftGameProvider implements GameProvider {
 
 		try {
 			final String logHandlerClsName = "net.fabricmc.loader.impl.game.minecraft.Log4jLogHandler";
+			ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
 			Class<?> logHandlerCls;
 
 			if (useTargetCl) {
+				Thread.currentThread().setContextClassLoader(launcher.getTargetClassLoader());
 				logHandlerCls = launcher.loadIntoTarget(logHandlerClsName);
 			} else {
 				logHandlerCls = Class.forName(logHandlerClsName);
 			}
 
 			Log.init((LogHandler) logHandlerCls.getConstructor().newInstance(), true);
+			Thread.currentThread().setContextClassLoader(prevCl);
 		} catch (ReflectiveOperationException e) {
 			throw new RuntimeException(e);
 		}

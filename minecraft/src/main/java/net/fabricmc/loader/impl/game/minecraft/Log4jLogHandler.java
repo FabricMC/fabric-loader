@@ -123,7 +123,7 @@ public final class Log4jLogHandler implements LogHandler {
 				}
 			});
 		} catch (Exception e) {
-			Log.warn(LogCategory.GAME_PROVIDER, "Can't register Log4J2 PropertyChangeListener: %s", e);
+			Log.warn(LogCategory.GAME_PROVIDER, "Can't register Log4J2 PropertyChangeListener: %s", e.toString());
 		}
 
 		removeSubstitutionLookups();
@@ -134,6 +134,8 @@ public final class Log4jLogHandler implements LogHandler {
 
 		try {
 			LoggerContext context = LogManager.getContext(false);
+			if (context.getClass().getName().equals("org.apache.logging.log4j.simple.SimpleLoggerContext")) return; // -> no log4j core
+
 			Object config = context.getClass().getMethod("getConfiguration").invoke(context);
 			Object substitutor = config.getClass().getMethod("getStrSubstitutor").invoke(config);
 			Object varResolver = substitutor.getClass().getMethod("getVariableResolver").invoke(substitutor);
@@ -159,7 +161,7 @@ public final class Log4jLogHandler implements LogHandler {
 
 			Log.debug(LogCategory.GAME_PROVIDER, "Removed Log4J2 substitution lookups");
 		} catch (Exception e) {
-			Log.warn(LogCategory.GAME_PROVIDER, "Can't remove Log4J2 JNDI substitution Lookup: %s", e);
+			Log.warn(LogCategory.GAME_PROVIDER, "Can't remove Log4J2 JNDI substitution Lookup: %s", e.toString());
 		}
 	}
 }
