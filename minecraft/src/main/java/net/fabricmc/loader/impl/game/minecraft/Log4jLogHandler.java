@@ -103,7 +103,7 @@ public final class Log4jLogHandler implements LogHandler {
 		if (version == null) return true;
 
 		try {
-			return Version.parse(version).compareTo(Version.parse("2.10")) < 0; // 2.10+ supports the log4j2.formatMsgNoLookups system property or doesn't lookup by default
+			return Version.parse(version).compareTo(Version.parse("2.16")) < 0; // 2.15+ doesn't lookup by default, but we patch anything up to 2.16 just in case
 		} catch (VersionParsingException e) {
 			Log.warn(LogCategory.GAME_PROVIDER, "Can't parse Log4J2 Manifest version %s", version, e);
 			return true;
