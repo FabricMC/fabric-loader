@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl.metadata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -47,6 +48,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final Collection<String> license;
 	private final NavigableMap<Integer, String> icons;
 	private final Collection<ModDependency> dependencies;
+	private final Map<String, CustomValue> customValues;
 
 	private BuiltinModMetadata(String id, Version version,
 			ModEnvironment environment,
@@ -55,7 +57,8 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			ContactInformation contact,
 			Collection<String> license,
 			NavigableMap<Integer, String> icons,
-			Collection<ModDependency> dependencies) {
+			Collection<ModDependency> dependencies,
+			Map<String, CustomValue> customValues) {
 		this.id = id;
 		this.version = version;
 		this.environment = environment;
@@ -67,6 +70,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		this.license = Collections.unmodifiableCollection(license);
 		this.icons = icons;
 		this.dependencies = Collections.unmodifiableCollection(dependencies);
+		this.customValues = Collections.unmodifiableMap(customValues);
 	}
 
 	@Override
@@ -142,17 +146,17 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 
 	@Override
 	public boolean containsCustomValue(String key) {
-		return false;
+		return customValues.containsKey(key);
 	}
 
 	@Override
 	public CustomValue getCustomValue(String key) {
-		return null;
+		return customValues.get(key);
 	}
 
 	@Override
 	public Map<String, CustomValue> getCustomValues() {
-		return Collections.emptyMap();
+		return customValues;
 	}
 
 	public static class Builder {
@@ -167,6 +171,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 		private final Collection<String> license = new ArrayList<>();
 		private final NavigableMap<Integer, String> icons = new TreeMap<>();
 		private final Collection<ModDependency> dependencies = new ArrayList<>();
+		private final Map<String, CustomValue> customValues = new HashMap<>();
 
 		public Builder(String id, String version) {
 			this.name = this.id = id;
@@ -222,9 +227,14 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			this.dependencies.add(dependency);
 			return this;
 		}
+		
+		public Builder addCustomValue(String key, CustomValue customValue) {
+			this.customValues.put(key, customValue);
+			return this;
+		}
 
 		public ModMetadata build() {
-			return new BuiltinModMetadata(id, version, environment, name, description, authors, contributors, contact, license, icons, dependencies);
+			return new BuiltinModMetadata(id, version, environment, name, description, authors, contributors, contact, license, icons, dependencies, customValues);
 		}
 
 		private static Person createPerson(String name, Map<String, String> contactMap) {
