@@ -139,7 +139,7 @@ public class MinecraftGameProvider implements GameProvider {
 			}
 		}
 
-		return Collections.singletonList(new BuiltinMod(gameJar, metadata.build()));
+		return Collections.singletonList(new BuiltinMod(Collections.singletonList(gameJar), metadata.build()));
 	}
 
 	public Path getGameJar() {

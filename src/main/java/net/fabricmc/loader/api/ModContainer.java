@@ -16,8 +16,10 @@
 
 package net.fabricmc.loader.api;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import net.fabricmc.loader.api.metadata.ModMetadata;
@@ -32,24 +34,14 @@ public interface ModContainer {
 	ModMetadata getMetadata();
 
 	/**
-	 * Returns the root directory of the mod.
+	 * Returns the root directories of the mod.
 	 *
-	 * @return the root directory
-	 * @deprecated use {@link #getRootPath()} instead
+	 * <p>The paths may point to regular folders or into mod JARs. Multiple root paths may occur in development
+	 * environments with {@code -Dfabric.classPathGroups} as used in multi-project mod setups.
+	 *
+	 * @return the root directories of the mod, at least one
 	 */
-	@Deprecated
-	default Path getRoot() {
-		return getRootPath();
-	}
-
-	/**
-	 * Returns the root directory of the mod.
-	 *
-	 * <p>It may be the root directory of the mod JAR or the folder of the mod.</p>
-	 *
-	 * @return the root directory of the mod
-	 */
-	Path getRootPath();
+	List<Path> getRootPaths();
 
 	/**
 	 * Gets an NIO reference to a file inside the JAR.
@@ -60,8 +52,16 @@ public interface ModContainer {
 	 * @return the path to a given file
 	 */
 	default Path getPath(String file) {
-		Path root = getRootPath();
-		return root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
+		Path ret = null;
+
+		for (Path root : getRootPaths()) {
+			Path path = root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
+			if (Files.exists(path)) return path;
+
+			if (ret == null) ret = path;
+		}
+
+		return ret;
 	}
 
 	/**
@@ -77,4 +77,20 @@ public interface ModContainer {
 	 * @return active contained mods within this mod's jar
 	 */
 	Collection<ModContainer> getContainedMods();
+
+	// deprecated methods
+
+	/**
+	 * @deprecated use {@link #getRootPaths()} instead
+	 */
+	@Deprecated
+	default Path getRoot() {
+		return getRootPath();
+	}
+
+	/**
+	 * @deprecated use {@link #getRootPaths()} instead
+	 */
+	@Deprecated
+	Path getRootPath();
 }

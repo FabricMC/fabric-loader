@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -48,7 +49,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		}
 	};
 
-	private Path path;
+	private List<Path> paths;
 	private final String localPath;
 	private final long hash;
 	private final LoaderModMetadata metadata;
@@ -59,11 +60,11 @@ public final class ModCandidate implements DomainObject.Mod {
 	private SoftReference<ByteBuffer> dataRef;
 
 	static ModCandidate createBuiltin(BuiltinMod mod) {
-		return new ModCandidate(mod.path, null, -1, new BuiltinMetadataWrapper(mod.metadata), false, Collections.emptyList());
+		return new ModCandidate(mod.paths, null, -1, new BuiltinMetadataWrapper(mod.metadata), false, Collections.emptyList());
 	}
 
-	static ModCandidate createPlain(Path path, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
-		return new ModCandidate(path, null, -1, metadata, requiresRemap, nestedMods);
+	static ModCandidate createPlain(List<Path> paths, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
+		return new ModCandidate(paths, null, -1, metadata, requiresRemap, nestedMods);
 	}
 
 	static ModCandidate createNested(String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
@@ -80,36 +81,42 @@ public final class ModCandidate implements DomainObject.Mod {
 		return hash & 0xffffffffL;
 	}
 
-	private ModCandidate(Path path, String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
-		this.path = path;
+	private ModCandidate(List<Path> paths, String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
+		this.paths = paths;
 		this.localPath = localPath;
 		this.metadata = metadata;
 		this.hash = hash;
 		this.requiresRemap = requiresRemap;
 		this.nestedMods = nestedMods;
-		this.parentMods = path == null ? new ArrayList<>() : Collections.emptyList();
-		this.minNestLevel = path != null ? 0 : Integer.MAX_VALUE;
+		this.parentMods = paths == null ? new ArrayList<>() : Collections.emptyList();
+		this.minNestLevel = paths != null ? 0 : Integer.MAX_VALUE;
 	}
 
 	public boolean hasPath() {
-		return path != null;
+		return paths != null;
 	}
 
-	public Path getPath() {
-		if (path == null) throw new IllegalStateException("no path set");
+	public List<Path> getPaths() {
+		if (paths == null) throw new IllegalStateException("no path set");
 
-		return path;
+		return paths;
 	}
 
-	public void setPath(Path path) {
-		if (path == null) throw new NullPointerException("null path");
+	public void setPaths(List<Path> paths) {
+		if (paths == null) throw new NullPointerException("null paths");
 
-		this.path = path;
+		this.paths = paths;
 		clearCachedData();
 	}
 
 	String getLocalPath() {
-		return localPath != null ? localPath : path.toString();
+		if (localPath != null) {
+			return localPath;
+		} else if (paths.size() == 1) {
+			return paths.get(0).toString();
+		} else {
+			return paths.toString();
+		}
 	}
 
 	public LoaderModMetadata getMetadata() {
@@ -263,15 +270,20 @@ public final class ModCandidate implements DomainObject.Mod {
 			}
 		}
 
-		if (path != null) {
-			Files.copy(path, out);
+		if (paths != null) {
+			if (paths.size() != 1) throw new UnsupportedOperationException("multiple paths for "+this);
+
+			Files.copy(paths.get(0), out);
+
 			return;
 		}
 
 		ModCandidate parent = getBestSourcingParent();
 
-		if (parent.path != null) {
-			try (ZipFile zf = new ZipFile(parent.path.toFile())) {
+		if (parent.paths != null) {
+			if (parent.paths.size() != 1) throw new UnsupportedOperationException("multiple parent paths for "+this);
+
+			try (ZipFile zf = new ZipFile(parent.paths.get(0).toFile())) {
 				ZipEntry entry = zf.getEntry(localPath);
 				if (entry == null) throw new IOException(String.format("can't find nested mod %s in its parent mod %s", this, parent));
 
@@ -305,13 +317,17 @@ public final class ModCandidate implements DomainObject.Mod {
 
 		ByteBuffer ret;
 
-		if (path != null) {
-			ret = ByteBuffer.wrap(Files.readAllBytes(path));
+		if (paths != null) {
+			if (paths.size() != 1) throw new UnsupportedOperationException("multiple paths for "+this);
+
+			ret = ByteBuffer.wrap(Files.readAllBytes(paths.get(0)));
 		} else {
 			ModCandidate parent = getBestSourcingParent();
 
-			if (parent.path != null) {
-				try (ZipFile zf = new ZipFile(parent.path.toFile())) {
+			if (parent.paths != null) {
+				if (parent.paths.size() != 1) throw new UnsupportedOperationException("multiple parent paths for "+this);
+
+				try (ZipFile zf = new ZipFile(parent.paths.get(0).toFile())) {
 					ZipEntry entry = zf.getEntry(localPath);
 					if (entry == null) throw new IOException(String.format("can't find nested mod %s in its parent mod %s", this, parent));
 
@@ -349,7 +365,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		for (ModCandidate parent : parentMods) {
 			if (parent.minNestLevel >= minNestLevel) continue;
 
-			if (parent.path != null
+			if (parent.paths != null && parent.paths.size() == 1
 					|| parent.dataRef != null && parent.dataRef.get() != null) {
 				return parent;
 			}

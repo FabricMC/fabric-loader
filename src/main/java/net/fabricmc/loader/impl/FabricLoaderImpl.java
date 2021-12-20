@@ -284,7 +284,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		for (ModCandidate mod : modCandidates) {
 			if (!mod.hasPath() && !mod.isBuiltin()) {
 				try {
-					mod.setPath(mod.copyToDir(outputdir, false));
+					mod.setPaths(Collections.singletonList(mod.copyToDir(outputdir, false)));
 				} catch (IOException e) {
 					throw new RuntimeException("Error extracting mod "+mod, e);
 				}
@@ -300,8 +300,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainerImpl mod : mods) {
-			if (!mod.getMetadata().getId().equals(MOD_ID) && !mod.getInfo().getType().equals("builtin")) {
-				FabricLauncherBase.getLauncher().addToClassPath(mod.getOriginPath());
+			if (!mod.getMetadata().getId().equals(MOD_ID) && !mod.getMetadata().getType().equals("builtin")) {
+				for (Path path : mod.getOriginPaths()) {
+					FabricLauncherBase.getLauncher().addToClassPath(path);
+				}
 			}
 		}
 
@@ -314,12 +316,14 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			Set<Path> knownModPaths = new HashSet<>();
 
 			for (ModContainerImpl mod : mods) {
-				knownModPaths.add(mod.getOriginPath().toAbsolutePath().normalize());
+				for (Path path : mod.getOriginPaths()) {
+					knownModPaths.add(path.toAbsolutePath().normalize());
+				}
 			}
 
 			// suppress fabric loader explicitly in case its fabric.mod.json is in a different folder from the classes
 			Path fabricLoaderPath = ClasspathModCandidateFinder.getFabricLoaderPath();
-			if (fabricLoaderPath != null) knownModPaths.add(fabricLoaderPath);
+			if (fabricLoaderPath != null) knownModPaths.add(fabricLoaderPath.toAbsolutePath().normalize());
 
 			for (String pathName : System.getProperty("java.class.path", "").split(File.pathSeparator)) {
 				if (pathName.isEmpty() || pathName.endsWith("*")) continue;
@@ -457,7 +461,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 					}
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getInfo().getName(), mod.getOriginPath()), e);
+				throw new RuntimeException(String.format("Failed to setup mod %s %s", mod.getInfo().getName(), mod.getOriginPaths()), e);
 			}
 		}
 	}
