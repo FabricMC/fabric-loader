@@ -58,7 +58,7 @@ public class ArgumentModCandidateFinder implements ModCandidateFinder {
 				Path path = Paths.get(pathStr.substring(1));
 
 				if (!Files.isRegularFile(path)) {
-					Log.warn(LogCategory.DISCOVERY, "Missing/invalid %s provided mod list file %s", source, path);
+					Log.warn(LogCategory.DISCOVERY, "Skipping missing/invalid %s provided mod list file %s", source, path);
 					continue;
 				}
 
@@ -85,7 +85,7 @@ public class ArgumentModCandidateFinder implements ModCandidateFinder {
 		Path path = Paths.get(pathStr).toAbsolutePath().normalize();
 
 		if (!Files.exists(path)) { // missing
-			Log.warn(LogCategory.DISCOVERY, "Missing %s provided mod path %s", source, path);
+			Log.warn(LogCategory.DISCOVERY, "Skipping missing %s provided mod path %s", source, path);
 		} else if (Files.isDirectory(path)) { // directory for extracted mod (in-dev usually) or jars (like mods, but recursive)
 			if (isHidden(path)) {
 				Log.warn(LogCategory.DISCOVERY, "Ignoring hidden %s provided mod path %s", source, path);

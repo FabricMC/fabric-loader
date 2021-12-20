@@ -16,12 +16,23 @@
 
 package net.fabricmc.loader.impl.discovery;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -31,15 +42,26 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 	@Override
 	public void findCandidates(ModCandidateConsumer out) {
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+			Map<Path, List<Path>> pathGroups = getPathGroups();
+
 			// Search for URLs which point to 'fabric.mod.json' entries, to be considered as mods.
 			try {
 				Enumeration<URL> mods = FabricLauncherBase.getLauncher().getTargetClassLoader().getResources("fabric.mod.json");
 
 				while (mods.hasMoreElements()) {
+					URL url = mods.nextElement();
+
 					try {
-						out.accept(UrlUtil.getSourcePath("fabric.mod.json", mods.nextElement()), false);
+						Path path = UrlUtil.getSourcePath("fabric.mod.json", url).toAbsolutePath().normalize();
+						List<Path> paths = pathGroups.get(path);
+
+						if (paths == null) {
+							out.accept(path, false);
+						} else {
+							out.accept(paths, false);
+						}
 					} catch (UrlConversionException e) {
-						Log.debug(LogCategory.DISCOVERY, "Error determining location for fabric.mod.json", e);
+						Log.debug(LogCategory.DISCOVERY, "Error determining location for fabric.mod.json from %s", url, e);
 					}
 				}
 			} catch (IOException e) {
@@ -52,6 +74,48 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 				Log.debug(LogCategory.DISCOVERY, "Could not retrieve launcher code source!", t);
 			}
 		}
+	}
+
+	/**
+	 * Parse fabric.classPathGroups system property into a path group lookup map.
+	 *
+	 * <p>This transforms {@code a:b::c:d:e} into {@code a=[a,b],b=[a,b],c=[c,d,e],d=[c,d,e],e=[c,d,e]}
+	 */
+	private static Map<Path, List<Path>> getPathGroups() {
+		String prop = System.getProperty(SystemProperties.PATH_GROUPS);
+		if (prop == null) return Collections.emptyMap();
+
+		Map<Path, List<Path>> ret = new HashMap<>();
+
+		for (String group : prop.split(File.pathSeparator+File.pathSeparator)) {
+			Set<Path> paths = new LinkedHashSet<>();
+
+			for (String path : group.split(File.pathSeparator)) {
+				if (path.isEmpty()) continue;
+
+				Path resolvedPath = Paths.get(path).toAbsolutePath().normalize();
+
+				if (!Files.exists(resolvedPath)) {
+					Log.warn(LogCategory.DISCOVERY, "Skipping missing class path group entry %s", path);
+					continue;
+				}
+
+				paths.add(resolvedPath);
+			}
+
+			if (paths.size() < 2) {
+				Log.warn(LogCategory.DISCOVERY, "Skipping class path group with no effect: %s", group);
+				continue;
+			}
+
+			List<Path> pathList = new ArrayList<>(paths);
+
+			for (Path path : pathList) {
+				ret.put(path, pathList);
+			}
+		}
+
+		return ret;
 	}
 
 	public static Path getFabricLoaderPath() {

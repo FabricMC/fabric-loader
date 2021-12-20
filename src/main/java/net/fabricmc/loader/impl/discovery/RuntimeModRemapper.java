@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +85,10 @@ public final class RuntimeModRemapper {
 				info.tag = tag;
 
 				if (mod.hasPath()) {
-					info.inputPath = mod.getPath();
+					List<Path> paths = mod.getPaths();
+					if (paths.size() != 1) throw new UnsupportedOperationException("multiple path for "+mod);
+
+					info.inputPath = paths.get(0);
 				} else {
 					info.inputPath = mod.copyToDir(tmpDir, true);
 					info.inputIsTemp = true;
@@ -147,7 +151,7 @@ public final class RuntimeModRemapper {
 					}
 				}
 
-				mod.setPath(info.outputPath);
+				mod.setPaths(Collections.singletonList(info.outputPath));
 			}
 		} catch (Throwable t) {
 			remapper.finish();
