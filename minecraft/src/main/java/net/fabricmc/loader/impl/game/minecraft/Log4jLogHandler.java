@@ -118,7 +118,7 @@ public final class Log4jLogHandler implements LogHandler {
 				@Override
 				public void propertyChange(PropertyChangeEvent evt) {
 					if (evt.getPropertyName().equals("config")) {
-						removeSubstitutionLookups();
+						removeSubstitutionLookups(true);
 					}
 				}
 			});
@@ -126,10 +126,10 @@ public final class Log4jLogHandler implements LogHandler {
 			Log.warn(LogCategory.GAME_PROVIDER, "Can't register Log4J2 PropertyChangeListener: %s", e.toString());
 		}
 
-		removeSubstitutionLookups();
+		removeSubstitutionLookups(false);
 	}
 
-	private static void removeSubstitutionLookups() {
+	private static void removeSubstitutionLookups(boolean ignoreMissing) {
 		// strip the jndi lookup and then all over lookups from the active org.apache.logging.log4j.core.lookup.Interpolator instance's lookups map
 
 		try {
@@ -157,7 +157,10 @@ public final class Log4jLogHandler implements LogHandler {
 				}
 			}
 
-			if (!removed) throw new RuntimeException("couldn't find JNDI lookup entry");
+			if (!removed) {
+				if (ignoreMissing) return;
+				throw new RuntimeException("couldn't find JNDI lookup entry");
+			}
 
 			Log.debug(LogCategory.GAME_PROVIDER, "Removed Log4J2 substitution lookups");
 		} catch (Exception e) {
