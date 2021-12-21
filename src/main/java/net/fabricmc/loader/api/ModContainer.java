@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.ModOrigin;
 
 /**
  * Represents a mod.
@@ -65,6 +66,21 @@ public interface ModContainer {
 
 		return Optional.empty();
 	}
+
+	/**
+	 * Gets where the mod was loaded from originally, the mod jar/folder itself.
+	 *
+	 * <p>This location is not necessarily identical to the code source used at runtime, a mod may get copied or
+	 * otherwise transformed before being put on the class path. It thus mostly represents the installation and initial
+	 * loading, not what is being directly accessed at runtime.
+	 *
+	 * <p>The mod origin is provided for working with the installation like telling the user where a mod has been
+	 * installed at. Accessing the files inside a mod jar/folder should use {@link #findPath} and {@link #getRootPaths}
+	 * instead. Those also abstract jar accesses through the virtual {@code ZipFileSystem} away.
+	 *
+	 * @return mod origin
+	 */
+	ModOrigin getOrigin();
 
 	/**
 	 * Get the mod containing this mod (nested jar parent).

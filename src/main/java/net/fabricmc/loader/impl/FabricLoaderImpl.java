@@ -301,7 +301,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		// TODO: This can probably be made safer, but that's a long-term goal
 		for (ModContainerImpl mod : mods) {
 			if (!mod.getMetadata().getId().equals(MOD_ID) && !mod.getMetadata().getType().equals("builtin")) {
-				for (Path path : mod.getOriginPaths()) {
+				for (Path path : mod.getCodeSourcePaths()) {
 					FabricLauncherBase.getLauncher().addToClassPath(path);
 				}
 			}
@@ -316,7 +316,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			Set<Path> knownModPaths = new HashSet<>();
 
 			for (ModContainerImpl mod : mods) {
-				for (Path path : mod.getOriginPaths()) {
+				for (Path path : mod.getCodeSourcePaths()) {
 					knownModPaths.add(path.toAbsolutePath().normalize());
 				}
 			}
@@ -461,7 +461,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 					}
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(String.format("Failed to setup mod %s %s", mod.getInfo().getName(), mod.getOriginPaths()), e);
+				throw new RuntimeException(String.format("Failed to setup mod %s (%s)", mod.getInfo().getName(), mod.getOrigin()), e);
 			}
 		}
 	}

@@ -49,6 +49,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		}
 	};
 
+	private final List<Path> originPaths;
 	private List<Path> paths;
 	private final String localPath;
 	private final long hash;
@@ -82,6 +83,7 @@ public final class ModCandidate implements DomainObject.Mod {
 	}
 
 	private ModCandidate(List<Path> paths, String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
+		this.originPaths = paths;
 		this.paths = paths;
 		this.localPath = localPath;
 		this.metadata = metadata;
@@ -90,6 +92,10 @@ public final class ModCandidate implements DomainObject.Mod {
 		this.nestedMods = nestedMods;
 		this.parentMods = paths == null ? new ArrayList<>() : Collections.emptyList();
 		this.minNestLevel = paths != null ? 0 : Integer.MAX_VALUE;
+	}
+
+	public List<Path> getOriginPaths() {
+		return originPaths;
 	}
 
 	public boolean hasPath() {
@@ -109,7 +115,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		clearCachedData();
 	}
 
-	String getLocalPath() {
+	public String getLocalPath() {
 		if (localPath != null) {
 			return localPath;
 		} else if (paths.size() == 1) {
