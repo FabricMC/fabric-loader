@@ -34,34 +34,36 @@ public interface ModContainer {
 	ModMetadata getMetadata();
 
 	/**
-	 * Returns the root directories of the mod.
+	 * Returns the root directories of the mod (inside JAR/folder), exposing its contents.
 	 *
 	 * <p>The paths may point to regular folders or into mod JARs. Multiple root paths may occur in development
 	 * environments with {@code -Dfabric.classPathGroups} as used in multi-project mod setups.
 	 *
-	 * @return the root directories of the mod, at least one
+	 * <p>A path returned by this method may be incompatible with {@link Path#toFile} as its FileSystem doesn't
+	 * necessarily represent the OS file system, but potentially a virtual view of jar contents or another abstraction.
+	 *
+	 * @return the root directories of the mod, may be empty for builtin or other synthetic mods
 	 */
 	List<Path> getRootPaths();
 
 	/**
-	 * Gets an NIO reference to a file inside the JAR.
+	 * Gets an NIO reference to a file inside the JAR/folder.
 	 *
-	 * <p>The path is not guaranteed to exist!</p>
+	 * <p>The path, if present, is guaranteed to exist!
 	 *
-	 * @param file The location from root, using {@code /} as a separator.
-	 * @return the path to a given file
+	 * <p>A path returned by this method may be incompatible with {@link Path#toFile} as its FileSystem doesn't
+	 * necessarily represent the OS file system, but potentially a virtual view of jar contents or another abstraction.
+	 *
+	 * @param file The location from a root path, using {@code /} as a separator.
+	 * @return optional containing the path to a given file or empty if it can't be found
 	 */
-	default Path getPath(String file) {
-		Path ret = null;
-
+	default Optional<Path> findPath(String file) {
 		for (Path root : getRootPaths()) {
 			Path path = root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
-			if (Files.exists(path)) return path;
-
-			if (ret == null) ret = path;
+			if (Files.exists(path)) return Optional.of(path);
 		}
 
-		return ret;
+		return Optional.empty();
 	}
 
 	/**
@@ -93,4 +95,10 @@ public interface ModContainer {
 	 */
 	@Deprecated
 	Path getRootPath();
+
+	/**
+	 * @deprecated use {@link #findPath} instead
+	 */
+	@Deprecated
+	Path getPath(String file);
 }

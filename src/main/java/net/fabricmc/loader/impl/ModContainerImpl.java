@@ -16,10 +16,12 @@
 
 package net.fabricmc.loader.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -150,6 +152,22 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 			return fs.getRootDirectories().iterator().next();
 
 			// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
+		}
+	}
+
+	@Override
+	public Path getPath(String file) {
+		Optional<Path> res = findPath(file);
+		if (res.isPresent()) return res.get();
+
+		List<Path> roots = this.roots;
+
+		if (!roots.isEmpty()) {
+			Path root = roots.get(0);
+
+			return root.resolve(file.replace("/", root.getFileSystem().getSeparator()));
+		} else {
+			return Paths.get(".").resolve("missing_ae236f4970ce").resolve(file.replace('/', File.separatorChar)); // missing dummy path
 		}
 	}
 
