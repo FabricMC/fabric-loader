@@ -29,8 +29,10 @@ import java.util.List;
 import java.util.Optional;
 
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModOrigin;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -38,7 +40,8 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 @SuppressWarnings("deprecation")
 public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	private final LoaderModMetadata info;
-	private final List<Path> originPaths;
+	private final ModOrigin origin;
+	private final List<Path> codeSourcePaths;
 	private final String parentModId;
 	private final Collection<String> childModIds;
 
@@ -46,7 +49,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
 	public ModContainerImpl(ModCandidate candidate) {
 		this.info = candidate.getMetadata();
-		this.originPaths = candidate.getPaths();
+		this.codeSourcePaths = candidate.getPaths();
 		this.parentModId = candidate.getParentMods().isEmpty() ? null : candidate.getParentMods().iterator().next().getId();
 		this.childModIds = candidate.getNestedMods().isEmpty() ? Collections.emptyList() : new ArrayList<>(candidate.getNestedMods().size());
 
@@ -55,6 +58,9 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 				childModIds.add(c.getId());
 			}
 		}
+
+		List<Path> paths = candidate.getOriginPaths();
+		this.origin = paths != null ? new ModOriginImpl(paths) : new ModOriginImpl(parentModId, candidate.getLocalPath());
 	}
 
 	@Override
@@ -63,8 +69,13 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	}
 
 	@Override
-	public List<Path> getOriginPaths() {
-		return originPaths;
+	public ModOrigin getOrigin() {
+		return origin;
+	}
+
+	@Override
+	public List<Path> getCodeSourcePaths() {
+		return codeSourcePaths;
 	}
 
 	@Override
@@ -112,22 +123,22 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 	private List<Path> obtainRootPaths() {
 		boolean allDirs = true;
 
-		for (Path path : originPaths) {
+		for (Path path : codeSourcePaths) {
 			if (!Files.isDirectory(path)) {
 				allDirs = false;
 				break;
 			}
 		}
 
-		if (allDirs) return originPaths;
+		if (allDirs) return codeSourcePaths;
 
 		try {
-			if (originPaths.size() == 1) {
-				return Collections.singletonList(obtainRootPath(originPaths.get(0)));
+			if (codeSourcePaths.size() == 1) {
+				return Collections.singletonList(obtainRootPath(codeSourcePaths.get(0)));
 			} else {
-				List<Path> ret = new ArrayList<>(originPaths.size());
+				List<Path> ret = new ArrayList<>(codeSourcePaths.size());
 
-				for (Path path : originPaths) {
+				for (Path path : codeSourcePaths) {
 					ret.add(obtainRootPath(path));
 				}
 

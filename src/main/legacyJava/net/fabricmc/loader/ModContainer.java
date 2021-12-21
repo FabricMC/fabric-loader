@@ -30,11 +30,11 @@ import net.fabricmc.loader.metadata.LoaderModMetadata;
 @Deprecated
 public abstract class ModContainer implements net.fabricmc.loader.api.ModContainer {
 	public abstract LoaderModMetadata getInfo();
-	protected abstract List<Path> getOriginPaths();
+	protected abstract List<Path> getCodeSourcePaths();
 
 	public URL getOriginUrl() {
 		try {
-			return UrlUtil.asUrl(getOriginPaths().get(0));
+			return UrlUtil.asUrl(getCodeSourcePaths().get(0));
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
