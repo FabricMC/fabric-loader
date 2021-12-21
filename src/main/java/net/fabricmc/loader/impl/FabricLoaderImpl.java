@@ -472,15 +472,15 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		for (net.fabricmc.loader.api.ModContainer modContainer : getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
 			String accessWidener = modMetadata.getAccessWidener();
+			if (accessWidener == null) continue;
 
-			if (accessWidener != null) {
-				Path path = modContainer.getPath(accessWidener);
+			Path path = modContainer.findPath(accessWidener).orElse(null);
+			if (path == null) throw new RuntimeException(String.format("Missing accessWidener file %s from mod %s", accessWidener, modContainer.getMetadata().getId()));
 
-				try (BufferedReader reader = Files.newBufferedReader(path)) {
-					accessWidenerReader.read(reader, getMappingResolver().getCurrentRuntimeNamespace());
-				} catch (Exception e) {
-					throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
-				}
+			try (BufferedReader reader = Files.newBufferedReader(path)) {
+				accessWidenerReader.read(reader, getMappingResolver().getCurrentRuntimeNamespace());
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
 			}
 		}
 	}
