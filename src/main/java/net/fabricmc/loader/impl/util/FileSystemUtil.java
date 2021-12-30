@@ -16,16 +16,17 @@
 
 package net.fabricmc.loader.impl.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
+import java.util.zip.ZipError;
 
 public final class FileSystemUtil {
 	public static class FileSystemDelegate implements AutoCloseable {
@@ -51,16 +52,8 @@ public final class FileSystemUtil {
 
 	private FileSystemUtil() { }
 
-	private static final Map<String, String> jfsArgsCreate = new HashMap<>();
-	private static final Map<String, String> jfsArgsEmpty = new HashMap<>();
-
-	static {
-		jfsArgsCreate.put("create", "true");
-	}
-
-	public static FileSystemDelegate getJarFileSystem(File file, boolean create) throws IOException {
-		return getJarFileSystem(file.toURI(), create);
-	}
+	private static final Map<String, String> jfsArgsCreate = Collections.singletonMap("create", "true");
+	private static final Map<String, String> jfsArgsEmpty = Collections.emptyMap();
 
 	public static FileSystemDelegate getJarFileSystem(Path path, boolean create) throws IOException {
 		return getJarFileSystem(path.toUri(), create);
@@ -75,10 +68,22 @@ public final class FileSystemUtil {
 			throw new IOException(e);
 		}
 
+		boolean opened = false;
+		FileSystem ret = null;
+
 		try {
-			return new FileSystemDelegate(FileSystems.newFileSystem(jarUri, create ? jfsArgsCreate : jfsArgsEmpty), true);
-		} catch (FileSystemAlreadyExistsException e) {
-			return new FileSystemDelegate(FileSystems.getFileSystem(jarUri), false);
+			ret = FileSystems.getFileSystem(jarUri);
+		} catch (FileSystemNotFoundException ignore) {
+			try {
+				ret = FileSystems.newFileSystem(jarUri, create ? jfsArgsCreate : jfsArgsEmpty);
+				opened = true;
+			} catch (FileSystemAlreadyExistsException ignore2) {
+				ret = FileSystems.getFileSystem(jarUri);
+			} catch (IOException | ZipError e) {
+				throw new IOException("Error accessing "+uri+": "+e, e);
+			}
 		}
+
+		return new FileSystemDelegate(ret, opened);
 	}
 }
