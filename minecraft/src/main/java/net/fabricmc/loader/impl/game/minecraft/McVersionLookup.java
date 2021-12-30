@@ -39,6 +39,7 @@ import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
@@ -98,7 +99,7 @@ public final class McVersionLookup {
 				fillVersionFromJar(gameJar, fs, builder);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw ExceptionUtil.wrap(e);
 		}
 
 		return builder.build();
@@ -110,7 +111,7 @@ public final class McVersionLookup {
 		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
 			fillVersionFromJar(gameJar, jarFs.get(), builder);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw ExceptionUtil.wrap(e);
 		}
 
 		return builder.build();
