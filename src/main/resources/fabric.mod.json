@@ -7,7 +7,7 @@
   "description": "The base mod loader.",
   "contact": {
     "homepage": "https://fabricmc.net",
-    "irc": "irc://irc.esper.net:6667/fabric",
+    "irc": "ircs://irc.esper.net:6697/fabric",
     "issues": "https://github.com/FabricMC/fabric/issues",
     "sources": "https://github.com/FabricMC/fabric"
   },
