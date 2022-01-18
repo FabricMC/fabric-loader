@@ -40,12 +40,14 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder.ModCandidateConsumer;
 import net.fabricmc.loader.impl.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
@@ -115,17 +117,17 @@ public final class ModDiscoverer {
 
 		ModResolutionException exception = null;
 
+		int timeout = Integer.getInteger(SystemProperties.DEBUG_DISCOVERY_TIMEOUT, 60);
+		if (timeout <= 0) timeout = Integer.MAX_VALUE;
+
 		try {
 			pool.shutdown();
-
-			int timeout = Integer.getInteger(SystemProperties.DEBUG_DISCOVERY_TIMEOUT, 60);
-			if (timeout <= 0) timeout = Integer.MAX_VALUE;
 
 			pool.awaitTermination(timeout, TimeUnit.SECONDS);
 
 			for (Future<ModCandidate> future : futures) {
 				if (!future.isDone()) {
-					throw new ModResolutionException("Mod discovery took too long!");
+					throw new TimeoutException();
 				}
 
 				try {
@@ -139,7 +141,7 @@ public final class ModDiscoverer {
 			for (NestedModInitData data : nestedModInitDatas) {
 				for (Future<ModCandidate> future : data.futures) {
 					if (!future.isDone()) {
-						throw new ModResolutionException("Mod discovery took too long!");
+						throw new TimeoutException();
 					}
 
 					try {
@@ -150,8 +152,12 @@ public final class ModDiscoverer {
 					}
 				}
 			}
+		} catch (TimeoutException e) {
+			throw new FormattedException("Mod discovery took too long!",
+					"Analyzing the mod folder contents took longer than %d seconds. This may be caused by unusually slow hardware, pathological antivirus interference or other issues. The timeout can be changed with the system property %s (-D%<s=<desired timeout in seconds>).",
+					timeout, SystemProperties.DEBUG_DISCOVERY_TIMEOUT);
 		} catch (InterruptedException e) {
-			throw new ModResolutionException("Mod discovery took too long!", e);
+			throw new FormattedException("Mod discovery interrupted!", e);
 		}
 
 		if (exception != null) {

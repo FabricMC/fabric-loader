@@ -26,6 +26,12 @@ public final class FormattedException extends RuntimeException {
 		this.mainText = mainText;
 	}
 
+	public FormattedException(String mainText, String format, Object... args) {
+		super(String.format(format, args));
+
+		this.mainText = mainText;
+	}
+
 	public FormattedException(String mainText, String message, Throwable cause) {
 		super(message, cause);
 
