@@ -173,7 +173,7 @@ final class ModSolver {
 
 		if (dependencyHelper.hasASolution()) {
 			Collection<DomainObject> solution = dependencyHelper.getASolution();
-			Set<ModDependency> disabledDeps = Collections.newSetFromMap(new IdentityHashMap<>());
+			Set<ModDependency> disabledDeps = new HashSet<>(); // DisableDepVar uses equality semantics, not identity
 
 			for (DomainObject obj : solution) {
 				if (obj instanceof DisableDepVar) {
