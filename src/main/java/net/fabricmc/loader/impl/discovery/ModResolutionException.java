@@ -26,10 +26,6 @@ public class ModResolutionException extends Exception {
 		super(String.format(format, args));
 	}
 
-	public ModResolutionException(Throwable t) {
-		super(t);
-	}
-
 	public ModResolutionException(String s, Throwable t) {
 		super(s, t);
 	}

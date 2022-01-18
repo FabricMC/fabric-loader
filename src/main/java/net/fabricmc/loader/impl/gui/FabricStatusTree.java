@@ -340,6 +340,20 @@ public final class FabricStatusTree {
 			return string;
 		}
 
+		public FabricStatusNode addMessage(String message, FabricTreeWarningLevel warningLevel) {
+			String[] lines = message.split("\n");
+
+			FabricStatusNode sub = new FabricStatusNode(this, lines[0]);
+			children.add(sub);
+			sub.setWarningLevel(warningLevel);
+
+			for (int i = 1; i < lines.length; i++) {
+				sub.addChild(lines[i]);
+			}
+
+			return sub;
+		}
+
 		public FabricStatusNode addException(Throwable exception) {
 			return addException(this, Collections.newSetFromMap(new IdentityHashMap<>()), exception, UnaryOperator.identity(), new StackTraceElement[0]);
 		}
@@ -395,6 +409,7 @@ public final class FabricStatusTree {
 		}
 
 		private FabricStatusNode addException(Throwable exception, StackTraceElement[] parentTrace) {
+			boolean showTrace = !(exception instanceof FormattedException) || exception.getCause() != null;
 			String msg;
 
 			if (exception instanceof FormattedException) {
@@ -405,15 +420,9 @@ public final class FabricStatusTree {
 				msg = String.format("%s: %s", exception.getClass().getSimpleName(), exception.getMessage());
 			}
 
-			String[] lines = msg.split("\n");
+			FabricStatusNode sub = addMessage(msg, FabricTreeWarningLevel.ERROR);
 
-			FabricStatusNode sub = new FabricStatusNode(this, lines[0]);
-			children.add(sub);
-			sub.setError();
-
-			for (int i = 1; i < lines.length; i++) {
-				sub.addChild(lines[i]);
-			}
+			if (!showTrace) return sub;
 
 			StackTraceElement[] trace = exception.getStackTrace();
 			int uniqueFrames = trace.length - 1;
