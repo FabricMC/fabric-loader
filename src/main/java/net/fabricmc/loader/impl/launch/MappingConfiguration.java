@@ -18,45 +18,48 @@ package net.fabricmc.loader.impl.launch;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.jar.Attributes.Name;
+import java.util.jar.Manifest;
+import java.util.zip.ZipError;
 
+import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
 import net.fabricmc.mapping.tree.TinyTree;
 
-public class MappingConfiguration {
-	private static TinyTree mappings;
-	private static boolean checkedMappings;
+public final class MappingConfiguration {
+	private boolean initialized;
+
+	private String gameId;
+	private String gameVersion;
+	private TinyTree mappings;
+
+	public String getGameId() {
+		initialize();
+
+		return gameId;
+	}
+
+	public String getGameVersion() {
+		initialize();
+
+		return gameVersion;
+	}
+
+	public boolean matches(String gameId, String gameVersion) {
+		initialize();
+
+		return (this.gameId == null || gameId == null || gameId.equals(this.gameId))
+				&& (this.gameVersion == null || gameVersion == null || gameVersion.equals(this.gameVersion));
+	}
 
 	public TinyTree getMappings() {
-		if (!checkedMappings) {
-			InputStream mappingStream = FabricLauncherBase.class.getClassLoader().getResourceAsStream("mappings/mappings.tiny");
-
-			if (mappingStream != null) {
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(mappingStream))) {
-					long time = System.currentTimeMillis();
-					mappings = TinyMappingFactory.loadWithDetection(reader);
-					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
-				} catch (IOException ee) {
-					ee.printStackTrace();
-				}
-
-				try {
-					mappingStream.close();
-				} catch (IOException ee) {
-					ee.printStackTrace();
-				}
-			}
-
-			if (mappings == null) {
-				Log.info(LogCategory.MAPPINGS, "Mappings not present!");
-				mappings = TinyMappingFactory.EMPTY_TREE;
-			}
-
-			checkedMappings = true;
-		}
+		initialize();
 
 		return mappings;
 	}
@@ -68,5 +71,41 @@ public class MappingConfiguration {
 	public boolean requiresPackageAccessHack() {
 		// TODO
 		return getTargetNamespace().equals("named");
+	}
+
+	private void initialize() {
+		if (initialized) return;
+
+		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+
+		if (url != null) {
+			try {
+				URLConnection connection = url.openConnection();
+
+				if (connection instanceof JarURLConnection) {
+					Manifest manifest = ((JarURLConnection) connection).getManifest();
+
+					if (manifest != null) {
+						gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
+						gameVersion = ManifestUtil.getManifestValue(manifest, new Name("Game-Version"));
+					}
+				}
+
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+					long time = System.currentTimeMillis();
+					mappings = TinyMappingFactory.loadWithDetection(reader);
+					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
+				}
+			} catch (IOException | ZipError e) {
+				throw new RuntimeException("Error reading "+url, e);
+			}
+		}
+
+		if (mappings == null) {
+			Log.info(LogCategory.MAPPINGS, "Mappings not present!");
+			mappings = TinyMappingFactory.EMPTY_TREE;
+		}
+
+		initialized = true;
 	}
 }

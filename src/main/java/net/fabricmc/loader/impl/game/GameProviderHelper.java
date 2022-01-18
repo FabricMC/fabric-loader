@@ -35,6 +35,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.util.LoaderUtil;
@@ -141,6 +142,19 @@ public final class GameProviderHelper {
 		}
 
 		MappingConfiguration mappingConfig = launcher.getMappingConfiguration();
+
+		if (!mappingConfig.matches(gameId, gameVersion)) {
+			String mappingsGameId = mappingConfig.getGameId();
+			String mappingsGameVersion = mappingConfig.getGameVersion();
+
+			throw new FormattedException("Incompatible mappings",
+					String.format("Supplied mappings for %s %s are incompatible with %s %s, this is likely caused by launcher misbehavior",
+							(mappingsGameId != null ? mappingsGameId : "(unknown)"),
+							(mappingsGameVersion != null ? mappingsGameVersion : "(unknown)"),
+							gameId,
+							gameVersion));
+		}
+
 		String targetNamespace = mappingConfig.getTargetNamespace();
 		TinyTree mappings = mappingConfig.getMappings();
 

@@ -77,19 +77,21 @@ public final class McVersionLookup {
 			FileSystem fs = jarFs.get();
 
 			// Determine class version
-			for (String entrypointClass : entrypointClasses) {
-				Path file = fs.getPath(LoaderUtil.getClassFileName(entrypointClass));
+			if (entrypointClasses != null) {
+				for (String entrypointClass : entrypointClasses) {
+					Path file = fs.getPath(LoaderUtil.getClassFileName(entrypointClass));
 
-				if (Files.isRegularFile(file)) {
-					try (DataInputStream is = new DataInputStream(Files.newInputStream(file))) {
-						if (is.readInt() != 0xCAFEBABE) {
-							continue;
+					if (Files.isRegularFile(file)) {
+						try (DataInputStream is = new DataInputStream(Files.newInputStream(file))) {
+							if (is.readInt() != 0xCAFEBABE) {
+								continue;
+							}
+
+							is.readUnsignedShort();
+							builder.setClassVersion(is.readUnsignedShort());
+
+							break;
 						}
-
-						is.readUnsignedShort();
-						builder.setClassVersion(is.readUnsignedShort());
-
-						break;
 					}
 				}
 			}
@@ -198,14 +200,19 @@ public final class McVersionLookup {
 
 			reader.endObject();
 
-			if (name == null) {
-				name = id;
-			} else if (id != null) {
-				if (id.length() < name.length()) name = id;
+			String version;
+
+			if (name == null
+					|| id != null && id.length() < name.length()) {
+				version = id;
+			} else {
+				version = name;
 			}
 
-			if (name != null && release != null) {
+			if (version != null && release != null) {
+				builder.setId(id);
 				builder.setName(name);
+				builder.setVersion(version);
 				builder.setRelease(release);
 
 				return true;
