@@ -43,6 +43,10 @@ import net.fabricmc.loader.impl.util.StringUtil;
 import net.fabricmc.loader.impl.util.version.VersionIntervalImpl;
 
 final class ResultAnalyzer {
+	private static final boolean SHOW_PATH_INFO = false;
+	private static final boolean SHOW_INACTIVE = false;
+
+	@SuppressWarnings("unused")
 	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
 			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
 		StringWriter sw = new StringWriter();
@@ -80,7 +84,7 @@ final class ResultAnalyzer {
 				matches.clear();
 			}
 
-			if (result.fix != null && !result.fix.inactiveMods.isEmpty()) {
+			if (SHOW_INACTIVE && result.fix != null && !result.fix.inactiveMods.isEmpty()) {
 				pw.printf("\n%s", Localization.format("resolution.inactiveMods"));
 
 				List<Map.Entry<ModCandidate, InactiveReason>> entries = new ArrayList<>(result.fix.inactiveMods.entrySet());
@@ -279,8 +283,10 @@ final class ResultAnalyzer {
 			pw.printf("\n%s\t - %s", prefix, StringUtil.capitalize(Localization.format(key, args)));
 		}
 
-		for (ModCandidate m : matches) {
-			appendJijInfo(m, prefix, true, pw);
+		if (SHOW_PATH_INFO) {
+			for (ModCandidate m : matches) {
+				appendJijInfo(m, prefix, true, pw);
+			}
 		}
 	}
 
@@ -355,13 +361,14 @@ final class ResultAnalyzer {
 				StringUtil.capitalize(text));
 	}
 
+	@SuppressWarnings("unused")
 	private static String formatOldMods(Collection<ModCandidate> mods) {
 		List<ModCandidate> modsSorted = new ArrayList<>(mods);
 		modsSorted.sort(ModCandidate.ID_VERSION_COMPARATOR);
 		List<String> ret = new ArrayList<>(modsSorted.size());
 
 		for (ModCandidate m : modsSorted) {
-			if (m.hasPath() && !m.isBuiltin()) {
+			if (SHOW_PATH_INFO && m.hasPath() && !m.isBuiltin()) {
 				ret.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
 			} else {
 				ret.add(Localization.format("resolution.solution.replaceMod.oldModNoPath", getName(m), getVersion(m)));
