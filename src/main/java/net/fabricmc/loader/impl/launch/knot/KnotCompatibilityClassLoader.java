@@ -67,6 +67,11 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 	}
 
 	@Override
+	protected Class<?> findClass(String name) throws ClassNotFoundException {
+		return delegate.tryLoadClass(name, false);
+	}
+
+	@Override
 	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
 		synchronized (getClassLoadingLock(name)) {
 			Class<?> c = findLoadedClass(name);
