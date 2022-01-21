@@ -37,6 +37,9 @@ final class BundlerProcessor {
 
 		// determine urls by running the bundler and extracting them from the context class loader
 
+		String prevProperty = null;
+		ClassLoader prevCl = null;
+		boolean restorePrev = false;
 		URL[] urls;
 
 		try (URLClassLoader bundlerCl = new URLClassLoader(new URL[] { bundlerOrigin.toUri().toURL() }, MinecraftGameProvider.class.getClassLoader()) {
@@ -85,26 +88,29 @@ final class BundlerProcessor {
 
 			// save + restore the system property and context class loader just in case
 
-			String prevProperty = System.getProperty(MAIN_CLASS_PROPERTY);
-			System.setProperty(MAIN_CLASS_PROPERTY, BundlerClassPathCapture.class.getName());
+			prevProperty = System.getProperty(MAIN_CLASS_PROPERTY);
+			prevCl = Thread.currentThread().getContextClassLoader();
+			restorePrev = true;
 
-			ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
+			System.setProperty(MAIN_CLASS_PROPERTY, BundlerClassPathCapture.class.getName());
 			Thread.currentThread().setContextClassLoader(bundlerCl);
 
 			method.invoke(null, (Object) new String[0]);
 			urls = BundlerClassPathCapture.FUTURE.get(10, TimeUnit.SECONDS);
-
-			Thread.currentThread().setContextClassLoader(prevCl);
-
-			if (prevProperty != null) {
-				System.setProperty(MAIN_CLASS_PROPERTY, prevProperty);
-			} else {
-				System.clearProperty(MAIN_CLASS_PROPERTY);
-			}
 		} catch (ClassNotFoundException e) { // no bundler on the class path
 			return;
 		} catch (Throwable t) {
 			throw new RuntimeException("Error invoking MC server bundler: "+t, t);
+		} finally {
+			if (restorePrev) {
+				Thread.currentThread().setContextClassLoader(prevCl);
+
+				if (prevProperty != null) {
+					System.setProperty(MAIN_CLASS_PROPERTY, prevProperty);
+				} else {
+					System.clearProperty(MAIN_CLASS_PROPERTY);
+				}
+			}
 		}
 
 		// analyze urls to determine game/realms/log4j/misc libs and the entrypoint
