@@ -12,15 +12,15 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:sponge-mixin:0.10.7+mixin.0.8.4",
+        "name": "net.fabricmc:sponge-mixin:0.11.0+mixin.0.8.5",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:tiny-remapper:0.6.0",
+        "name": "net.fabricmc:tiny-remapper:0.8.1",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:access-widener:2.0.1",
+        "name": "net.fabricmc:access-widener:2.1.0",
         "url": "https://maven.fabricmc.net/"
       },
       {
