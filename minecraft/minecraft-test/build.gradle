@@ -21,6 +21,15 @@ dependencies {
 	annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
 	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+
+	/**
+	 * Ensure we are using the mixin version loader is built against to test the AP.
+	 * Otherwise Loom will default to an older version (due to no mod loader on the mod* configs)
+	 */
+	annotationProcessor ("net.fabricmc:sponge-mixin:${project.mixin_version}") {
+		exclude module: 'launchwrapper'
+		exclude module: 'guava'
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {
