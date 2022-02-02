@@ -431,7 +431,7 @@ public final class FabricStatusTree {
 				uniqueFrames--;
 			}
 
-			StringJoiner frames = new StringJoiner("<br/>", "<html>", "</html>");
+			StringJoiner frames = new StringJoiner("\n");
 			int inheritedFrames = trace.length - 1 - uniqueFrames;
 
 			for (int i = 0; i <= uniqueFrames; i++) {
