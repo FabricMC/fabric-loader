@@ -69,14 +69,14 @@ public class ModResolver {
 			}
 		}
 
-		// soften positive hard deps from schema 0 or 1 mods on mods that are present but disabled for the current env
+		// soften positive deps from schema 0 or 1 mods on mods that are present but disabled for the current env
 		// this is a workaround necessary due to many mods declaring deps that are unsatisfiable in some envs and loader before 0.12x not verifying them properly
 
 		for (ModCandidate mod : allModsSorted) {
 			if (mod.getMetadata().getSchemaVersion() >= 2) continue;
 
 			for (ModDependency dep : mod.getMetadata().getDependencies()) {
-				if (dep.getKind() != Kind.DEPENDS) continue; // no positive hard dep
+				if (!dep.getKind().isPositive() || dep.getKind() == Kind.SUGGESTS) continue; // no positive dep or already suggests
 				if (!(dep instanceof ModDependencyImpl)) continue; // can't modify dep kind
 				if (modsById.containsKey(dep.getModId())) continue; // non-disabled match available
 
