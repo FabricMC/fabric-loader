@@ -55,12 +55,14 @@ public final class McVersionLookup {
 			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
 			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names: Infdev 12345678-9
 			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
-			+ "1\\.RV-Pre1|3D Shareware v1\\.34" // odd exceptions
+			+ "1\\.RV-Pre1|3D Shareware v1\\.34|" // odd exceptions
+			+ "(.*[Ee]xperimental [Ss]napshot )(\\d+)" // Experimental versions.
 			);
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
 	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| [Rr]elease Candidate )(\\d+)");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])");
+	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile("(?:.*[Ee]xperimental [Ss]napshot )(\\d+)");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
@@ -346,7 +348,9 @@ public final class McVersionLookup {
 
 		Matcher matcher;
 
-		if (name.startsWith(release)) {
+		if ((matcher = EXPERIMENTAL_PATTERN.matcher(name)).matches()) {
+			return String.format("%s-Experimental.%s", release, matcher.group(1));
+		} else if (name.startsWith(release)) {
 			matcher = RELEASE_CANDIDATE_PATTERN.matcher(name);
 
 			if (matcher.matches()) {
@@ -533,17 +537,6 @@ public final class McVersionLookup {
 		case "1.16_combat-6":
 			// The ninth Combat Test 8c, forked from 1.16.2
 			return "1.16.3-combat.8.c";
-
-		case "1.18 Experimental Snapshot 1":
-		case "1.18 experimental snapshot 2":
-		case "1.18 experimental snapshot 3":
-		case "1.18 experimental snapshot 4":
-		case "1.18 experimental snapshot 5":
-		case "1.18 experimental snapshot 6":
-		case "1.18 experimental snapshot 7":
-			// Pre-snapshot snapshots for 1.18 before the first (21w37a)
-			// Characters are compared lexically, so E(xperimental) < a(lpha)
-			return "1.18-Experimental.".concat(version.substring(27));
 
 		default:
 			return null; //Don't recognise the version
