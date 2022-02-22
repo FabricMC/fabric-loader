@@ -37,7 +37,9 @@ import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
+import net.fabricmc.loader.impl.metadata.DependencyOverrides;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.metadata.VersionOverrides;
 
 public final class ModCandidate implements DomainObject.Mod {
 	static final Comparator<ModCandidate> ID_VERSION_COMPARATOR = new Comparator<ModCandidate>() {
@@ -60,8 +62,12 @@ public final class ModCandidate implements DomainObject.Mod {
 	private int minNestLevel;
 	private SoftReference<ByteBuffer> dataRef;
 
-	static ModCandidate createBuiltin(BuiltinMod mod) {
-		return new ModCandidate(mod.paths, null, -1, new BuiltinMetadataWrapper(mod.metadata), false, Collections.emptyList());
+	static ModCandidate createBuiltin(BuiltinMod mod, VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
+		LoaderModMetadata metadata = new BuiltinMetadataWrapper(mod.metadata);
+		versionOverrides.apply(metadata);
+		depOverrides.apply(metadata);
+
+		return new ModCandidate(mod.paths, null, -1, metadata, false, Collections.emptyList());
 	}
 
 	static ModCandidate createPlain(List<Path> paths, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {

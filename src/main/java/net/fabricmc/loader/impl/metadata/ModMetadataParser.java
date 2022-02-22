@@ -19,16 +19,10 @@ package net.fabricmc.loader.impl.metadata;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
@@ -43,29 +37,17 @@ public final class ModMetadataParser {
 	 */
 	public static final Set<String> IGNORED_KEYS = Collections.singleton("$schema");
 
-	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
-
 	// Per the ECMA-404 (www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf), the JSON spec does not prohibit duplicate keys.
 	// For all intents and purposes of replicating the logic of Gson's fromJson before we have migrated to JsonReader, duplicate keys will replace previous entries.
-	public static LoaderModMetadata parseMetadata(InputStream is, String modPath, List<String> modParentPaths) throws ParseMetadataException {
+	public static LoaderModMetadata parseMetadata(InputStream is, String modPath, List<String> modParentPaths,
+			VersionOverrides versionOverrides, DependencyOverrides depOverrides) throws ParseMetadataException {
 		try {
 			LoaderModMetadata ret = readModMetadata(is);
 
-			checkModId(ret.getId(), "mod id");
+			versionOverrides.apply(ret);
+			depOverrides.apply(ret);
 
-			for (String providesDecl : ret.getProvides()) {
-				checkModId(providesDecl, "provides declaration");
-			}
-
-			// TODO: verify mod id decls in deps
-
-			if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-				if (ret.getSchemaVersion() < LATEST_VERSION) {
-					Log.warn(LogCategory.METADATA, "Mod ID %s uses outdated schema version: %d < %d", ret.getId(), ret.getSchemaVersion(), ModMetadataParser.LATEST_VERSION);
-				}
-
-				ret.emitFormatWarnings();
-			}
+			MetadataVerifier.verify(ret);
 
 			return ret;
 		} catch (ParseMetadataException e) {
@@ -168,69 +150,6 @@ public final class ModMetadataParser {
 
 			throw new ParseMetadataException(String.format("Invalid/Unsupported schema version \"%s\" was found", schemaVersion));
 		}
-	}
-
-	private static void checkModId(String id, String name) throws ParseMetadataException {
-		if (MOD_ID_PATTERN.matcher(id).matches()) return;
-
-		List<String> errorList = new ArrayList<>();
-
-		// A more useful error list for MOD_ID_PATTERN
-		if (id.isEmpty()) {
-			errorList.add("is empty!");
-		} else {
-			if (id.length() == 1) {
-				errorList.add("is only a single character! (It must be at least 2 characters long)!");
-			} else if (id.length() > 64) {
-				errorList.add("has more than 64 characters!");
-			}
-
-			char first = id.charAt(0);
-
-			if (first < 'a' || first > 'z') {
-				errorList.add("starts with an invalid character '" + first + "' (it must be a lowercase a-z - uppercase isn't allowed anywhere in the ID)");
-			}
-
-			Set<Character> invalidChars = null;
-
-			for (int i = 1; i < id.length(); i++) {
-				char c = id.charAt(i);
-
-				if (c == '-' || c == '_' || ('0' <= c && c <= '9') || ('a' <= c && c <= 'z')) {
-					continue;
-				}
-
-				if (invalidChars == null) {
-					invalidChars = new HashSet<>();
-				}
-
-				invalidChars.add(c);
-			}
-
-			if (invalidChars != null) {
-				StringBuilder error = new StringBuilder("contains invalid characters: ");
-				error.append(invalidChars.stream().map(value -> "'" + value + "'").collect(Collectors.joining(", ")));
-				errorList.add(error.append("!").toString());
-			}
-		}
-
-		assert !errorList.isEmpty();
-
-		StringWriter sw = new StringWriter();
-
-		try (PrintWriter pw = new PrintWriter(sw)) {
-			pw.printf("Invalid %s %s:", name, id);
-
-			if (errorList.size() == 1) {
-				pw.printf(" It %s", errorList.get(0));
-			} else {
-				for (String error : errorList) {
-					pw.printf("\n\t- It %s", error);
-				}
-			}
-		}
-
-		throw new ParseMetadataException(sw.toString());
 	}
 
 	static void logWarningMessages(String id, List<ParseWarning> warnings) {

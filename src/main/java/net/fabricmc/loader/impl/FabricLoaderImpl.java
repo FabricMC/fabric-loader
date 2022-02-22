@@ -42,7 +42,6 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.ObjectShare;
-import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
@@ -196,10 +195,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	private void setup() throws ModResolutionException {
 		boolean remapRegularMods = isDevelopmentEnvironment();
+		VersionOverrides versionOverrides = new VersionOverrides();
+		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
 
 		// discover mods
 
-		ModDiscoverer discoverer = new ModDiscoverer();
+		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
@@ -207,13 +208,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
 		modCandidates = discoverer.discoverMods(this, envDisabledMods);
 
-		// apply version and dependency overrides
-
-		VersionOverrides versionOverrides = new VersionOverrides();
-		versionOverrides.apply(modCandidates);
-
-		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
-		depOverrides.apply(modCandidates);
+		// dump version and dependency overrides info
 
 		if (!versionOverrides.getAffectedModIds().isEmpty()) {
 			Log.info(LogCategory.GENERAL, "Versions overridden for %s", String.join(", ", versionOverrides.getAffectedModIds()));
@@ -340,7 +335,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			}
 		}
 
-		postprocessModMetadata();
 		setupLanguageAdapters();
 		setupMods();
 	}
@@ -417,18 +411,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		for (String provides : candidate.getProvides()) {
 			modMap.put(provides, container);
-		}
-	}
-
-	protected void postprocessModMetadata() {
-		for (ModContainerImpl mod : mods) {
-			if (!(mod.getInfo().getVersion() instanceof SemanticVersion)) {
-				Log.warn(LogCategory.METADATA, "Mod `%s` (%s) does not respect SemVer - comparison support is limited.",
-						mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
-			} else if (((SemanticVersion) mod.getInfo().getVersion()).getVersionComponentCount() >= 4) {
-				Log.warn(LogCategory.METADATA, "Mod `%s` (%s) uses more dot-separated version components than SemVer allows; support for this is currently not guaranteed.",
-						mod.getInfo().getId(), mod.getInfo().getVersion().getFriendlyString());
-			}
 		}
 	}
 
