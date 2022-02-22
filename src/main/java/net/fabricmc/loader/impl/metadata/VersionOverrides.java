@@ -18,12 +18,10 @@ package net.fabricmc.loader.impl.metadata;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.version.VersionParser;
 
@@ -52,15 +50,13 @@ public final class VersionOverrides {
 		}
 	}
 
-	public void apply(List<ModCandidate> mods) {
+	public void apply(LoaderModMetadata metadata) {
 		if (replacements.isEmpty()) return;
 
-		for (ModCandidate mod : mods) {
-			Version replacement = replacements.get(mod.getId());
+		Version replacement = replacements.get(metadata.getId());
 
-			if (replacement != null) {
-				mod.getMetadata().setVersion(replacement);
-			}
+		if (replacement != null) {
+			metadata.setVersion(replacement);
 		}
 	}
 

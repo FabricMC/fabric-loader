@@ -480,7 +480,7 @@ final class ResultAnalyzer {
 			return false;
 		}
 
-		for (int i = incrementedComponent + 1; i < 3; i++) {
+		for (int i = incrementedComponent + 1, m = Math.max(min.getVersionComponentCount(), max.getVersionComponentCount()); i < m; i++) {
 			// all following components need to be 0
 			if (min.getVersionComponent(i) != 0 || max.getVersionComponent(i) != 0) {
 				return false;

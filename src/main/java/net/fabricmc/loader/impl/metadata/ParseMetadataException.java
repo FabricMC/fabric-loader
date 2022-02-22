@@ -41,7 +41,7 @@ public class ParseMetadataException extends Exception {
 		super(t);
 	}
 
-	void setModPaths(String modPath, List<String> modParentPaths) {
+	public void setModPaths(String modPath, List<String> modParentPaths) {
 		modPaths = new ArrayList<>(modParentPaths);
 		modPaths.add(modPath);
 	}

@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.FormattedException;
-import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 
@@ -202,15 +201,9 @@ public final class DependencyOverrides {
 		return ret;
 	}
 
-	public void apply(Collection<ModCandidate> mods) {
+	public void apply(LoaderModMetadata metadata) {
 		if (dependencyOverrides.isEmpty()) return;
 
-		for (ModCandidate mod : mods) {
-			apply(mod.getMetadata());
-		}
-	}
-
-	private void apply(LoaderModMetadata metadata) {
 		List<Entry> modOverrides = dependencyOverrides.get(metadata.getId());
 		if (modOverrides == null) return;
 
