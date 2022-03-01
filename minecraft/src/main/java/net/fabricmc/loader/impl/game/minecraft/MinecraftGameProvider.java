@@ -41,7 +41,7 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
-import net.fabricmc.loader.impl.game.minecraft.LibClassifier.Lib;
+import net.fabricmc.loader.impl.game.LibClassifier;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
@@ -180,25 +180,25 @@ public class MinecraftGameProvider implements GameProvider {
 				lookupPaths = launcher.getClassPath();
 			}
 
-			LibClassifier classifier = new LibClassifier();
+			LibClassifier<McLibrary> classifier = new LibClassifier<>(McLibrary.class);
 			classifier.process(lookupPaths, envType);
 
-			if (classifier.has(Lib.MC_BUNDLER)) {
+			if (classifier.has(McLibrary.MC_BUNDLER)) {
 				BundlerProcessor.process(classifier);
 			}
 
-			Lib gameLib = envType == EnvType.CLIENT ? Lib.MC_CLIENT : Lib.MC_SERVER;
+			McLibrary gameLib = envType == EnvType.CLIENT ? McLibrary.MC_CLIENT : McLibrary.MC_SERVER;
 			gameJar = classifier.getOrigin(gameLib);
 			if (gameJar == null) return false;
 
 			entrypoint = classifier.getClassName(gameLib);
-			realmsJar = classifier.getOrigin(Lib.REALMS);
-			useGameJarForLogging = classifier.is(gameJar, Lib.LOGGING);
-			hasModLoader = classifier.has(Lib.MODLOADER);
-			log4jAvailable = classifier.has(Lib.LOG4J_API) && classifier.has(Lib.LOG4J_CORE);
-			slf4jAvailable = classifier.has(Lib.SLF4J_API) && classifier.has(Lib.SLF4J_CORE);
+			realmsJar = classifier.getOrigin(McLibrary.REALMS);
+			useGameJarForLogging = classifier.is(gameJar, McLibrary.LOGGING);
+			hasModLoader = classifier.has(McLibrary.MODLOADER);
+			log4jAvailable = classifier.has(McLibrary.LOG4J_API) && classifier.has(McLibrary.LOG4J_CORE);
+			slf4jAvailable = classifier.has(McLibrary.SLF4J_API) && classifier.has(McLibrary.SLF4J_CORE);
 
-			for (Lib lib : Lib.LOGGING) {
+			for (McLibrary lib : McLibrary.LOGGING) {
 				Path path = classifier.getOrigin(lib);
 
 				if (path != null && !path.equals(gameJar) && !lookupPaths.contains(path)) {
