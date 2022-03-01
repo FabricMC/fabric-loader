@@ -22,7 +22,10 @@ public final class SystemProperties {
 	public static final String SIDE = "fabric.side";
 	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
 	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
+	// game jar paths for common/client/server, replaces lookup from class path if present, env specific takes precedence
 	public static final String GAME_JAR_PATH = "fabric.gameJarPath";
+	public static final String GAME_JAR_PATH_CLIENT = "fabric.gameJarPath.client";
+	public static final String GAME_JAR_PATH_SERVER = "fabric.gameJarPath.server";
 	// set the game version for the builtin game mod/dependencies, bypassing auto-detection
 	public static final String GAME_VERSION = "fabric.gameVersion";
 	// fallback log file for the builtin log handler (dumped on exit if not replaced with another handler)

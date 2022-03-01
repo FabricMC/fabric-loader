@@ -20,8 +20,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 
 enum McLibrary implements LibraryType {
+	FABRIC_LOADER_MC(null, true, "net/fabricmc/loader/impl/game/minecraft/MinecraftGameProvider.class"),
 	MC_CLIENT(EnvType.CLIENT, "net/minecraft/client/main/Main.class", "net/minecraft/client/MinecraftApplet.class", "com/mojang/minecraft/MinecraftApplet.class"),
 	MC_SERVER(EnvType.SERVER, "net/minecraft/server/Main.class", "net/minecraft/server/MinecraftServer.class", "com/mojang/minecraft/server/MinecraftServer.class"),
+	MC_COMMON("net/minecraft/server/MinecraftServer.class"),
 	MC_BUNDLER(EnvType.SERVER, "net/minecraft/bundler/Main.class"),
 	REALMS(EnvType.CLIENT, "realmsVersion"),
 	MODLOADER("ModLoader"),
@@ -32,9 +34,11 @@ enum McLibrary implements LibraryType {
 	SLF4J_API("org/slf4j/Logger.class"),
 	SLF4J_CORE("META-INF/services/org.slf4j.spi.SLF4JServiceProvider");
 
+	static final McLibrary[] GAME = { MC_CLIENT, MC_SERVER, MC_BUNDLER };
 	static final McLibrary[] LOGGING = { LOG4J_API, LOG4J_CORE, LOG4J_CONFIG, LOG4J_PLUGIN, SLF4J_API, SLF4J_CORE };
 
 	private final EnvType env;
+	private final boolean shaded;
 	private final String[] paths;
 
 	McLibrary(String path) {
@@ -42,17 +46,22 @@ enum McLibrary implements LibraryType {
 	}
 
 	McLibrary(String... paths) {
-		this(null, paths);
+		this(null, false, paths);
 	}
 
 	McLibrary(EnvType env, String... paths) {
+		this(env, false, paths);
+	}
+
+	McLibrary(EnvType env, boolean shaded, String... paths) {
 		this.paths = paths;
+		this.shaded = shaded;
 		this.env = env;
 	}
 
 	@Override
-	public boolean isInEnv(EnvType env) {
-		return this.env == null || this.env == env;
+	public boolean isApplicable(EnvType env, boolean shaded) {
+		return (this.env == null || this.env == env) && (!shaded || !this.shaded);
 	}
 
 	@Override

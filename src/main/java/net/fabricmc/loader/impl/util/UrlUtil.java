@@ -24,9 +24,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.CodeSource;
 
 public final class UrlUtil {
-	private UrlUtil() { }
+	public static final Path LOADER_CODE_SOURCE = getCodeSource(UrlUtil.class);
 
 	public static URL getSource(String filename, URL resourceURL) throws UrlConversionException {
 		URL codeSourceURL;
@@ -70,5 +71,16 @@ public final class UrlUtil {
 
 	public static URL asUrl(Path path) throws MalformedURLException {
 		return path.toUri().toURL();
+	}
+
+	public static Path getCodeSource(Class<?> cls) {
+		CodeSource cs = cls.getProtectionDomain().getCodeSource();
+		if (cs == null) return null;
+
+		try {
+			return asPath(cs.getLocation());
+		} catch (URISyntaxException e) {
+			throw ExceptionUtil.wrap(e);
+		}
 	}
 }

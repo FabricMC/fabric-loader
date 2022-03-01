@@ -22,50 +22,95 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
+import java.util.Set;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
+
+import org.sat4j.minisat.SolverFactory;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
 public final class LibClassifier<L extends Enum<L> & LibraryType> {
-	private final L[] libs;
+	private final List<L> libs;
+	private final List<LoaderLibrary> loaderLibs;
 	private final Map<L, Path> origins;
 	private final Map<L, String> localPaths;
+	private final Set<LoaderLibrary> matchedLoaderLibs = EnumSet.noneOf(LoaderLibrary.class);
 	private final List<Path> unmatchedOrigins = new ArrayList<>();
 
-	public LibClassifier(Class<L> cls) {
-		libs = cls.getEnumConstants();
-		origins = new EnumMap<>(cls);
-		localPaths = new EnumMap<>(cls);
+	public LibClassifier(Class<L> cls, EnvType env) {
+		boolean shaded = UrlUtil.getCodeSource(SolverFactory.class).equals(UrlUtil.LOADER_CODE_SOURCE);
+
+		L[] libs = cls.getEnumConstants();
+
+		this.libs = new ArrayList<>(libs.length);
+		this.origins = new EnumMap<>(cls);
+		this.localPaths = new EnumMap<>(cls);
+
+		for (L lib : libs) {
+			if (lib.isApplicable(env, shaded)) {
+				this.libs.add(lib);
+			}
+		}
+
+		LoaderLibrary[] loaderLibs = LoaderLibrary.values();
+		this.loaderLibs = new ArrayList<>(loaderLibs.length);
+
+		for (LoaderLibrary lib : loaderLibs) {
+			if (lib.isApplicable(env, shaded)) {
+				this.loaderLibs.add(lib);
+			}
+		}
 	}
 
-	public void process(URL url, EnvType env) throws IOException {
+	public void process(URL url) throws IOException {
 		try {
-			process(UrlUtil.asPath(url), env);
+			process(UrlUtil.asPath(url));
 		} catch (URISyntaxException e) {
 			throw new RuntimeException("invalid url: "+url);
 		}
 	}
 
-	public void process(Iterable<Path> paths, EnvType env) throws IOException {
+	@SafeVarargs
+	public final void process(Iterable<Path> paths, L... excludedLibs) throws IOException {
+		Set<L> excluded = makeSet(excludedLibs);
+
 		for (Path path : paths) {
-			process(path, env);
+			process(path, excluded);
 		}
 	}
 
-	public void process(Path path, EnvType env) throws IOException {
+	@SafeVarargs
+	public final void process(Path path, L... excludedLibs) throws IOException {
+		process(path, makeSet(excludedLibs));
+	}
+
+	private static <L extends Enum<L>> Set<L> makeSet(L[] libs) {
+		if (libs.length == 0) return Collections.emptySet();
+
+		Set<L> ret = EnumSet.of(libs[0]);
+
+		for (int i = 1; i < libs.length; i++) {
+			ret.add(libs[i]);
+		}
+
+		return ret;
+	}
+
+	private void process(Path path, Set<L> excludedLibs) throws IOException {
 		boolean matched = false;
 
 		if (Files.isDirectory(path)) {
 			for (L lib : libs) {
-				if (!lib.isInEnv(env) || origins.containsKey(lib)) continue;
+				if (excludedLibs.contains(lib) || origins.containsKey(lib)) continue;
 
 				for (String p : lib.getPaths()) {
 					if (Files.exists(path.resolve(p))) {
@@ -75,19 +120,35 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 					}
 				}
 			}
+
+			for (LoaderLibrary lib : loaderLibs) {
+				if (!matchedLoaderLibs.contains(lib)
+						&& Files.exists(path.resolve(lib.path))) {
+					matchedLoaderLibs.add(lib);
+					matched = true;
+					break;
+				}
+			}
 		} else {
 			try (ZipFile zf = new ZipFile(path.toFile())) {
 				for (L lib : libs) {
-					if (!lib.isInEnv(env) || origins.containsKey(lib)) continue;
+					if (excludedLibs.contains(lib) || origins.containsKey(lib)) continue;
 
 					for (String p : lib.getPaths()) {
-						ZipEntry entry = zf.getEntry(p);
-
-						if (entry != null) {
+						if (zf.getEntry(p) != null) {
 							matched = true;
 							addLibrary(lib, path, p);
 							break;
 						}
+					}
+				}
+
+				for (LoaderLibrary lib : loaderLibs) {
+					if (!matchedLoaderLibs.contains(lib)
+							&& zf.getEntry(lib.path) != null) {
+						matchedLoaderLibs.add(lib);
+						matched = true;
+						break;
 					}
 				}
 			} catch (ZipError | IOException e) {
@@ -99,7 +160,8 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	private void addLibrary(L lib, Path originPath, String localPath) {
-		origins.put(lib, originPath);
+		Path prev = origins.put(lib, originPath);
+		if (prev != null) throw new IllegalStateException("lib "+lib+" was already added");
 		localPaths.put(lib, localPath);
 	}
 
@@ -155,7 +217,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	public interface LibraryType {
-		boolean isInEnv(EnvType env);
+		boolean isApplicable(EnvType env, boolean shaded);
 		String[] getPaths();
 	}
 }

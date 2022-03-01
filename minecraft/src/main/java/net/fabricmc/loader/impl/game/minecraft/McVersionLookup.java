@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,8 +40,9 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
-import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SimpleClassPath;
+import net.fabricmc.loader.impl.util.SimpleClassPath.CpEntry;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
@@ -68,33 +69,29 @@ public final class McVersionLookup {
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
-	public static McVersion getVersion(Path gameJar, String entrypointClass, String versionName) {
+	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
 		McVersion.Builder builder = new McVersion.Builder();
 
 		if (versionName != null) {
 			builder.setNameAndRelease(versionName);
 		}
 
-		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
-			FileSystem fs = jarFs.get();
-
+		try (SimpleClassPath cp = new SimpleClassPath(gameJars)) {
 			// Determine class version
 			if (entrypointClass != null) {
-				Path file = fs.getPath(LoaderUtil.getClassFileName(entrypointClass));
+				try (InputStream is = cp.getInputStream(LoaderUtil.getClassFileName(entrypointClass))) {
+					DataInputStream dis = new DataInputStream(is);
 
-				if (Files.isRegularFile(file)) {
-					try (DataInputStream is = new DataInputStream(Files.newInputStream(file))) {
-						if (is.readInt() == 0xCAFEBABE) {
-							is.readUnsignedShort();
-							builder.setClassVersion(is.readUnsignedShort());
-						}
+					if (dis.readInt() == 0xCAFEBABE) {
+						dis.readUnsignedShort();
+						builder.setClassVersion(dis.readUnsignedShort());
 					}
 				}
 			}
 
 			// Check various known files for version information if unknown
 			if (versionName == null) {
-				fillVersionFromJar(gameJar, fs, builder);
+				fillVersionFromJar(cp, builder);
 			}
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
@@ -106,47 +103,47 @@ public final class McVersionLookup {
 	public static McVersion getVersionExceptClassVersion(Path gameJar) {
 		McVersion.Builder builder = new McVersion.Builder();
 
-		try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(gameJar, false)) {
-			fillVersionFromJar(gameJar, jarFs.get(), builder);
-		} catch (IOException e) {
-			throw ExceptionUtil.wrap(e);
+		try (SimpleClassPath cp = new SimpleClassPath(Collections.singletonList(gameJar))) {
+			fillVersionFromJar(cp, builder);
 		}
 
 		return builder.build();
 	}
 
-	public static void fillVersionFromJar(Path gameJar, FileSystem fs, McVersion.Builder builder) {
+	public static void fillVersionFromJar(SimpleClassPath cp, McVersion.Builder builder) {
 		try {
-			Path file;
+			InputStream is;
 
 			// version.json - contains version and target release for 18w47b+
-			if (Files.isRegularFile(file = fs.getPath("version.json")) && fromVersionJson(Files.newInputStream(file), builder)) {
+			if ((is = cp.getInputStream("version.json")) != null && fromVersionJson(is, builder)) {
 				return;
 			}
 
 			// constant field RealmsSharedConstants.VERSION_STRING
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsSharedConstants.class")) && fromAnalyzer(Files.newInputStream(file), new FieldStringConstantVisitor("VERSION_STRING"), builder)) {
+			if ((is = cp.getInputStream("net/minecraft/realms/RealmsSharedConstants.class")) != null && fromAnalyzer(is, new FieldStringConstantVisitor("VERSION_STRING"), builder)) {
 				return;
 			}
 
 			// constant return value of RealmsBridge.getVersionString (presumably inlined+dead code eliminated VERSION_STRING)
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/realms/RealmsBridge.class")) && fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor("getVersionString"), builder)) {
+			if ((is = cp.getInputStream("net/minecraft/realms/RealmsBridge.class")) != null && fromAnalyzer(is, new MethodConstantRetVisitor("getVersionString"), builder)) {
 				return;
 			}
 
 			// version-like String constant used in MinecraftServer.run or another MinecraftServer method
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/server/MinecraftServer.class")) && fromAnalyzer(Files.newInputStream(file), new MethodConstantVisitor("run"), builder)) {
+			if ((is = cp.getInputStream("net/minecraft/server/MinecraftServer.class")) != null && fromAnalyzer(is, new MethodConstantVisitor("run"), builder)) {
 				return;
 			}
 
-			if (Files.isRegularFile(file = fs.getPath("net/minecraft/client/Minecraft.class"))) {
+			CpEntry entry = cp.getEntry("net/minecraft/client/Minecraft.class");
+
+			if (entry != null) {
 				// version-like constant return value of a Minecraft method (obfuscated/unknown name)
-				if (fromAnalyzer(Files.newInputStream(file), new MethodConstantRetVisitor(null), builder)) {
+				if (fromAnalyzer(entry.getInputStream(), new MethodConstantRetVisitor(null), builder)) {
 					return;
 				}
 
 				// version-like constant passed into Display.setTitle in a Minecraft method (obfuscated/unknown name)
-				if (fromAnalyzer(Files.newInputStream(file), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"), builder)) {
+				if (fromAnalyzer(entry.getInputStream(), new MethodStringConstantContainsVisitor("org/lwjgl/opengl/Display", "setTitle"), builder)) {
 					return;
 				}
 			}
@@ -154,7 +151,7 @@ public final class McVersionLookup {
 			e.printStackTrace();
 		}
 
-		builder.setFromFileName(gameJar.getFileName().toString());
+		builder.setFromFileName(cp.getPaths().get(0).getFileName().toString());
 	}
 
 	private static boolean fromVersionJson(InputStream is, McVersion.Builder builder) {

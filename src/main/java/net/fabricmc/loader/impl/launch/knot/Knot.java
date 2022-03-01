@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -216,8 +215,8 @@ public final class Knot extends FabricLauncherBase {
 	 */
 	private static GameProvider findEmbedddedGameProvider() {
 		try {
-			Path flPath = UrlUtil.asPath(Knot.class.getProtectionDomain().getCodeSource().getLocation());
-			if (!flPath.getFileName().toString().endsWith(".jar")) return null; // not a jar
+			Path flPath = UrlUtil.getCodeSource(Knot.class);
+			if (flPath == null || !flPath.getFileName().toString().endsWith(".jar")) return null; // not a jar
 
 			try (ZipFile zf = new ZipFile(flPath.toFile())) {
 				ZipEntry entry = zf.getEntry("META-INF/services/net.fabricmc.loader.impl.game.GameProvider"); // same file as used by service loader
@@ -246,7 +245,7 @@ public final class Knot extends FabricLauncherBase {
 			}
 
 			return null;
-		} catch (IOException | URISyntaxException | ReflectiveOperationException e) {
+		} catch (IOException | ReflectiveOperationException e) {
 			throw new RuntimeException(e);
 		}
 	}

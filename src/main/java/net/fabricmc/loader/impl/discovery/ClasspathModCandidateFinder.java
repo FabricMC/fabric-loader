@@ -69,7 +69,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 			}
 		} else { // production, add loader as a mod
 			try {
-				out.accept(getFabricLoaderPath(), false);
+				out.accept(UrlUtil.LOADER_CODE_SOURCE, false);
 			} catch (Throwable t) {
 				Log.debug(LogCategory.DISCOVERY, "Could not retrieve launcher code source!", t);
 			}
@@ -116,14 +116,5 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 		}
 
 		return ret;
-	}
-
-	public static Path getFabricLoaderPath() {
-		try {
-			return UrlUtil.asPath(FabricLauncherBase.getLauncher().getClass().getProtectionDomain().getCodeSource().getLocation());
-		} catch (Throwable t) {
-			Log.debug(LogCategory.DISCOVERY, "Could not retrieve launcher code source!", t);
-			return null;
-		}
 	}
 }

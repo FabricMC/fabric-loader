@@ -18,22 +18,23 @@ package net.fabricmc.loader.impl.game.patch;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipError;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SimpleClassPath;
+import net.fabricmc.loader.impl.util.SimpleClassPath.CpEntry;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -58,14 +59,14 @@ public class GameTransformer {
 		patchedClasses.put(key, writer.toByteArray());
 	}
 
-	public void locateEntrypoints(FabricLauncher launcher, Path gameJar) {
+	public void locateEntrypoints(FabricLauncher launcher, List<Path> gameJars) {
 		if (entrypointsLocated) {
 			return;
 		}
 
 		patchedClasses = new HashMap<>();
 
-		try (ZipFile zf = new ZipFile(gameJar.toFile())) {
+		try (SimpleClassPath cp = new SimpleClassPath(gameJars)) {
 			Function<String, ClassReader> classSource = name -> {
 				byte[] data = patchedClasses.get(name);
 
@@ -73,21 +74,23 @@ public class GameTransformer {
 					return new ClassReader(data);
 				}
 
-				ZipEntry entry = zf.getEntry(LoaderUtil.getClassFileName(name));
-				if (entry == null) return null;
+				try {
+					CpEntry entry = cp.getEntry(LoaderUtil.getClassFileName(name));
+					if (entry == null) return null;
 
-				try (InputStream is = zf.getInputStream(entry)) {
-					return new ClassReader(is);
+					try (InputStream is = entry.getInputStream()) {
+						return new ClassReader(is);
+					} catch (IOException | ZipError e) {
+						throw new RuntimeException(String.format("error reading %s in %s: %s", name, entry.getOrigin().toAbsolutePath(), e), e);
+					}
 				} catch (IOException e) {
-					throw new UncheckedIOException(String.format("error reading %s in %s: %s", name, gameJar.toAbsolutePath(), e), e);
+					throw ExceptionUtil.wrap(e);
 				}
 			};
 
 			for (GamePatch patch : patches) {
 				patch.process(launcher, classSource, this::addPatchedClass);
 			}
-		} catch (IOException e) {
-			throw new UncheckedIOException(String.format("error reading %s: %s", gameJar.toAbsolutePath(), e), e);
 		}
 
 		Log.debug(LogCategory.GAME_PATCH, "Patched %d class%s", patchedClasses.size(), patchedClasses.size() != 1 ? "s" : "");
