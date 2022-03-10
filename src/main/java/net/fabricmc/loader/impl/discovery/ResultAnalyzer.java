@@ -181,6 +181,8 @@ final class ResultAnalyzer {
 							oldModsFormatted,
 							formatVersionRequirements(newMod.getVersionIntervals())));
 
+					boolean foundAny = false;
+
 					// check old deps against future mod set to highlight inconsistencies
 					for (ModDependency dep : oldMod.getDependencies()) {
 						if (dep.getKind().isSoft()) continue;
@@ -192,6 +194,7 @@ final class ResultAnalyzer {
 								pw.printf("\n\t\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent.reqSupportedModVersion",
 										mod.getId(),
 										getVersion(mod)));
+								foundAny = true;
 							}
 
 							continue;
@@ -202,9 +205,14 @@ final class ResultAnalyzer {
 								pw.printf("\n\t\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent.reqSupportedModVersions",
 										addMod.getId(),
 										formatVersionRequirements(addMod.getVersionIntervals())));
+								foundAny = true;
 								break;
 							}
 						}
+					}
+
+					if (!foundAny) {
+						pw.printf("\n\t\t - %s", Localization.format("resolution.solution.replaceModVersionDifferent.unknown"));
 					}
 				}
 			}
@@ -268,7 +276,22 @@ final class ResultAnalyzer {
 		String reason;
 
 		if (!matches.isEmpty()) {
-			reason = "invalid";
+			boolean present;
+
+			if (dep.getKind().isPositive()) {
+				present = false;
+
+				for (ModCandidate match : matches) {
+					if (dep.matches(match.getVersion())) { // there is a satisfying mod version, but it can't be loaded for other reasons
+						present = true;
+						break;
+					}
+				}
+			} else {
+				present = true;
+			}
+
+			reason = present ? "invalid" : "mismatch";
 		} else if (presentForOtherEnv && dep.getKind().isPositive()) {
 			reason = "envDisabled";
 		} else {
