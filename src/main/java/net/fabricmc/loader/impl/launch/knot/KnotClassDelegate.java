@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,7 @@ import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 import net.fabricmc.loader.impl.transformer.FabricTransformer;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
@@ -50,10 +52,10 @@ import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
-final class KnotClassDelegate {
+final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> implements KnotClassLoaderInterface {
 	private static final boolean LOG_TRANSFORM_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS) != null;
 
-	static class Metadata {
+	static final class Metadata {
 		static final Metadata EMPTY = new Metadata(null, null);
 
 		final Manifest manifest;
@@ -66,22 +68,31 @@ final class KnotClassDelegate {
 	}
 
 	private final Map<String, Metadata> metadataCache = new ConcurrentHashMap<>();
-	private final KnotClassLoaderInterface itf;
+	private final T classLoader;
+	private final ClassLoader parentClassLoader;
 	private final GameProvider provider;
 	private final boolean isDevelopment;
 	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
+	private volatile Set<String> urls = new HashSet<>();
 	private final Map<URL, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-	KnotClassDelegate(boolean isDevelopment, EnvType envType, KnotClassLoaderInterface itf, GameProvider provider) {
+	KnotClassDelegate(boolean isDevelopment, EnvType envType, T classLoader, ClassLoader parentClassLoader, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
 		this.envType = envType;
-		this.itf = itf;
+		this.classLoader = classLoader;
+		this.parentClassLoader = parentClassLoader;
 		this.provider = provider;
 	}
 
+	@Override
+	public ClassLoader getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
 	public void initializeTransformers() {
 		if (transformInitialized) throw new IllegalStateException("Cannot initialize KnotClassDelegate twice!");
 
@@ -109,13 +120,84 @@ final class KnotClassDelegate {
 		return mixinTransformer;
 	}
 
+	@Override
+	public void addUrl(URL url) {
+		String urlStr = url.toString();
+
+		synchronized (this) {
+			Set<String> urls = this.urls;
+			if (!urls.add(urlStr)) return;
+
+			this.urls = new HashSet<>(urls.size() + 1);
+			this.urls.addAll(urls);
+			this.urls.add(urlStr);
+		}
+
+		classLoader.addUrlFwd(url);
+	}
+
+	private boolean hasUrl(URL url) {
+		return urls.contains(url.toString());
+	}
+
+	@Override
+	public Manifest getManifest(URL url) {
+		return getMetadata(url).manifest;
+	}
+
+	@Override
+	public boolean isClassLoaded(String name) {
+		synchronized (classLoader.getClassLoadingLockFwd(name)) {
+			return classLoader.findLoadedClassFwd(name) != null;
+		}
+	}
+
+	@Override
+	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
+		synchronized (classLoader.getClassLoadingLockFwd(name)) {
+			Class<?> c = classLoader.findLoadedClassFwd(name);
+
+			if (c == null) {
+				c = tryLoadClass(name, true);
+
+				if (c == null) {
+					throw new ClassNotFoundException("can't find class "+name);
+				}
+			}
+
+			classLoader.resolveClassFwd(c);
+
+			return c;
+		}
+	}
+
+	Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+		synchronized (classLoader.getClassLoadingLockFwd(name)) {
+			Class<?> c = classLoader.findLoadedClassFwd(name);
+
+			if (c == null) {
+				c = tryLoadClass(name, false);
+
+				if (c == null) {
+					c = parentClassLoader.loadClass(name);
+				}
+			}
+
+			if (resolve) {
+				classLoader.resolveClassFwd(c);
+			}
+
+			return c;
+		}
+	}
+
 	Class<?> tryLoadClass(String name, boolean allowFromParent) throws ClassNotFoundException {
 		if (name.startsWith("java.")) {
 			return null;
 		}
 
 		if (!allowedPrefixes.isEmpty()) {
-			URL url = itf.getResource(LoaderUtil.getClassFileName(name));
+			URL url = classLoader.getResource(LoaderUtil.getClassFileName(name));
 			String[] prefixes;
 
 			if (url != null
@@ -154,7 +236,7 @@ final class KnotClassDelegate {
 			parentSourcedClasses.add(name);
 		}
 
-		KnotClassDelegate.Metadata metadata = getMetadata(name, itf.getResource(LoaderUtil.getClassFileName(name)));
+		KnotClassDelegate.Metadata metadata = getMetadata(name, classLoader.getResource(LoaderUtil.getClassFileName(name)));
 
 		int pkgDelimiterPos = name.lastIndexOf('.');
 
@@ -162,16 +244,16 @@ final class KnotClassDelegate {
 			// TODO: package definition stub
 			String pkgString = name.substring(0, pkgDelimiterPos);
 
-			if (itf.getPackage(pkgString) == null) {
+			if (classLoader.getPackageFwd(pkgString) == null) {
 				try {
-					itf.definePackage(pkgString, null, null, null, null, null, null, null);
+					classLoader.definePackageFwd(pkgString, null, null, null, null, null, null, null);
 				} catch (IllegalArgumentException e) { // presumably concurrent package definition
-					if (itf.getPackage(pkgString) == null) throw e; // still not defined?
+					if (classLoader.getPackageFwd(pkgString) == null) throw e; // still not defined?
 				}
 			}
 		}
 
-		return itf.defineClassFwd(name, input, 0, input.length, metadata.codeSource);
+		return classLoader.defineClassFwd(name, input, 0, input.length, metadata.codeSource);
 	}
 
 	Metadata getMetadata(String name, URL resourceURL) {
@@ -253,6 +335,11 @@ final class KnotClassDelegate {
 		}
 	}
 
+	@Override
+	public byte[] getPreMixinClassBytes(String name) {
+		return getPreMixinClassByteArray(name, true);
+	}
+
 	/**
 	 * Runs all the class transformers except mixin.
 	 */
@@ -291,28 +378,62 @@ final class KnotClassDelegate {
 		return /* !"net.fabricmc.api.EnvType".equals(name) && !name.startsWith("net.fabricmc.loader.") && */ !name.startsWith("org.apache.logging.log4j");
 	}
 
-	public byte[] getRawClassByteArray(String name, boolean allowFromParent) throws IOException {
-		InputStream inputStream = itf.getResourceAsStream(LoaderUtil.getClassFileName(name), allowFromParent);
-		if (inputStream == null) return null;
-
-		int a = inputStream.available();
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(a < 32 ? 32768 : a);
-		byte[] buffer = new byte[8192];
-		int len;
-
-		while ((len = inputStream.read(buffer)) > 0) {
-			outputStream.write(buffer, 0, len);
-		}
-
-		inputStream.close();
-		return outputStream.toByteArray();
+	@Override
+	public byte[] getRawClassBytes(String name) throws IOException {
+		return getRawClassByteArray(name, true);
 	}
 
-	void setAllowedPrefixes(URL url, String... prefixes) {
+	public byte[] getRawClassByteArray(String name, boolean allowFromParent) throws IOException {
+		name = LoaderUtil.getClassFileName(name);
+		URL url = classLoader.findResourceFwd(name);
+
+		if (url == null) {
+			if (!allowFromParent) return null;
+
+			url = parentClassLoader.getResource(name);
+			if (url == null) return null;
+
+			try {
+				URL srcUrl = UrlUtil.getSource(name, url);
+				if (hasUrl(srcUrl)) return null; // reject urls shadowed by this cl
+			} catch (UrlConversionException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		try (InputStream inputStream = url.openStream()) {
+			int a = inputStream.available();
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream(a < 32 ? 32768 : a);
+			byte[] buffer = new byte[8192];
+			int len;
+
+			while ((len = inputStream.read(buffer)) > 0) {
+				outputStream.write(buffer, 0, len);
+			}
+
+			return outputStream.toByteArray();
+		}
+	}
+
+	@Override
+	public void setAllowedPrefixes(URL url, String... prefixes) {
 		if (prefixes.length == 0) {
 			allowedPrefixes.remove(url);
 		} else {
 			allowedPrefixes.put(url, prefixes);
 		}
+	}
+
+	interface ClassLoaderAccess {
+		void addUrlFwd(URL url);
+		URL findResourceFwd(String name);
+
+		Package getPackageFwd(String name);
+		Package definePackageFwd(String name, String specTitle, String specVersion, String specVendor, String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException;
+
+		Object getClassLoadingLockFwd(String name);
+		Class<?> findLoadedClassFwd(String name);
+		Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs);
+		void resolveClassFwd(Class<?> cls);
 	}
 }

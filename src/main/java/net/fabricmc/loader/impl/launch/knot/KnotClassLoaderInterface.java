@@ -17,19 +17,34 @@
 package net.fabricmc.loader.impl.launch.knot;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.security.CodeSource;
+import java.util.jar.Manifest;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.game.GameProvider;
 
 interface KnotClassLoaderInterface {
-	KnotClassDelegate getDelegate();
+	@SuppressWarnings("resource")
+	static KnotClassLoaderInterface create(boolean useCompatibility, boolean isDevelopment, EnvType envType, GameProvider provider) {
+		if (useCompatibility) {
+			return new KnotCompatibilityClassLoader(isDevelopment, envType, provider).getDelegate();
+		} else {
+			return new KnotClassLoader(isDevelopment, envType, provider).getDelegate();
+		}
+	}
+
+	void initializeTransformers();
+
+	ClassLoader getClassLoader();
+
+	void addUrl(URL url);
+	void setAllowedPrefixes(URL url, String... prefixes);
+
+	Manifest getManifest(URL url);
+
 	boolean isClassLoaded(String name);
 	Class<?> loadIntoTarget(String name) throws ClassNotFoundException;
-	void addURL(URL url);
-	URL getResource(String name);
-	InputStream getResourceAsStream(String filename, boolean skipOriginalLoader) throws IOException;
 
-	Package getPackage(String name);
-	Package definePackage(String name, String specTitle, String specVersion, String specVendor, String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException;
-	Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs);
+	byte[] getRawClassBytes(String name) throws IOException;
+	byte[] getPreMixinClassBytes(String name);
 }

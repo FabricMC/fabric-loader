@@ -129,8 +129,8 @@ public final class Knot extends FabricLauncherBase {
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
 		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
-		classLoader = useCompatibility ? new KnotCompatibilityClassLoader(isDevelopment(), envType, provider) : new KnotClassLoader(isDevelopment(), envType, provider);
-		ClassLoader cl = (ClassLoader) classLoader;
+		classLoader = KnotClassLoaderInterface.create(useCompatibility, isDevelopment(), envType, provider);
+		ClassLoader cl = classLoader.getClassLoader();
 
 		provider.initialize(this);
 
@@ -147,7 +147,7 @@ public final class Knot extends FabricLauncherBase {
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
 		FabricLauncherBase.finishMixinBootstrapping();
 
-		classLoader.getDelegate().initializeTransformers();
+		classLoader.initializeTransformers();
 
 		provider.unlockClassPath(this);
 		unlocked = true;
@@ -267,8 +267,8 @@ public final class Knot extends FabricLauncherBase {
 
 		try {
 			URL url = UrlUtil.asUrl(path);
-			classLoader.getDelegate().setAllowedPrefixes(url, allowedPrefixes);
-			classLoader.addURL(url);
+			classLoader.setAllowedPrefixes(url, allowedPrefixes);
+			classLoader.addUrl(url);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
@@ -277,7 +277,7 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public void setAllowedPrefixes(Path path, String... prefixes) {
 		try {
-			classLoader.getDelegate().setAllowedPrefixes(UrlUtil.asUrl(path), prefixes);
+			classLoader.setAllowedPrefixes(UrlUtil.asUrl(path), prefixes);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
@@ -300,16 +300,12 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
-		try {
-			return classLoader.getResourceAsStream(name, false);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to read file '" + name + "'!", e);
-		}
+		return classLoader.getClassLoader().getResourceAsStream(name);
 	}
 
 	@Override
 	public ClassLoader getTargetClassLoader() {
-		return (ClassLoader) classLoader;
+		return classLoader.getClassLoader();
 	}
 
 	@Override
@@ -317,16 +313,16 @@ public final class Knot extends FabricLauncherBase {
 		if (!unlocked) throw new IllegalStateException("early getClassByteArray access");
 
 		if (runTransformers) {
-			return classLoader.getDelegate().getPreMixinClassByteArray(name, true);
+			return classLoader.getPreMixinClassBytes(name);
 		} else {
-			return classLoader.getDelegate().getRawClassByteArray(name, true);
+			return classLoader.getRawClassBytes(name);
 		}
 	}
 
 	@Override
 	public Manifest getManifest(Path originPath) {
 		try {
-			return classLoader.getDelegate().getMetadata(UrlUtil.asUrl(originPath)).manifest;
+			return classLoader.getManifest(UrlUtil.asUrl(originPath));
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
