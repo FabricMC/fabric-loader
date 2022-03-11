@@ -14,7 +14,7 @@ plugins {
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'fabric-loom' version '0.11-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
-	id "me.modmuss50.remotesign" version "0.2.3"
+	id "me.modmuss50.remotesign" version "0.2.4"
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
