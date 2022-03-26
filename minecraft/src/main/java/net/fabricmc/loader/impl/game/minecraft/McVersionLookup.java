@@ -732,6 +732,8 @@ public final class McVersionLookup {
 	}
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
+		private static final String STARTING_MESSAGE = "Starting minecraft server version ";
+
 		MethodConstantVisitor(String methodNameHint) {
 			super(FabricLoaderImpl.ASM_VERSION);
 
@@ -754,13 +756,22 @@ public final class McVersionLookup {
 			return new MethodVisitor(FabricLoaderImpl.ASM_VERSION) {
 				@Override
 				public void visitLdcInsn(Object value) {
-					String str;
+					if ((result == null || !foundInMethodHint && isRequestedMethod) && value instanceof String) {
+						String str = (String) value;
 
-					if ((result == null || !foundInMethodHint && isRequestedMethod)
-							&& value instanceof String
-							&& isProbableVersion(str = (String) value)) {
-						result = str;
-						foundInMethodHint = isRequestedMethod;
+						if (str.contains(STARTING_MESSAGE)) {
+							str = str.replaceFirst(STARTING_MESSAGE, "");
+
+							if (!str.startsWith("Beta")) {
+								// TODO figure out how to handle alpha server versioning
+								return;
+							}
+						}
+
+						if (isProbableVersion(str)) {
+							result = str;
+							foundInMethodHint = isRequestedMethod;
+						}
 					}
 				}
 			};
