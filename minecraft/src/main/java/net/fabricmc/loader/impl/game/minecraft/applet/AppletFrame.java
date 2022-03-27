@@ -73,6 +73,9 @@ public class AppletFrame extends Frame implements WindowListener {
 
 		if (arguments.containsKey("session") /* 1.6 */) {
 			sessionid = arguments.get("session");
+		} else if (arguments.getExtraArgs().size() == 2 /* pre 1.6 */) {
+			username = arguments.getExtraArgs().get(0);
+			sessionid = arguments.getExtraArgs().get(1);
 		} else /* fallback */ {
 			sessionid = "";
 		}
