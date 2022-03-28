@@ -537,6 +537,15 @@ public final class McVersionLookup {
 		case "1.16_combat-6":
 			// The ninth Combat Test 8c, forked from 1.16.2
 			return "1.16.3-combat.8.c";
+		
+		case "2point0_red":
+			return "1.5.1-red";
+		
+		case "2point0_purple":
+			return "1.5.1-purple";
+		
+		case "2point0_blue":
+			return "1.5.1-blue";
 
 		default:
 			return null; //Don't recognise the version
