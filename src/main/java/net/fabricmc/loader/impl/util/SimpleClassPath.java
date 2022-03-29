@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 FabricMC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.fabricmc.loader.impl.util;
 
 import java.io.Closeable;
@@ -24,16 +40,26 @@ public final class SimpleClassPath implements Closeable {
 	}
 
 	@Override
-	public void close() {
+	public void close() throws IOException {
+		IOException exc = null;
+
 		for (int i = 0; i < openJars.length; i++) {
 			Closeable file = openJars[i];
 
 			try {
 				if (file != null) file.close();
-			} catch (IOException e) { }
+			} catch (IOException e) {
+				if (exc == null) {
+					exc = e;
+				} else {
+					exc.addSuppressed(e);
+				}
+			}
 
 			openJars[i] = null;
 		}
+
+		if (exc != null) throw exc;
 	}
 
 	public List<Path> getPaths() {
@@ -60,7 +86,6 @@ public final class SimpleClassPath implements Closeable {
 				if (entry != null) {
 					return new CpEntry(i, subPath, entry);
 				}
-
 			} else {
 				Path file = paths.get(i).resolve(subPath);
 
@@ -113,6 +138,6 @@ public final class SimpleClassPath implements Closeable {
 	}
 
 	private final List<Path> paths;
-	private final boolean[] jarMarkers;
+	private final boolean[] jarMarkers; // whether the path is a jar (otherwise plain dir)
 	private final ZipFile[] openJars;
 }

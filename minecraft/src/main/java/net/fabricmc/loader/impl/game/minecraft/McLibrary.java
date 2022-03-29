@@ -31,11 +31,12 @@ enum McLibrary implements LibraryType {
 	LOG4J_CORE("META-INF/services/org.apache.logging.log4j.spi.Provider", "META-INF/log4j-provider.properties"),
 	LOG4J_CONFIG("log4j2.xml"),
 	LOG4J_PLUGIN("com/mojang/util/QueueLogAppender.class"),
+	LOG4J_PLUGIN_2("net/minecrell/terminalconsole/util/LoggerNamePatternSelector.class"), // used by loom's log4j config
 	SLF4J_API("org/slf4j/Logger.class"),
 	SLF4J_CORE("META-INF/services/org.slf4j.spi.SLF4JServiceProvider");
 
 	static final McLibrary[] GAME = { MC_CLIENT, MC_SERVER, MC_BUNDLER };
-	static final McLibrary[] LOGGING = { LOG4J_API, LOG4J_CORE, LOG4J_CONFIG, LOG4J_PLUGIN, SLF4J_API, SLF4J_CORE };
+	static final McLibrary[] LOGGING = { LOG4J_API, LOG4J_CORE, LOG4J_CONFIG, LOG4J_PLUGIN, LOG4J_PLUGIN_2, SLF4J_API, SLF4J_CORE };
 
 	private final EnvType env;
 	private final boolean shaded;

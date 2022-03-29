@@ -91,6 +91,8 @@ public class GameTransformer {
 			for (GamePatch patch : patches) {
 				patch.process(launcher, classSource, this::addPatchedClass);
 			}
+		} catch (IOException e) {
+			throw ExceptionUtil.wrap(e);
 		}
 
 		Log.debug(LogCategory.GAME_PATCH, "Patched %d class%s", patchedClasses.size(), patchedClasses.size() != 1 ? "s" : "");

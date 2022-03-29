@@ -126,11 +126,13 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 		synchronized (this) {
 			Set<String> urls = this.urls;
-			if (!urls.add(urlStr)) return;
+			if (urls.contains(urlStr)) return;
 
-			this.urls = new HashSet<>(urls.size() + 1);
-			this.urls.addAll(urls);
-			this.urls.add(urlStr);
+			Set<String> newUrls = new HashSet<>(urls.size() + 1, 1);
+			newUrls.addAll(urls);
+			newUrls.add(urlStr);
+
+			this.urls = newUrls;
 		}
 
 		classLoader.addUrlFwd(url);

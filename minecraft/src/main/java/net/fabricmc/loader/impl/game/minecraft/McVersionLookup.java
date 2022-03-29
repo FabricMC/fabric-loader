@@ -105,6 +105,8 @@ public final class McVersionLookup {
 
 		try (SimpleClassPath cp = new SimpleClassPath(Collections.singletonList(gameJar))) {
 			fillVersionFromJar(cp, builder);
+		} catch (IOException e) {
+			throw ExceptionUtil.wrap(e);
 		}
 
 		return builder.build();
