@@ -64,7 +64,7 @@ public final class McVersionLookup {
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])");
 	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile("(?:.*[Ee]xperimental [Ss]napshot )(\\d+)");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
@@ -732,6 +732,8 @@ public final class McVersionLookup {
 	}
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
+		private static final String STARTING_MESSAGE = "Starting minecraft server version ";
+
 		MethodConstantVisitor(String methodNameHint) {
 			super(FabricLoaderImpl.ASM_VERSION);
 
@@ -754,13 +756,29 @@ public final class McVersionLookup {
 			return new MethodVisitor(FabricLoaderImpl.ASM_VERSION) {
 				@Override
 				public void visitLdcInsn(Object value) {
-					String str;
+					if ((result == null || !foundInMethodHint && isRequestedMethod) && value instanceof String) {
+						String str = (String) value;
 
-					if ((result == null || !foundInMethodHint && isRequestedMethod)
-							&& value instanceof String
-							&& isProbableVersion(str = (String) value)) {
-						result = str;
-						foundInMethodHint = isRequestedMethod;
+						// a0.1.0 - 1.2.5 have a startup message including the version, extract it from there
+						// Examples:
+						//  release 1.0.0 - Starting minecraft server version 1.0.0
+						// 	beta 1.7.3 - Starting minecraft server version Beta 1.7.3
+						// 	alpha 0.2.8 - Starting minecraft server version 0.2.8
+						if (str.startsWith(STARTING_MESSAGE)) {
+							str = str.substring(STARTING_MESSAGE.length());
+
+							// Alpha servers don't have any prefix, but they all have 0 as the major
+							if (!str.startsWith("Beta") && str.startsWith("0.")) {
+								str = "Alpha " + str;
+							}
+						}
+
+						// 1.0.0 - 1.13.2 have an obfuscated method that just returns the version, so we can use that
+
+						if (isProbableVersion(str)) {
+							result = str;
+							foundInMethodHint = isRequestedMethod;
+						}
 					}
 				}
 			};
