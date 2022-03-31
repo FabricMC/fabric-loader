@@ -22,6 +22,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -41,12 +42,13 @@ import net.fabricmc.loader.impl.util.UrlUtil;
 public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	private final List<L> libs;
 	private final List<LoaderLibrary> loaderLibs;
+	private final Path gameProviderLib;
 	private final Map<L, Path> origins;
 	private final Map<L, String> localPaths;
-	private final Set<LoaderLibrary> matchedLoaderLibs = EnumSet.noneOf(LoaderLibrary.class);
+	private final Map<LoaderLibrary, Path> loaderOrigins = new EnumMap<>(LoaderLibrary.class);
 	private final List<Path> unmatchedOrigins = new ArrayList<>();
 
-	public LibClassifier(Class<L> cls, EnvType env) {
+	public LibClassifier(Class<L> cls, EnvType env, GameProvider gameProvider) {
 		boolean shaded = UrlUtil.getCodeSource(SolverFactory.class).equals(UrlUtil.LOADER_CODE_SOURCE);
 
 		L[] libs = cls.getEnumConstants();
@@ -69,6 +71,8 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 				this.loaderLibs.add(lib);
 			}
 		}
+
+		this.gameProviderLib = UrlUtil.getCodeSource(gameProvider.getClass());
 	}
 
 	public void process(URL url) throws IOException {
@@ -122,9 +126,9 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 			}
 
 			for (LoaderLibrary lib : loaderLibs) {
-				if (!matchedLoaderLibs.contains(lib)
+				if (!loaderOrigins.containsKey(lib)
 						&& Files.exists(path.resolve(lib.path))) {
-					matchedLoaderLibs.add(lib);
+					loaderOrigins.put(lib, path);
 					matched = true;
 					break;
 				}
@@ -144,9 +148,9 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 				}
 
 				for (LoaderLibrary lib : loaderLibs) {
-					if (!matchedLoaderLibs.contains(lib)
+					if (!loaderOrigins.containsKey(lib)
 							&& zf.getEntry(lib.path) != null) {
-						matchedLoaderLibs.add(lib);
+						loaderOrigins.put(lib, path);
 						matched = true;
 						break;
 					}
@@ -195,6 +199,20 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 
 	public List<Path> getUnmatchedOrigins() {
 		return unmatchedOrigins;
+	}
+
+	public Collection<Path> getLoaderOrigins() {
+		Collection<Path> paths = loaderOrigins.values();
+
+		if (paths.contains(gameProviderLib)) {
+			return paths;
+		} else {
+			Collection<Path> ret = new ArrayList<>(paths.size() + 1);
+			ret.addAll(paths);
+			ret.add(gameProviderLib);
+
+			return ret;
+		}
 	}
 
 	public boolean remove(Path path) {

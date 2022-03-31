@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -281,6 +282,21 @@ public final class Knot extends FabricLauncherBase {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public void setValidParentClassPath(Collection<Path> paths) {
+		List<URL> urls = new ArrayList<>(paths.size());
+
+		try {
+			for (Path path : paths) {
+				urls.add(UrlUtil.asUrl(path));
+			}
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+
+		classLoader.setValidParentClassPath(urls);
 	}
 
 	@Override

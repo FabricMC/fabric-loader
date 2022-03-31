@@ -40,8 +40,12 @@ public final class SystemProperties {
 	public static final String PATH_GROUPS = "fabric.classPathGroups";
 	// throw exceptions from entrypoints, discovery etc. directly instead of gathering and attaching as suppressed
 	public static final String DEBUG_THROW_DIRECTLY = "fabric.debug.throwDirectly";
+	// logs class loading errors to uncover caught exceptions without adequate logging
+	public static final String DEBUG_LOG_CLASS_LOAD_ERRORS = "fabric.debug.logClassLoadErrors";
 	// logs class transformation errors to uncover caught exceptions without adequate logging
 	public static final String DEBUG_LOG_TRANSFORM_ERRORS = "fabric.debug.logTransformErrors";
+	// disables system class path isolation, allowing bogus lib accesses (too early, transient jars)
+	public static final String DEBUG_DISABLE_CLASS_PATH_ISOLATION = "fabric.debug.disableClassPathIsolation";
 	// disables mod load order shuffling to be the same in-dev as in production
 	public static final String DEBUG_DISABLE_MOD_SHUFFLE = "fabric.debug.disableModShuffle";
 	// workaround for bad load order dependencies

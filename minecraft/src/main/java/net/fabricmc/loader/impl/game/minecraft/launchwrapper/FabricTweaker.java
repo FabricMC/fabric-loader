@@ -28,6 +28,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
@@ -182,6 +183,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public void setAllowedPrefixes(Path path, String... prefixes) {
+		// not implemented (no-op)
+	}
+
+	@Override
+	public void setValidParentClassPath(Collection<Path> paths) {
 		// not implemented (no-op)
 	}
 

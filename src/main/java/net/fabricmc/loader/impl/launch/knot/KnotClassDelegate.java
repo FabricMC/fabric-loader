@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,7 +54,9 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> implements KnotClassLoaderInterface {
+	private static final boolean LOG_CLASS_LOAD_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS) != null;
 	private static final boolean LOG_TRANSFORM_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS) != null;
+	private static final boolean DISABLE_ISOLATION = System.getProperty(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION) != null;
 
 	static final class Metadata {
 		static final Metadata EMPTY = new Metadata(null, null);
@@ -67,6 +70,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		}
 	}
 
+	private static final ClassLoader PLATFORM_CLASS_LOADER = getPlatformClassLoader();
+
 	private final Map<String, Metadata> metadataCache = new ConcurrentHashMap<>();
 	private final T classLoader;
 	private final ClassLoader parentClassLoader;
@@ -75,7 +80,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
-	private volatile Set<String> urls = new HashSet<>();
+	private volatile Set<String> urls = Collections.emptySet();
+	private volatile Set<String> validParentUrls = Collections.emptySet();
 	private final Map<URL, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -138,8 +144,24 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		classLoader.addUrlFwd(url);
 	}
 
-	private boolean hasUrl(URL url) {
-		return urls.contains(url.toString());
+	@Override
+	public void setAllowedPrefixes(URL url, String... prefixes) {
+		if (prefixes.length == 0) {
+			allowedPrefixes.remove(url);
+		} else {
+			allowedPrefixes.put(url, prefixes);
+		}
+	}
+
+	@Override
+	public void setValidParentClassPath(Collection<URL> urls) {
+		Set<String> urlStrs = new HashSet<>(urls.size(), 1);
+
+		for (URL url : urls) {
+			urlStrs.add(url.toString());
+		}
+
+		this.validParentUrls = urlStrs;
 	}
 
 	@Override
@@ -178,10 +200,31 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			Class<?> c = classLoader.findLoadedClassFwd(name);
 
 			if (c == null) {
-				c = tryLoadClass(name, false);
+				if (name.startsWith("java.")) { // fast path for java.** (can only be loaded by the platform CL anyway)
+					c = PLATFORM_CLASS_LOADER.loadClass(name);
+				} else {
+					c = tryLoadClass(name, false); // try local load
 
-				if (c == null) {
-					c = parentClassLoader.loadClass(name);
+					if (c == null) { // not available locally, try system class loader
+						String fileName = LoaderUtil.getClassFileName(name);
+						URL url = parentClassLoader.getResource(fileName);
+
+						if (url == null) { // no .class file
+							String msg = "can't find class "+name;
+							if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
+							throw new ClassNotFoundException(msg);
+						} else if (!isValidParentUrl(url, fileName)) { // available, but restricted
+							// The class would technically be available, but the game provider restricted it from being
+							// loaded by setting validParentUrls and not including "url". Typical causes are:
+							// - accessing classes too early (game libs shouldn't be used until Loader is ready)
+							// - using jars that are only transient (deobfuscation input or pass-through installers)
+							String msg = "can't load class "+name+" as it hasn't been exposed to the game (yet?)";
+							if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
+							throw new ClassNotFoundException(msg);
+						} else { // load from system cl
+							c = parentClassLoader.loadClass(name);
+						}
+					}
 				}
 			}
 
@@ -193,12 +236,35 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		}
 	}
 
+	/**
+	 * Check if an url is loadable by the parent class loader.
+	 *
+	 * <p>This handles explicit parent url whitelisting by {@link #validParentUrls} or shadowing by {@link #urls}
+	 */
+	private boolean isValidParentUrl(URL url, String fileName) {
+		if (url == null) return false;
+		if (DISABLE_ISOLATION) return true;
+
+		try {
+			String srcUrl = UrlUtil.getSource(fileName, url).toString();
+			Set<String> validParentUrls = this.validParentUrls;
+
+			if (validParentUrls != null) { // explicit whitelist (in addition to platform cl classes)
+				return validParentUrls.contains(srcUrl) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
+			} else { // reject urls shadowed by this cl
+				return !urls.contains(srcUrl);
+			}
+		} catch (UrlConversionException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	Class<?> tryLoadClass(String name, boolean allowFromParent) throws ClassNotFoundException {
 		if (name.startsWith("java.")) {
 			return null;
 		}
 
-		if (!allowedPrefixes.isEmpty()) {
+		if (!allowedPrefixes.isEmpty() && !DISABLE_ISOLATION) { // check prefix restrictions (allows exposing libraries partially during startup)
 			URL url = classLoader.getResource(LoaderUtil.getClassFileName(name));
 			String[] prefixes;
 
@@ -215,12 +281,14 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 				}
 
 				if (!found) {
-					throw new ClassNotFoundException("class "+name+" is currently restricted from being loaded");
+					String msg = "class "+name+" is currently restricted from being loaded";
+					if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
+					throw new ClassNotFoundException(msg);
 				}
 			}
 		}
 
-		if (!allowFromParent && !parentSourcedClasses.isEmpty()) {
+		if (!allowFromParent && !parentSourcedClasses.isEmpty()) { // propagate loadIntoTarget behavior to its nested classes
 			int pos = name.length();
 
 			while ((pos = name.lastIndexOf('$', pos - 1)) > 0) {
@@ -320,7 +388,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		});
 	}
 
-	public byte[] getPostMixinClassByteArray(String name, boolean allowFromParent) {
+	private byte[] getPostMixinClassByteArray(String name, boolean allowFromParent) {
 		byte[] transformedClassArray = getPreMixinClassByteArray(name, allowFromParent);
 
 		if (!transformInitialized || !canTransformClass(name)) {
@@ -345,7 +413,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	/**
 	 * Runs all the class transformers except mixin.
 	 */
-	public byte[] getPreMixinClassByteArray(String name, boolean allowFromParent) {
+	private byte[] getPreMixinClassByteArray(String name, boolean allowFromParent) {
 		// some of the transformers rely on dot notation
 		name = name.replace('/', '.');
 
@@ -385,7 +453,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		return getRawClassByteArray(name, true);
 	}
 
-	public byte[] getRawClassByteArray(String name, boolean allowFromParent) throws IOException {
+	private byte[] getRawClassByteArray(String name, boolean allowFromParent) throws IOException {
 		name = LoaderUtil.getClassFileName(name);
 		URL url = classLoader.findResourceFwd(name);
 
@@ -393,14 +461,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			if (!allowFromParent) return null;
 
 			url = parentClassLoader.getResource(name);
-			if (url == null) return null;
-
-			try {
-				URL srcUrl = UrlUtil.getSource(name, url);
-				if (hasUrl(srcUrl)) return null; // reject urls shadowed by this cl
-			} catch (UrlConversionException e) {
-				throw new RuntimeException(e);
-			}
+			if (!isValidParentUrl(url, name)) return null;
 		}
 
 		try (InputStream inputStream = url.openStream()) {
@@ -417,12 +478,13 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		}
 	}
 
-	@Override
-	public void setAllowedPrefixes(URL url, String... prefixes) {
-		if (prefixes.length == 0) {
-			allowedPrefixes.remove(url);
-		} else {
-			allowedPrefixes.put(url, prefixes);
+	private static ClassLoader getPlatformClassLoader() {
+		try {
+			return (ClassLoader) ClassLoader.class.getMethod("getPlatformClassLoader").invoke(null); // Java 9+ only
+		} catch (NoSuchMethodException e) {
+			return new ClassLoader(null) { }; // fall back to boot cl
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

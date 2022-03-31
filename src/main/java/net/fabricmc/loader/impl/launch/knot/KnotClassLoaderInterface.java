@@ -18,6 +18,7 @@ package net.fabricmc.loader.impl.launch.knot;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.jar.Manifest;
 
 import net.fabricmc.api.EnvType;
@@ -39,6 +40,7 @@ interface KnotClassLoaderInterface {
 
 	void addUrl(URL url);
 	void setAllowedPrefixes(URL url, String... prefixes);
+	void setValidParentClassPath(Collection<URL> urls);
 
 	Manifest getManifest(URL url);
 

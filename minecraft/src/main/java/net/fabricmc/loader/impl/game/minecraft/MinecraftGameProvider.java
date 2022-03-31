@@ -80,6 +80,7 @@ public class MinecraftGameProvider implements GameProvider {
 	private boolean log4jAvailable;
 	private boolean slf4jAvailable;
 	private final List<Path> miscGameLibraries = new ArrayList<>(); // libraries not relevant for loader's uses
+	private Collection<Path> validParentClassPath; // computed parent class path restriction (loader+deps)
 	private McVersion versionData;
 	private boolean hasModLoader = false;
 
@@ -166,7 +167,7 @@ public class MinecraftGameProvider implements GameProvider {
 		arguments.parse(args);
 
 		try {
-			LibClassifier<McLibrary> classifier = new LibClassifier<>(McLibrary.class, envType);
+			LibClassifier<McLibrary> classifier = new LibClassifier<>(McLibrary.class, envType, this);
 			McLibrary envGameLib = envType == EnvType.CLIENT ? McLibrary.MC_CLIENT : McLibrary.MC_SERVER;
 			Path commonGameJar = GameProviderHelper.getCommonGameJar();
 			Path envGameJar = GameProviderHelper.getEnvGameJar(envType);
@@ -221,9 +222,8 @@ public class MinecraftGameProvider implements GameProvider {
 				}
 			}
 
-			for (Path path : classifier.getUnmatchedOrigins()) {
-				miscGameLibraries.add(path);
-			}
+			miscGameLibraries.addAll(classifier.getUnmatchedOrigins());
+			validParentClassPath = classifier.getLoaderOrigins();
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
 		}
@@ -281,6 +281,8 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public void initialize(FabricLauncher launcher) {
+		launcher.setValidParentClassPath(validParentClassPath);
+
 		if (isObfuscated()) {
 			Map<String, Path> obfJars = new HashMap<>(3);
 			String[] names = new String[gameJars.size()];
