@@ -38,8 +38,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.spongepowered.asm.launch.MixinBootstrap;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
@@ -144,7 +142,6 @@ public final class Knot extends FabricLauncherBase {
 
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 
-		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
 		FabricLauncherBase.finishMixinBootstrapping();
 
