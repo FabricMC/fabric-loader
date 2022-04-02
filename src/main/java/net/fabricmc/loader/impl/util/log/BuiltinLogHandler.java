@@ -22,8 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.fabricmc.loader.impl.util.SystemProperties;
 
@@ -39,7 +39,8 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 final class BuiltinLogHandler extends ConsoleLogHandler {
 	private static final String DEFAULT_LOG_FILE = "fabricloader.log";
 
-	private final Queue<ReplayEntry> replayBuffer = new ArrayDeque<>();
+	private boolean suppressOutput;
+	private List<ReplayEntry> buffer;
 	private final Thread shutdownHook;
 
 	BuiltinLogHandler() {
@@ -48,12 +49,30 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 	}
 
 	@Override
-	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isReplayedBuiltin) {
-		super.log(time, level, category, msg, exc, isReplayedBuiltin);
+	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean fromReplay, boolean wasSuppressed) {
+		boolean output;
 
 		synchronized (this) {
-			replayBuffer.add(new ReplayEntry(time, level, category, msg, exc));
+			if (!suppressOutput) {
+				output = true;
+			} else if (level.isLessThan(LogLevel.ERROR)) {
+				output = false;
+			} else {
+				for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
+					ReplayEntry entry = buffer.get(i);
+					super.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, true);
+				}
+
+				suppressOutput = false;
+				output = true;
+			}
+
+			if (buffer != null) {
+				buffer.add(new ReplayEntry(time, level, category, msg, exc));
+			}
 		}
+
+		if (output) super.log(time, level, category, msg, exc, fromReplay, wasSuppressed);
 	}
 
 	@Override
@@ -69,11 +88,17 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 		}
 	}
 
-	synchronized boolean replay(LogHandler target) {
-		ReplayEntry entry;
+	synchronized void enableBuffering(boolean suppressOutput) {
+		if (buffer == null) buffer = new ArrayList<>();
+		this.suppressOutput |= suppressOutput;
+	}
 
-		while ((entry = replayBuffer.poll()) != null) {
-			target.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true);
+	synchronized boolean replay(LogHandler target) {
+		if (buffer == null || buffer.isEmpty()) return false;
+
+		for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
+			ReplayEntry entry = buffer.get(i);
+			target.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, suppressOutput);
 		}
 
 		return true;
@@ -103,7 +128,16 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 		@Override
 		public void run() {
 			synchronized (BuiltinLogHandler.this) {
-				if (replayBuffer.isEmpty()) return;
+				if (buffer == null || buffer.isEmpty()) return;
+
+				if (suppressOutput) {
+					suppressOutput = false;
+
+					for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
+						ReplayEntry entry = buffer.get(i);
+						BuiltinLogHandler.super.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, true);
+					}
+				}
 
 				String fileName = System.getProperty(SystemProperties.LOG_FILE, DEFAULT_LOG_FILE);
 				if (fileName.isEmpty()) return;
@@ -113,9 +147,8 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 					Files.createDirectories(file.getParent());
 
 					try (Writer writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
-						ReplayEntry entry;
-
-						while ((entry = replayBuffer.poll()) != null) {
+						for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
+							ReplayEntry entry = buffer.get(i);
 							writer.write(formatLog(entry.time, entry.level, entry.category, entry.msg, entry.exc));
 						}
 					}
