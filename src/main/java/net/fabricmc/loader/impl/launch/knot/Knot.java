@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import net.fabricmc.loader.impl.entrypoint.MixinLoadingEntrypoint;
+
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import net.fabricmc.api.EnvType;
@@ -141,8 +143,10 @@ public final class Knot extends FabricLauncherBase {
 		loader.setGameProvider(provider);
 		loader.load();
 		loader.freeze();
+		loader.loadAccessWideners();
 
-		FabricLoaderImpl.INSTANCE.loadAccessWideners();
+		// Some mods has any API required for mixins. But they most-likely load it remotely, since its unused in any other place.
+		EntrypointUtils.invoke("onMixinLoading", MixinLoadingEntrypoint.class, MixinLoadingEntrypoint::onMixinLoading);
 
 		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
