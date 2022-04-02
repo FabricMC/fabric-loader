@@ -25,15 +25,14 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.impl.game.minecraft.LibClassifier.Lib;
+import net.fabricmc.loader.impl.game.LibClassifier;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 
 final class BundlerProcessor {
 	private static final String MAIN_CLASS_PROPERTY = "bundlerMainClass";
 
-	static void process(LibClassifier classifier) throws IOException {
-		Path bundlerOrigin = classifier.getOrigin(Lib.MC_BUNDLER);
+	static void process(LibClassifier<McLibrary> classifier) throws IOException {
+		Path bundlerOrigin = classifier.getOrigin(McLibrary.MC_BUNDLER);
 
 		// determine urls by running the bundler and extracting them from the context class loader
 
@@ -83,7 +82,7 @@ final class BundlerProcessor {
 				}
 			}
 		}) {
-			Class<?> cls = Class.forName(classifier.getClassName(Lib.MC_BUNDLER), true, bundlerCl);
+			Class<?> cls = Class.forName(classifier.getClassName(McLibrary.MC_BUNDLER), true, bundlerCl);
 			Method method = cls.getMethod("main", String[].class);
 
 			// save + restore the system property and context class loader just in case
@@ -118,7 +117,7 @@ final class BundlerProcessor {
 		classifier.remove(bundlerOrigin);
 
 		for (URL url : urls) {
-			classifier.process(url, EnvType.SERVER);
+			classifier.process(url);
 		}
 	}
 }

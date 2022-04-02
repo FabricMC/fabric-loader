@@ -61,6 +61,7 @@ import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.impl.util.SystemProperties;
+import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -147,6 +148,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	 */
 	@Override
 	public Path getGameDir() {
+		if (gameDir == null) throw new IllegalStateException("invoked too early?");
+
 		return gameDir;
 	}
 
@@ -321,8 +324,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			}
 
 			// suppress fabric loader explicitly in case its fabric.mod.json is in a different folder from the classes
-			Path fabricLoaderPath = ClasspathModCandidateFinder.getFabricLoaderPath();
-			if (fabricLoaderPath != null) knownModPaths.add(fabricLoaderPath.toAbsolutePath().normalize());
+			knownModPaths.add(UrlUtil.LOADER_CODE_SOURCE.toAbsolutePath().normalize());
 
 			for (String pathName : System.getProperty("java.class.path", "").split(File.pathSeparator)) {
 				if (pathName.isEmpty() || pathName.endsWith("*")) continue;

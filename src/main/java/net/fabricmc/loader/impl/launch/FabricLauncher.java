@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl.launch;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.jar.Manifest;
 
@@ -29,6 +30,7 @@ public interface FabricLauncher {
 
 	void addToClassPath(Path path, String... allowedPrefixes);
 	void setAllowedPrefixes(Path path, String... prefixes);
+	void setValidParentClassPath(Collection<Path> paths);
 
 	EnvType getEnvironmentType();
 

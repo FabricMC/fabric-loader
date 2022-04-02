@@ -18,7 +18,6 @@ package net.fabricmc.loader.impl.launch.knot;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +41,7 @@ import org.spongepowered.asm.service.ITransformerProvider;
 import org.spongepowered.asm.util.ReEntranceLock;
 
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.UrlUtil;
 
 public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider, ITransformerProvider, IClassTracker {
 	static IMixinTransformer transformer;
@@ -173,11 +173,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public IContainerHandle getPrimaryContainer() {
-		try {
-			return new ContainerHandleURI(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		return new ContainerHandleURI(UrlUtil.LOADER_CODE_SOURCE.toUri());
 	}
 
 	@Override

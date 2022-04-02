@@ -38,6 +38,8 @@ import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.ModContainerImpl;
+import net.fabricmc.loader.impl.launch.knot.MixinServiceKnot;
+import net.fabricmc.loader.impl.launch.knot.MixinServiceKnotBootstrap;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
@@ -52,6 +54,11 @@ public final class FabricMixinBootstrap {
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
+
+		System.setProperty("mixin.bootstrapService", MixinServiceKnotBootstrap.class.getName());
+		System.setProperty("mixin.service", MixinServiceKnot.class.getName());
+
+		MixinBootstrap.init();
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
@@ -74,8 +81,6 @@ public final class FabricMixinBootstrap {
 				}
 			}
 		}
-
-		MixinBootstrap.init();
 
 		Map<String, ModContainerImpl> configToModMap = new HashMap<>();
 

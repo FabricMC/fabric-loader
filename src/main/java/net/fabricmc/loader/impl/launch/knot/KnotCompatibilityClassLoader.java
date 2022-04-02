@@ -16,54 +16,29 @@
 
 package net.fabricmc.loader.impl.launch.knot;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 
-class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLoaderInterface {
-	private final KnotClassDelegate delegate;
+class KnotCompatibilityClassLoader extends URLClassLoader implements ClassLoaderAccess {
+	private final KnotClassDelegate<KnotCompatibilityClassLoader> delegate;
 
 	KnotCompatibilityClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
 		super(new URL[0], KnotCompatibilityClassLoader.class.getClassLoader());
-		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
+		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, getParent(), provider);
 	}
 
-	@Override
-	public KnotClassDelegate getDelegate() {
+	KnotClassDelegate<?> getDelegate() {
 		return delegate;
 	}
 
 	@Override
-	public boolean isClassLoaded(String name) {
-		synchronized (getClassLoadingLock(name)) {
-			return findLoadedClass(name) != null;
-		}
-	}
-
-	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			Class<?> c = findLoadedClass(name);
-
-			if (c == null) {
-				c = delegate.tryLoadClass(name, false);
-
-				if (c == null) {
-					c = getParent().loadClass(name);
-				}
-			}
-
-			if (resolve) {
-				resolveClass(c);
-			}
-
-			return c;
-		}
+		return delegate.loadClass(name, resolve);
 	}
 
 	@Override
@@ -72,54 +47,44 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements KnotClassLo
 	}
 
 	@Override
-	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			Class<?> c = findLoadedClass(name);
-
-			if (c == null) {
-				c = delegate.tryLoadClass(name, true);
-
-				if (c == null) {
-					throw new ClassNotFoundException("can't find class "+name);
-				}
-			}
-
-			resolveClass(c);
-
-			return c;
-		}
-	}
-
-	@Override
-	public void addURL(URL url) {
+	public void addUrlFwd(URL url) {
 		super.addURL(url);
 	}
 
 	@Override
-	public InputStream getResourceAsStream(String classFile, boolean allowFromParent) throws IOException {
-		if (!allowFromParent) {
-			if (findResource(classFile) == null) {
-				return null;
-			}
-		}
-
-		return super.getResourceAsStream(classFile);
+	public URL findResourceFwd(String name) {
+		return findResource(name);
 	}
 
 	@Override
-	public Package getPackage(String name) {
+	public Package getPackageFwd(String name) {
 		return super.getPackage(name);
 	}
 
 	@Override
-	public Package definePackage(String name, String specTitle, String specVersion, String specVendor,
+	public Package definePackageFwd(String name, String specTitle, String specVersion, String specVendor,
 			String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException {
 		return super.definePackage(name, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
 	}
 
 	@Override
+	public Object getClassLoadingLockFwd(String name) {
+		return super.getClassLoadingLock(name);
+	}
+
+	@Override
+	public Class<?> findLoadedClassFwd(String name) {
+		return super.findLoadedClass(name);
+	}
+
+	@Override
 	public Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs) {
 		return super.defineClass(name, b, off, len, cs);
+	}
+
+	@Override
+	public void resolveClassFwd(Class<?> cls) {
+		super.resolveClass(cls);
 	}
 
 	static {

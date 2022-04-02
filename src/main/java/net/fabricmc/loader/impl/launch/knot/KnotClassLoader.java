@@ -27,9 +27,10 @@ import java.util.Objects;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 
-final class KnotClassLoader extends SecureClassLoader implements KnotClassLoaderInterface {
-	private static class DynamicURLClassLoader extends URLClassLoader {
+final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAccess {
+	private static final class DynamicURLClassLoader extends URLClassLoader {
 		private DynamicURLClassLoader(URL[] urls) {
 			super(urls, new DummyClassLoader());
 		}
@@ -46,25 +47,17 @@ final class KnotClassLoader extends SecureClassLoader implements KnotClassLoader
 
 	private final DynamicURLClassLoader urlLoader;
 	private final ClassLoader originalLoader;
-	private final KnotClassDelegate delegate;
+	private final KnotClassDelegate<KnotClassLoader> delegate;
 
 	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
 		super(new DynamicURLClassLoader(new URL[0]));
 		this.originalLoader = getClass().getClassLoader();
 		this.urlLoader = (DynamicURLClassLoader) getParent();
-		this.delegate = new KnotClassDelegate(isDevelopment, envType, this, provider);
+		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, originalLoader, provider);
 	}
 
-	@Override
-	public KnotClassDelegate getDelegate() {
+	KnotClassDelegate<?> getDelegate() {
 		return delegate;
-	}
-
-	@Override
-	public boolean isClassLoaded(String name) {
-		synchronized (getClassLoadingLock(name)) {
-			return findLoadedClass(name) != null;
-		}
 	}
 
 	@Override
@@ -148,23 +141,7 @@ final class KnotClassLoader extends SecureClassLoader implements KnotClassLoader
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			Class<?> c = findLoadedClass(name);
-
-			if (c == null) {
-				c = delegate.tryLoadClass(name, false);
-
-				if (c == null) {
-					c = originalLoader.loadClass(name);
-				}
-			}
-
-			if (resolve) {
-				resolveClass(c);
-			}
-
-			return c;
-		}
+		return delegate.loadClass(name, resolve);
 	}
 
 	@Override
@@ -173,54 +150,44 @@ final class KnotClassLoader extends SecureClassLoader implements KnotClassLoader
 	}
 
 	@Override
-	public Class<?> loadIntoTarget(String name) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			Class<?> c = findLoadedClass(name);
-
-			if (c == null) {
-				c = delegate.tryLoadClass(name, true);
-
-				if (c == null) {
-					throw new ClassNotFoundException("can't find class "+name);
-				}
-			}
-
-			resolveClass(c);
-
-			return c;
-		}
-	}
-
-	@Override
-	public void addURL(URL url) {
+	public void addUrlFwd(URL url) {
 		urlLoader.addURL(url);
 	}
 
 	@Override
-	public InputStream getResourceAsStream(String classFile, boolean allowFromParent) throws IOException {
-		InputStream inputStream = urlLoader.getResourceAsStream(classFile);
-
-		if (inputStream == null && allowFromParent) {
-			inputStream = originalLoader.getResourceAsStream(classFile);
-		}
-
-		return inputStream;
+	public URL findResourceFwd(String name) {
+		return urlLoader.findResource(name);
 	}
 
 	@Override
-	public Package getPackage(String name) {
+	public Package getPackageFwd(String name) {
 		return super.getPackage(name);
 	}
 
 	@Override
-	public Package definePackage(String name, String specTitle, String specVersion, String specVendor,
+	public Package definePackageFwd(String name, String specTitle, String specVersion, String specVendor,
 			String implTitle, String implVersion, String implVendor, URL sealBase) throws IllegalArgumentException {
 		return super.definePackage(name, specTitle, specVersion, specVendor, implTitle, implVersion, implVendor, sealBase);
 	}
 
 	@Override
+	public Object getClassLoadingLockFwd(String name) {
+		return super.getClassLoadingLock(name);
+	}
+
+	@Override
+	public Class<?> findLoadedClassFwd(String name) {
+		return super.findLoadedClass(name);
+	}
+
+	@Override
 	public Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs) {
 		return super.defineClass(name, b, off, len, cs);
+	}
+
+	@Override
+	public void resolveClassFwd(Class<?> cls) {
+		super.resolveClass(cls);
 	}
 
 	static {

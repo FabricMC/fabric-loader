@@ -19,7 +19,6 @@ package net.fabricmc.loader.impl.game.minecraft;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
-import net.fabricmc.loader.impl.game.minecraft.LibClassifier.Lib;
+import net.fabricmc.loader.impl.game.LibClassifier;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
@@ -54,6 +53,7 @@ import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.log.LogHandler;
 
 public class MinecraftGameProvider implements GameProvider {
@@ -74,13 +74,14 @@ public class MinecraftGameProvider implements GameProvider {
 	private EnvType envType;
 	private String entrypoint;
 	private Arguments arguments;
-	private Path gameJar, realmsJar;
+	private final List<Path> gameJars = new ArrayList<>(2); // env game jar and potentially common game jar
+	private Path realmsJar;
 	private final Set<Path> logJars = new HashSet<>();
 	private boolean log4jAvailable;
 	private boolean slf4jAvailable;
 	private final List<Path> miscGameLibraries = new ArrayList<>(); // libraries not relevant for loader's uses
+	private Collection<Path> validParentClassPath; // computed parent class path restriction (loader+deps)
 	private McVersion versionData;
-	private boolean useGameJarForLogging;
 	private boolean hasModLoader = false;
 
 	private static final GameTransformer TRANSFORMER = new GameTransformer(
@@ -123,11 +124,11 @@ public class MinecraftGameProvider implements GameProvider {
 			}
 		}
 
-		return Collections.singletonList(new BuiltinMod(Collections.singletonList(gameJar), metadata.build()));
+		return Collections.singletonList(new BuiltinMod(gameJars, metadata.build()));
 	}
 
 	public Path getGameJar() {
-		return gameJar;
+		return gameJars.get(0);
 	}
 
 	@Override
@@ -166,65 +167,76 @@ public class MinecraftGameProvider implements GameProvider {
 		arguments.parse(args);
 
 		try {
-			String gameJarProperty = System.getProperty(SystemProperties.GAME_JAR_PATH);
-			List<Path> lookupPaths;
+			LibClassifier<McLibrary> classifier = new LibClassifier<>(McLibrary.class, envType, this);
+			McLibrary envGameLib = envType == EnvType.CLIENT ? McLibrary.MC_CLIENT : McLibrary.MC_SERVER;
+			Path commonGameJar = GameProviderHelper.getCommonGameJar();
+			Path envGameJar = GameProviderHelper.getEnvGameJar(envType);
+			boolean commonGameJarDeclared = commonGameJar != null;
 
-			if (gameJarProperty != null) {
-				Path path = Paths.get(gameJarProperty).toAbsolutePath().normalize();
-				if (!Files.exists(path)) throw new RuntimeException("Game jar "+path+" configured through "+SystemProperties.GAME_JAR_PATH+" system property doesn't exist");
+			if (commonGameJarDeclared) {
+				if (envGameJar != null) {
+					classifier.process(envGameJar, McLibrary.MC_COMMON);
+				}
 
-				lookupPaths = new ArrayList<>();
-				lookupPaths.add(path);
-				lookupPaths.addAll(launcher.getClassPath());
-			} else {
-				lookupPaths = launcher.getClassPath();
+				classifier.process(commonGameJar);
+			} else if (envGameJar != null) {
+				classifier.process(envGameJar);
 			}
 
-			LibClassifier classifier = new LibClassifier();
-			classifier.process(lookupPaths, envType);
+			classifier.process(launcher.getClassPath());
 
-			if (classifier.has(Lib.MC_BUNDLER)) {
+			if (classifier.has(McLibrary.MC_BUNDLER)) {
 				BundlerProcessor.process(classifier);
 			}
 
-			Lib gameLib = envType == EnvType.CLIENT ? Lib.MC_CLIENT : Lib.MC_SERVER;
-			gameJar = classifier.getOrigin(gameLib);
-			if (gameJar == null) return false;
+			envGameJar = classifier.getOrigin(envGameLib);
+			if (envGameJar == null) return false;
 
-			entrypoint = classifier.getClassName(gameLib);
-			realmsJar = classifier.getOrigin(Lib.REALMS);
-			useGameJarForLogging = classifier.is(gameJar, Lib.LOGGING);
-			hasModLoader = classifier.has(Lib.MODLOADER);
-			log4jAvailable = classifier.has(Lib.LOG4J_API) && classifier.has(Lib.LOG4J_CORE);
-			slf4jAvailable = classifier.has(Lib.SLF4J_API) && classifier.has(Lib.SLF4J_CORE);
+			commonGameJar = classifier.getOrigin(McLibrary.MC_COMMON);
 
-			for (Lib lib : Lib.LOGGING) {
+			if (commonGameJarDeclared && commonGameJar == null) {
+				Log.warn(LogCategory.GAME_PROVIDER, "The declared common game jar didn't contain any of the expected classes!");
+			}
+
+			gameJars.add(envGameJar);
+
+			if (commonGameJar != null && !commonGameJar.equals(envGameJar)) {
+				gameJars.add(commonGameJar);
+			}
+
+			entrypoint = classifier.getClassName(envGameLib);
+			realmsJar = classifier.getOrigin(McLibrary.REALMS);
+			hasModLoader = classifier.has(McLibrary.MODLOADER);
+			log4jAvailable = classifier.has(McLibrary.LOG4J_API) && classifier.has(McLibrary.LOG4J_CORE);
+			slf4jAvailable = classifier.has(McLibrary.SLF4J_API) && classifier.has(McLibrary.SLF4J_CORE);
+
+			for (McLibrary lib : McLibrary.LOGGING) {
 				Path path = classifier.getOrigin(lib);
 
-				if (path != null && !path.equals(gameJar) && !lookupPaths.contains(path)) {
-					logJars.add(path);
+				if (path != null) {
+					if (log4jAvailable || slf4jAvailable) {
+						logJars.add(path);
+					} else if (!gameJars.contains(path)) {
+						miscGameLibraries.add(path);
+					}
 				}
 			}
 
-			for (Path path : classifier.getUnmatchedOrigins()) {
-				if (!lookupPaths.contains(path)) miscGameLibraries.add(path);
-			}
+			miscGameLibraries.addAll(classifier.getUnmatchedOrigins());
+			validParentClassPath = classifier.getLoaderOrigins();
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
 		}
 
-		if (!useGameJarForLogging && logJars.isEmpty()) { // use Log4J/SLF4J log handler directly if it is not shaded into the game jar, otherwise delay it to initialize() after deobfuscation
-			setupLogHandler(launcher, false);
-		}
-
 		// expose obfuscated jar locations for mods to more easily remap code from obfuscated to intermediary
 		ObjectShare share = FabricLoaderImpl.INSTANCE.getObjectShare();
-		share.put("fabric-loader:inputGameJar", gameJar);
+		share.put("fabric-loader:inputGameJar", gameJars.get(0)); // deprecated
+		share.put("fabric-loader:inputGameJars", gameJars);
 		if (realmsJar != null) share.put("fabric-loader:inputRealmsJar", realmsJar);
 
 		String version = arguments.remove(Arguments.GAME_VERSION);
 		if (version == null) version = System.getProperty(SystemProperties.GAME_VERSION);
-		versionData = McVersionLookup.getVersion(gameJar, entrypoint, version);
+		versionData = McVersionLookup.getVersion(gameJars, entrypoint, version);
 
 		processArgumentMap(arguments, envType);
 
@@ -269,39 +281,59 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public void initialize(FabricLauncher launcher) {
-		Map<String, Path> gameJars = new HashMap<>(2);
-		String name = envType.name().toLowerCase(Locale.ENGLISH);
-		gameJars.put(name, gameJar);
-
-		if (realmsJar != null) {
-			gameJars.put("realms", realmsJar);
-		}
+		launcher.setValidParentClassPath(validParentClassPath);
 
 		if (isObfuscated()) {
-			gameJars = GameProviderHelper.deobfuscate(gameJars,
+			Map<String, Path> obfJars = new HashMap<>(3);
+			String[] names = new String[gameJars.size()];
+
+			for (int i = 0; i < gameJars.size(); i++) {
+				String name;
+
+				if (i == 0) {
+					name = envType.name().toLowerCase(Locale.ENGLISH);
+				} else if (i == 1) {
+					name = "common";
+				} else {
+					name = String.format("extra-%d", i - 2);
+				}
+
+				obfJars.put(name, gameJars.get(i));
+				names[i] = name;
+			}
+
+			if (realmsJar != null) {
+				obfJars.put("realms", realmsJar);
+			}
+
+			obfJars = GameProviderHelper.deobfuscate(obfJars,
 					getGameId(), getNormalizedGameVersion(),
 					getLaunchDirectory(),
 					launcher);
 
-			gameJar = gameJars.get(name);
-			realmsJar = gameJars.get("realms");
-		}
+			for (int i = 0; i < gameJars.size(); i++) {
+				Path newJar = obfJars.get(names[i]);
+				Path oldJar = gameJars.set(i, newJar);
 
-		if (useGameJarForLogging || !logJars.isEmpty()) {
-			if (useGameJarForLogging) {
-				launcher.addToClassPath(gameJar, ALLOWED_EARLY_CLASS_PREFIXES);
+				if (logJars.remove(oldJar)) logJars.add(newJar);
 			}
 
-			if (!logJars.isEmpty()) {
-				for (Path jar : logJars) {
+			realmsJar = obfJars.get("realms");
+		}
+
+		if (!logJars.isEmpty()) {
+			for (Path jar : logJars) {
+				if (gameJars.contains(jar)) {
+					launcher.addToClassPath(jar, ALLOWED_EARLY_CLASS_PREFIXES);
+				} else {
 					launcher.addToClassPath(jar);
 				}
 			}
-
-			setupLogHandler(launcher, true);
 		}
 
-		TRANSFORMER.locateEntrypoints(launcher, gameJar);
+		setupLogHandler(launcher, true);
+
+		TRANSFORMER.locateEntrypoints(launcher, gameJars);
 	}
 
 	private void setupLogHandler(FabricLauncher launcher, boolean useTargetCl) {
@@ -389,10 +421,12 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public void unlockClassPath(FabricLauncher launcher) {
-		if (useGameJarForLogging) {
-			launcher.setAllowedPrefixes(gameJar);
-		} else {
-			launcher.addToClassPath(gameJar);
+		for (Path gameJar : gameJars) {
+			if (logJars.contains(gameJar)) {
+				launcher.setAllowedPrefixes(gameJar);
+			} else {
+				launcher.addToClassPath(gameJar);
+			}
 		}
 
 		if (realmsJar != null) launcher.addToClassPath(realmsJar);
