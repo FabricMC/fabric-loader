@@ -192,6 +192,8 @@ public class MinecraftGameProvider implements GameProvider {
 			envGameJar = classifier.getOrigin(envGameLib);
 			if (envGameJar == null) return false;
 
+			Log.enableBuiltinHandlerBuffering(true);
+
 			commonGameJar = classifier.getOrigin(McLibrary.MC_COMMON);
 
 			if (commonGameJarDeclared && commonGameJar == null) {
@@ -360,7 +362,7 @@ public class MinecraftGameProvider implements GameProvider {
 				logHandlerCls = Class.forName(logHandlerClsName);
 			}
 
-			Log.init((LogHandler) logHandlerCls.getConstructor().newInstance(), true);
+			Log.init((LogHandler) logHandlerCls.getConstructor().newInstance());
 			Thread.currentThread().setContextClassLoader(prevCl);
 		} catch (ReflectiveOperationException e) {
 			throw new RuntimeException(e);

@@ -41,7 +41,7 @@ public final class Slf4jLogHandler implements LogHandler {
 	}
 
 	@Override
-	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isReplayedBuiltin) {
+	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean fromReplay, boolean wasSuppressed) {
 		Logger logger = getLogger(category);
 
 		if (msg == null) {

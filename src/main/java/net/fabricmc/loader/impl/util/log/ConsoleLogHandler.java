@@ -24,7 +24,7 @@ public class ConsoleLogHandler implements LogHandler {
 	private static final LogLevel MIN_STDOUT_LEVEL = LogLevel.getDefault();
 
 	@Override
-	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean isRelayedBuiltin) {
+	public void log(long time, LogLevel level, LogCategory category, String msg, Throwable exc, boolean fromReplay, boolean wasSuppressed) {
 		String formatted = formatLog(time, level, category, msg, exc);
 
 		if (level.isLessThan(MIN_STDERR_LEVEL)) {

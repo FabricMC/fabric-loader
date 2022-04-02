@@ -25,17 +25,30 @@ public final class Log {
 
 	private static LogHandler handler = new BuiltinLogHandler();
 
-	public static void init(LogHandler handler, boolean replayBuiltin) {
+	public static void init(LogHandler handler) {
 		if (handler == null) throw new NullPointerException("null log handler");
 
-		LogHandler oldhHandler = Log.handler;
+		LogHandler oldHandler = Log.handler;
 
-		if (oldhHandler instanceof BuiltinLogHandler && replayBuiltin) {
-			((BuiltinLogHandler) oldhHandler).replay(handler);
+		if (oldHandler instanceof BuiltinLogHandler) {
+			((BuiltinLogHandler) oldHandler).replay(handler);
 		}
 
 		Log.handler = handler;
-		oldhHandler.close();
+		oldHandler.close();
+	}
+
+	/**
+	 * Enable buffering builtin log output instead of emitting it.
+	 *
+	 * @param suppressOutput whether to suppress builtin log output until an ERROR-level log arrives
+	 */
+	public static void enableBuiltinHandlerBuffering(boolean suppressOutput) {
+		LogHandler handler = Log.handler;
+
+		if (handler instanceof BuiltinLogHandler) {
+			((BuiltinLogHandler) handler).enableBuffering(suppressOutput);
+		}
 	}
 
 	public static void error(LogCategory category, String format, Object... args) {
@@ -191,7 +204,7 @@ public final class Log {
 	}
 
 	private static void log(LogHandler handler, LogLevel level, LogCategory category, String msg, Throwable exc) {
-		handler.log(System.currentTimeMillis(), level, category, msg.trim(), exc, false);
+		handler.log(System.currentTimeMillis(), level, category, msg.trim(), exc, false, false);
 	}
 
 	public static boolean shouldLog(LogLevel level, LogCategory category) {
