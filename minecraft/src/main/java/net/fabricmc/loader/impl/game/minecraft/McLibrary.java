@@ -20,7 +20,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 
 enum McLibrary implements LibraryType {
-	FABRIC_LOADER_MC(null, true, "net/fabricmc/loader/impl/game/minecraft/MinecraftGameProvider.class"),
 	MC_CLIENT(EnvType.CLIENT, "net/minecraft/client/main/Main.class", "net/minecraft/client/MinecraftApplet.class", "com/mojang/minecraft/MinecraftApplet.class"),
 	MC_SERVER(EnvType.SERVER, "net/minecraft/server/Main.class", "net/minecraft/server/MinecraftServer.class", "com/mojang/minecraft/server/MinecraftServer.class"),
 	MC_COMMON("net/minecraft/server/MinecraftServer.class"),
@@ -41,7 +40,6 @@ enum McLibrary implements LibraryType {
 	static final McLibrary[] LOGGING = { LOG4J_API, LOG4J_CORE, LOG4J_CONFIG, LOG4J_PLUGIN, LOG4J_PLUGIN_2, LOG4J_PLUGIN_3, GSON, SLF4J_API, SLF4J_CORE };
 
 	private final EnvType env;
-	private final boolean shaded;
 	private final String[] paths;
 
 	McLibrary(String path) {
@@ -49,22 +47,17 @@ enum McLibrary implements LibraryType {
 	}
 
 	McLibrary(String... paths) {
-		this(null, false, paths);
+		this(null, paths);
 	}
 
 	McLibrary(EnvType env, String... paths) {
-		this(env, false, paths);
-	}
-
-	McLibrary(EnvType env, boolean shaded, String... paths) {
 		this.paths = paths;
-		this.shaded = shaded;
 		this.env = env;
 	}
 
 	@Override
-	public boolean isApplicable(EnvType env, boolean shaded) {
-		return (this.env == null || this.env == env) && (!shaded || !this.shaded);
+	public boolean isApplicable(EnvType env) {
+		return this.env == null || this.env == env;
 	}
 
 	@Override

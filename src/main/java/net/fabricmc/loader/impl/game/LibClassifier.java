@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,24 +34,18 @@ import java.util.Set;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
-import org.sat4j.minisat.SolverFactory;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
 public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	private final List<L> libs;
-	private final List<LoaderLibrary> loaderLibs;
-	private final Path gameProviderLib;
 	private final Map<L, Path> origins;
 	private final Map<L, String> localPaths;
-	private final Map<LoaderLibrary, Path> loaderOrigins = new EnumMap<>(LoaderLibrary.class);
+	private final Set<Path> loaderOrigins = new HashSet<>();
 	private final List<Path> unmatchedOrigins = new ArrayList<>();
 
 	public LibClassifier(Class<L> cls, EnvType env, GameProvider gameProvider) {
-		boolean shaded = UrlUtil.getCodeSource(SolverFactory.class).equals(UrlUtil.LOADER_CODE_SOURCE);
-
 		L[] libs = cls.getEnumConstants();
 
 		this.libs = new ArrayList<>(libs.length);
@@ -58,21 +53,16 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		this.localPaths = new EnumMap<>(cls);
 
 		for (L lib : libs) {
-			if (lib.isApplicable(env, shaded)) {
+			if (lib.isApplicable(env)) {
 				this.libs.add(lib);
 			}
 		}
 
-		LoaderLibrary[] loaderLibs = LoaderLibrary.values();
-		this.loaderLibs = new ArrayList<>(loaderLibs.length);
-
-		for (LoaderLibrary lib : loaderLibs) {
-			if (lib.isApplicable(env, shaded)) {
-				this.loaderLibs.add(lib);
-			}
+		for (LoaderLibrary lib : LoaderLibrary.values()) {
+			loaderOrigins.add(lib.path);
 		}
 
-		this.gameProviderLib = UrlUtil.getCodeSource(gameProvider.getClass());
+		loaderOrigins.add(UrlUtil.getCodeSource(gameProvider.getClass()));
 	}
 
 	public void process(URL url) throws IOException {
@@ -110,6 +100,8 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	private void process(Path path, Set<L> excludedLibs) throws IOException {
+		if (loaderOrigins.contains(path)) return;
+
 		boolean matched = false;
 
 		if (Files.isDirectory(path)) {
@@ -124,15 +116,6 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 					}
 				}
 			}
-
-			for (LoaderLibrary lib : loaderLibs) {
-				if (!loaderOrigins.containsKey(lib)
-						&& Files.exists(path.resolve(lib.path))) {
-					loaderOrigins.put(lib, path);
-					matched = true;
-					break;
-				}
-			}
 		} else {
 			try (ZipFile zf = new ZipFile(path.toFile())) {
 				for (L lib : libs) {
@@ -144,15 +127,6 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 							addLibrary(lib, path, p);
 							break;
 						}
-					}
-				}
-
-				for (LoaderLibrary lib : loaderLibs) {
-					if (!loaderOrigins.containsKey(lib)
-							&& zf.getEntry(lib.path) != null) {
-						loaderOrigins.put(lib, path);
-						matched = true;
-						break;
 					}
 				}
 			} catch (ZipError | IOException e) {
@@ -202,17 +176,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	public Collection<Path> getLoaderOrigins() {
-		Collection<Path> paths = loaderOrigins.values();
-
-		if (paths.contains(gameProviderLib)) {
-			return paths;
-		} else {
-			Collection<Path> ret = new ArrayList<>(paths.size() + 1);
-			ret.addAll(paths);
-			ret.add(gameProviderLib);
-
-			return ret;
-		}
+		return loaderOrigins;
 	}
 
 	public boolean remove(Path path) {
@@ -235,7 +199,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	public interface LibraryType {
-		boolean isApplicable(EnvType env, boolean shaded);
+		boolean isApplicable(EnvType env);
 		String[] getPaths();
 	}
 }

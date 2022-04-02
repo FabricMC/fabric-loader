@@ -16,36 +16,45 @@
 
 package net.fabricmc.loader.impl.game;
 
-import net.fabricmc.api.EnvType;
+import java.nio.file.Path;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.util.CheckClassAdapter;
+import org.sat4j.pb.SolverFactory;
+import org.sat4j.specs.ContradictionException;
+import org.spongepowered.asm.launch.MixinBootstrap;
+
+import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.mapping.tree.TinyMappingFactory;
+import net.fabricmc.tinyremapper.TinyRemapper;
 
 enum LoaderLibrary {
-	FABRIC_LOADER("net/fabricmc/loader/api/FabricLoader.class"),
-	TINY_MAPPINGS_PARSER("net/fabricmc/mapping/tree/TinyMappingFactory.class"),
-	SPONGE_MIXIN("org/spongepowered/asm/launch/MixinBootstrap.class"),
-	TINY_REMAPPER("net/fabricmc/tinyremapper/TinyRemapper.class"),
-	ACCESS_WIDENER("net/fabricmc/accesswidener/AccessWidener.class"),
-	ASM("org/objectweb/asm/ClassReader.class"),
-	ASM_ANALYSIS("org/objectweb/asm/tree/analysis/Analyzer.class"),
-	ASM_COMMONS("org/objectweb/asm/commons/Remapper.class"),
-	ASM_TREE("org/objectweb/asm/tree/ClassNode.class"),
-	ASM_UTIL("org/objectweb/asm/util/CheckClassAdapter.class"),
-	INTERMEDIARY("mappings/mappings.tiny"),
-	SAT4J_CORE(true, "org/sat4j/specs/ContradictionException.class"),
-	SAT4J_PB(true, "org/sat4j/pb/SolverFactory.class");
+	FABRIC_LOADER(UrlUtil.LOADER_CODE_SOURCE),
+	TINY_MAPPINGS_PARSER(TinyMappingFactory.class),
+	SPONGE_MIXIN(MixinBootstrap.class),
+	TINY_REMAPPER(TinyRemapper.class),
+	ACCESS_WIDENER(AccessWidener.class),
+	ASM(ClassReader.class),
+	ASM_ANALYSIS(Analyzer.class),
+	ASM_COMMONS(Remapper.class),
+	ASM_TREE(ClassNode.class),
+	ASM_UTIL(CheckClassAdapter.class),
+	SAT4J_CORE(ContradictionException.class),
+	SAT4J_PB(SolverFactory.class);
 
-	final boolean shaded;
-	final String path;
+	final Path path;
 
-	LoaderLibrary(String path) {
-		this(false, path);
+	LoaderLibrary(Class<?> cls) {
+		this(UrlUtil.getCodeSource(cls));
 	}
 
-	LoaderLibrary(boolean shaded, String path) {
-		this.shaded = shaded;
+	LoaderLibrary(Path path) {
+		if (path == null) throw new RuntimeException("missing loader library "+name());
+
 		this.path = path;
-	}
-
-	public boolean isApplicable(EnvType env, boolean shaded) {
-		return !shaded || !this.shaded;
 	}
 }
