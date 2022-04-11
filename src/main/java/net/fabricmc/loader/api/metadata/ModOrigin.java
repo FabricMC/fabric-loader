@@ -51,9 +51,9 @@ public interface ModOrigin {
 	String getParentModId();
 
 	/**
-	 * Get the jar or folder paths for a {@link Kind#PATH} origin.
+	 * Get the sub-location within the parent mod for a {@link Kind#NESTED} origin.
 	 *
-	 * @return jar or folder paths
+	 * @return sub-location
 	 * @throws UnsupportedOperationException for incompatible kinds
 	 */
 	String getParentSubLocation();
