@@ -252,7 +252,7 @@ public class SemanticVersionImpl extends net.fabricmc.loader.util.version.Semant
 	@Override
 	public int compareTo(Version other) {
 		if (!(other instanceof SemanticVersion)) {
-			return 1;
+			return getFriendlyString().compareTo(other.getFriendlyString());
 		}
 
 		SemanticVersion o = (SemanticVersion) other;

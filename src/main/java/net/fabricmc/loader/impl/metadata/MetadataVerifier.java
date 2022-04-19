@@ -63,22 +63,22 @@ public final class MetadataVerifier {
 			if (metadata.getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
 				Log.warn(LogCategory.METADATA, "Mod %s uses an outdated schema version: %d < %d", metadata.getId(), metadata.getSchemaVersion(), ModMetadataParser.LATEST_VERSION);
 			}
+		}
 
-			if (!(metadata.getVersion() instanceof SemanticVersion)) {
-				String version = metadata.getVersion().getFriendlyString();
-				VersionParsingException exc;
+		if (!(metadata.getVersion() instanceof SemanticVersion)) {
+			String version = metadata.getVersion().getFriendlyString();
+			VersionParsingException exc;
 
-				try {
-					SemanticVersion.parse(version);
-					exc = null;
-				} catch (VersionParsingException e) {
-					exc = e;
-				}
+			try {
+				SemanticVersion.parse(version);
+				exc = null;
+			} catch (VersionParsingException e) {
+				exc = e;
+			}
 
-				if (exc != null) {
-					Log.warn(LogCategory.METADATA, "Mod %s uses the version %s which isn't compatible with Loader's extended semantic version format (%s), SemVer is recommended for reliable dependency comparisons",
-							metadata.getId(), version, exc.getMessage());
-				}
+			if (exc != null) {
+				Log.warn(LogCategory.METADATA, "Mod %s uses the version %s which isn't compatible with Loader's extended semantic version format (%s), SemVer is recommended for reliably evaluating dependencies and prioritizing newer version",
+						metadata.getId(), version, exc.getMessage());
 			}
 
 			metadata.emitFormatWarnings();
