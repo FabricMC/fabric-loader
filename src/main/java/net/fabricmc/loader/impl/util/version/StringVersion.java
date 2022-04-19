@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.impl.util.version;
 
-import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 
 public class StringVersion implements Version {
@@ -42,10 +41,6 @@ public class StringVersion implements Version {
 
 	@Override
 	public int compareTo(Version o) {
-		if (o instanceof SemanticVersion) {
-			return -1;
-		}
-
 		return getFriendlyString().compareTo(o.getFriendlyString());
 	}
 
