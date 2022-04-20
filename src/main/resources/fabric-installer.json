@@ -13,7 +13,7 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "net.fabricmc:tiny-remapper:0.8.1",
+        "name": "net.fabricmc:tiny-remapper:0.8.2",
         "url": "https://maven.fabricmc.net/"
       },
       {
@@ -21,23 +21,23 @@
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm:9.2",
+        "name": "org.ow2.asm:asm:9.3",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-analysis:9.2",
+        "name": "org.ow2.asm:asm-analysis:9.3",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-commons:9.2",
+        "name": "org.ow2.asm:asm-commons:9.3",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-tree:9.2",
+        "name": "org.ow2.asm:asm-tree:9.3",
         "url": "https://maven.fabricmc.net/"
       },
       {
-        "name": "org.ow2.asm:asm-util:9.2",
+        "name": "org.ow2.asm:asm-util:9.3",
         "url": "https://maven.fabricmc.net/"
       }
     ],
