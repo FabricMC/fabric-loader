@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.JarURLConnection;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -72,7 +73,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	private static final ClassLoader PLATFORM_CLASS_LOADER = getPlatformClassLoader();
 
-	private final Map<String, Metadata> metadataCache = new ConcurrentHashMap<>();
+	private final Map<URI, Metadata> metadataCache = new ConcurrentHashMap<>();
 	private final T classLoader;
 	private final ClassLoader parentClassLoader;
 	private final GameProvider provider;
@@ -80,9 +81,9 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
-	private volatile Set<String> urls = Collections.emptySet();
-	private volatile Set<String> validParentUrls = Collections.emptySet();
-	private final Map<URL, String[]> allowedPrefixes = new ConcurrentHashMap<>();
+	private volatile Set<URI> uris = Collections.emptySet();
+	private volatile Set<URI> validParentUris = Collections.emptySet();
+	private final Map<URI, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, T classLoader, ClassLoader parentClassLoader, GameProvider provider) {
@@ -128,17 +129,17 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	@Override
 	public void addUrl(URL url) {
-		String urlStr = url.toString();
+		URI uri = UrlUtil.asUri(url);
 
 		synchronized (this) {
-			Set<String> urls = this.urls;
-			if (urls.contains(urlStr)) return;
+			Set<URI> urls = this.uris;
+			if (urls.contains(uri)) return;
 
-			Set<String> newUrls = new HashSet<>(urls.size() + 1, 1);
+			Set<URI> newUrls = new HashSet<>(urls.size() + 1, 1);
 			newUrls.addAll(urls);
-			newUrls.add(urlStr);
+			newUrls.add(uri);
 
-			this.urls = newUrls;
+			this.uris = newUrls;
 		}
 
 		classLoader.addUrlFwd(url);
@@ -146,27 +147,29 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	@Override
 	public void setAllowedPrefixes(URL url, String... prefixes) {
+		URI uri = UrlUtil.asUri(url);
+
 		if (prefixes.length == 0) {
-			allowedPrefixes.remove(url);
+			allowedPrefixes.remove(uri);
 		} else {
-			allowedPrefixes.put(url, prefixes);
+			allowedPrefixes.put(uri, prefixes);
 		}
 	}
 
 	@Override
 	public void setValidParentClassPath(Collection<URL> urls) {
-		Set<String> urlStrs = new HashSet<>(urls.size(), 1);
+		Set<URI> uris = new HashSet<>(urls.size(), 1);
 
 		for (URL url : urls) {
-			urlStrs.add(url.toString());
+			uris.add(UrlUtil.asUri(url));
 		}
 
-		this.validParentUrls = urlStrs;
+		this.validParentUris = uris;
 	}
 
 	@Override
 	public Manifest getManifest(URL url) {
-		return getMetadata(url).manifest;
+		return getMetadata(UrlUtil.asUri(url)).manifest;
 	}
 
 	@Override
@@ -239,20 +242,20 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	/**
 	 * Check if an url is loadable by the parent class loader.
 	 *
-	 * <p>This handles explicit parent url whitelisting by {@link #validParentUrls} or shadowing by {@link #urls}
+	 * <p>This handles explicit parent url whitelisting by {@link #validParentUris} or shadowing by {@link #uris}
 	 */
 	private boolean isValidParentUrl(URL url, String fileName) {
 		if (url == null) return false;
 		if (DISABLE_ISOLATION) return true;
 
 		try {
-			String srcUrl = UrlUtil.getSource(fileName, url).toString();
-			Set<String> validParentUrls = this.validParentUrls;
+			URI srcUri = UrlUtil.getSource(fileName, url);
+			Set<URI> validParentUris = this.validParentUris;
 
-			if (validParentUrls != null) { // explicit whitelist (in addition to platform cl classes)
-				return validParentUrls.contains(srcUrl) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
+			if (validParentUris != null) { // explicit whitelist (in addition to platform cl classes)
+				return validParentUris.contains(srcUri) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
 			} else { // reject urls shadowed by this cl
-				return !urls.contains(srcUrl);
+				return !uris.contains(srcUri);
 			}
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);
@@ -269,7 +272,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			String[] prefixes;
 
 			if (url != null
-					&& (prefixes = allowedPrefixes.get(url)) != null) {
+					&& (prefixes = allowedPrefixes.get(UrlUtil.asUri(url))) != null) {
 				assert prefixes.length > 0;
 				boolean found = false;
 
@@ -329,32 +332,32 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	Metadata getMetadata(String name, URL resourceURL) {
 		if (resourceURL == null) return Metadata.EMPTY;
 
-		URL codeSourceUrl = null;
+		URI codeSource = null;
 
 		try {
-			codeSourceUrl = UrlUtil.getSource(LoaderUtil.getClassFileName(name), resourceURL);
+			codeSource = UrlUtil.getSource(LoaderUtil.getClassFileName(name), resourceURL);
 		} catch (UrlConversionException e) {
 			System.err.println("Could not find code source for " + resourceURL + ": " + e.getMessage());
 		}
 
-		if (codeSourceUrl == null) return Metadata.EMPTY;
+		if (codeSource == null) return Metadata.EMPTY;
 
-		return getMetadata(codeSourceUrl);
+		return getMetadata(codeSource);
 	}
 
-	Metadata getMetadata(URL codeSourceUrl) {
-		return metadataCache.computeIfAbsent(codeSourceUrl.toString(), (codeSourceStr) -> {
+	Metadata getMetadata(URI codeSourceUri) {
+		return metadataCache.computeIfAbsent(codeSourceUri, (URI uri) -> {
 			Manifest manifest = null;
 			CodeSource codeSource = null;
 			Certificate[] certificates = null;
 
 			try {
-				Path path = UrlUtil.asPath(codeSourceUrl);
+				Path path = UrlUtil.asPath(uri);
 
 				if (Files.isDirectory(path)) {
 					manifest = ManifestUtil.readManifest(path);
 				} else {
-					URLConnection connection = new URL("jar:" + codeSourceStr + "!/").openConnection();
+					URLConnection connection = new URL("jar:" + uri.toString() + "!/").openConnection();
 
 					if (connection instanceof JarURLConnection) {
 						manifest = ((JarURLConnection) connection).getManifest();
@@ -381,7 +384,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			}
 
 			if (codeSource == null) {
-				codeSource = new CodeSource(codeSourceUrl, certificates);
+				codeSource = new CodeSource(UrlUtil.asUrl(uri), certificates);
 			}
 
 			return new Metadata(manifest, codeSource);
