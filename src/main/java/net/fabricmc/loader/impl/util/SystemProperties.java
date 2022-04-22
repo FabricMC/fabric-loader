@@ -40,6 +40,10 @@ public final class SystemProperties {
 	public static final String PATH_GROUPS = "fabric.classPathGroups";
 	// throw exceptions from entrypoints, discovery etc. directly instead of gathering and attaching as suppressed
 	public static final String DEBUG_THROW_DIRECTLY = "fabric.debug.throwDirectly";
+	// logs library classification activity
+	public static final String DEBUG_LOG_LIB_CLASSIFICATION = "fabric.debug.logLibClassification";
+	// logs class loading
+	public static final String DEBUG_LOG_CLASS_LOAD = "fabric.debug.logClassLoad";
 	// logs class loading errors to uncover caught exceptions without adequate logging
 	public static final String DEBUG_LOG_CLASS_LOAD_ERRORS = "fabric.debug.logClassLoadErrors";
 	// logs class transformation errors to uncover caught exceptions without adequate logging

@@ -16,6 +16,7 @@
 
 package net.fabricmc.loader.impl.game;
 
+import java.net.URL;
 import java.nio.file.Path;
 
 import org.objectweb.asm.ClassReader;
@@ -28,6 +29,8 @@ import org.sat4j.specs.ContradictionException;
 import org.spongepowered.asm.launch.MixinBootstrap;
 
 import net.fabricmc.accesswidener.AccessWidener;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
 import net.fabricmc.tinyremapper.TinyRemapper;
@@ -44,9 +47,12 @@ enum LoaderLibrary {
 	ASM_TREE(ClassNode.class),
 	ASM_UTIL(CheckClassAdapter.class),
 	SAT4J_CORE(ContradictionException.class),
-	SAT4J_PB(SolverFactory.class);
+	SAT4J_PB(SolverFactory.class),
+	SERVER_LAUNCH("fabric-server-launch.properties", EnvType.SERVER), // installer generated jar to run setup loader's class path
+	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER); // installer based launch-through method
 
 	final Path path;
+	final EnvType env;
 
 	LoaderLibrary(Class<?> cls) {
 		this(UrlUtil.getCodeSource(cls));
@@ -56,5 +62,17 @@ enum LoaderLibrary {
 		if (path == null) throw new RuntimeException("missing loader library "+name());
 
 		this.path = path;
+		this.env = null;
+	}
+
+	LoaderLibrary(String file, EnvType env) {
+		URL url = LoaderLibrary.class.getClassLoader().getResource(file);
+
+		try {
+			this.path = url != null ? UrlUtil.getSourcePath(file, url) : null;
+			this.env = env;
+		} catch (UrlConversionException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
