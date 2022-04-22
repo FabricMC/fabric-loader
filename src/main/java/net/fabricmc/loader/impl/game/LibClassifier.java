@@ -36,9 +36,14 @@ import java.util.zip.ZipFile;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class LibClassifier<L extends Enum<L> & LibraryType> {
+	private static final boolean DEBUG = System.getProperty(SystemProperties.DEBUG_LOG_LIB_CLASSIFICATION) != null;
+
 	private final List<L> libs;
 	private final Map<L, Path> origins;
 	private final Map<L, String> localPaths;
@@ -58,11 +63,34 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 			}
 		}
 
+		StringBuilder sb = DEBUG ? new StringBuilder() : null;
+
 		for (LoaderLibrary lib : LoaderLibrary.values()) {
-			loaderOrigins.add(lib.path);
+			if (lib.env != null && lib.env != env) continue;
+
+			if (lib.path != null) {
+				Path path = lib.path.toAbsolutePath().normalize();
+				loaderOrigins.add(path);
+
+				if (DEBUG) sb.append(String.format("✅ %s %s%n", lib.name(), path));
+			} else {
+				if (DEBUG) sb.append(String.format("❎ %s%n", lib.name()));
+			}
 		}
 
-		loaderOrigins.add(UrlUtil.getCodeSource(gameProvider.getClass()));
+		Path gameProviderPath = UrlUtil.getCodeSource(gameProvider.getClass());
+
+		if (gameProviderPath != null) {
+			gameProviderPath = gameProviderPath.toAbsolutePath().normalize();
+
+			if (loaderOrigins.add(gameProviderPath)) {
+				if (DEBUG) sb.append(String.format("✅ gameprovider %s%n", gameProviderPath));
+			}
+		} else {
+			if (DEBUG) sb.append("❎ gameprovider");
+		}
+
+		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader libraries:%n%s", sb);
 	}
 
 	public void process(URL url) throws IOException {
@@ -100,6 +128,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	private void process(Path path, Set<L> excludedLibs) throws IOException {
+		path = path.toAbsolutePath().normalize();
 		if (loaderOrigins.contains(path)) return;
 
 		boolean matched = false;
@@ -130,17 +159,23 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 					}
 				}
 			} catch (ZipError | IOException e) {
-				throw new IOException("error reading "+path.toAbsolutePath(), e);
+				throw new IOException("error reading "+path, e);
 			}
 		}
 
-		if (!matched) unmatchedOrigins.add(path);
+		if (!matched) {
+			unmatchedOrigins.add(path);
+
+			if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "unmatched %s", path);
+		}
 	}
 
 	private void addLibrary(L lib, Path originPath, String localPath) {
 		Path prev = origins.put(lib, originPath);
 		if (prev != null) throw new IllegalStateException("lib "+lib+" was already added");
 		localPaths.put(lib, localPath);
+
+		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "%s %s (%s)", lib.name(), originPath, localPath);
 	}
 
 	@SafeVarargs

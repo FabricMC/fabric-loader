@@ -55,7 +55,8 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> implements KnotClassLoaderInterface {
-	private static final boolean LOG_CLASS_LOAD_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS) != null;
+	private static final boolean LOG_CLASS_LOAD = System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD) != null;
+	private static final boolean LOG_CLASS_LOAD_ERRORS = LOG_CLASS_LOAD || System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS) != null;
 	private static final boolean LOG_TRANSFORM_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS) != null;
 	private static final boolean DISABLE_ISOLATION = System.getProperty(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION) != null;
 
@@ -143,6 +144,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		}
 
 		classLoader.addUrlFwd(url);
+
+		if (LOG_CLASS_LOAD_ERRORS) Log.info(LogCategory.KNOT, "added code source %s", url);
 	}
 
 	@Override
@@ -189,6 +192,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 				if (c == null) {
 					throw new ClassNotFoundException("can't find class "+name);
+				} else if (LOG_CLASS_LOAD) {
+					Log.info(LogCategory.KNOT, "loaded class %s into target", name);
 				}
 			}
 
@@ -225,8 +230,11 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 							if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
 							throw new ClassNotFoundException(msg);
 						} else { // load from system cl
+							if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "loading class %s using the parent class loader", name);
 							c = parentClassLoader.loadClass(name);
 						}
+					} else if (LOG_CLASS_LOAD) {
+						Log.info(LogCategory.KNOT, "loaded class %s", name);
 					}
 				}
 			}
@@ -464,7 +472,12 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			if (!allowFromParent) return null;
 
 			url = parentClassLoader.getResource(name);
-			if (!isValidParentUrl(url, name)) return null;
+
+			if (!isValidParentUrl(url, name)) {
+				if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "refusing to load class %s from parent class loader", name);
+
+				return null;
+			}
 		}
 
 		try (InputStream inputStream = url.openStream()) {

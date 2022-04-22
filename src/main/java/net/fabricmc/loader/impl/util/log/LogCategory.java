@@ -24,6 +24,7 @@ public final class LogCategory {
 	public static final LogCategory GAME_REMAP = new LogCategory("GameRemap");
 	public static final LogCategory GENERAL = new LogCategory();
 	public static final LogCategory KNOT = new LogCategory("Knot");
+	public static final LogCategory LIB_CLASSIFICATION = new LogCategory("LibClassify");
 	public static final LogCategory LOG = new LogCategory("Log");
 	public static final LogCategory MAPPINGS = new LogCategory("Mappings");
 	public static final LogCategory METADATA = new LogCategory("Metadata");
