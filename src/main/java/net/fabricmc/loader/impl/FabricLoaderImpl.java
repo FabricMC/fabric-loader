@@ -21,12 +21,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +59,6 @@ import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.impl.util.SystemProperties;
-import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -304,34 +301,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		for (ModContainerImpl mod : mods) {
 			if (!mod.getMetadata().getId().equals(MOD_ID) && !mod.getMetadata().getType().equals("builtin")) {
 				for (Path path : mod.getCodeSourcePaths()) {
-					FabricLauncherBase.getLauncher().addToClassPath(path);
-				}
-			}
-		}
-
-		if (isDevelopmentEnvironment()) {
-			// Many development environments will provide classes and resources as separate directories to the classpath.
-			// As such, we're adding them to the classpath here and now.
-			// To avoid tripping loader-side checks, we also don't add URLs already in modsList.
-			// TODO: Perhaps a better solution would be to add the Sources of all parsed entrypoints. But this will do, for now.
-
-			Set<Path> knownModPaths = new HashSet<>();
-
-			for (ModContainerImpl mod : mods) {
-				for (Path path : mod.getCodeSourcePaths()) {
-					knownModPaths.add(path.toAbsolutePath().normalize());
-				}
-			}
-
-			// suppress fabric loader explicitly in case its fabric.mod.json is in a different folder from the classes
-			knownModPaths.add(UrlUtil.LOADER_CODE_SOURCE.toAbsolutePath().normalize());
-
-			for (String pathName : System.getProperty("java.class.path", "").split(File.pathSeparator)) {
-				if (pathName.isEmpty() || pathName.endsWith("*")) continue;
-
-				Path path = Paths.get(pathName).toAbsolutePath().normalize();
-
-				if (Files.isDirectory(path) && knownModPaths.add(path)) {
 					FabricLauncherBase.getLauncher().addToClassPath(path);
 				}
 			}
