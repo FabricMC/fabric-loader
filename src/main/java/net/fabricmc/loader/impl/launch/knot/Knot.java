@@ -102,24 +102,32 @@ public final class Knot extends FabricLauncherBase {
 
 		classPath.clear();
 
+		List<String> missing = null;
+		List<String> unsupported = null;
+
 		for (String cpEntry : System.getProperty("java.class.path").split(File.pathSeparator)) {
 			if (cpEntry.equals("*") || cpEntry.endsWith(File.separator + "*")) {
-				Log.warn(LogCategory.KNOT, "Knot does not support wildcard classpath entries: %s - the game may not load properly!", cpEntry);
+				if (unsupported == null) unsupported = new ArrayList<>();
+				unsupported.add(cpEntry);
 				continue;
 			}
 
 			Path path = Paths.get(cpEntry);
 
 			if (!Files.exists(path)) {
-				Log.warn(LogCategory.KNOT, "Class path entry %s doesn't exist!", cpEntry);
+				if (missing == null) missing = new ArrayList<>();
+				missing.add(cpEntry);
 				continue;
 			}
 
 			classPath.add(path);
 		}
 
+		if (unsupported != null) Log.warn(LogCategory.KNOT, "Knot does not support wildcard class path entries: %s - the game may not load properly!", String.join(", ", unsupported));
+		if (missing != null) Log.warn(LogCategory.KNOT, "Class path entries reference missing files: %s - the game may not load properly!", String.join(", ", missing));
+
 		provider = createGameProvider(args);
-		Log.dropUnusedBuiltinReplayBuffer();
+		Log.finishBuiltinConfig();
 		Log.info(LogCategory.GAME_PROVIDER, "Loading %s %s with Fabric Loader %s", provider.getGameName(), provider.getRawGameVersion(), FabricLoaderImpl.VERSION);
 
 		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
