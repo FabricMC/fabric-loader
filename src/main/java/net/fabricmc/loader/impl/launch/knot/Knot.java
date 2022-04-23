@@ -44,6 +44,7 @@ import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -306,7 +307,9 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public ClassLoader getTargetClassLoader() {
-		return classLoader.getClassLoader();
+		KnotClassLoaderInterface classLoader = this.classLoader;
+
+		return classLoader != null ? classLoader.getClassLoader() : null;
 	}
 
 	@Override
@@ -337,5 +340,9 @@ public final class Knot extends FabricLauncherBase {
 
 	public static void main(String[] args) {
 		new Knot(null).init(args);
+	}
+
+	static {
+		LoaderUtil.verifyNotInTargetCl(Knot.class);
 	}
 }

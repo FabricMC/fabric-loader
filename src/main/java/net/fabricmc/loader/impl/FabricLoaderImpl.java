@@ -58,6 +58,7 @@ import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -532,5 +533,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 			return instance;
 		}
+	}
+
+	static {
+		LoaderUtil.verifyNotInTargetCl(FabricLoaderImpl.class);
 	}
 }
