@@ -23,6 +23,15 @@ public final class LoaderUtil {
 		return className.replace('.', '/').concat(".class");
 	}
 
+	public static void verifyNotInTargetCl(Class<?> cls) {
+		if (cls.getClassLoader().getClass().getName().equals("net.fabricmc.loader.impl.launch.knot.KnotClassLoader")) {
+			// This usually happens when fabric loader has been added to the target class loader. This is a bad state.
+			// Such additions may be indirect, a JAR can use the Class-Path manifest attribute to drag additional
+			// libraries with it, likely recursively.
+			throw new IllegalStateException("trying to load "+cls.getName()+" from target class loader");
+		}
+	}
+
 	public static boolean hasMacOs() {
 		return System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("mac");
 	}

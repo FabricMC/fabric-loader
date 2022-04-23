@@ -29,6 +29,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 
+// class name referenced by string constant in net.fabricmc.loader.impl.util.LoaderUtil.verifyNotInTargetCl
 final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAccess {
 	private static final class DynamicURLClassLoader extends URLClassLoader {
 		private DynamicURLClassLoader(URL[] urls) {
