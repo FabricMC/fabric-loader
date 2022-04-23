@@ -17,7 +17,7 @@
 package net.fabricmc.loader.impl.launch.knot;
 
 import java.io.IOException;
-import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.jar.Manifest;
 
@@ -38,11 +38,11 @@ interface KnotClassLoaderInterface {
 
 	ClassLoader getClassLoader();
 
-	void addUrl(URL url);
-	void setAllowedPrefixes(URL url, String... prefixes);
-	void setValidParentClassPath(Collection<URL> urls);
+	void addCodeSource(Path path);
+	void setAllowedPrefixes(Path codeSource, String... prefixes);
+	void setValidParentClassPath(Collection<Path> codeSources);
 
-	Manifest getManifest(URL url);
+	Manifest getManifest(Path codeSource);
 
 	boolean isClassLoaded(String name);
 	Class<?> loadIntoTarget(String name) throws ClassNotFoundException;

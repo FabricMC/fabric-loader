@@ -52,7 +52,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 					URL url = mods.nextElement();
 
 					try {
-						Path path = UrlUtil.getSourcePath("fabric.mod.json", url).toAbsolutePath().normalize();
+						Path path = UrlUtil.getCodeSource(url, "fabric.mod.json").toAbsolutePath().normalize();
 						List<Path> paths = pathGroups.get(path);
 
 						if (paths == null) {

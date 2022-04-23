@@ -146,7 +146,7 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 					Path file = Paths.get(fileName).toAbsolutePath().normalize();
 					Files.createDirectories(file.getParent());
 
-					try (Writer writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE)) {
+					try (Writer writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
 						for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
 							ReplayEntry entry = buffer.get(i);
 							writer.write(formatLog(entry.time, entry.level, entry.category, entry.msg, entry.exc));
