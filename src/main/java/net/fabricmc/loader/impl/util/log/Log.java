@@ -39,15 +39,27 @@ public final class Log {
 	}
 
 	/**
-	 * Enable buffering builtin log output instead of emitting it.
+	 * Configure builtin log handler.
 	 *
-	 * @param suppressOutput whether to suppress builtin log output until an ERROR-level log arrives
+	 * @param buffer whether to buffer log messages for later replaying
+	 * @param output whether to output log messages directly
 	 */
-	public static void enableBuiltinHandlerBuffering(boolean suppressOutput) {
+	public static void configureBuiltin(boolean buffer, boolean output) {
 		LogHandler handler = Log.handler;
 
 		if (handler instanceof BuiltinLogHandler) {
-			((BuiltinLogHandler) handler).enableBuffering(suppressOutput);
+			((BuiltinLogHandler) handler).configure(buffer, output);
+		}
+	}
+
+	/**
+	 * Finish configuring builtin log handler, using defaults if unconfigured.
+	 */
+	public static void finishBuiltinConfig() {
+		LogHandler handler = Log.handler;
+
+		if (handler instanceof BuiltinLogHandler) {
+			((BuiltinLogHandler) handler).finishConfig();
 		}
 	}
 
