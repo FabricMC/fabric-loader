@@ -69,7 +69,7 @@ enum LoaderLibrary {
 		URL url = LoaderLibrary.class.getClassLoader().getResource(file);
 
 		try {
-			this.path = url != null ? UrlUtil.getSourcePath(file, url) : null;
+			this.path = url != null ? UrlUtil.getCodeSource(url, file) : null;
 			this.env = env;
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);

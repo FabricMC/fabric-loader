@@ -21,8 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.JarURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.FileSystemNotFoundException;
@@ -74,7 +73,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	private static final ClassLoader PLATFORM_CLASS_LOADER = getPlatformClassLoader();
 
-	private final Map<URI, Metadata> metadataCache = new ConcurrentHashMap<>();
+	private final Map<Path, Metadata> metadataCache = new ConcurrentHashMap<>();
 	private final T classLoader;
 	private final ClassLoader parentClassLoader;
 	private final GameProvider provider;
@@ -82,9 +81,9 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private final EnvType envType;
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
-	private volatile Set<URI> uris = Collections.emptySet();
-	private volatile Set<URI> validParentUris = Collections.emptySet();
-	private final Map<URI, String[]> allowedPrefixes = new ConcurrentHashMap<>();
+	private volatile Set<Path> codeSources = Collections.emptySet();
+	private volatile Set<Path> validParentCodeSources = Collections.emptySet();
+	private final Map<Path, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, T classLoader, ClassLoader parentClassLoader, GameProvider provider) {
@@ -129,50 +128,54 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	}
 
 	@Override
-	public void addUrl(URL url) {
-		URI uri = UrlUtil.asUri(url);
+	public void addCodeSource(Path path) {
+		path = path.toAbsolutePath().normalize();
 
 		synchronized (this) {
-			Set<URI> urls = this.uris;
-			if (urls.contains(uri)) return;
+			Set<Path> codeSources = this.codeSources;
+			if (codeSources.contains(path)) return;
 
-			Set<URI> newUrls = new HashSet<>(urls.size() + 1, 1);
-			newUrls.addAll(urls);
-			newUrls.add(uri);
+			Set<Path> newCodeSources = new HashSet<>(codeSources.size() + 1, 1);
+			newCodeSources.addAll(codeSources);
+			newCodeSources.add(path);
 
-			this.uris = newUrls;
+			this.codeSources = newCodeSources;
 		}
 
-		classLoader.addUrlFwd(url);
+		try {
+			classLoader.addUrlFwd(UrlUtil.asUrl(path));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
 
-		if (LOG_CLASS_LOAD_ERRORS) Log.info(LogCategory.KNOT, "added code source %s", url);
+		if (LOG_CLASS_LOAD_ERRORS) Log.info(LogCategory.KNOT, "added code source %s", path);
 	}
 
 	@Override
-	public void setAllowedPrefixes(URL url, String... prefixes) {
-		URI uri = UrlUtil.asUri(url);
+	public void setAllowedPrefixes(Path codeSource, String... prefixes) {
+		codeSource = codeSource.toAbsolutePath().normalize();
 
 		if (prefixes.length == 0) {
-			allowedPrefixes.remove(uri);
+			allowedPrefixes.remove(codeSource);
 		} else {
-			allowedPrefixes.put(uri, prefixes);
+			allowedPrefixes.put(codeSource, prefixes);
 		}
 	}
 
 	@Override
-	public void setValidParentClassPath(Collection<URL> urls) {
-		Set<URI> uris = new HashSet<>(urls.size(), 1);
+	public void setValidParentClassPath(Collection<Path> paths) {
+		Set<Path> validPaths = new HashSet<>(paths.size(), 1);
 
-		for (URL url : urls) {
-			uris.add(UrlUtil.asUri(url));
+		for (Path path : paths) {
+			validPaths.add(path.toAbsolutePath().normalize());
 		}
 
-		this.validParentUris = uris;
+		this.validParentCodeSources = validPaths;
 	}
 
 	@Override
-	public Manifest getManifest(URL url) {
-		return getMetadata(UrlUtil.asUri(url)).manifest;
+	public Manifest getManifest(Path codeSource) {
+		return getMetadata(codeSource).manifest;
 	}
 
 	@Override
@@ -250,20 +253,21 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	/**
 	 * Check if an url is loadable by the parent class loader.
 	 *
-	 * <p>This handles explicit parent url whitelisting by {@link #validParentUris} or shadowing by {@link #uris}
+	 * <p>This handles explicit parent url whitelisting by {@link #validParentCodeSources} or shadowing by {@link #codeSources}
 	 */
 	private boolean isValidParentUrl(URL url, String fileName) {
 		if (url == null) return false;
 		if (DISABLE_ISOLATION) return true;
+		if (url.getProtocol().equals("jrt")) return true;
 
 		try {
-			URI srcUri = UrlUtil.getSource(fileName, url);
-			Set<URI> validParentUris = this.validParentUris;
+			Path codeSource = UrlUtil.getCodeSource(url, fileName);
+			Set<Path> validParentCodeSources = this.validParentCodeSources;
 
-			if (validParentUris != null) { // explicit whitelist (in addition to platform cl classes)
-				return validParentUris.contains(srcUri) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
+			if (validParentCodeSources != null) { // explicit whitelist (in addition to platform cl classes)
+				return validParentCodeSources.contains(codeSource) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
 			} else { // reject urls shadowed by this cl
-				return !uris.contains(srcUri);
+				return !codeSources.contains(codeSource);
 			}
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);
@@ -276,25 +280,36 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		}
 
 		if (!allowedPrefixes.isEmpty() && !DISABLE_ISOLATION) { // check prefix restrictions (allows exposing libraries partially during startup)
-			URL url = classLoader.getResource(LoaderUtil.getClassFileName(name));
-			String[] prefixes;
+			String fileName = LoaderUtil.getClassFileName(name);
+			URL url = classLoader.getResource(fileName);
 
-			if (url != null
-					&& (prefixes = allowedPrefixes.get(UrlUtil.asUri(url))) != null) {
-				assert prefixes.length > 0;
-				boolean found = false;
+			if (url != null) {
+				Path codeSource;
 
-				for (String prefix : prefixes) {
-					if (name.startsWith(prefix)) {
-						found = true;
-						break;
-					}
+				try {
+					codeSource = UrlUtil.getCodeSource(url, fileName);
+				} catch (UrlConversionException e) {
+					throw new RuntimeException(e);
 				}
 
-				if (!found) {
-					String msg = "class "+name+" is currently restricted from being loaded";
-					if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
-					throw new ClassNotFoundException(msg);
+				String[] prefixes = allowedPrefixes.get(codeSource);
+
+				if (prefixes != null) {
+					assert prefixes.length > 0;
+					boolean found = false;
+
+					for (String prefix : prefixes) {
+						if (name.startsWith(prefix)) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						String msg = "class "+name+" is currently restricted from being loaded";
+						if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
+						throw new ClassNotFoundException(msg);
+					}
 				}
 			}
 		}
@@ -317,7 +332,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			parentSourcedClasses.add(name);
 		}
 
-		KnotClassDelegate.Metadata metadata = getMetadata(name, classLoader.getResource(LoaderUtil.getClassFileName(name)));
+		KnotClassDelegate.Metadata metadata = getMetadata(name);
 
 		int pkgDelimiterPos = name.lastIndexOf('.');
 
@@ -337,35 +352,35 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		return classLoader.defineClassFwd(name, input, 0, input.length, metadata.codeSource);
 	}
 
-	Metadata getMetadata(String name, URL resourceURL) {
-		if (resourceURL == null) return Metadata.EMPTY;
-
-		URI codeSource = null;
+	private Metadata getMetadata(String name) {
+		String fileName = LoaderUtil.getClassFileName(name);
+		URL url = classLoader.getResource(fileName);
+		if (url == null) return Metadata.EMPTY;
 
 		try {
-			codeSource = UrlUtil.getSource(LoaderUtil.getClassFileName(name), resourceURL);
+			Path codeSource = UrlUtil.getCodeSource(url, fileName);
+			if (codeSource == null) return Metadata.EMPTY;
+
+			return getMetadata(codeSource);
 		} catch (UrlConversionException e) {
-			System.err.println("Could not find code source for " + resourceURL + ": " + e.getMessage());
+			System.err.println("Could not find code source for " + url + ": " + e);
+			return Metadata.EMPTY;
 		}
-
-		if (codeSource == null) return Metadata.EMPTY;
-
-		return getMetadata(codeSource);
 	}
 
-	Metadata getMetadata(URI codeSourceUri) {
-		return metadataCache.computeIfAbsent(codeSourceUri, (URI uri) -> {
+	private Metadata getMetadata(Path codeSource) {
+		codeSource = codeSource.toAbsolutePath().normalize();
+
+		return metadataCache.computeIfAbsent(codeSource, (Path path) -> {
 			Manifest manifest = null;
-			CodeSource codeSource = null;
+			CodeSource cs = null;
 			Certificate[] certificates = null;
 
 			try {
-				Path path = UrlUtil.asPath(uri);
-
 				if (Files.isDirectory(path)) {
 					manifest = ManifestUtil.readManifest(path);
 				} else {
-					URLConnection connection = new URL("jar:" + uri.toString() + "!/").openConnection();
+					URLConnection connection = new URL("jar:" + path.toUri().toString() + "!/").openConnection();
 
 					if (connection instanceof JarURLConnection) {
 						manifest = ((JarURLConnection) connection).getManifest();
@@ -382,20 +397,24 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 					/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
 
 					if (codeEntry != null) {
-						codeSource = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
+						cs = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
 					} */
 				}
-			} catch (IOException | FileSystemNotFoundException | URISyntaxException e) {
+			} catch (IOException | FileSystemNotFoundException e) {
 				if (FabricLauncherBase.getLauncher().isDevelopment()) {
 					Log.warn(LogCategory.KNOT, "Failed to load manifest", e);
 				}
 			}
 
-			if (codeSource == null) {
-				codeSource = new CodeSource(UrlUtil.asUrl(uri), certificates);
+			if (cs == null) {
+				try {
+					cs = new CodeSource(UrlUtil.asUrl(path), certificates);
+				} catch (MalformedURLException e) {
+					throw new RuntimeException(e);
+				}
 			}
 
-			return new Metadata(manifest, codeSource);
+			return new Metadata(manifest, cs);
 		});
 	}
 

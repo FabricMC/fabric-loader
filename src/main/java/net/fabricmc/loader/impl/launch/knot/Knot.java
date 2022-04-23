@@ -19,8 +19,6 @@ package net.fabricmc.loader.impl.launch.knot;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -263,37 +261,18 @@ public final class Knot extends FabricLauncherBase {
 	public void addToClassPath(Path path, String... allowedPrefixes) {
 		Log.debug(LogCategory.KNOT, "Adding " + path + " to classpath.");
 
-		try {
-			URL url = UrlUtil.asUrl(path);
-			classLoader.setAllowedPrefixes(url, allowedPrefixes);
-			classLoader.addUrl(url);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
+		classLoader.setAllowedPrefixes(path, allowedPrefixes);
+		classLoader.addCodeSource(path);
 	}
 
 	@Override
 	public void setAllowedPrefixes(Path path, String... prefixes) {
-		try {
-			classLoader.setAllowedPrefixes(UrlUtil.asUrl(path), prefixes);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
+		classLoader.setAllowedPrefixes(path, prefixes);
 	}
 
 	@Override
 	public void setValidParentClassPath(Collection<Path> paths) {
-		List<URL> urls = new ArrayList<>(paths.size());
-
-		try {
-			for (Path path : paths) {
-				urls.add(UrlUtil.asUrl(path));
-			}
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-
-		classLoader.setValidParentClassPath(urls);
+		classLoader.setValidParentClassPath(paths);
 	}
 
 	@Override
@@ -334,11 +313,7 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public Manifest getManifest(Path originPath) {
-		try {
-			return classLoader.getManifest(UrlUtil.asUrl(originPath));
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
+		return classLoader.getManifest(originPath);
 	}
 
 	@Override

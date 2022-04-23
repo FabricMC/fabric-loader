@@ -19,7 +19,6 @@ package net.fabricmc.loader.impl.util;
 import java.io.File;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,19 +29,19 @@ import java.security.CodeSource;
 public final class UrlUtil {
 	public static final Path LOADER_CODE_SOURCE = getCodeSource(UrlUtil.class);
 
-	public static URI getSource(String filename, URL resourceURL) throws UrlConversionException {
+	public static Path getCodeSource(URL url, String localPath) throws UrlConversionException {
 		try {
-			URLConnection connection = resourceURL.openConnection();
+			URLConnection connection = url.openConnection();
 
 			if (connection instanceof JarURLConnection) {
-				return asUri(((JarURLConnection) connection).getJarFileURL());
+				return asPath(((JarURLConnection) connection).getJarFileURL());
 			} else {
-				String path = resourceURL.getPath();
+				String path = url.getPath();
 
-				if (path.endsWith(filename)) {
-					return asUri(new URL(resourceURL.getProtocol(), resourceURL.getHost(), resourceURL.getPort(), path.substring(0, path.length() - filename.length())));
+				if (path.endsWith(localPath)) {
+					return asPath(new URL(url.getProtocol(), url.getHost(), url.getPort(), path.substring(0, path.length() - localPath.length())));
 				} else {
-					throw new UrlConversionException("Could not figure out code source for file '" + filename + "' and URL '" + resourceURL + "'!");
+					throw new UrlConversionException("Could not figure out code source for file '" + localPath + "' in URL '" + url + "'!");
 				}
 			}
 		} catch (Exception e) {
@@ -50,20 +49,8 @@ public final class UrlUtil {
 		}
 	}
 
-	public static Path getSourcePath(String filename, URL resourceURL) throws UrlConversionException {
-		try {
-			return asPath(getSource(filename, resourceURL));
-		} catch (URISyntaxException e) {
-			throw new UrlConversionException(e);
-		}
-	}
-
-	public static Path asPath(URI uri) throws URISyntaxException {
-		return Paths.get(uri);
-	}
-
 	public static Path asPath(URL url) throws URISyntaxException {
-		return asPath(url.toURI());
+		return Paths.get(url.toURI());
 	}
 
 	public static URL asUrl(File file) throws MalformedURLException {
@@ -72,22 +59,6 @@ public final class UrlUtil {
 
 	public static URL asUrl(Path path) throws MalformedURLException {
 		return path.toUri().toURL();
-	}
-
-	public static URL asUrl(URI uri) {
-		try {
-			return uri.toURL();
-		} catch (MalformedURLException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
-
-	public static URI asUri(URL url) {
-		try {
-			return url.toURI();
-		} catch (URISyntaxException e) {
-			throw new IllegalArgumentException(e);
-		}
 	}
 
 	public static Path getCodeSource(Class<?> cls) {
