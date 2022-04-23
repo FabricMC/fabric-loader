@@ -140,6 +140,8 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 			throw new RuntimeException("Could not locate Minecraft: provider locate failed");
 		}
 
+		Log.finishBuiltinConfig();
+
 		arguments = null;
 
 		provider.initialize(this);

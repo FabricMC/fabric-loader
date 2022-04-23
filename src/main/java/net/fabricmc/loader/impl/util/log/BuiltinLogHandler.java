@@ -39,8 +39,9 @@ import net.fabricmc.loader.impl.util.SystemProperties;
 final class BuiltinLogHandler extends ConsoleLogHandler {
 	private static final String DEFAULT_LOG_FILE = "fabricloader.log";
 
-	private boolean suppressOutput;
-	private List<ReplayEntry> buffer;
+	private boolean configured;
+	private boolean enableOutput;
+	private List<ReplayEntry> buffer = new ArrayList<>();
 	private final Thread shutdownHook;
 
 	BuiltinLogHandler() {
@@ -53,17 +54,12 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 		boolean output;
 
 		synchronized (this) {
-			if (!suppressOutput) {
+			if (enableOutput) {
 				output = true;
 			} else if (level.isLessThan(LogLevel.ERROR)) {
 				output = false;
 			} else {
-				for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
-					ReplayEntry entry = buffer.get(i);
-					super.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, true);
-				}
-
-				suppressOutput = false;
+				startOutput();
 				output = true;
 			}
 
@@ -73,6 +69,19 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 		}
 
 		if (output) super.log(time, level, category, msg, exc, fromReplay, wasSuppressed);
+	}
+
+	private void startOutput() {
+		if (enableOutput) return;
+
+		if (buffer != null) {
+			for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
+				ReplayEntry entry = buffer.get(i);
+				super.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, true);
+			}
+		}
+
+		enableOutput = true;
 	}
 
 	@Override
@@ -88,9 +97,26 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 		}
 	}
 
-	synchronized void enableBuffering(boolean suppressOutput) {
-		if (buffer == null) buffer = new ArrayList<>();
-		this.suppressOutput |= suppressOutput;
+	synchronized void configure(boolean buffer, boolean output) {
+		if (!buffer && !output) throw new IllegalArgumentException("can't both disable buffering and the output");
+
+		if (output) {
+			startOutput();
+		} else {
+			enableOutput = false;
+		}
+
+		if (buffer) {
+			if (this.buffer == null) this.buffer = new ArrayList<>();
+		} else {
+			this.buffer = null;
+		}
+
+		configured = true;
+	}
+
+	synchronized void finishConfig() {
+		if (!configured) configure(false, true);
 	}
 
 	synchronized boolean replay(LogHandler target) {
@@ -98,7 +124,7 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 
 		for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
 			ReplayEntry entry = buffer.get(i);
-			target.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, suppressOutput);
+			target.log(entry.time, entry.level, entry.category, entry.msg, entry.exc, true, !enableOutput);
 		}
 
 		return true;
@@ -130,8 +156,8 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 			synchronized (BuiltinLogHandler.this) {
 				if (buffer == null || buffer.isEmpty()) return;
 
-				if (suppressOutput) {
-					suppressOutput = false;
+				if (!enableOutput) {
+					enableOutput = true;
 
 					for (int i = 0; i < buffer.size(); i++) { // index based loop to tolerate replay producing log output by itself
 						ReplayEntry entry = buffer.get(i);

@@ -192,7 +192,7 @@ public class MinecraftGameProvider implements GameProvider {
 			envGameJar = classifier.getOrigin(envGameLib);
 			if (envGameJar == null) return false;
 
-			Log.enableBuiltinHandlerBuffering(true);
+			Log.configureBuiltin(true, false);
 
 			commonGameJar = classifier.getOrigin(McLibrary.MC_COMMON);
 
