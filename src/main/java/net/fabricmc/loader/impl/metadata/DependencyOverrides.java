@@ -37,12 +37,13 @@ import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 
 public final class DependencyOverrides {
 	private final Map<String, List<Entry>> dependencyOverrides;
 
 	public DependencyOverrides(Path configDir) {
-		Path path = configDir.resolve("fabric_loader_dependencies.json").toAbsolutePath().normalize();
+		Path path = configDir.resolve("fabric_loader_dependencies.json");
 
 		if (!Files.exists(path)) {
 			dependencyOverrides = Collections.emptyMap();
@@ -52,7 +53,7 @@ public final class DependencyOverrides {
 		try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
 			dependencyOverrides = parse(reader);
 		} catch (IOException | ParseMetadataException e) {
-			throw new FormattedException("Error parsing dependency overrides!", "Failed to parse " + path.toString(), e);
+			throw new FormattedException("Error parsing dependency overrides!", "Failed to parse " + LoaderUtil.normalizePath(path), e);
 		}
 	}
 

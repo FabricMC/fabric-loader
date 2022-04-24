@@ -54,7 +54,7 @@ public final class FabricGuiEntry {
 	}
 
 	private static void openForked(FabricStatusTree tree) throws IOException, InterruptedException {
-		Path javaBinDir = Paths.get(System.getProperty("java.home"), "bin").toAbsolutePath();
+		Path javaBinDir = LoaderUtil.normalizePath(Paths.get(System.getProperty("java.home"), "bin"));
 		String[] executables = { "javaw.exe", "java.exe", "java" };
 		Path javaPath = null;
 

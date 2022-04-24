@@ -30,6 +30,7 @@ import java.util.List;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.Arguments;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -82,7 +83,7 @@ public class ArgumentModCandidateFinder implements ModCandidateFinder {
 	}
 
 	private void addMod(String pathStr, String source, ModCandidateConsumer out) {
-		Path path = Paths.get(pathStr).toAbsolutePath().normalize();
+		Path path = LoaderUtil.normalizePath(Paths.get(pathStr));
 
 		if (!Files.exists(path)) { // missing
 			Log.warn(LogCategory.DISCOVERY, "Skipping missing %s provided mod path %s", source, path);

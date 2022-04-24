@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
@@ -52,7 +53,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 					URL url = mods.nextElement();
 
 					try {
-						Path path = UrlUtil.getCodeSource(url, "fabric.mod.json").toAbsolutePath().normalize();
+						Path path = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, "fabric.mod.json"));
 						List<Path> paths = pathGroups.get(path);
 
 						if (paths == null) {
@@ -93,14 +94,14 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 			for (String path : group.split(File.pathSeparator)) {
 				if (path.isEmpty()) continue;
 
-				Path resolvedPath = Paths.get(path).toAbsolutePath().normalize();
+				Path resolvedPath = Paths.get(path);
 
 				if (!Files.exists(resolvedPath)) {
 					Log.warn(LogCategory.DISCOVERY, "Skipping missing class path group entry %s", path);
 					continue;
 				}
 
-				paths.add(resolvedPath);
+				paths.add(LoaderUtil.normalizeExistingPath(resolvedPath));
 			}
 
 			if (paths.size() < 2) {

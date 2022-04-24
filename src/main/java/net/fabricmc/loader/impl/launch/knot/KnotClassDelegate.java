@@ -44,6 +44,7 @@ import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 import net.fabricmc.loader.impl.transformer.FabricTransformer;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
@@ -129,7 +130,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	@Override
 	public void addCodeSource(Path path) {
-		path = path.toAbsolutePath().normalize();
+		path = LoaderUtil.normalizeExistingPath(path);
 
 		synchronized (this) {
 			Set<Path> codeSources = this.codeSources;
@@ -153,7 +154,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	@Override
 	public void setAllowedPrefixes(Path codeSource, String... prefixes) {
-		codeSource = codeSource.toAbsolutePath().normalize();
+		codeSource = LoaderUtil.normalizeExistingPath(codeSource);
 
 		if (prefixes.length == 0) {
 			allowedPrefixes.remove(codeSource);
@@ -167,7 +168,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		Set<Path> validPaths = new HashSet<>(paths.size(), 1);
 
 		for (Path path : paths) {
-			validPaths.add(path.toAbsolutePath().normalize());
+			validPaths.add(LoaderUtil.normalizeExistingPath(path));
 		}
 
 		this.validParentCodeSources = validPaths;
@@ -175,7 +176,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	@Override
 	public Manifest getManifest(Path codeSource) {
-		return getMetadata(codeSource).manifest;
+		return getMetadata(LoaderUtil.normalizeExistingPath(codeSource)).manifest;
 	}
 
 	@Override
@@ -229,7 +230,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 							// loaded by setting validParentUrls and not including "url". Typical causes are:
 							// - accessing classes too early (game libs shouldn't be used until Loader is ready)
 							// - using jars that are only transient (deobfuscation input or pass-through installers)
-							String msg = "can't load class "+name+" as it hasn't been exposed to the game (yet?)";
+							String msg = String.format("can't load class %s at %s as it hasn't been exposed to the game (yet?)", name, getCodeSource(url, fileName));
 							if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
 							throw new ClassNotFoundException(msg);
 						} else { // load from system cl
@@ -260,17 +261,13 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		if (DISABLE_ISOLATION) return true;
 		if (url.getProtocol().equals("jrt")) return true;
 
-		try {
-			Path codeSource = UrlUtil.getCodeSource(url, fileName);
-			Set<Path> validParentCodeSources = this.validParentCodeSources;
+		Path codeSource = getCodeSource(url, fileName);
+		Set<Path> validParentCodeSources = this.validParentCodeSources;
 
-			if (validParentCodeSources != null) { // explicit whitelist (in addition to platform cl classes)
-				return validParentCodeSources.contains(codeSource) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
-			} else { // reject urls shadowed by this cl
-				return !codeSources.contains(codeSource);
-			}
-		} catch (UrlConversionException e) {
-			throw new RuntimeException(e);
+		if (validParentCodeSources != null) { // explicit whitelist (in addition to platform cl classes)
+			return validParentCodeSources.contains(codeSource) || PLATFORM_CLASS_LOADER.getResource(fileName) != null;
+		} else { // reject urls shadowed by this cl
+			return !codeSources.contains(codeSource);
 		}
 	}
 
@@ -283,15 +280,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			String fileName = LoaderUtil.getClassFileName(name);
 			URL url = classLoader.getResource(fileName);
 
-			if (url != null) {
-				Path codeSource;
-
-				try {
-					codeSource = UrlUtil.getCodeSource(url, fileName);
-				} catch (UrlConversionException e) {
-					throw new RuntimeException(e);
-				}
-
+			if (url != null && !url.getProtocol().equals("jrt")) {
+				Path codeSource = getCodeSource(url, fileName);
 				String[] prefixes = allowedPrefixes.get(codeSource);
 
 				if (prefixes != null) {
@@ -357,20 +347,10 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		URL url = classLoader.getResource(fileName);
 		if (url == null) return Metadata.EMPTY;
 
-		try {
-			Path codeSource = UrlUtil.getCodeSource(url, fileName);
-			if (codeSource == null) return Metadata.EMPTY;
-
-			return getMetadata(codeSource);
-		} catch (UrlConversionException e) {
-			System.err.println("Could not find code source for " + url + ": " + e);
-			return Metadata.EMPTY;
-		}
+		return getMetadata(getCodeSource(url, fileName));
 	}
 
 	private Metadata getMetadata(Path codeSource) {
-		codeSource = codeSource.toAbsolutePath().normalize();
-
 		return metadataCache.computeIfAbsent(codeSource, (Path path) -> {
 			Manifest manifest = null;
 			CodeSource cs = null;
@@ -493,7 +473,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			url = parentClassLoader.getResource(name);
 
 			if (!isValidParentUrl(url, name)) {
-				if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "refusing to load class %s from parent class loader", name);
+				if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "refusing to load class %s at %s from parent class loader", name, getCodeSource(url, name));
 
 				return null;
 			}
@@ -510,6 +490,14 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			}
 
 			return outputStream.toByteArray();
+		}
+	}
+
+	private static Path getCodeSource(URL url, String fileName) {
+		try {
+			return LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName));
+		} catch (UrlConversionException e) {
+			throw ExceptionUtil.wrap(e);
 		}
 	}
 

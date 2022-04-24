@@ -25,6 +25,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 /**
@@ -169,7 +170,7 @@ final class BuiltinLogHandler extends ConsoleLogHandler {
 				if (fileName.isEmpty()) return;
 
 				try {
-					Path file = Paths.get(fileName).toAbsolutePath().normalize();
+					Path file = LoaderUtil.normalizePath(Paths.get(fileName));
 					Files.createDirectories(file.getParent());
 
 					try (Writer writer = Files.newBufferedWriter(file, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {

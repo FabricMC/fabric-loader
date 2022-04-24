@@ -16,9 +16,10 @@
 
 package net.fabricmc.loader.util;
 
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
+
+import net.fabricmc.loader.impl.util.ExceptionUtil.WrappedException;
 
 /**
  * @deprecated Internal API, do not use
@@ -30,8 +31,8 @@ public final class UrlUtil {
 	public static Path asPath(URL url) throws UrlConversionException {
 		try {
 			return net.fabricmc.loader.impl.util.UrlUtil.asPath(url);
-		} catch (URISyntaxException e) {
-			throw new UrlConversionException(e);
+		} catch (WrappedException e) {
+			throw new UrlConversionException(e.getCause());
 		}
 	}
 }

@@ -16,11 +16,31 @@
 
 package net.fabricmc.loader.impl.util;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Locale;
 
 public final class LoaderUtil {
 	public static String getClassFileName(String className) {
 		return className.replace('.', '/').concat(".class");
+	}
+
+	public static Path normalizePath(Path path) {
+		if (Files.exists(path)) {
+			return normalizeExistingPath(path);
+		} else {
+			return path.toAbsolutePath().normalize();
+		}
+	}
+
+	public static Path normalizeExistingPath(Path path) {
+		try {
+			return path.toRealPath();
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	public static void verifyNotInTargetCl(Class<?> cls) {

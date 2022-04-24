@@ -68,10 +68,10 @@ public final class GameProviderHelper {
 		String val = System.getProperty(property);
 		if (val == null) return null;
 
-		Path path = Paths.get(val).toAbsolutePath().normalize();
-		if (!Files.exists(path)) throw new RuntimeException("Game jar "+path+" configured through "+property+" system property doesn't exist");
+		Path path = Paths.get(val);
+		if (!Files.exists(path)) throw new RuntimeException("Game jar "+path+" ("+LoaderUtil.normalizePath(path)+") configured through "+property+" system property doesn't exist");
 
-		return path;
+		return LoaderUtil.normalizeExistingPath(path);
 	}
 
 	public static Optional<Path> getSource(ClassLoader loader, String filename) {

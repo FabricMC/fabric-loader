@@ -19,7 +19,6 @@ package net.fabricmc.loader.launch.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -52,11 +51,7 @@ public class FabricLauncherBase implements FabricLauncher {
 
 	@Override
 	public void propose(URL url) {
-		try {
-			parent.addToClassPath(UrlUtil.asPath(url));
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		parent.addToClassPath(UrlUtil.asPath(url));
 	}
 
 	@Override

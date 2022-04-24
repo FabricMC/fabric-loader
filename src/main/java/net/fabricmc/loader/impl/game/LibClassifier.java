@@ -17,7 +17,6 @@
 package net.fabricmc.loader.impl.game;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +35,7 @@ import java.util.zip.ZipFile;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -69,7 +69,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 			if (lib.env != null && lib.env != env) continue;
 
 			if (lib.path != null) {
-				Path path = lib.path.toAbsolutePath().normalize();
+				Path path = LoaderUtil.normalizeExistingPath(lib.path);
 				loaderOrigins.add(path);
 
 				if (DEBUG) sb.append(String.format("✅ %s %s%n", lib.name(), path));
@@ -81,7 +81,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		Path gameProviderPath = UrlUtil.getCodeSource(gameProvider.getClass());
 
 		if (gameProviderPath != null) {
-			gameProviderPath = gameProviderPath.toAbsolutePath().normalize();
+			gameProviderPath = LoaderUtil.normalizeExistingPath(gameProviderPath);
 
 			if (loaderOrigins.add(gameProviderPath)) {
 				if (DEBUG) sb.append(String.format("✅ gameprovider %s%n", gameProviderPath));
@@ -94,11 +94,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	public void process(URL url) throws IOException {
-		try {
-			process(UrlUtil.asPath(url));
-		} catch (URISyntaxException e) {
-			throw new RuntimeException("invalid url: "+url);
-		}
+		process(UrlUtil.asPath(url));
 	}
 
 	@SafeVarargs
@@ -128,7 +124,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	private void process(Path path, Set<L> excludedLibs) throws IOException {
-		path = path.toAbsolutePath().normalize();
+		path = LoaderUtil.normalizeExistingPath(path);
 		if (loaderOrigins.contains(path)) return;
 
 		boolean matched = false;
