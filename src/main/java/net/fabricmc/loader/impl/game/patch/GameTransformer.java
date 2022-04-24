@@ -81,7 +81,7 @@ public class GameTransformer {
 					try (InputStream is = entry.getInputStream()) {
 						return new ClassReader(is);
 					} catch (IOException | ZipError e) {
-						throw new RuntimeException(String.format("error reading %s in %s: %s", name, entry.getOrigin().toAbsolutePath(), e), e);
+						throw new RuntimeException(String.format("error reading %s in %s: %s", name, LoaderUtil.normalizePath(entry.getOrigin()), e), e);
 					}
 				} catch (IOException e) {
 					throw ExceptionUtil.wrap(e);

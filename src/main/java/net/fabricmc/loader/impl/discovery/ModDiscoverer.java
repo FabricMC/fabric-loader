@@ -60,6 +60,7 @@ import net.fabricmc.loader.impl.metadata.NestedJarEntry;
 import net.fabricmc.loader.impl.metadata.ParseMetadataException;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -89,7 +90,7 @@ public final class ModDiscoverer {
 
 		ModCandidateConsumer taskSubmitter = (paths, requiresRemap) -> {
 			if (paths.size() == 1) {
-				Path path = paths.get(0).toAbsolutePath().normalize();
+				Path path = LoaderUtil.normalizeExistingPath(paths.get(0));
 
 				if (processedPaths.add(path)) {
 					futures.add(pool.submit(new ModScanTask(Collections.singletonList(path), requiresRemap)));
@@ -98,7 +99,7 @@ public final class ModDiscoverer {
 				List<Path> normalizedPaths = new ArrayList<>(paths.size());
 
 				for (Path path : paths) {
-					normalizedPaths.add(path.toAbsolutePath().normalize());
+					normalizedPaths.add(LoaderUtil.normalizeExistingPath(path));
 				}
 
 				if (!processedPaths.containsAll(normalizedPaths)) {

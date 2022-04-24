@@ -77,7 +77,7 @@ public final class SimpleClassPath implements Closeable {
 					try {
 						openJars[i] = zf = new ZipFile(path.toFile());
 					} catch (IOException | ZipError e) {
-						throw new IOException(String.format("error opening %s: %s", path.toAbsolutePath(), e), e);
+						throw new IOException(String.format("error opening %s: %s", LoaderUtil.normalizePath(path), e), e);
 					}
 				}
 

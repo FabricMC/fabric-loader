@@ -19,7 +19,6 @@ package net.fabricmc.loader.impl.game.minecraft.patch;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Enumeration;
@@ -44,11 +43,7 @@ public class ModClassLoader_125_FML extends URLClassLoader {
 
 	@Override
 	protected void addURL(URL url) {
-		try {
-			FabricLauncherBase.getLauncher().addToClassPath(UrlUtil.asPath(url));
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
+		FabricLauncherBase.getLauncher().addToClassPath(UrlUtil.asPath(url));
 
 		URL[] newLocalUrls = new URL[localUrls.length + 1];
 		System.arraycopy(localUrls, 0, newLocalUrls, 0, localUrls.length);

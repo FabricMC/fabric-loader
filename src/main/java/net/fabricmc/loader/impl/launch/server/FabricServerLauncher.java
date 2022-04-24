@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 import net.fabricmc.loader.impl.launch.knot.KnotServer;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class FabricServerLauncher {
@@ -74,7 +75,7 @@ public class FabricServerLauncher {
 			System.setProperty(SystemProperties.GAME_JAR_PATH, getServerJarPath());
 		}
 
-		Path serverJar = Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH)).toAbsolutePath().normalize();
+		Path serverJar = LoaderUtil.normalizePath(Paths.get(System.getProperty(SystemProperties.GAME_JAR_PATH)));
 
 		if (!Files.exists(serverJar)) {
 			System.err.println("The Minecraft server .JAR is missing (" + serverJar + ")!");
