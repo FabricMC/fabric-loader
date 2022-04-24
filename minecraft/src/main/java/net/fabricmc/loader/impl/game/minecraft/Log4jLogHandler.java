@@ -55,7 +55,7 @@ public final class Log4jLogHandler implements LogHandler {
 		Logger ret = (Logger) category.data;
 
 		if (ret == null) {
-			String name = category.name.isEmpty() ? Log.NAME : String.format("%s/%s", Log.NAME, category.name);
+			String name = category.name.isEmpty() ? category.main : String.format("%s/%s", category.main, category.name);
 			category.data = ret = LogManager.getLogger(name);
 		}
 

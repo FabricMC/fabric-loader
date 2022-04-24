@@ -35,7 +35,7 @@ public class ConsoleLogHandler implements LogHandler {
 	}
 
 	protected static String formatLog(long time, LogLevel level, LogCategory category, String msg, Throwable exc) {
-		String ret = String.format("[%tT] [%s] [%s/%s]: %s%n", time, level.name(), Log.NAME, category.name, msg);
+		String ret = String.format("[%tT] [%s] [%s/%s]: %s%n", time, level.name(), category.main, category.name, msg);
 
 		if (exc != null) {
 			StringWriter writer = new StringWriter(ret.length() + 500);

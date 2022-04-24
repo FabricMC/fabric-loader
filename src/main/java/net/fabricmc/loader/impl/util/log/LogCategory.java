@@ -37,6 +37,7 @@ public final class LogCategory {
 
 	public final String name;
 	public Object data;
+	public String main = Log.NAME;
 
 	public LogCategory(String... names) {
 		this.name = String.join(SEPARATOR, names);
