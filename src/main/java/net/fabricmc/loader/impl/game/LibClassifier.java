@@ -30,12 +30,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.LibClassifier.LibraryType;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -50,12 +54,14 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	private final Set<Path> loaderOrigins = new HashSet<>();
 	private final List<Path> unmatchedOrigins = new ArrayList<>();
 
-	public LibClassifier(Class<L> cls, EnvType env, GameProvider gameProvider) {
+	public LibClassifier(Class<L> cls, EnvType env, GameProvider gameProvider) throws IOException {
 		L[] libs = cls.getEnumConstants();
 
 		this.libs = new ArrayList<>(libs.length);
 		this.origins = new EnumMap<>(cls);
 		this.localPaths = new EnumMap<>(cls);
+
+		// game provider libs
 
 		for (L lib : libs) {
 			if (lib.isApplicable(env)) {
@@ -63,10 +69,12 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 			}
 		}
 
+		// loader libs
+
 		StringBuilder sb = DEBUG ? new StringBuilder() : null;
 
 		for (LoaderLibrary lib : LoaderLibrary.values()) {
-			if (lib.env != null && lib.env != env) continue;
+			if (!lib.isApplicable(env)) continue;
 
 			if (lib.path != null) {
 				Path path = LoaderUtil.normalizeExistingPath(lib.path);
@@ -77,6 +85,8 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 				if (DEBUG) sb.append(String.format("❎ %s%n", lib.name()));
 			}
 		}
+
+		// game provider itself
 
 		Path gameProviderPath = UrlUtil.getCodeSource(gameProvider.getClass());
 
@@ -91,6 +101,30 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		}
 
 		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader libraries:%n%s", sb);
+
+		// process indirectly referenced libs
+
+		processManifestClassPath(LoaderLibrary.SERVER_LAUNCH, env); // not used by fabric itself, but others add Log4J this way
+	}
+
+	private void processManifestClassPath(LoaderLibrary lib, EnvType env) throws IOException {
+		if (lib.path == null || !lib.isApplicable(env) || !Files.isRegularFile(lib.path)) return;
+
+		Manifest manifest;
+
+		try (ZipFile zf = new ZipFile(lib.path.toFile())) {
+			ZipEntry entry = zf.getEntry(JarFile.MANIFEST_NAME);
+			if (entry == null) return;
+
+			manifest = new Manifest(zf.getInputStream(entry));
+		}
+
+		List<URL> cp = ManifestUtil.getClassPath(manifest, lib.path);
+		if (cp == null) return;
+
+		for (URL url : cp) {
+			process(url);
+		}
 	}
 
 	public void process(URL url) throws IOException {

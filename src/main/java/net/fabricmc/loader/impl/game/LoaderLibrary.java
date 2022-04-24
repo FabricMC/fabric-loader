@@ -75,4 +75,8 @@ enum LoaderLibrary {
 			throw new RuntimeException(e);
 		}
 	}
+
+	boolean isApplicable(EnvType env) {
+		return this.env == null || this.env == env;
+	}
 }
