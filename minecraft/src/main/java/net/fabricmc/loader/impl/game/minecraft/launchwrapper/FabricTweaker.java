@@ -61,7 +61,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public abstract class FabricTweaker extends FabricLauncherBase implements ITweaker {
-	private static final LogCategory LOG_CATEGORY = new LogCategory("GameProvider", "Tweaker");
+	private static final LogCategory LOG_CATEGORY = LogCategory.create("GameProvider", "Tweaker");
 	protected Arguments arguments;
 	private LaunchClassLoader launchClassLoader;
 	private final List<Path> classPath = new ArrayList<>();

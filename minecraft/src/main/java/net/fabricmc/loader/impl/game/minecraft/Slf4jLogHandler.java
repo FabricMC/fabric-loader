@@ -19,7 +19,6 @@ package net.fabricmc.loader.impl.game.minecraft;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.log.LogHandler;
 import net.fabricmc.loader.impl.util.log.LogLevel;
@@ -99,8 +98,7 @@ public final class Slf4jLogHandler implements LogHandler {
 		Logger ret = (Logger) category.data;
 
 		if (ret == null) {
-			String name = category.name.isEmpty() ? Log.NAME : String.format("%s/%s", Log.NAME, category.name);
-			category.data = ret = LoggerFactory.getLogger(name);
+			category.data = ret = LoggerFactory.getLogger(category.toString());
 		}
 
 		return ret;
