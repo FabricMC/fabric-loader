@@ -259,7 +259,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private boolean isValidParentUrl(URL url, String fileName) {
 		if (url == null) return false;
 		if (DISABLE_ISOLATION) return true;
-		if (url.getProtocol().equals("jrt")) return true;
+		if (!hasRegularCodeSource(url)) return true;
 
 		Path codeSource = getCodeSource(url, fileName);
 		Set<Path> validParentCodeSources = this.validParentCodeSources;
@@ -280,7 +280,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			String fileName = LoaderUtil.getClassFileName(name);
 			URL url = classLoader.getResource(fileName);
 
-			if (url != null && !url.getProtocol().equals("jrt")) {
+			if (url != null && hasRegularCodeSource(url)) {
 				Path codeSource = getCodeSource(url, fileName);
 				String[] prefixes = allowedPrefixes.get(codeSource);
 
@@ -345,7 +345,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private Metadata getMetadata(String name) {
 		String fileName = LoaderUtil.getClassFileName(name);
 		URL url = classLoader.getResource(fileName);
-		if (url == null) return Metadata.EMPTY;
+		if (url == null || !hasRegularCodeSource(url)) return Metadata.EMPTY;
 
 		return getMetadata(getCodeSource(url, fileName));
 	}
@@ -491,6 +491,10 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 			return outputStream.toByteArray();
 		}
+	}
+
+	private static boolean hasRegularCodeSource(URL url) {
+		return url.getProtocol().equals("file") || url.getProtocol().equals("jar");
 	}
 
 	private static Path getCodeSource(URL url, String fileName) {
