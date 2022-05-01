@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -64,8 +66,8 @@ public class FabricServerLauncher {
 
 		try {
 			Class<?> c = Class.forName(mainClass);
-			c.getMethod("main", String[].class).invoke(null, (Object) args);
-		} catch (Exception e) {
+			MethodHandles.lookup().findStatic(c, "main", MethodType.methodType(Void.TYPE, String[].class)).invokeExact(args);
+		} catch (Throwable e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
 		}
 	}
