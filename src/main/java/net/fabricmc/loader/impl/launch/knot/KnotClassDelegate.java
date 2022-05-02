@@ -222,9 +222,13 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 						URL url = parentClassLoader.getResource(fileName);
 
 						if (url == null) { // no .class file
-							String msg = "can't find class "+name;
-							if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
-							throw new ClassNotFoundException(msg);
+							try {
+								c = PLATFORM_CLASS_LOADER.loadClass(name);
+								if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "loaded resources-less class %s from platform class loader");
+							} catch (ClassNotFoundException e) {
+								if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, "can't find class %s", name);
+								throw e;
+							}
 						} else if (!isValidParentUrl(url, fileName)) { // available, but restricted
 							// The class would technically be available, but the game provider restricted it from being
 							// loaded by setting validParentUrls and not including "url". Typical causes are:
