@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -128,7 +129,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir;
-		this.configDir = gameDir.resolve("config");
+		this.configDir = this.resolveFabricDirectory("config");
 	}
 
 	@Override
@@ -194,6 +195,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 	}
 
+	private Path resolveFabricDirectory(String directoryName) {
+		String propertyName = "fabric.dir." + directoryName;
+		Path directory = Paths.get(System.getProperty(propertyName, directoryName));
+		return directory.isAbsolute() ? directory : getGameDir().resolve(directory);
+	}
+
 	private void setup() throws ModResolutionException {
 		boolean remapRegularMods = isDevelopmentEnvironment();
 		VersionOverrides versionOverrides = new VersionOverrides();
@@ -203,7 +210,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
-		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
+		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(resolveFabricDirectory("mods"), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
