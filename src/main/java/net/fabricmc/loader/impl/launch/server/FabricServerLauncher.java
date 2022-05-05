@@ -66,7 +66,7 @@ public class FabricServerLauncher {
 
 		try {
 			Class<?> c = Class.forName(mainClass);
-			MethodHandles.lookup().findStatic(c, "main", MethodType.methodType(Void.TYPE, String[].class)).invokeExact(args);
+			MethodHandles.lookup().findStatic(c, "main", MethodType.methodType(void.class, String[].class)).invokeExact(args);
 		} catch (Throwable e) {
 			throw new RuntimeException("An exception occurred when launching the server!", e);
 		}
