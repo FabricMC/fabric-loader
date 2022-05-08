@@ -17,8 +17,9 @@
 package net.fabricmc.loader.impl.game.minecraft;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -446,14 +447,19 @@ public class MinecraftGameProvider implements GameProvider {
 			targetClass = "net.fabricmc.loader.impl.game.minecraft.applet.AppletMain";
 		}
 
+		MethodHandle invoker;
+
 		try {
 			Class<?> c = loader.loadClass(targetClass);
-			Method m = c.getMethod("main", String[].class);
-			m.invoke(null, (Object) arguments.toArray());
-		} catch (InvocationTargetException e) {
-			throw new FormattedException("Minecraft has crashed!", e.getCause());
-		} catch (ReflectiveOperationException e) {
+			invoker = MethodHandles.lookup().findStatic(c, "main", MethodType.methodType(void.class, String[].class));
+		} catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException e) {
 			throw new FormattedException("Failed to start Minecraft", e);
+		}
+
+		try {
+			invoker.invokeExact(arguments.toArray());
+		} catch (Throwable t) {
+			throw new FormattedException("Minecraft has crashed!", t);
 		}
 	}
 }
