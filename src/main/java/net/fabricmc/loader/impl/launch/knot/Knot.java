@@ -121,7 +121,7 @@ public final class Knot extends FabricLauncherBase {
 				continue;
 			}
 
-			classPath.add(path);
+			classPath.add(LoaderUtil.normalizeExistingPath(path));
 		}
 
 		if (unsupported != null) Log.warn(LogCategory.KNOT, "Knot does not support wildcard class path entries: %s - the game may not load properly!", String.join(", ", unsupported));
