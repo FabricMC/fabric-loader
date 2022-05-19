@@ -99,7 +99,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 				Path resolvedPath = Paths.get(path);
 
 				if (!Files.exists(resolvedPath)) {
-					Log.warn(LogCategory.DISCOVERY, "Skipping missing class path group entry %s", path);
+					Log.debug(LogCategory.DISCOVERY, "Skipping missing class path group entry %s", path);
 					continue;
 				}
 
@@ -111,7 +111,7 @@ public class ClasspathModCandidateFinder implements ModCandidateFinder {
 			}
 
 			if (paths.size() < 2) {
-				Log.warn(LogCategory.DISCOVERY, "Skipping class path group with no effect: %s", group);
+				Log.debug(LogCategory.DISCOVERY, "Skipping class path group with no effect: %s", group);
 				continue;
 			}
 
