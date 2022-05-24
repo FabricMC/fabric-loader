@@ -193,8 +193,6 @@ public class MinecraftGameProvider implements GameProvider {
 			envGameJar = classifier.getOrigin(envGameLib);
 			if (envGameJar == null) return false;
 
-			Log.configureBuiltin(true, false);
-
 			commonGameJar = classifier.getOrigin(McLibrary.MC_COMMON);
 
 			if (commonGameJarDeclared && commonGameJar == null) {
@@ -212,12 +210,15 @@ public class MinecraftGameProvider implements GameProvider {
 			hasModLoader = classifier.has(McLibrary.MODLOADER);
 			log4jAvailable = classifier.has(McLibrary.LOG4J_API) && classifier.has(McLibrary.LOG4J_CORE);
 			slf4jAvailable = classifier.has(McLibrary.SLF4J_API) && classifier.has(McLibrary.SLF4J_CORE);
+			boolean hasLogLib = log4jAvailable || slf4jAvailable;
+
+			Log.configureBuiltin(hasLogLib, !hasLogLib);
 
 			for (McLibrary lib : McLibrary.LOGGING) {
 				Path path = classifier.getOrigin(lib);
 
 				if (path != null) {
-					if (log4jAvailable || slf4jAvailable) {
+					if (hasLogLib) {
 						logJars.add(path);
 					} else if (!gameJars.contains(path)) {
 						miscGameLibraries.add(path);
