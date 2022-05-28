@@ -133,7 +133,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void setGameDir(Path gameDir) {
-		this.gameDir = gameDir;
+		this.gameDir = gameDir.toAbsolutePath().normalize();
 		this.configDir = gameDir.resolve("config");
 	}
 
