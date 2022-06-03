@@ -29,10 +29,13 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricGuiEntry;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public abstract class FabricLauncherBase implements FabricLauncher {
+	protected static final boolean IS_DEVELOPMENT = SystemProperties.isSet(SystemProperties.DEVELOPMENT);
+
 	private static boolean mixinReady;
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
@@ -47,8 +50,21 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	}
 
 	@Override
+	public final boolean isDevelopment() {
+		return IS_DEVELOPMENT;
+	}
+
+	@Override
 	public MappingConfiguration getMappingConfiguration() {
 		return mappingConfiguration;
+	}
+
+	@Override
+	public final String getDefaultRuntimeNamespace() {
+		String ret = System.getProperty(SystemProperties.RUNTIME_MAPPING_NAMESPACE);
+		if (ret != null) return ret;
+
+		return IS_DEVELOPMENT ? MappingConfiguration.NAMED_NAMESPACE : MappingConfiguration.INTERMEDIARY_NAMESPACE;
 	}
 
 	protected static void setProperties(Map<String, Object> propertiesA) {

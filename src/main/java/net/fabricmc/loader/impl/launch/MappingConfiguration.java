@@ -29,6 +29,7 @@ import java.util.zip.ZipError;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -44,8 +45,19 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 public final class MappingConfiguration {
 	private static final boolean FIX_PACKAGE_ACCESS = SystemProperties.isSet(SystemProperties.FIX_PACKAGE_ACCESS);
 
+	// same ns between client and server
+	public static final String OFFICIAL_NAMESPACE = "official";
+	// separate client/server ns
+	public static final String CLIENT_OFFICIAL_NAMESPACE = "clientOfficial";
+	public static final String SERVER_OFFICIAL_NAMESPACE = "serverOfficial";
+
+	public static final String INTERMEDIARY_NAMESPACE = "intermediary";
+	public static final String NAMED_NAMESPACE = "named";
+
 	private boolean initializedMetadata;
 	private boolean initializedMappings;
+
+	private String namespace;
 
 	@Nullable
 	private String gameId;
@@ -90,13 +102,17 @@ public final class MappingConfiguration {
 		return mappings;
 	}
 
-	public String getTargetNamespace() {
-		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
+	public String getRuntimeNamespace() {
+		if (namespace == null) {
+			namespace = FabricLoaderImpl.INSTANCE.getGameProvider().getRuntimeNamespace(FabricLauncherBase.getLauncher().getDefaultRuntimeNamespace());
+		}
+
+		return namespace;
 	}
 
 	public boolean requiresPackageAccessHack() {
 		// TODO
-		return FIX_PACKAGE_ACCESS || getTargetNamespace().equals("named");
+		return FIX_PACKAGE_ACCESS || getRuntimeNamespace().equals(NAMED_NAMESPACE);
 	}
 
 	private void initializeMetadata() {

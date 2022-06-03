@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
+import static net.fabricmc.loader.impl.launch.MappingConfiguration.INTERMEDIARY_NAMESPACE;
+
 import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,9 +57,9 @@ public final class TinyFDPatch extends GamePatch {
 		String className = MORE_OPTIONS_DIALOG_CLASS_NAME;
 
 		// Only remap the classname when needed to prevent loading the mappings when not required in prod.
-		if (!launcher.getMappingConfiguration().getTargetNamespace().equals("intermediary")
-				&& FabricLoader.getInstance().getMappingResolver().getNamespaces().contains("intermediary")) {
-			className = FabricLoader.getInstance().getMappingResolver().mapClassName("intermediary", MORE_OPTIONS_DIALOG_CLASS_NAME);
+		if (!launcher.getMappingConfiguration().getRuntimeNamespace().equals(INTERMEDIARY_NAMESPACE)
+				&& FabricLoader.getInstance().getMappingResolver().getNamespaces().contains(INTERMEDIARY_NAMESPACE)) {
+			className = FabricLoader.getInstance().getMappingResolver().mapClassName(INTERMEDIARY_NAMESPACE, MORE_OPTIONS_DIALOG_CLASS_NAME);
 		}
 
 		final ClassNode classNode = classSource.apply(className);

@@ -22,6 +22,10 @@ public final class SystemProperties {
 	// whether to use a class loader that is an instance of URLClassLoader
 	public static final String USE_COMPAT_CL = "fabric.loader.useCompatibilityClassLoader";
 	public static final String SIDE = "fabric.side";
+	// mapping namespace used by the game, defaults to named if DEVELOPMENT is set or official otherwise
+	public static final String GAME_MAPPING_NAMESPACE = "fabric.gameMappingNamespace";
+	// mapping namespace to use at runtime, defaults to named if DEVELOPMENT is set or intermediary otherwise
+	public static final String RUNTIME_MAPPING_NAMESPACE = "fabric.runtimeMappingNamespace";
 	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
 	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
 	// game jar paths for common/client/server, replaces lookup from class path if present, env specific takes precedence
