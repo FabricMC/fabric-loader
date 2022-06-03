@@ -42,7 +42,7 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class MappingConfiguration {
-	private static final boolean FIX_PACKAGE_ACCESS = System.getProperty(SystemProperties.FIX_PACKAGE_ACCESS) != null;
+	private static final boolean FIX_PACKAGE_ACCESS = SystemProperties.isSet(SystemProperties.FIX_PACKAGE_ACCESS);
 
 	private boolean initializedMetadata;
 	private boolean initializedMappings;

@@ -279,7 +279,7 @@ public final class GameProviderHelper {
 
 		Set<Path> depPaths = new HashSet<>();
 
-		if (System.getProperty(SystemProperties.DEBUG_DEOBFUSCATE_WITH_CLASSPATH) != null) {
+		if (SystemProperties.isSet(SystemProperties.DEBUG_DEOBFUSCATE_WITH_CLASSPATH)) {
 			for (Path path : launcher.getClassPath()) {
 				if (!inputFiles.contains(path)) {
 					depPaths.add(path);

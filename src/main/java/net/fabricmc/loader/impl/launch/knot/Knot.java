@@ -50,7 +50,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class Knot extends FabricLauncherBase {
-	private static final boolean IS_DEVELOPMENT = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
+	private static final boolean IS_DEVELOPMENT = SystemProperties.isSet(SystemProperties.DEVELOPMENT);
 
 	protected Map<String, Object> properties = new HashMap<>();
 
@@ -133,7 +133,7 @@ public final class Knot extends FabricLauncherBase {
 
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
-		boolean useCompatibility = provider.requiresUrlClassLoader() || Boolean.parseBoolean(System.getProperty("fabric.loader.useCompatibilityClassLoader", "false"));
+		boolean useCompatibility = provider.requiresUrlClassLoader() || SystemProperties.isSet(SystemProperties.USE_COMPAT_CL);
 		classLoader = KnotClassLoaderInterface.create(useCompatibility, isDevelopment(), envType, provider);
 		ClassLoader cl = classLoader.getClassLoader();
 
