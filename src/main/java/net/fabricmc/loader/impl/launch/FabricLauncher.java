@@ -59,7 +59,7 @@ public interface FabricLauncher {
 
 	String getEntrypoint();
 
-	String getTargetNamespace();
+	String getDefaultRuntimeNamespace();
 
 	List<Path> getClassPath();
 }

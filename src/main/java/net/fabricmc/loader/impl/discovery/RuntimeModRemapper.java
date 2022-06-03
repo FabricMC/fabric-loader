@@ -48,6 +48,7 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -64,7 +65,6 @@ import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 public final class RuntimeModRemapper {
 	private static final String REMAP_TYPE_MANIFEST_KEY = "Fabric-Loom-Mixin-Remap-Type";
 	private static final String REMAP_TYPE_STATIC = "static";
-	private static final String SOURCE_NAMESPACE = "intermediary";
 
 	public static void remap(Collection<ModCandidateImpl> modCandidates, Path tmpDir, Path outputDir) {
 		List<ModCandidateImpl> modsToRemap = new ArrayList<>();
@@ -78,6 +78,11 @@ public final class RuntimeModRemapper {
 
 		if (modsToRemap.isEmpty()) return;
 
+		MappingConfiguration config = FabricLauncherBase.getLauncher().getMappingConfiguration();
+		String modNs = MappingConfiguration.INTERMEDIARY_NAMESPACE;
+		String runtimeNs = config.getRuntimeNamespace();
+		if (modNs.equals(runtimeNs)) return;
+
 		Map<ModCandidateImpl, RemapInfo> infoMap = new HashMap<>();
 
 		TinyRemapper remapper = null;
@@ -86,7 +91,7 @@ public final class RuntimeModRemapper {
 			FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
 			AccessWidener mergedAccessWidener = new AccessWidener();
-			mergedAccessWidener.visitHeader(SOURCE_NAMESPACE);
+			mergedAccessWidener.visitHeader(modNs);
 
 			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = new RemapInfo();
@@ -122,7 +127,7 @@ public final class RuntimeModRemapper {
 			}
 
 			remapper = TinyRemapper.newRemapper(new TinyRemapperLoggerAdapter(LogCategory.MOD_REMAP))
-					.withMappings(TinyUtils.createMappingProvider(launcher.getMappingConfiguration().getMappings(), SOURCE_NAMESPACE, launcher.getTargetNamespace()))
+					.withMappings(TinyUtils.createMappingProvider(launcher.getMappingConfiguration().getMappings(), modNs, runtimeNs))
 					.renameInvalidLocals(false)
 					.extension(new MixinExtension(remapMixins::contains))
 					.extraAnalyzeVisitor((mrjVersion, className, next) ->
@@ -172,7 +177,7 @@ public final class RuntimeModRemapper {
 				RemapInfo info = infoMap.get(mod);
 
 				if (info.accessWidener != null) {
-					info.accessWidener = remapAccessWidener(info.accessWidener, remapper.getRemapper(), launcher.getTargetNamespace());
+					info.accessWidener = remapAccessWidener(info.accessWidener, remapper.getEnvironment().getRemapper(), modNs, runtimeNs);
 				}
 			}
 
@@ -223,11 +228,11 @@ public final class RuntimeModRemapper {
 		}
 	}
 
-	private static byte[] remapAccessWidener(byte[] input, Remapper remapper, String targetNamespace) {
+	private static byte[] remapAccessWidener(byte[] input, Remapper remapper, String modNs, String runtimeNs) {
 		AccessWidenerWriter writer = new AccessWidenerWriter();
-		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, SOURCE_NAMESPACE, targetNamespace);
+		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, modNs, runtimeNs);
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
-		accessWidenerReader.read(input, SOURCE_NAMESPACE);
+		accessWidenerReader.read(input, modNs);
 		return writer.write();
 	}
 

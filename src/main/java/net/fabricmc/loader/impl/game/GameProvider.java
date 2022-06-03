@@ -39,7 +39,6 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 
 	String getEntrypoint();
 	Path getLaunchDirectory();
-	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
 	Set<BuiltinTransform> getBuiltinTransforms(String className);
 
@@ -73,6 +72,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 
 	Arguments getArguments();
 	String[] getLaunchArguments(boolean sanitize);
+
+	default String getRuntimeNamespace(String defaultNs) {
+		return defaultNs;
+	}
 
 	default boolean canOpenErrorGui() {
 		return true;

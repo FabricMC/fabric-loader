@@ -50,8 +50,6 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class Knot extends FabricLauncherBase {
-	private static final boolean IS_DEVELOPMENT = SystemProperties.isSet(SystemProperties.DEVELOPMENT);
-
 	protected Map<String, Object> properties = new HashMap<>();
 
 	private KnotClassLoaderInterface classLoader;
@@ -136,13 +134,11 @@ public final class Knot extends FabricLauncherBase {
 		boolean useCompatibility = provider.requiresUrlClassLoader() || SystemProperties.isSet(SystemProperties.USE_COMPAT_CL);
 		classLoader = KnotClassLoaderInterface.create(useCompatibility, isDevelopment(), envType, provider);
 		ClassLoader cl = classLoader.getClassLoader();
-
-		provider.initialize(this);
-
 		Thread.currentThread().setContextClassLoader(cl);
 
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
+		provider.initialize(this);
 		loader.load();
 		loader.freeze();
 
@@ -255,12 +251,6 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public String getTargetNamespace() {
-		// TODO: Won't work outside of Yarn
-		return IS_DEVELOPMENT ? "named" : "intermediary";
-	}
-
-	@Override
 	public List<Path> getClassPath() {
 		return classPath;
 	}
@@ -324,11 +314,6 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public Manifest getManifest(Path originPath) {
 		return classLoader.getManifest(originPath);
-	}
-
-	@Override
-	public boolean isDevelopment() {
-		return IS_DEVELOPMENT;
 	}
 
 	@Override
