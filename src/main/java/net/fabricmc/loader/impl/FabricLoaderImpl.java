@@ -247,7 +247,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// shuffle mods in-dev to reduce the risk of false order reliance, apply late load requests
 
-		if (isDevelopmentEnvironment() && System.getProperty(SystemProperties.DEBUG_DISABLE_MOD_SHUFFLE) == null) {
+		if (isDevelopmentEnvironment() && !SystemProperties.isSet(SystemProperties.DEBUG_DISABLE_MOD_SHUFFLE)) {
 			Collections.shuffle(modCandidates);
 		}
 
@@ -417,9 +417,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			final String targetNamespace = FabricLauncherBase.getLauncher().getTargetNamespace();
 
 			mappingResolver = new LazyMappingResolver(() -> new MappingResolverImpl(
-				FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings(),
-				targetNamespace
-			), targetNamespace);
+					FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings(),
+					targetNamespace),
+					targetNamespace);
 		}
 
 		return mappingResolver;

@@ -161,7 +161,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public boolean isEnabled() {
-		return System.getProperty(SystemProperties.SKIP_MC_PROVIDER) == null;
+		return !SystemProperties.isSet(SystemProperties.SKIP_MC_PROVIDER);
 	}
 
 	@Override

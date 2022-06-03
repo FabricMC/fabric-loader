@@ -96,7 +96,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
+		isDevelopment = SystemProperties.isSet(SystemProperties.DEVELOPMENT);
 		Launch.blackboard.put(SystemProperties.DEVELOPMENT, isDevelopment);
 		setProperties(Launch.blackboard);
 

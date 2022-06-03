@@ -82,10 +82,12 @@ public class AppletFrame extends Frame implements WindowListener {
 
 		File instance = new File(arguments.getOrDefault("gameDir", "."));
 
-		if (System.getProperty("minecraft.applet.TargetDirectory") == null) {
+		String targetDir = System.getProperty("minecraft.applet.TargetDirectory");
+
+		if (targetDir == null) {
 			System.setProperty("minecraft.applet.TargetDirectory", instance.toString());
 		} else {
-			instance = new File(System.getProperty("minecraft.applet.TargetDirectory"));
+			instance = new File(targetDir);
 		}
 
 		// 1.3 ~ 1.5 FML

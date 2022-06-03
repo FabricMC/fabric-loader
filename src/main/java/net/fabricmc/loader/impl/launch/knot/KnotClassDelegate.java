@@ -55,10 +55,10 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> implements KnotClassLoaderInterface {
-	private static final boolean LOG_CLASS_LOAD = System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD) != null;
-	private static final boolean LOG_CLASS_LOAD_ERRORS = LOG_CLASS_LOAD || System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS) != null;
-	private static final boolean LOG_TRANSFORM_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS) != null;
-	private static final boolean DISABLE_ISOLATION = System.getProperty(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION) != null;
+	private static final boolean LOG_CLASS_LOAD = SystemProperties.isSet(SystemProperties.DEBUG_LOG_CLASS_LOAD);
+	private static final boolean LOG_CLASS_LOAD_ERRORS = LOG_CLASS_LOAD || SystemProperties.isSet(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS);
+	private static final boolean LOG_TRANSFORM_ERRORS = SystemProperties.isSet(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS);
+	private static final boolean DISABLE_ISOLATION = SystemProperties.isSet(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION);
 
 	static final class Metadata {
 		static final Metadata EMPTY = new Metadata(null, null);
