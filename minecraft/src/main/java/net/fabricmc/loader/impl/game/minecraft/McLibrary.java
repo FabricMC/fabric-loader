@@ -24,7 +24,7 @@ enum McLibrary implements LibraryType {
 	MC_SERVER(EnvType.SERVER, "net/minecraft/server/Main.class", "net/minecraft/server/MinecraftServer.class", "com/mojang/minecraft/server/MinecraftServer.class"),
 	MC_COMMON("net/minecraft/server/MinecraftServer.class"),
 	MC_BUNDLER(EnvType.SERVER, "net/minecraft/bundler/Main.class"),
-	REALMS(EnvType.CLIENT, "realmsVersion"),
+	REALMS(EnvType.CLIENT, "realmsVersion", "com/mojang/realmsclient/RealmsVersion.class"),
 	MODLOADER("ModLoader"),
 	LOG4J_API("org/apache/logging/log4j/LogManager.class"),
 	LOG4J_CORE("META-INF/services/org.apache.logging.log4j.spi.Provider", "META-INF/log4j-provider.properties"),
