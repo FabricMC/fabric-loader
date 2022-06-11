@@ -227,7 +227,7 @@ public class MinecraftGameProvider implements GameProvider {
 			}
 
 			miscGameLibraries.addAll(classifier.getUnmatchedOrigins());
-			validParentClassPath = classifier.getLoaderOrigins();
+			validParentClassPath = classifier.getSystemLibraries();
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
 		}

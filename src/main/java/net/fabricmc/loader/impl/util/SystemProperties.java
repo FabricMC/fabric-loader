@@ -38,6 +38,8 @@ public final class SystemProperties {
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
 	// class path groups to map multiple class path entries to a mod (paths separated by path separator, groups by double path separator)
 	public static final String PATH_GROUPS = "fabric.classPathGroups";
+	// system level libraries, matching code sources will not be assumed to be part of the game or mods and remain on the system class path (paths separated by path separator)
+	public static final String SYSTEM_LIBRARIES = "fabric.systemLibraries";
 	// throw exceptions from entrypoints, discovery etc. directly instead of gathering and attaching as suppressed
 	public static final String DEBUG_THROW_DIRECTLY = "fabric.debug.throwDirectly";
 	// logs library classification activity

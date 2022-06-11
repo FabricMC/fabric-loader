@@ -16,10 +16,12 @@
 
 package net.fabricmc.loader.impl.game;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,7 +53,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	private final List<L> libs;
 	private final Map<L, Path> origins;
 	private final Map<L, String> localPaths;
-	private final Set<Path> loaderOrigins = new HashSet<>();
+	private final Set<Path> systemLibraries = new HashSet<>();
 	private final List<Path> unmatchedOrigins = new ArrayList<>();
 
 	public LibClassifier(Class<L> cls, EnvType env, GameProvider gameProvider) throws IOException {
@@ -69,16 +71,36 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 			}
 		}
 
-		// loader libs
+		// system libs configured through system property
 
 		StringBuilder sb = DEBUG ? new StringBuilder() : null;
+		String systemLibProp = System.getProperty(SystemProperties.SYSTEM_LIBRARIES);
+
+		if (systemLibProp != null) {
+			for (String lib : systemLibProp.split(File.pathSeparator)) {
+				Path path = Paths.get(lib);
+
+				if (!Files.exists(path)) {
+					Log.info(LogCategory.LIB_CLASSIFICATION, "Skipping missing system library entry %s", path);
+					continue;
+				}
+
+				path = LoaderUtil.normalizeExistingPath(path);
+
+				if (systemLibraries.add(path)) {
+					if (DEBUG) sb.append(String.format("🇸 %s%n", path));
+				}
+			}
+		}
+
+		// loader libs
 
 		for (LoaderLibrary lib : LoaderLibrary.values()) {
 			if (!lib.isApplicable(env)) continue;
 
 			if (lib.path != null) {
 				Path path = LoaderUtil.normalizeExistingPath(lib.path);
-				loaderOrigins.add(path);
+				systemLibraries.add(path);
 
 				if (DEBUG) sb.append(String.format("✅ %s %s%n", lib.name(), path));
 			} else {
@@ -93,14 +115,14 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		if (gameProviderPath != null) {
 			gameProviderPath = LoaderUtil.normalizeExistingPath(gameProviderPath);
 
-			if (loaderOrigins.add(gameProviderPath)) {
+			if (systemLibraries.add(gameProviderPath)) {
 				if (DEBUG) sb.append(String.format("✅ gameprovider %s%n", gameProviderPath));
 			}
 		} else {
 			if (DEBUG) sb.append("❎ gameprovider");
 		}
 
-		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader libraries:%n%s", sb);
+		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader/system libraries:%n%s", sb);
 
 		// process indirectly referenced libs
 
@@ -159,7 +181,7 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 
 	private void process(Path path, Set<L> excludedLibs) throws IOException {
 		path = LoaderUtil.normalizeExistingPath(path);
-		if (loaderOrigins.contains(path)) return;
+		if (systemLibraries.contains(path)) return;
 
 		boolean matched = false;
 
@@ -240,8 +262,11 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		return unmatchedOrigins;
 	}
 
-	public Collection<Path> getLoaderOrigins() {
-		return loaderOrigins;
+	/**
+	 * Returns system level libraries, typically Loader and its dependencies.
+	 */
+	public Collection<Path> getSystemLibraries() {
+		return systemLibraries;
 	}
 
 	public boolean remove(Path path) {

@@ -234,7 +234,8 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 							// loaded by setting validParentUrls and not including "url". Typical causes are:
 							// - accessing classes too early (game libs shouldn't be used until Loader is ready)
 							// - using jars that are only transient (deobfuscation input or pass-through installers)
-							String msg = String.format("can't load class %s at %s as it hasn't been exposed to the game (yet?)", name, getCodeSource(url, fileName));
+							String msg = String.format("can't load class %s at %s as it hasn't been exposed to the game (yet? The system property "+SystemProperties.PATH_GROUPS+" may not be set correctly in-dev)",
+									name, getCodeSource(url, fileName));
 							if (LOG_CLASS_LOAD_ERRORS) Log.warn(LogCategory.KNOT, msg);
 							throw new ClassNotFoundException(msg);
 						} else { // load from system cl
