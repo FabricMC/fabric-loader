@@ -52,6 +52,7 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 
 public final class RuntimeModRemapper {
 	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir) {
+		Log.info(LogCategory.MOD_REMAP, "Starting remapping");
 		List<ModCandidate> modsToRemap = new ArrayList<>();
 
 		for (ModCandidate mod : modCandidates) {
@@ -119,7 +120,7 @@ public final class RuntimeModRemapper {
 
 				remapper.apply(outputConsumer, info.tag);
 			}
-
+			Log.info(LogCategory.MOD_REMAP, "Performing remapping of %s mods", modsToRemap.size());
 			//Done in a 3rd loop as this can happen when the remapper is doing its thing.
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
@@ -173,6 +174,7 @@ public final class RuntimeModRemapper {
 
 			throw new FormattedException("Failed to remap mods!", t);
 		} finally {
+			Log.info(LogCategory.MOD_REMAP, "Deleting temp inputs");
 			for (RemapInfo info : infoMap.values()) {
 				try {
 					if (info.inputIsTemp) Files.deleteIfExists(info.inputPath);
