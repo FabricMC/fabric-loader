@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModMetadataParser;
@@ -156,6 +157,14 @@ final class V1ModJsonParsingTests {
 		if (modMetadata.getDependencies().isEmpty()) {
 			throw new RuntimeException("Incorrect amount of dependencies");
 		}
+	}
+
+	@Test
+	@DisplayName("Environment array")
+	public void testEnvironmentArray() throws IOException, ParseMetadataException {
+		final LoaderModMetadata modMetadata = parseMetadata(specPath.resolve("environment_array.json"));
+
+		assertEquals(ModEnvironment.UNIVERSAL, modMetadata.getEnvironment());
 	}
 
 	/*

@@ -125,10 +125,6 @@ final class V1ModMetadataParser {
 				readProvides(reader, provides);
 				break;
 			case "environment":
-				if (reader.peek() != JsonToken.STRING) {
-					throw new ParseMetadataException("Environment must be a string", reader);
-				}
-
 				environment = readEnvironment(reader);
 				break;
 			case "entrypoints":
@@ -247,17 +243,48 @@ final class V1ModMetadataParser {
 	}
 
 	private static ModEnvironment readEnvironment(JsonReader reader) throws ParseMetadataException, IOException {
-		final String environment = reader.nextString().toLowerCase(Locale.ROOT);
+		ModEnvironment environment = null;
+		List<String> environmentValues = new ArrayList<>();
 
-		if (environment.isEmpty() || environment.equals("*")) {
-			return ModEnvironment.UNIVERSAL;
-		} else if (environment.equals("client")) {
-			return ModEnvironment.CLIENT;
-		} else if (environment.equals("server")) {
-			return ModEnvironment.SERVER;
+		if (reader.peek() == JsonToken.STRING) {
+			environmentValues.add(reader.nextString().toLowerCase(Locale.ROOT));
+		} else if (reader.peek() == JsonToken.BEGIN_ARRAY) {
+			reader.beginArray();
+
+			while (reader.hasNext()) {
+				if (reader.peek() == JsonToken.STRING) {
+					environmentValues.add(reader.nextString().toLowerCase(Locale.ROOT));
+				} else {
+					throw new ParseMetadataException("Environment must be a string or an array of strings", reader);
+				}
+			}
+
+			reader.endArray();
 		} else {
-			throw new ParseMetadataException("Invalid environment type: " + environment + "!", reader);
+			throw new ParseMetadataException("Environment must be a string or an array of strings", reader);
 		}
+
+		for (String environmentString : environmentValues) {
+			if (environmentString.isEmpty() || environmentString.equals("*")) {
+				environment = ModEnvironment.UNIVERSAL;
+			} else if (environmentString.equals("client")) {
+				if (environment == null) {
+					environment = ModEnvironment.CLIENT;
+				} else if (environment == ModEnvironment.SERVER) {
+					environment = ModEnvironment.UNIVERSAL;
+				}
+			} else if (environmentString.equals("server")) {
+				if (environment == null) {
+					environment = ModEnvironment.SERVER;
+				} else if (environment == ModEnvironment.CLIENT) {
+					environment = ModEnvironment.UNIVERSAL;
+				}
+			} else {
+				throw new ParseMetadataException("Invalid environment type: " + environmentString + "!", reader);
+			}
+		}
+
+		return environment;
 	}
 
 	private static void readEntrypoints(List<ParseWarning> warnings, JsonReader reader, Map<String, List<EntrypointMetadata>> entrypoints) throws IOException, ParseMetadataException {
