@@ -119,7 +119,7 @@ public class MinecraftGameProvider implements GameProvider {
 			int version = versionData.getClassVersion().getAsInt() - 44;
 
 			try {
-				metadata.addDependency(new ModDependencyImpl(ModDependency.Kind.DEPENDS, "java", Collections.singletonList(String.format(">=%d", version))));
+				metadata.addDependency(new ModDependencyImpl(ModDependency.Kind.DEPENDS, "java", Collections.singletonList(String.format(Locale.ENGLISH, ">=%d", version))));
 			} catch (VersionParsingException e) {
 				throw new RuntimeException(e);
 			}
@@ -299,7 +299,7 @@ public class MinecraftGameProvider implements GameProvider {
 				} else if (i == 1) {
 					name = "common";
 				} else {
-					name = String.format("extra-%d", i - 2);
+					name = String.format(Locale.ENGLISH, "extra-%d", i - 2);
 				}
 
 				obfJars.put(name, gameJars.get(i));
