@@ -32,9 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipError;
 import java.util.zip.ZipFile;
 
@@ -135,10 +133,8 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		Manifest manifest;
 
 		try (ZipFile zf = new ZipFile(lib.path.toFile())) {
-			ZipEntry entry = zf.getEntry(JarFile.MANIFEST_NAME);
-			if (entry == null) return;
-
-			manifest = new Manifest(zf.getInputStream(entry));
+			manifest = ManifestUtil.readManifest(zf);
+			if (manifest == null) return;
 		}
 
 		List<URL> cp = ManifestUtil.getClassPath(manifest, lib.path);
@@ -150,21 +146,21 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 	}
 
 	public void process(URL url) throws IOException {
-		process(UrlUtil.asPath(url));
+		process(UrlUtil.asPath(url), true);
 	}
 
 	@SafeVarargs
-	public final void process(Iterable<Path> paths, L... excludedLibs) throws IOException {
+	public final void process(Iterable<Path> paths, boolean normalize, L... excludedLibs) throws IOException {
 		Set<L> excluded = makeSet(excludedLibs);
 
 		for (Path path : paths) {
-			process(path, excluded);
+			process(path, normalize, excluded);
 		}
 	}
 
 	@SafeVarargs
-	public final void process(Path path, L... excludedLibs) throws IOException {
-		process(path, makeSet(excludedLibs));
+	public final void process(Path path, boolean normalize, L... excludedLibs) throws IOException {
+		process(path, normalize, makeSet(excludedLibs));
 	}
 
 	private static <L extends Enum<L>> Set<L> makeSet(L[] libs) {
@@ -179,8 +175,8 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		return ret;
 	}
 
-	private void process(Path path, Set<L> excludedLibs) throws IOException {
-		path = LoaderUtil.normalizeExistingPath(path);
+	private void process(Path path, boolean normalize, Set<L> excludedLibs) throws IOException {
+		if (normalize) path = LoaderUtil.normalizeExistingPath(path);
 		if (systemLibraries.contains(path)) return;
 
 		boolean matched = false;

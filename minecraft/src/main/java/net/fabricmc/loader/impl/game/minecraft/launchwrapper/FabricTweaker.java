@@ -54,7 +54,6 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
-import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
@@ -123,15 +122,14 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	private void init() {
 		setupUncaughtExceptionHandler();
 
-		classPath.clear();
+		List<Path> paths = new ArrayList<>();
 
 		for (URL url : launchClassLoader.getSources()) {
-			Path path = UrlUtil.asPath(url);
-			if (!Files.exists(path)) continue;
-
-			classPath.add(LoaderUtil.normalizeExistingPath(path));
+			paths.add(UrlUtil.asPath(url));
 		}
 
+		classPath.clear();
+		classPath.addAll(normalizeClassPath(paths));
 		GameProvider provider = new MinecraftGameProvider();
 
 		if (!provider.isEnabled()

@@ -176,15 +176,15 @@ public class MinecraftGameProvider implements GameProvider {
 
 			if (commonGameJarDeclared) {
 				if (envGameJar != null) {
-					classifier.process(envGameJar, McLibrary.MC_COMMON);
+					classifier.process(envGameJar, true, McLibrary.MC_COMMON);
 				}
 
-				classifier.process(commonGameJar);
+				classifier.process(commonGameJar, true);
 			} else if (envGameJar != null) {
-				classifier.process(envGameJar);
+				classifier.process(envGameJar, true);
 			}
 
-			classifier.process(launcher.getClassPath());
+			classifier.process(launcher.getClassPath(), false);
 
 			if (classifier.has(McLibrary.MC_BUNDLER)) {
 				BundlerProcessor.process(classifier);

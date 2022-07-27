@@ -30,9 +30,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.jar.Attributes.Name;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public final class ManifestUtil {
+	public static final String MANIFEST_DIR = "META-INF";
+	public static final String MANIFEST_FILE = "MANIFEST.MF";
+
 	public static Manifest readManifest(Class<?> cls) throws IOException, URISyntaxException {
 		CodeSource cs = cls.getProtectionDomain().getCodeSource();
 		if (cs == null) return null;
@@ -62,10 +68,21 @@ public final class ManifestUtil {
 	}
 
 	public static Manifest readManifest(Path basePath) throws IOException {
-		Path path = basePath.resolve("META-INF").resolve("MANIFEST.MF");
+		Path path = basePath.resolve(MANIFEST_DIR).resolve(MANIFEST_FILE);
 		if (!Files.exists(path)) return null;
 
 		try (InputStream stream = Files.newInputStream(path)) {
+			return new Manifest(stream);
+		}
+	}
+
+	public static Manifest readManifest(ZipFile zf) throws IOException {
+		if (zf instanceof JarFile) return ((JarFile) zf).getManifest();
+
+		ZipEntry entry = zf.getEntry(JarFile.MANIFEST_NAME);
+		if (entry == null) return null;
+
+		try (InputStream stream = zf.getInputStream(entry)) {
 			return new Manifest(stream);
 		}
 	}
@@ -87,5 +104,13 @@ public final class ManifestUtil {
 		}
 
 		return ret;
+	}
+
+	public static boolean isSignatureFile(String fileName) {
+		return fileName.endsWith(".SF")
+				|| fileName.endsWith(".DSA")
+				|| fileName.endsWith(".RSA")
+				|| fileName.endsWith(".EC")
+				|| fileName.startsWith("SIG-");
 	}
 }
