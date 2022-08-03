@@ -244,7 +244,7 @@ public final class ModDiscoverer {
 				}
 			} else { // regular classes-dir or jar
 				try {
-					if (paths.size() != 1 || Files.isDirectory(paths.get(0))) {
+					if (Files.isDirectory(paths.get(0))) {
 						return computeDir();
 					} else {
 						return computeJarFile();
@@ -275,9 +275,19 @@ public final class ModDiscoverer {
 		}
 
 		private ModCandidate computeJarFile() throws IOException, ParseMetadataException {
-			assert paths.size() == 1;
+			for (Path path : paths) {
+				final ModCandidate candidate = computeJarFile(path);
 
-			try (ZipFile zf = new ZipFile(paths.get(0).toFile())) {
+				if (candidate != null) {
+					return candidate;
+				}
+			}
+
+			return null;
+		}
+
+		private ModCandidate computeJarFile(Path path) throws IOException, ParseMetadataException {
+			try (ZipFile zf = new ZipFile(path.toFile())) {
 				ZipEntry entry = zf.getEntry("fabric.mod.json");
 				if (entry == null) return null;
 
