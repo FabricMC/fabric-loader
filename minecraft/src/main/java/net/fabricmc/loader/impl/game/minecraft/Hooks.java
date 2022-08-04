@@ -26,6 +26,8 @@ import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
+import org.spongepowered.asm.util.perf.Profiler;
+
 public final class Hooks {
 	public static final String INTERNAL_NAME = Hooks.class.getName().replace('.', '/');
 
@@ -51,6 +53,7 @@ public final class Hooks {
 		FabricLoaderImpl.INSTANCE.prepareModInit(runDir.toPath(), gameInstance);
 		EntrypointUtils.invoke("main", ModInitializer.class, ModInitializer::onInitialize);
 		EntrypointUtils.invoke("client", ClientModInitializer.class, ClientModInitializer::onInitializeClient);
+		Profiler.printAuditSummary();
 	}
 
 	public static void startServer(File runDir, Object gameInstance) {

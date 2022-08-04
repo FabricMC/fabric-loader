@@ -28,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
@@ -217,6 +218,50 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		return launchClassLoader;
 	}
 
+
+	/**
+	 * Current benchmark start time
+	 */
+	private static long start;
+	/**
+	 * All recorded times
+	 */
+	private static Map<String, Time> times = new HashMap<String, Time>();
+	/**
+	 * Mutable long, so we can easily store the times in a Map
+	 */
+	static final class Time {
+		long value;
+
+		public Long asLong() {
+			return Long.valueOf(this.value);
+		}
+	}
+
+	/**
+	 * Callback from injected code, begin benchmarking a specific transformer
+	 *
+	 * @param name transformer name
+	 */
+	public static void before(String name) {
+		start = System.currentTimeMillis();
+	}
+
+	/**
+	 * Callback from injected code, end benchmarking a transformer
+	 *
+	 * @param name transformer name
+	 */
+	public static void after(String name) {
+		long elapsed = System.currentTimeMillis() - start;
+		Time time = times.get(name);
+		if (time == null) {
+			time = new Time();
+			times.put(name, time);
+		}
+		time.value += elapsed;
+	}
+
 	@Override
 	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
 		String transformedName = name.replace('/', '.');
@@ -228,7 +273,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 					continue; // skip mixin as per method contract
 				}
 
+				before(name);
 				classBytes = transformer.transform(name, transformedName, classBytes);
+				after(name);
 			}
 		}
 
