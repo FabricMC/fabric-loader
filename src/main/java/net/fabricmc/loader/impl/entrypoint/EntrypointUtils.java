@@ -21,13 +21,15 @@ import java.text.DecimalFormat;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import net.fabricmc.loader.api.EntrypointException;
+
+import org.spongepowered.asm.util.perf.Profiler;
+
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-
-import org.spongepowered.asm.util.perf.Profiler;
 
 public final class EntrypointUtils {
 	public static <T> void invoke(String name, Class<T> type, Consumer<? super T> invoker) {
@@ -50,10 +52,19 @@ public final class EntrypointUtils {
 		Profiler.Section timer = profiler.begin("entrypoint");
 
 		for (EntrypointContainer<T> container : entrypoints) {
-			Log.trace(LogCategory.ENTRYPOINT, "%s on '%s'", name, container.getProvider().getMetadata().getName());
+
+			boolean hasLink = container.getProvider().getMetadata().getContact().get("sources").isPresent() && container.getProvider().getMetadata().getContact().get("sources").get().length() > 0;
+			String sourcesUrl = !hasLink ? "" : " at "+container.getProvider().getMetadata().getContact().get("sources").get();
+
+			Log.trace(LogCategory.ENTRYPOINT, "invoke %s on '%s'%s", name, container.getProvider().getMetadata().getName(), sourcesUrl);
 			try {
 				invoker.accept(container.getEntrypoint());
 			} catch (Throwable t) {
+				Throwable root = t;
+				if (root instanceof EntrypointException) {
+					root = t.getCause();
+				}
+				Log.error(LogCategory.ENTRYPOINT, "Exception during %s : '%s' : %s", name, container.getProvider().getMetadata().getName(), root);
 				exception = ExceptionUtil.gatherExceptions(t,
 						exception,
 						exc -> new RuntimeException(String.format("Could not execute entrypoint stage '%s' due to errors, provided by '%s'!",
