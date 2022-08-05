@@ -244,40 +244,44 @@ public final class ModDiscoverer {
 				}
 			} else { // regular classes-dir or jar
 				try {
-					if (paths.size() != 1 || Files.isDirectory(paths.get(0))) {
-						return computeDir();
-					} else {
-						return computeJarFile();
+					for (Path path : paths) {
+						final ModCandidate candidate;
+
+						if (Files.isDirectory(path)) {
+							candidate = computeDir(path);
+						} else {
+							candidate = computeJarFile(path);
+						}
+
+						if (candidate != null) {
+							return candidate;
+						}
 					}
 				} catch (ParseMetadataException e) { // already contains all context
 					throw ExceptionUtil.wrap(e);
 				} catch (Throwable t) {
 					throw new RuntimeException(String.format("Error analyzing %s: %s", paths, t), t);
 				}
+
+				return null;
 			}
 		}
 
-		private ModCandidate computeDir() throws IOException, ParseMetadataException {
-			for (Path path : paths) {
-				Path modJson = path.resolve("fabric.mod.json");
-				if (!Files.exists(modJson)) continue;
+		private ModCandidate computeDir(Path path) throws IOException, ParseMetadataException {
+			Path modJson = path.resolve("fabric.mod.json");
+			if (!Files.exists(modJson)) return null;
 
-				LoaderModMetadata metadata;
+			LoaderModMetadata metadata;
 
-				try (InputStream is = Files.newInputStream(modJson)) {
-					metadata = parseMetadata(is, path.toString());
-				}
-
-				return ModCandidate.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
+			try (InputStream is = Files.newInputStream(modJson)) {
+				metadata = parseMetadata(is, path.toString());
 			}
 
-			return null;
+			return ModCandidate.createPlain(paths, metadata, requiresRemap, Collections.emptyList());
 		}
 
-		private ModCandidate computeJarFile() throws IOException, ParseMetadataException {
-			assert paths.size() == 1;
-
-			try (ZipFile zf = new ZipFile(paths.get(0).toFile())) {
+		private ModCandidate computeJarFile(Path path) throws IOException, ParseMetadataException {
+			try (ZipFile zf = new ZipFile(path.toFile())) {
 				ZipEntry entry = zf.getEntry("fabric.mod.json");
 				if (entry == null) return null;
 
