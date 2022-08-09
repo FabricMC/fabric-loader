@@ -149,6 +149,16 @@ public final class McVersionLookup {
 					return;
 				}
 			}
+
+			// classic: version-like String constant used in Minecraft.init, Minecraft referenced by field in MinecraftApplet
+			String type;
+
+			if (((is = cp.getInputStream("net/minecraft/client/MinecraftApplet.class")) != null || (is = cp.getInputStream("com/mojang/minecraft/MinecraftApplet.class")) != null)
+					&& (type = analyze(is, new FieldTypeCaptureVisitor())) != null
+					&& (is = cp.getInputStream(type.concat(".class"))) != null
+					&& fromAnalyzer(is, new MethodConstantVisitor("init"), builder)) {
+				return;
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -220,15 +230,22 @@ public final class McVersionLookup {
 	}
 
 	private static <T extends ClassVisitor & Analyzer> boolean fromAnalyzer(InputStream is, T analyzer, McVersion.Builder builder) {
+		String result = analyze(is, analyzer);
+
+		if (result != null) {
+			builder.setNameAndRelease(result);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private static <T extends ClassVisitor & Analyzer> String analyze(InputStream is, T analyzer) {
 		try {
 			ClassReader cr = new ClassReader(is);
 			cr.accept(analyzer, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-			String result = analyzer.getResult();
 
-			if (result != null) {
-				builder.setNameAndRelease(result);
-				return true;
-			}
+			return analyzer.getResult();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -239,7 +256,7 @@ public final class McVersionLookup {
 			}
 		}
 
-		return false;
+		return null;
 	}
 
 	protected static String getRelease(String version) {
@@ -559,6 +576,10 @@ public final class McVersionLookup {
 	}
 
 	private static final class FieldStringConstantVisitor extends ClassVisitor implements Analyzer {
+		private final String fieldName;
+		private String className;
+		private String result;
+
 		FieldStringConstantVisitor(String fieldName) {
 			super(FabricLoaderImpl.ASM_VERSION);
 
@@ -623,13 +644,13 @@ public final class McVersionLookup {
 				String lastLdc;
 			};
 		}
-
-		private final String fieldName;
-		private String className;
-		private String result;
 	}
 
 	private static final class MethodStringConstantContainsVisitor extends ClassVisitor implements Analyzer {
+		private final String methodOwner;
+		private final String methodName;
+		private String result;
+
 		MethodStringConstantContainsVisitor(String methodOwner, String methodName) {
 			super(FabricLoaderImpl.ASM_VERSION);
 
@@ -678,13 +699,12 @@ public final class McVersionLookup {
 				String lastLdc;
 			};
 		}
-
-		private final String methodOwner;
-		private final String methodName;
-		private String result;
 	}
 
 	private static final class MethodConstantRetVisitor extends ClassVisitor implements Analyzer {
+		private final String methodName;
+		private String result;
+
 		MethodConstantRetVisitor(String methodName) {
 			super(FabricLoaderImpl.ASM_VERSION);
 
@@ -737,13 +757,15 @@ public final class McVersionLookup {
 				String lastLdc;
 			};
 		}
-
-		private final String methodName;
-		private String result;
 	}
 
 	private static final class MethodConstantVisitor extends ClassVisitor implements Analyzer {
 		private static final String STARTING_MESSAGE = "Starting minecraft server version ";
+		private static final String CLASSIC_PREFIX = "Minecraft ";
+
+		private final String methodNameHint;
+		private String result;
+		private boolean foundInMethodHint;
 
 		MethodConstantVisitor(String methodNameHint) {
 			super(FabricLoaderImpl.ASM_VERSION);
@@ -782,6 +804,12 @@ public final class McVersionLookup {
 							if (!str.startsWith("Beta") && str.startsWith("0.")) {
 								str = "Alpha " + str;
 							}
+						} else if (str.startsWith(CLASSIC_PREFIX)) {
+							str = str.substring(CLASSIC_PREFIX.length());
+
+							if (str.startsWith(CLASSIC_PREFIX)) { // some beta versions repeat the Minecraft prefix
+								str = str.substring(CLASSIC_PREFIX.length());
+							}
 						}
 
 						// 1.0.0 - 1.13.2 have an obfuscated method that just returns the version, so we can use that
@@ -794,10 +822,6 @@ public final class McVersionLookup {
 				}
 			};
 		}
-
-		private final String methodNameHint;
-		private String result;
-		private boolean foundInMethodHint;
 	}
 
 	private abstract static class InsnFwdMethodVisitor extends MethodVisitor {
@@ -870,6 +894,33 @@ public final class McVersionLookup {
 		@Override
 		public void visitMultiANewArrayInsn(java.lang.String descriptor, int numDimensions) {
 			visitAnyInsn();
+		}
+	}
+
+	private static final class FieldTypeCaptureVisitor extends ClassVisitor implements Analyzer {
+		private String type;
+
+		FieldTypeCaptureVisitor() {
+			super(FabricLoaderImpl.ASM_VERSION);
+		}
+
+		@Override
+		public String getResult() {
+			return type;
+		}
+
+		@Override
+		public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+			if (type == null && descriptor.startsWith("L") && !descriptor.startsWith("Ljava/")) {
+				type = descriptor.substring(1, descriptor.length() - 1);
+			}
+
+			return null;
+		}
+
+		@Override
+		public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+			return null;
 		}
 	}
 }
