@@ -39,6 +39,10 @@ allprojects {
 			url = 'https://maven.fabricmc.net/'
 		}
 		mavenCentral()
+		maven {
+			name = 'webviewko'
+			url = 'https://gitlab.com/api/v4/projects/38224197/packages/maven'
+		}
 	}
 }
 
@@ -74,6 +78,7 @@ dependencies {
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
+	include 'com.github.winterreisender:webviewko-jvm:0.4.0'
 
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 

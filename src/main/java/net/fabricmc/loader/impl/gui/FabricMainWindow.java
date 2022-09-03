@@ -31,10 +31,17 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -43,6 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -65,6 +73,10 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
+import com.github.winterreisender.webviewko.WebviewKo;
+
+import com.google.gson.Gson;
+
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusButton;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusNode;
@@ -74,6 +86,13 @@ import net.fabricmc.loader.impl.util.StringUtil;
 
 class FabricMainWindow {
 	static Icon missingIcon = null;
+
+	public static void main(String[] args) throws Exception {
+		FabricStatusTree tree = new FabricStatusTree("Test", "this is a test");
+		tree.addButton("Test", FabricBasicButtonType.CLICK_ONCE);
+		tree.addTab("Test Tab");
+		FabricGuiEntry.open(tree);
+	}
 
 	static void open(FabricStatusTree tree, boolean shouldWait) throws Exception {
 		if (GraphicsEnvironment.isHeadless()) {
@@ -100,125 +119,114 @@ class FabricMainWindow {
 		}
 	}
 
+//	private static void createUi(CountDownLatch onCloseLatch, FabricStatusTree tree) {
+//		JFrame window = new JFrame();
+//		window.setVisible(false);
+//		window.setTitle(tree.title);
+//
+//		try {
+//			Image image = loadImage("/ui/icon/fabric_x128.png");
+//			window.setIconImage(image);
+//			setTaskBarImage(image);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//
+//		window.setMinimumSize(new Dimension(640, 480));
+//		window.setPreferredSize(new Dimension(800, 480));
+//		window.setLocationByPlatform(true);
+//		window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+//		window.addWindowListener(new WindowAdapter() {
+//			@Override
+//			public void windowClosed(WindowEvent e) {
+//				onCloseLatch.countDown();
+//			}
+//		});
+//
+//		Container contentPane = window.getContentPane();
+//
+//		if (tree.mainText != null && !tree.mainText.isEmpty()) {
+//			JLabel errorLabel = new JLabel(tree.mainText);
+//			errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+//			Font font = errorLabel.getFont();
+//			errorLabel.setFont(font.deriveFont(font.getSize() * 2.0f));
+//			contentPane.add(errorLabel, BorderLayout.NORTH);
+//		}
+//
+//		IconSet icons = new IconSet();
+//
+//		if (tree.tabs.isEmpty()) {
+//			FabricStatusTab tab = new FabricStatusTab("Opening Errors");
+//			tab.addChild("No tabs provided! (Something is very broken)").setError();
+//			contentPane.add(createTreePanel(tab.node, tab.filterLevel, icons), BorderLayout.CENTER);
+//		} else if (tree.tabs.size() == 1) {
+//			FabricStatusTab tab = tree.tabs.get(0);
+//			contentPane.add(createTreePanel(tab.node, tab.filterLevel, icons), BorderLayout.CENTER);
+//		} else {
+//			JTabbedPane tabs = new JTabbedPane();
+//			contentPane.add(tabs, BorderLayout.CENTER);
+//
+//			for (FabricStatusTab tab : tree.tabs) {
+//				tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
+//			}
+//		}
+//
+//		if (!tree.buttons.isEmpty()) {
+//			JPanel buttons = new JPanel();
+//			contentPane.add(buttons, BorderLayout.SOUTH);
+//			buttons.setLayout(new FlowLayout(FlowLayout.TRAILING));
+//
+//			for (FabricStatusButton button : tree.buttons) {
+//				JButton btn = new JButton(button.text);
+//				buttons.add(btn);
+//				btn.addActionListener(event -> {
+//					if (button.type == FabricBasicButtonType.CLICK_ONCE) btn.setEnabled(false);
+//
+//					if (button.clipboard != null) {
+//						try {
+//							StringSelection clipboard = new StringSelection(button.clipboard);
+//							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(clipboard, clipboard);
+//						} catch (IllegalStateException e) {
+//							//Clipboard unavailable?
+//						}
+//					}
+//
+//					if (button.shouldClose) {
+//						window.dispose();
+//					}
+//
+//					if (button.shouldContinue) {
+//						onCloseLatch.countDown();
+//					}
+//				});
+//			}
+//		}
+//
+//		window.pack();
+//		window.setVisible(true);
+//		window.requestFocus();
+//	}
+
 	private static void createUi(CountDownLatch onCloseLatch, FabricStatusTree tree) {
-		JFrame window = new JFrame();
-		window.setVisible(false);
-		window.setTitle(tree.title);
+		WebviewKo webview = new WebviewKo(1);
+		webview.title(tree.title);
+		webview.size(640, 480, WebviewKo.WindowHint.Min);
+
+		Gson gson = new Gson();
+		String treeJson = gson.toJson(tree);
 
 		try {
-			Image image = loadImage("/ui/icon/fabric_x128.png");
-			window.setIconImage(image);
-			setTaskBarImage(image);
-		} catch (IOException e) {
-			e.printStackTrace();
+			InputStream htmlFile = loadStream("/ui/index.html");
+			String content = new BufferedReader(new InputStreamReader(htmlFile))
+					.lines().collect(Collectors.joining("\n"));
+			webview.html(content);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 
-		window.setMinimumSize(new Dimension(640, 480));
-		window.setPreferredSize(new Dimension(800, 480));
-		window.setLocationByPlatform(true);
-		window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		window.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosed(WindowEvent e) {
-				onCloseLatch.countDown();
-			}
-		});
+		webview.show();
 
-		Container contentPane = window.getContentPane();
-
-		if (tree.mainText != null && !tree.mainText.isEmpty()) {
-			JLabel errorLabel = new JLabel(tree.mainText);
-			errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
-			Font font = errorLabel.getFont();
-			errorLabel.setFont(font.deriveFont(font.getSize() * 2.0f));
-			contentPane.add(errorLabel, BorderLayout.NORTH);
-		}
-
-		IconSet icons = new IconSet();
-
-		if (tree.tabs.isEmpty()) {
-			FabricStatusTab tab = new FabricStatusTab("Opening Errors");
-			tab.addChild("No tabs provided! (Something is very broken)").setError();
-			contentPane.add(createTreePanel(tab.node, tab.filterLevel, icons), BorderLayout.CENTER);
-		} else if (tree.tabs.size() == 1) {
-			FabricStatusTab tab = tree.tabs.get(0);
-			contentPane.add(createTreePanel(tab.node, tab.filterLevel, icons), BorderLayout.CENTER);
-		} else {
-			JTabbedPane tabs = new JTabbedPane();
-			contentPane.add(tabs, BorderLayout.CENTER);
-
-			for (FabricStatusTab tab : tree.tabs) {
-				tabs.addTab(tab.node.name, createTreePanel(tab.node, tab.filterLevel, icons));
-			}
-		}
-
-		if (!tree.buttons.isEmpty()) {
-			JPanel buttons = new JPanel();
-			contentPane.add(buttons, BorderLayout.SOUTH);
-			buttons.setLayout(new FlowLayout(FlowLayout.TRAILING));
-
-			for (FabricStatusButton button : tree.buttons) {
-				JButton btn = new JButton(button.text);
-				buttons.add(btn);
-				btn.addActionListener(event -> {
-					if (button.type == FabricBasicButtonType.CLICK_ONCE) btn.setEnabled(false);
-
-					if (button.clipboard != null) {
-						try {
-							StringSelection clipboard = new StringSelection(button.clipboard);
-							Toolkit.getDefaultToolkit().getSystemClipboard().setContents(clipboard, clipboard);
-						} catch (IllegalStateException e) {
-							//Clipboard unavailable?
-						}
-					}
-
-					if (button.shouldClose) {
-						window.dispose();
-					}
-
-					if (button.shouldContinue) {
-						onCloseLatch.countDown();
-					}
-				});
-			}
-		}
-
-		window.pack();
-		window.setVisible(true);
-		window.requestFocus();
-	}
-
-	private static JPanel createTreePanel(FabricStatusNode rootNode, FabricTreeWarningLevel minimumWarningLevel,
-			IconSet iconSet) {
-		JPanel panel = new JPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-		TreeNode treeNode = new CustomTreeNode(null, rootNode, minimumWarningLevel);
-
-		DefaultTreeModel model = new DefaultTreeModel(treeNode);
-		JTree tree = new JTree(model);
-		tree.setRootVisible(false);
-		tree.setRowHeight(0); // Allow rows to be multiple lines tall
-
-		for (int row = 0; row < tree.getRowCount(); row++) {
-			if (!tree.isVisible(tree.getPathForRow(row))) {
-				continue;
-			}
-
-			CustomTreeNode node = ((CustomTreeNode) tree.getPathForRow(row).getLastPathComponent());
-
-			if (node.node.expandByDefault) {
-				tree.expandRow(row);
-			}
-		}
-
-		ToolTipManager.sharedInstance().registerComponent(tree);
-		tree.setCellRenderer(new CustomTreeCellRenderer(iconSet));
-
-		JScrollPane scrollPane = new JScrollPane(tree);
-		panel.add(scrollPane);
-
-		return panel;
+		onCloseLatch.countDown();
 	}
 
 	private static BufferedImage loadImage(String str) throws IOException {
