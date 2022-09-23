@@ -62,6 +62,7 @@ import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.minecraft.SharedConstants;
 
 @SuppressWarnings("deprecation")
 public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
@@ -204,6 +205,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods"), remapRegularMods));
+
+		// versioned mods
+		if (gameDir.resolve("mods").resolve("Fabric-" + SharedConstants.getGameVersion().getName()).toFile().exists())
+        	    discoverer.addCandidateFinder(new DirectoryModCandidateFinder(gameDir.resolve("mods").resolve("Fabric-" + SharedConstants.getGameVersion().getName()), remapRegularMods));
+		
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
