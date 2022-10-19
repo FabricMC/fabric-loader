@@ -214,14 +214,19 @@ public final class McVersionLookup {
 				version = name;
 			}
 
-			if (version != null && release != null) {
-				builder.setId(id);
-				builder.setName(name);
+			if (version == null) return false;
+
+			builder.setId(id);
+			builder.setName(name);
+
+			if (release == null) {
+				builder.setNameAndRelease(version);
+			} else {
 				builder.setVersion(version);
 				builder.setRelease(release);
-
-				return true;
 			}
+
+			return true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
