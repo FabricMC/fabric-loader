@@ -282,7 +282,8 @@ public class EntrypointPatch extends GamePatch {
 				// Is only method that returns a class instance
 				// If we do not find this, then we are certain this is 20w22a.
 				MethodNode serverStartMethod = findMethod(mainClass, method -> {
-					if (method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V")) {
+					if ((method.access & Opcodes.ACC_SYNTHETIC) == 0 // reject non-synthetic
+							|| method.name.equals("main") && method.desc.equals("([Ljava/lang/String;)V")) { // reject main method (theoretically superfluous now)
 						return false;
 					}
 
