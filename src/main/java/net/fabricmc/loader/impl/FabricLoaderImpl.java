@@ -51,6 +51,7 @@ import net.fabricmc.loader.impl.discovery.ModResolver;
 import net.fabricmc.loader.impl.discovery.RuntimeModRemapper;
 import net.fabricmc.loader.impl.entrypoint.EntrypointStorage;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
@@ -373,7 +374,13 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	@Override
 	public boolean isDevelopmentEnvironment() {
-		return FabricLauncherBase.getLauncher().isDevelopment();
+		FabricLauncher launcher = FabricLauncherBase.getLauncher();
+
+		if (launcher != null) {
+			return launcher.isDevelopment();
+		} else {
+			return true;
+		}
 	}
 
 	private void addMod(ModCandidate candidate) throws ModResolutionException {
