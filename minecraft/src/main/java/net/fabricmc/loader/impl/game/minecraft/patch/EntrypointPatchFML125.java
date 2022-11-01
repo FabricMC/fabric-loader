@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -27,6 +29,7 @@ import org.objectweb.asm.tree.ClassNode;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.knot.Knot;
+import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -46,7 +49,22 @@ public class EntrypointPatchFML125 extends GamePatch {
 
 			Log.debug(LogCategory.GAME_PATCH, "Detected 1.2.5 FML - Knotifying ModClassLoader...");
 
-			ClassNode patchedClassLoader = readClass(classSource.apply(FROM));
+			ClassReader patchedClassLoaderReader = null;
+
+			try (InputStream stream = launcher.getResourceAsStream(LoaderUtil.getClassFileName(FROM))) {
+				patchedClassLoaderReader = new ClassReader(stream);
+			} catch (IOException e) {
+				String errorText = String.format("An error occurred while reading %s", FROM);
+				Log.error(LogCategory.GAME_PATCH, errorText, e);
+			}
+
+			if (patchedClassLoaderReader == null) {
+				throw new RuntimeException(String.format("Somehow, %s wasn't loaded", FROM));
+			}
+
+			ClassNode patchedClassLoader = new ClassNode();
+			patchedClassLoaderReader.accept(patchedClassLoader, 0);
+
 			ClassNode remappedClassLoader = new ClassNode();
 
 			patchedClassLoader.accept(new ClassRemapper(remappedClassLoader, new Remapper() {
