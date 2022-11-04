@@ -323,6 +323,14 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		byte[] input = getPostMixinClassByteArray(name, allowFromParent);
 		if (input == null) return null;
 
+		// The class we're currently loading could have been loaded already during Mixin initialization triggered by `getPostMixinClassByteArray`.
+		// If this is the case, we want to return the instance that was already defined to avoid attempting a duplicate definition.
+		Class<?> existingClass = classLoader.findLoadedClassFwd(name);
+
+		if (existingClass != null) {
+			return existingClass;
+		}
+
 		if (allowFromParent) {
 			parentSourcedClasses.add(name);
 		}
