@@ -159,6 +159,13 @@ public final class Knot extends FabricLauncherBase {
 		unlocked = true;
 
 		try {
+			classLoader.loadIntoTarget("net.fabricmc.loader.impl.launch.knot.UnusedEmptyTargetClass");
+		} catch (ClassNotFoundException e) {
+			Log.warn(LogCategory.KNOT, "Early non-mixin-config related class failed to load!");
+			Log.warn(LogCategory.KNOT, "If you get a 'LinkageError' of 'attempted duplicated * definition' after this then this error is the cause!", e);
+		}
+
+		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 		} catch (RuntimeException e) {
 			throw new FormattedException("A mod crashed on startup!", e);
