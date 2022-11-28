@@ -26,10 +26,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.discovery.ModCandidate;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -37,10 +35,10 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 public final class MetadataVerifier {
 	private static final Pattern MOD_ID_PATTERN = Pattern.compile("[a-z][a-z0-9-_]{1,63}");
 
-	public static ModCandidate verifyIndev(ModCandidate mod) {
-		if (FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) {
+	public static ModCandidate verifyIndev(ModCandidate mod, boolean isDevelopment) {
+		if (isDevelopment) {
 			try {
-				MetadataVerifier.verify(mod.getMetadata());
+				MetadataVerifier.verify(mod.getMetadata(), isDevelopment);
 			} catch (ParseMetadataException e) {
 				e.setModPaths(mod.getLocalPath(), Collections.emptyList());
 				throw new RuntimeException("Invalid mod metadata", e);
@@ -50,7 +48,7 @@ public final class MetadataVerifier {
 		return mod;
 	}
 
-	static void verify(LoaderModMetadata metadata) throws ParseMetadataException {
+	static void verify(LoaderModMetadata metadata, boolean isDevelopment) throws ParseMetadataException {
 		checkModId(metadata.getId(), "mod id");
 
 		for (String providesDecl : metadata.getProvides()) {
@@ -59,7 +57,7 @@ public final class MetadataVerifier {
 
 		// TODO: verify mod id and version decls in deps
 
-		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+		if (isDevelopment) {
 			if (metadata.getSchemaVersion() < ModMetadataParser.LATEST_VERSION) {
 				Log.warn(LogCategory.METADATA, "Mod %s uses an outdated schema version: %d < %d", metadata.getId(), metadata.getSchemaVersion(), ModMetadataParser.LATEST_VERSION);
 			}

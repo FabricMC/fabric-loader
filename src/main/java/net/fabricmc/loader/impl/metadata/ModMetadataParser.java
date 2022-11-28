@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -40,14 +39,14 @@ public final class ModMetadataParser {
 	// Per the ECMA-404 (www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf), the JSON spec does not prohibit duplicate keys.
 	// For all intents and purposes of replicating the logic of Gson's fromJson before we have migrated to JsonReader, duplicate keys will replace previous entries.
 	public static LoaderModMetadata parseMetadata(InputStream is, String modPath, List<String> modParentPaths,
-			VersionOverrides versionOverrides, DependencyOverrides depOverrides) throws ParseMetadataException {
+			VersionOverrides versionOverrides, DependencyOverrides depOverrides, boolean isDevelopment) throws ParseMetadataException {
 		try {
-			LoaderModMetadata ret = readModMetadata(is);
+			LoaderModMetadata ret = readModMetadata(is, isDevelopment);
 
 			versionOverrides.apply(ret);
 			depOverrides.apply(ret);
 
-			MetadataVerifier.verify(ret);
+			MetadataVerifier.verify(ret, isDevelopment);
 
 			return ret;
 		} catch (ParseMetadataException e) {
@@ -60,7 +59,7 @@ public final class ModMetadataParser {
 		}
 	}
 
-	private static LoaderModMetadata readModMetadata(InputStream is) throws IOException, ParseMetadataException {
+	private static LoaderModMetadata readModMetadata(InputStream is, boolean isDevelopment) throws IOException, ParseMetadataException {
 		// So some context:
 		// Per the json specification, ordering of fields is not typically enforced.
 		// Furthermore we cannot guarantee the `schemaVersion` is the first field in every `fabric.mod.json`
@@ -128,7 +127,7 @@ public final class ModMetadataParser {
 			LoaderModMetadata ret = readModMetadata(reader, schemaVersion);
 			reader.endObject();
 
-			if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+			if (isDevelopment) {
 				Log.warn(LogCategory.METADATA, "\"fabric.mod.json\" from mod %s did not have \"schemaVersion\" as first field.", ret.getId());
 			}
 
