@@ -118,11 +118,11 @@ public final class ModDiscoverer {
 		// add builtin mods
 		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
 			ModCandidate candidate = ModCandidate.createBuiltin(mod, versionOverrides, depOverrides);
-			candidates.add(MetadataVerifier.verifyIndev(candidate));
+			candidates.add(MetadataVerifier.verifyIndev(candidate, loader.isDevelopmentEnvironment()));
 		}
 
 		// Add the current Java version
-		candidates.add(MetadataVerifier.verifyIndev(createJavaMod()));
+		candidates.add(MetadataVerifier.verifyIndev(createJavaMod(), loader.isDevelopmentEnvironment()));
 
 		ModResolutionException exception = null;
 
@@ -466,7 +466,7 @@ public final class ModDiscoverer {
 		}
 
 		private LoaderModMetadata parseMetadata(InputStream is, String localPath) throws ParseMetadataException {
-			return ModMetadataParser.parseMetadata(is, localPath, parentPaths, versionOverrides, depOverrides);
+			return ModMetadataParser.parseMetadata(is, localPath, parentPaths, versionOverrides, depOverrides, FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment());
 		}
 	}
 
