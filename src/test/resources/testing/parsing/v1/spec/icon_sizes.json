@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "v1-parsing-test",
+  "version": "1.0.0-SNAPSHOT",
+  "icon": {
+    "64": "assets/testing/icon-64.png",
+    "128": "assets/testing/icon-128.png",
+    "256": "assets/testing/icon-256.png"
+  }
+}
