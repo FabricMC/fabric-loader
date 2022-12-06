@@ -160,6 +160,8 @@ public final class Knot extends FabricLauncherBase {
 
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
+		} catch (FormattedException e) {
+		  	throw e;
 		} catch (RuntimeException e) {
 			throw new FormattedException("A mod crashed on startup!", e);
 		}
