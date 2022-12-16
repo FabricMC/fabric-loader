@@ -38,7 +38,13 @@ allprojects {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
-		mavenCentral()
+		mavenCentral() {
+			content {
+				// Force ASM to come from the fabric maven.
+				// This ensures that the ASM version has been mirrored for use by the launcher/installer.
+				excludeGroupByRegex "org.ow2.asm"
+			}
+		}
 	}
 }
 
