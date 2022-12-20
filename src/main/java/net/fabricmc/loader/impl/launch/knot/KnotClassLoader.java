@@ -98,46 +98,13 @@ final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAcce
 	public Enumeration<URL> getResources(String name) throws IOException {
 		Objects.requireNonNull(name);
 
-		Enumeration<URL> first = urlLoader.getResources(name);
-		Enumeration<URL> second = originalLoader.getResources(name);
-		return new Enumeration<URL>() {
-			Enumeration<URL> current = first;
+		final Enumeration<URL> resources = urlLoader.getResources(name);
 
-			@Override
-			public boolean hasMoreElements() {
-				if (current == null) {
-					return false;
-				}
+		if (!resources.hasMoreElements()) {
+			return originalLoader.getResources(name);
+		}
 
-				if (current.hasMoreElements()) {
-					return true;
-				}
-
-				if (current == first && second.hasMoreElements()) {
-					return true;
-				}
-
-				return false;
-			}
-
-			@Override
-			public URL nextElement() {
-				if (current == null) {
-					return null;
-				}
-
-				if (!current.hasMoreElements()) {
-					if (current == first) {
-						current = second;
-					} else {
-						current = null;
-						return null;
-					}
-				}
-
-				return current.nextElement();
-			}
-		};
+		return resources;
 	}
 
 	@Override
