@@ -138,7 +138,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 			}
 		}
 
-		ClassInfo classInfo = ClassInfo.forName(owner);
+		ClassInfo classInfo = ClassInfo.forName(map(owner));
 
 		if (classInfo == null) { // unknown class?
 			return name;
