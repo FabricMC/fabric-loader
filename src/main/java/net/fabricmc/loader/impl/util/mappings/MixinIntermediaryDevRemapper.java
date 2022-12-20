@@ -154,7 +154,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 				return s;
 			}
 
-			if (!classInfo.getSuperName().startsWith("java/")) {
+			if (classInfo.getSuperName() != null && !classInfo.getSuperName().startsWith("java/")) {
 				ClassInfo cSuper = classInfo.getSuperClass();
 
 				if (cSuper != null) {
@@ -221,7 +221,7 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 				return s;
 			}
 
-			if (c.getSuperName().startsWith("java/")) {
+			if (c.getSuperName() == null || c.getSuperName().startsWith("java/")) {
 				break;
 			}
 
