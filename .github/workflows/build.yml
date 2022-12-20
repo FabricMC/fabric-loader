@@ -35,4 +35,4 @@ jobs:
         if: always()
         with:
           name: Client Test Screenshots
-          path: minecraft/minecraft-tesst/run/screenshots
+          path: minecraft/minecraft-test/run/screenshots
