@@ -1,7 +1,7 @@
 apply plugin: "fabric-loom"
 
-sourceCompatibility = JavaVersion.VERSION_16
-targetCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 loom {
 	runConfigs.configureEach {
@@ -9,9 +9,11 @@ loom {
 	}
 }
 
+def minecraft_version = "1.19.3";
+
 dependencies {
-	minecraft "com.mojang:minecraft:1.18"
-	mappings "net.fabricmc:yarn:1.18+build.1:v2"
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings "net.fabricmc:yarn:${minecraft_version}+build.3:v2"
 
 	implementation project(":minecraft")
 
@@ -34,5 +36,69 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.encoding = "UTF-8"
-	it.options.release = 16
+	it.options.release = 17
+}
+
+import net.fabricmc.loom.util.OperatingSystem
+import groovy.json.JsonSlurper
+
+configurations {
+	productionRuntime {
+		extendsFrom configurations.minecraftLibraries
+		extendsFrom configurations.loaderLibraries
+		extendsFrom configurations.minecraftRuntimeOnlyLibraries
+	}
+	productionRuntimeMods
+}
+
+dependencies {
+	productionRuntime "net.fabricmc:intermediary:${minecraft_version}"
+
+	// Include the external libraries on the classpath
+	def installerJson = new JsonSlurper().parse(rootProject.file("src/main/resources/fabric-installer.json"))
+	installerJson.libraries.common.each {
+		productionRuntime it.name
+	}
+
+	// Use Fabric's auto client test
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.69.1+1.19.3"
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.69.1+1.19.3:testmod"
+}
+
+def loaderJarTask = project(":").tasks.proguardJar
+
+// This is very far beyond loom's API if you copy this, you're on your own.
+task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask]) {
+	classpath.from configurations.productionRuntime
+	classpath.from loaderJarTask
+	mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
+	workingDir = file("run")
+
+	afterEvaluate {
+		dependsOn downloadAssets
+	}
+
+	doFirst {
+		classpath.from loom.minecraftProvider.minecraftClientJar
+		workingDir.mkdirs()
+
+		args(
+			"--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
+			"--assetsDir", new File(loom.files.userCache, "assets").absolutePath,
+			"--gameDir", workingDir.absolutePath
+		)
+
+		if (OperatingSystem.CURRENT_OS == OperatingSystem.MAC_OS) {
+			jvmArgs(
+				"-XstartOnFirstThread"
+			)
+		}
+
+		def mods = configurations.productionRuntimeMods.files.join(File.pathSeparator)
+
+		jvmArgs(
+			"-Dfabric.addMods=${mods}",
+			"-Dfabric.autoTest"
+		)
+	}
 }

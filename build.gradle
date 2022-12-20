@@ -1,7 +1,7 @@
 buildscript {
 	dependencies {
 		classpath 'org.kohsuke:github-api:1.135'
-		classpath 'com.guardsquare:proguard-gradle:' + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11) ? '7.2.0-beta2' : '7.1.0')
+		classpath 'com.guardsquare:proguard-gradle:' + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11) ? '7.3.0' : '7.1.0')
 	}
 }
 
@@ -11,10 +11,10 @@ plugins {
 	id 'eclipse'
 	id 'maven-publish'
 	id 'checkstyle'
-	id 'org.cadixdev.licenser' version '0.6.1'
-	id 'fabric-loom' version '0.11-SNAPSHOT' apply false
+	id 'com.diffplug.spotless' version "6.12.0"
+	id 'fabric-loom' version '1.0-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
-	id "me.modmuss50.remotesign" version "0.2.4"
+	id 'me.modmuss50.remotesign' version "0.4.0"
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -22,13 +22,13 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = "fabric-loader"
 
-// Fetch build number from Jenkins
 def ENV = System.getenv()
 
 allprojects {
 	apply plugin: 'java-library'
 	apply plugin: 'eclipse'
 	apply plugin: 'checkstyle'
+	apply plugin: "com.diffplug.spotless"
 
 	def constantsSource = rootProject.file("src/main/java/net/fabricmc/loader/impl/FabricLoaderImpl.java").text
 	version = (constantsSource =~ /\s+VERSION\s*=\s*"(.*)";/)[0][1] + (ENV.GITHUB_ACTIONS ? "" : "+local")
@@ -168,7 +168,6 @@ task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
 
 	inputs.files(fatJar, classpath)
 	outputs.files(proguardFile)
-	outputs.upToDateWhen { false }
 
 	doFirst {
 		classpath.resolve().forEach {
@@ -267,12 +266,11 @@ allprojects {
 		toolVersion = '8.44'
 	}
 
-	license {
-		header project.rootProject.file("HEADER")
-		include '**/*.java'
-
-		// Exclude gson since it is google's code, we just modify and bundle it
-		exclude '**/lib/gson/*.java'
+	spotless {
+		java {
+			licenseHeaderFile(rootProject.file("HEADER"))
+			targetExclude '**/lib/gson/*.java'
+		}
 	}
 }
 
