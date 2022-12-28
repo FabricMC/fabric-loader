@@ -75,7 +75,7 @@ dependencies {
 		exclude module: 'guava'
 	}
 	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
-	api 'net.fabricmc:tiny-remapper:0.8.2'
+	api 'net.fabricmc:tiny-remapper:0.8.6'
 	api 'net.fabricmc:access-widener:2.1.0'
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
@@ -84,7 +84,7 @@ dependencies {
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
 	// Unit testing for mod metadata
-	testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
+	testImplementation('org.junit.jupiter:junit-jupiter:5.9.1')
 }
 
 processResources {
