@@ -19,9 +19,8 @@ package net.fabricmc.loader.impl.game.minecraft.applet;
 import java.io.File;
 
 public final class AppletMain implements Runnable {
-
 	final String[] args;
-	private AppletMain(String[] args) { 
+	private AppletMain(String[] args) {
 		this.args = args;
 	}
 
