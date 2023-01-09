@@ -18,8 +18,12 @@ package net.fabricmc.loader.impl.game.minecraft.applet;
 
 import java.io.File;
 
-public final class AppletMain {
-	private AppletMain() { }
+public final class AppletMain implements Runnable {
+    
+        final String[] args;
+	private AppletMain(String[] args) { 
+                this.args = args;
+        }
 
 	public static File hookGameDir(File file) {
 		File proposed = AppletLauncher.gameDir;
@@ -32,7 +36,12 @@ public final class AppletMain {
 	}
 
 	public static void main(String[] args) {
-		AppletFrame me = new AppletFrame("Minecraft", null);
-		me.launch(args);
+                java.awt.EventQueue.invokeLater(new AppletMain(args));
 	}
+
+        @Override
+        public void run() {
+                AppletFrame me = new AppletFrame("Minecraft", null);
+		me.launch(args);
+        }
 }
