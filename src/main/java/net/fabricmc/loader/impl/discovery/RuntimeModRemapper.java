@@ -18,6 +18,7 @@ package net.fabricmc.loader.impl.discovery;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.commons.Remapper;
@@ -62,6 +64,40 @@ public final class RuntimeModRemapper {
 
 		if (modsToRemap.isEmpty()) return;
 
+		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
+
+		try {
+			for (ModCandidate mod : modsToRemap) {
+				RemapInfo info = new RemapInfo();
+
+				if (mod.hasPath()) {
+					List<Path> paths = mod.getPaths();
+					if (paths.size() != 1) throw new UnsupportedOperationException("multiple path for "+mod);
+
+					info.inputPath = paths.get(0);
+				} else {
+					info.inputPath = mod.copyToDir(tmpDir, true);
+					info.inputIsTemp = true;
+				}
+
+				if (!info.requiresRemap()) {
+					// Doesn't need remapping, clear
+					info.removeTempInputDir();
+					continue;
+				}
+
+				infoMap.put(mod, info);
+			}
+		} catch (Throwable t) {
+			throw new FormattedException("Failed to remap mods!", t);
+		} finally {
+			for (RemapInfo info : infoMap.values()) {
+				info.removeTempInputDir();
+			}
+		}
+
+		if (infoMap.isEmpty()) return;
+
 		FabricLauncher launcher = FabricLauncherBase.getLauncher();
 
 		TinyRemapper remapper = TinyRemapper.newRemapper()
@@ -75,25 +111,12 @@ public final class RuntimeModRemapper {
 			throw new RuntimeException("Failed to populate remap classpath", e);
 		}
 
-		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
-
 		try {
-			for (ModCandidate mod : modsToRemap) {
-				RemapInfo info = new RemapInfo();
-				infoMap.put(mod, info);
-
-				InputTag tag = remapper.createInputTag();
+			for (Map.Entry<ModCandidate, RemapInfo> entry : infoMap.entrySet()) {
+				final ModCandidate mod = entry.getKey();
+				final RemapInfo info = entry.getValue();
+				final InputTag tag = remapper.createInputTag();
 				info.tag = tag;
-
-				if (mod.hasPath()) {
-					List<Path> paths = mod.getPaths();
-					if (paths.size() != 1) throw new UnsupportedOperationException("multiple path for "+mod);
-
-					info.inputPath = paths.get(0);
-				} else {
-					info.inputPath = mod.copyToDir(tmpDir, true);
-					info.inputIsTemp = true;
-				}
 
 				info.outputPath = outputDir.resolve(mod.getDefaultFileName());
 				Files.deleteIfExists(info.outputPath);
@@ -174,11 +197,7 @@ public final class RuntimeModRemapper {
 			throw new FormattedException("Failed to remap mods!", t);
 		} finally {
 			for (RemapInfo info : infoMap.values()) {
-				try {
-					if (info.inputIsTemp) Files.deleteIfExists(info.inputPath);
-				} catch (IOException e) {
-					Log.warn(LogCategory.MOD_REMAP, "Error deleting temporary input jar %s", info.inputIsTemp, e);
-				}
+				info.removeTempInputDir();
 			}
 		}
 	}
@@ -213,5 +232,38 @@ public final class RuntimeModRemapper {
 		OutputConsumerPath outputConsumerPath;
 		String accessWidenerPath;
 		byte[] accessWidener;
+
+		private boolean requiresRemap() throws IOException {
+			final Path manifestPath = inputPath.resolve("META-INF/MANIFEST.MF");
+
+			if (Files.notExists(manifestPath)) return true;
+
+			try (InputStream is = Files.newInputStream(manifestPath)) {
+				final Manifest manifest = new Manifest(is);
+				final String namespace = manifest.getMainAttributes().getValue("Fabric-Mapping-Namespace");
+				final String loomRemap = manifest.getMainAttributes().getValue("Fabric-Loom-Remap");
+
+				if (FabricLauncherBase.getLauncher().getTargetNamespace().equals(namespace)) {
+					// Mod is already in the target namespace, don't remap.
+					return false;
+				}
+
+				if (loomRemap != null) {
+					// Allow the mod to opt-in or out of remapping.
+					return Boolean.parseBoolean(loomRemap);
+				}
+			}
+
+			// Default path, remap.
+			return true;
+		}
+
+		private void removeTempInputDir() {
+			try {
+				if (inputIsTemp) Files.deleteIfExists(inputPath);
+			} catch (IOException e) {
+				Log.warn(LogCategory.MOD_REMAP, "Error deleting temporary input jar %s", inputIsTemp, e);
+			}
+		}
 	}
 }
