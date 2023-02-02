@@ -181,6 +181,7 @@ public class EntrypointPatch extends GamePatch {
 		MethodNode gameMethod = null;
 		MethodNode gameConstructor = null;
 		AbstractInsnNode lwjglLogNode = null;
+		AbstractInsnNode currentThreadNode = null;
 		int gameMethodQuality = 0;
 
 		if (!is20w22aServerOrHigher) {
@@ -198,12 +199,19 @@ public class EntrypointPatch extends GamePatch {
 					// Try to find a method with an LDC string "LWJGL Version: ".
 					// This is the "init()" method, or as of 19w38a is the constructor, or called somewhere in that vicinity,
 					// and is by far superior in hooking into for a well-off mod start.
+					// Also try and find a Thread.currentThread() call before the LWJGL version print.
 
 					int qual = 2;
 					boolean hasLwjglLog = false;
 
 					for (AbstractInsnNode insn : gmCandidate.instructions) {
-						if (insn instanceof LdcInsnNode) {
+						if (insn.getOpcode() == Opcodes.INVOKESTATIC && insn instanceof MethodInsnNode) {
+							final MethodInsnNode methodInsn = (MethodInsnNode) insn;
+
+							if ("currentThread".equals(methodInsn.name) && "java/lang/Thread".equals(methodInsn.owner) && "()Ljava/lang/Thread;".equals(methodInsn.desc)) {
+								currentThreadNode = methodInsn;
+							}
+						} else if (insn instanceof LdcInsnNode) {
 							Object cst = ((LdcInsnNode) insn).cst;
 
 							if (cst instanceof String) {
@@ -466,7 +474,11 @@ public class EntrypointPatch extends GamePatch {
 						it = gameMethod.instructions.iterator();
 					}
 
-					if (lwjglLogNode != null) {
+					// Add the hook just before the Thread.currentThread() call
+					// If not 4 method instructions before the lwjgl log
+					if (currentThreadNode != null) {
+						moveBefore(it, currentThreadNode);
+					} else if (lwjglLogNode != null) {
 						moveBefore(it, lwjglLogNode);
 
 						for (int i = 0; i < 4; i++) {
