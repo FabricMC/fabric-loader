@@ -85,8 +85,8 @@ public class MinecraftGameProvider implements GameProvider {
 	private McVersion versionData;
 	private boolean hasModLoader = false;
 
-	private static final GameTransformer TRANSFORMER = new GameTransformer(
-			new EntrypointPatch(),
+	private final GameTransformer transformer = new GameTransformer(
+			new EntrypointPatch(this),
 			new BrandingPatch(),
 			new EntrypointPatchFML125());
 
@@ -337,7 +337,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 		setupLogHandler(launcher, true);
 
-		TRANSFORMER.locateEntrypoints(launcher, gameJars);
+		transformer.locateEntrypoints(launcher, gameJars);
 	}
 
 	private void setupLogHandler(FabricLauncher launcher, boolean useTargetCl) {
@@ -404,7 +404,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public GameTransformer getEntrypointTransformer() {
-		return TRANSFORMER;
+		return transformer;
 	}
 
 	@Override
