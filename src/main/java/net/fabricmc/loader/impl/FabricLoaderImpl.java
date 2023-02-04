@@ -302,12 +302,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private void dumpModList0(ModCandidate mod, StringBuilder log, int nestLevel, boolean[] lastItemOfNestLevel) {
 		if (log.length() > 0) log.append('\n');
 
-		for (int i = 0; i < nestLevel; i++) {
-			log.append(lastItemOfNestLevel[i] ? "    " : "   │");
+		for (int depth = 0; depth < nestLevel; depth++) {
+			log.append(depth == 0 ? "\t" : lastItemOfNestLevel[depth] ? "    " : "   │");
 		}
 
-		log.append("   ");
-		log.append(lastItemOfNestLevel[nestLevel] ? "└──" : "├──");
+		log.append(nestLevel == 0 ? "\t" : "   ");
+		log.append(nestLevel == 0 ? "─" : lastItemOfNestLevel[nestLevel] ? "└──" : "├──");
 		log.append(' ');
 		log.append(mod.getId());
 		log.append(' ');
