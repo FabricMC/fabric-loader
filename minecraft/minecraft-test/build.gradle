@@ -40,7 +40,12 @@ dependencies {
 	}
 
 	testImplementation project(":junit")
-	testImplementation('org.junit.jupiter:junit-jupiter:5.10.0-SNAPSHOT')
+	// Any idea why I need to depend on the proguard jar here?
+	testImplementation project(":").tasks.proguardJar.outputs.files
+
+	testImplementation(platform("org.junit:junit-bom:5.10.0-SNAPSHOT"))
+	testImplementation("org.junit.platform:junit-platform-launcher")
+	testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }
 
 test {

@@ -30,8 +30,16 @@ public class FabricLoaderLauncherInterceptor implements LauncherInterceptor {
 	private final ClassLoader classLoader;
 
 	public FabricLoaderLauncherInterceptor() {
-		knot = new Knot(EnvType.CLIENT);
-		classLoader = knot.init(new String[]{});
+		final Thread currentThread = Thread.currentThread();
+		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
+
+		try {
+			knot = new Knot(EnvType.CLIENT);
+			classLoader = knot.init(new String[]{});
+		} finally {
+			// Knot.init sets the context class loader, revert it back for now.
+			currentThread.setContextClassLoader(originalClassLoader);
+		}
 	}
 
 	@Override

@@ -1,8 +1,13 @@
+apply plugin: 'maven-publish'
+apply plugin: 'me.modmuss50.remotesign'
+
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = "fabric-loader-junit"
 version = rootProject.version
+
+def ENV = System.getenv()
 
 repositories {
 	// TODO replace with central once stable
@@ -14,6 +19,32 @@ repositories {
 dependencies {
 	api project(":")
 
-	api(platform("org.junit:junit-bom:5.10.0-SNAPSHOT"))
-	api("org.junit.platform:junit-platform-launcher")
+	compileOnly(platform("org.junit:junit-bom:5.10.0-SNAPSHOT"))
+	compileOnly("org.junit.platform:junit-platform-launcher")
+}
+
+java {
+	withSourcesJar()
+}
+
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+
+	// select the repositories you want to publish to
+	repositories {
+		if (ENV.MAVEN_URL) {
+			maven {
+				url ENV.MAVEN_URL
+				credentials {
+					username ENV.MAVEN_USERNAME
+					password ENV.MAVEN_PASSWORD
+				}
+			}
+		}
+	}
 }
