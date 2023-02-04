@@ -48,7 +48,7 @@ final class V1ModJsonParsingTests {
 	private static Path errorPath;
 
 	@BeforeAll
-	private static void setupPaths() {
+	public static void setupPaths() {
 		testLocation = new File(System.getProperty("user.dir"))
 				.toPath()
 				.resolve("src")

@@ -1,0 +1,16 @@
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+	// TODO replace with central once stable
+	maven {
+		url 'https://oss.sonatype.org/content/repositories/snapshots'
+	}
+}
+
+dependencies {
+	api project(":")
+
+	api(platform("org.junit:junit-bom:5.10.0-SNAPSHOT"))
+	api("org.junit.platform:junit-platform-launcher")
+}
