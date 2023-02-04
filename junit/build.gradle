@@ -1,6 +1,9 @@
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
+archivesBaseName = "fabric-loader-junit"
+version = rootProject.version
+
 repositories {
 	// TODO replace with central once stable
 	maven {
