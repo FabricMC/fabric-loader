@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -313,7 +314,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		log.append(' ');
 		log.append(mod.getVersion().getFriendlyString());
 
-		Collection<ModCandidate> nestedMods = mod.getNestedMods();
+		List<ModCandidate> nestedMods = new ArrayList<>(mod.getNestedMods());
+		nestedMods.sort(Comparator.comparing(nestedMod -> nestedMod.getMetadata().getId()));
 
 		if (!nestedMods.isEmpty()) {
 			Iterator<ModCandidate> iterator = nestedMods.iterator();
