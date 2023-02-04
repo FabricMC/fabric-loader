@@ -52,10 +52,10 @@ enum LoaderLibrary {
 	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER),
 
 	// TODO this is clearly wrong, these should be provided via the junit project.
-	JUNIT("org/junit/platform/engine/TestEngine.class", null),
+	JUNIT_API("org/junit/jupiter/api/Test.class", null),
+	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class", null),
 	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class", null),
-	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null),
-	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/support/hierarchical/HierarchicalTestEngine.class", null);
+	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null);
 
 	final Path path;
 	final EnvType env;

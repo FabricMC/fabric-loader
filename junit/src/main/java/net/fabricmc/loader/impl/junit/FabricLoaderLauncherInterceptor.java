@@ -6,6 +6,10 @@ import net.fabricmc.loader.impl.launch.knot.Knot;
 import org.junit.platform.launcher.LauncherInterceptor;
 
 public class FabricLoaderLauncherInterceptor implements LauncherInterceptor {
+	static {
+		System.setProperty("fabric.development", "true");
+	}
+
 	private final Knot knot;
 	private final ClassLoader classLoader;
 
