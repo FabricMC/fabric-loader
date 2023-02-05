@@ -50,12 +50,20 @@ enum LoaderLibrary {
 	SAT4J_PB(SolverFactory.class),
 	SERVER_LAUNCH("fabric-server-launch.properties", EnvType.SERVER), // installer generated jar to run setup loader's class path
 	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER),
-
-	// TODO this is clearly wrong, these should be provided via the junit project.
 	JUNIT_API("org/junit/jupiter/api/Test.class", null),
 	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class", null),
+	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null),
 	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class", null),
-	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null);
+
+	// Copied from McLibrary, doesnt seem ideal or correct
+	LOG4J_API("org/apache/logging/log4j/LogManager.class", null),
+	LOG4J_CORE("META-INF/services/org.apache.logging.log4j.spi.Provider", null),
+	LOG4J_CONFIG("log4j2.xml", null),
+	LOG4J_PLUGIN("com/mojang/util/UUIDTypeAdapter.class", null),
+	LOG4J_PLUGIN_2("com/mojang/patchy/LegacyXMLLayout.class", null),
+	LOG4J_PLUGIN_3("net/minecrell/terminalconsole/util/LoggerNamePatternSelector.class", null),
+	LOG4J_SLF4J_IMPL("org/apache/logging/slf4j/SLF4JServiceProvider.class", null),
+	SLF4J_API("org/slf4j/Logger.class", null);
 
 	final Path path;
 	final EnvType env;

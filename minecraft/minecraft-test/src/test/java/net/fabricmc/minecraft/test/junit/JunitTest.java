@@ -30,6 +30,8 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
+import net.fabricmc.loader.api.FabricLoader;
+
 public class JunitTest {
 	@BeforeAll
 	public static void setup() {
@@ -41,6 +43,8 @@ public class JunitTest {
 	public void testItems() {
 		Identifier id = Registries.ITEM.getId(Items.DIAMOND);
 		assertEquals(id.toString(), "minecraft:diamond");
+
+		System.out.println(id);
 	}
 
 	@Test
@@ -49,5 +53,10 @@ public class JunitTest {
 		GrassBlock grassBlock = (GrassBlock) Blocks.GRASS_BLOCK;
 		boolean canGrow = grassBlock.canGrow(null, null, null, null);
 		assertFalse(canGrow);
+	}
+
+	@Test
+	public void testAccessLoader() {
+		FabricLoader.getInstance().getAllMods();
 	}
 }

@@ -6,20 +6,18 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 archivesBaseName = "fabric-loader-junit"
 version = rootProject.version
+group = rootProject.group
 
 def ENV = System.getenv()
 
 repositories {
-	// TODO replace with central once stable
-	maven {
-		url 'https://oss.sonatype.org/content/repositories/snapshots'
-	}
+	mavenCentral()
 }
 
 dependencies {
 	api project(":")
 
-	compileOnly(platform("org.junit:junit-bom:5.10.0-SNAPSHOT"))
+	compileOnly(platform("org.junit:junit-bom:5.9.2"))
 	compileOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -31,6 +29,7 @@ java {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
+			artifactId project.archivesBaseName
 			from components.java
 		}
 	}

@@ -45,10 +45,6 @@ allprojects {
 				excludeGroupByRegex "org.ow2.asm"
 			}
 		}
-		// TODO remove once junit 5.10 is stable.
-		maven {
-			url 'https://oss.sonatype.org/content/repositories/snapshots'
-		}
 	}
 }
 
@@ -88,7 +84,7 @@ dependencies {
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
 	// Unit testing for mod metadata
-	testImplementation('org.junit.jupiter:junit-jupiter:5.10.0-SNAPSHOT')
+	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
 }
 
 processResources {

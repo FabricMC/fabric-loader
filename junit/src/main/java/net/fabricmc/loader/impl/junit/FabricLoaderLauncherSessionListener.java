@@ -16,12 +16,13 @@
 
 package net.fabricmc.loader.impl.junit;
 
-import org.junit.platform.launcher.LauncherInterceptor;
+import org.junit.platform.launcher.LauncherSession;
+import org.junit.platform.launcher.LauncherSessionListener;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.launch.knot.Knot;
 
-public class FabricLoaderLauncherInterceptor implements LauncherInterceptor {
+public class FabricLoaderLauncherSessionListener implements LauncherSessionListener {
 	static {
 		System.setProperty("fabric.development", "true");
 	}
@@ -29,7 +30,9 @@ public class FabricLoaderLauncherInterceptor implements LauncherInterceptor {
 	private final Knot knot;
 	private final ClassLoader classLoader;
 
-	public FabricLoaderLauncherInterceptor() {
+	private ClassLoader launcherSessionClassLoader;
+
+	public FabricLoaderLauncherSessionListener() {
 		final Thread currentThread = Thread.currentThread();
 		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
 
@@ -43,21 +46,15 @@ public class FabricLoaderLauncherInterceptor implements LauncherInterceptor {
 	}
 
 	@Override
-	public <T> T intercept(Invocation<T> invocation) {
+	public void launcherSessionOpened(LauncherSession session) {
 		final Thread currentThread = Thread.currentThread();
-		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
-
+		launcherSessionClassLoader = currentThread.getContextClassLoader();
 		currentThread.setContextClassLoader(classLoader);
-
-		try {
-			return invocation.proceed();
-		} finally {
-			currentThread.setContextClassLoader(originalClassLoader);
-		}
 	}
 
 	@Override
-	public void close() {
-		// TODO close knot?
+	public void launcherSessionClosed(LauncherSession session) {
+		final Thread currentThread = Thread.currentThread();
+		currentThread.setContextClassLoader(launcherSessionClassLoader);
 	}
 }
