@@ -44,8 +44,8 @@ dependencies {
 	}
 
 	testImplementation project(":junit")
-	// Any idea why I need to depend on the proguard jar here?
-	testImplementation project(":").tasks.proguardJar.outputs.files
+	testImplementation project(":minecraft").sourceSets.main.output
+	testImplementation project(":").sourceSets.main.output
 
 	testImplementation(platform("org.junit:junit-bom:5.9.2"))
 	testImplementation("org.junit.platform:junit-platform-launcher")
