@@ -21,10 +21,12 @@ import org.junit.platform.launcher.LauncherSessionListener;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.launch.knot.Knot;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class FabricLoaderLauncherSessionListener implements LauncherSessionListener {
 	static {
-		System.setProperty("fabric.development", "true");
+		System.setProperty(SystemProperties.DEVELOPMENT, "true");
+		System.setProperty(SystemProperties.UNIT_TEST, "true");
 	}
 
 	private final Knot knot;
