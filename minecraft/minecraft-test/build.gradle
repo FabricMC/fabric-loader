@@ -11,12 +11,6 @@ loom {
 
 def minecraft_version = "1.19.3";
 
-configurations {
-	testAnnotationProcessor {
-		extendsFrom annotationProcessor
-	}
-}
-
 repositories {
 	mavenCentral()
 }
@@ -26,6 +20,8 @@ dependencies {
 	mappings "net.fabricmc:yarn:${minecraft_version}+build.3:v2"
 
 	implementation project(":minecraft")
+	implementation project(":minecraft").sourceSets.main.output
+	implementation project(":").sourceSets.main.output
 
 	// Required for mixin annotation processor
 	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
@@ -44,8 +40,6 @@ dependencies {
 	}
 
 	testImplementation project(":junit")
-	testImplementation project(":minecraft").sourceSets.main.output
-	testImplementation project(":").sourceSets.main.output
 
 	testImplementation(platform("org.junit:junit-bom:5.9.2"))
 	testImplementation("org.junit.platform:junit-platform-launcher")
