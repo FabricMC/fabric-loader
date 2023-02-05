@@ -57,12 +57,9 @@ enum LoaderLibrary {
 	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class", null),
 
 	// Logging libraries are only loaded from the platform CL when running as a unit test.
-	// These should match the logging libraries in McLibrary
 	LOG4J_API("org/apache/logging/log4j/LogManager.class", true),
 	LOG4J_CORE("META-INF/services/org.apache.logging.log4j.spi.Provider", true),
 	LOG4J_CONFIG("log4j2.xml", true),
-	LOG4J_PLUGIN("com/mojang/util/UUIDTypeAdapter.class", true),
-	LOG4J_PLUGIN_2("com/mojang/patchy/LegacyXMLLayout.class", true),
 	LOG4J_PLUGIN_3("net/minecrell/terminalconsole/util/LoggerNamePatternSelector.class", true),
 	LOG4J_SLF4J_IMPL("org/apache/logging/slf4j/SLF4JServiceProvider.class", true),
 	SLF4J_API("org/slf4j/Logger.class", true);
