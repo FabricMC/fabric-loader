@@ -74,6 +74,8 @@ public final class FabricGuiEntry {
 				.redirectError(ProcessBuilder.Redirect.INHERIT)
 				.start();
 
+		Runtime.getRuntime().addShutdownHook(new Thread(process::destroy));
+
 		try (DataOutputStream os = new DataOutputStream(process.getOutputStream())) {
 			tree.writeTo(os);
 		}
