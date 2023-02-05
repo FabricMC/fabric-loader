@@ -40,10 +40,6 @@ dependencies {
 	}
 
 	testImplementation project(":junit")
-
-	testImplementation(platform("org.junit:junit-bom:5.9.2"))
-	testImplementation("org.junit.platform:junit-platform-launcher")
-	testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }
 
 test {
