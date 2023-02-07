@@ -74,13 +74,18 @@ public final class FabricGuiEntry {
 				.redirectError(ProcessBuilder.Redirect.INHERIT)
 				.start();
 
-		Runtime.getRuntime().addShutdownHook(new Thread(process::destroy));
+		final Thread shutdownHook = new Thread(process::destroy);
+
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
 		try (DataOutputStream os = new DataOutputStream(process.getOutputStream())) {
 			tree.writeTo(os);
 		}
 
 		int rVal = process.waitFor();
+
+		Runtime.getRuntime().removeShutdownHook(shutdownHook);
+
 		if (rVal != 0) throw new IOException("subprocess exited with code "+rVal);
 	}
 
