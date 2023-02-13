@@ -178,7 +178,7 @@ public interface FabricLoader {
 	 * <p>The game instance may not always be available depending on the game version and {@link EnvType environment}.
 	 *
 	 * @return A client or server instance object
-	 * @deprecated This method is experimental and it's use is discouraged.
+	 * @deprecated This method is experimental and its use is discouraged.
 	 */
 	/* @Nullable */
 	@Deprecated

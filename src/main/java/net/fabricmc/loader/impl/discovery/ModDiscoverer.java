@@ -173,7 +173,7 @@ public final class ModDiscoverer {
 			throw exception;
 		}
 
-		// gather gather all mods (root+nested), initialize parent data
+		// gather all mods (root+nested), initialize parent data
 
 		Set<ModCandidate> ret = Collections.newSetFromMap(new IdentityHashMap<>(candidates.size() * 2));
 		Queue<ModCandidate> queue = new ArrayDeque<>(candidates);
