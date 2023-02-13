@@ -55,6 +55,7 @@ enum LoaderLibrary {
 	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class", null),
 	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null),
 	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class", null),
+	FABRIC_LOADER_JUNIT("net/fabricmc/loader/impl/junit/FabricLoaderLauncherSessionListener.class", null),
 
 	// Logging libraries are only loaded from the platform CL when running as a unit test.
 	LOG4J_API("org/apache/logging/log4j/LogManager.class", true),
