@@ -11,11 +11,17 @@ loom {
 
 def minecraft_version = "1.19.3";
 
+repositories {
+	mavenCentral()
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings "net.fabricmc:yarn:${minecraft_version}+build.3:v2"
 
 	implementation project(":minecraft")
+	implementation project(":minecraft").sourceSets.main.output
+	implementation project(":").sourceSets.main.output
 
 	// Required for mixin annotation processor
 	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
@@ -32,6 +38,12 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
+
+	testImplementation project(":junit")
+}
+
+test {
+	useJUnitPlatform()
 }
 
 tasks.withType(JavaCompile).configureEach {

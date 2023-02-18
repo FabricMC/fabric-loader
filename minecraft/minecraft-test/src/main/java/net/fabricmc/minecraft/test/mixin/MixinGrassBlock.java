@@ -19,21 +19,18 @@ package net.fabricmc.minecraft.test.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.GrassBlock;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.World;
 
-@Mixin(value = TitleScreen.class, remap = false)
-public abstract class MixinGuiMain extends Screen {
-	protected MixinGuiMain(Text textComponent_1) {
-		super(textComponent_1);
-	}
-
-	@Inject(method = "render", at = @At("RETURN"))
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float delta, CallbackInfo info) {
-		this.textRenderer.draw(matrixStack, "Fabric Test Mod", 2, this.height - 30, -1);
+@Mixin(GrassBlock.class)
+public class MixinGrassBlock {
+	@Inject(method = "canGrow", at = @At("HEAD"), cancellable = true)
+	public void canGrow(World world, Random random, BlockPos pos, BlockState state, CallbackInfoReturnable<Boolean> cir) {
+		cir.setReturnValue(false);
 	}
 }

@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +49,7 @@ final class V1ModJsonParsingTests {
 	private static Path errorPath;
 
 	@BeforeAll
-	private static void setupPaths() {
+	public static void setupPaths() {
 		testLocation = new File(System.getProperty("user.dir"))
 				.toPath()
 				.resolve("src")
@@ -156,6 +157,42 @@ final class V1ModJsonParsingTests {
 		if (modMetadata.getDependencies().isEmpty()) {
 			throw new RuntimeException("Incorrect amount of dependencies");
 		}
+	}
+
+	@Test
+	@DisplayName("Any icon size test file")
+	public void testAnyIconSizeFile() throws IOException, ParseMetadataException {
+		final LoaderModMetadata metadata = parseMetadata(specPath.resolve("any_icon_size.json"));
+
+		validateIconPath(metadata, 32, 64);
+		validateIconPath(metadata, 64, 64);
+		validateIconPath(metadata, 128, 64);
+	}
+
+	@Test
+	@DisplayName("No icon test file")
+	public void testNoIconFile() throws IOException, ParseMetadataException {
+		final LoaderModMetadata metadata = parseMetadata(specPath.resolve("no_icon.json"));
+		assertEquals(Optional.empty(), metadata.getIconPath(32));
+	}
+
+	@Test
+	@DisplayName("Icon sizes test file")
+	public void testIconSizesFile() throws IOException, ParseMetadataException {
+		final LoaderModMetadata metadata = parseMetadata(specPath.resolve("icon_sizes.json"));
+
+		validateIconPath(metadata, 32, 64);
+		validateIconPath(metadata, 64, 64);
+		validateIconPath(metadata, 128, 128);
+		validateIconPath(metadata, 256, 256);
+		validateIconPath(metadata, 512, 256);
+	}
+
+	private void validateIconPath(LoaderModMetadata metadata, int preferredSize, int expectedSize) {
+		Optional<String> expected = Optional.of("assets/testing/icon-" + expectedSize + ".png");
+		Optional<String> actual = metadata.getIconPath(preferredSize);
+
+		assertEquals(expected, actual, "Found " + actual.orElse("no icon") + " for preferred size " + preferredSize + " instead of expected size " + expectedSize);
 	}
 
 	/*

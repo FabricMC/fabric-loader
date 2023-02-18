@@ -85,8 +85,8 @@ public class MinecraftGameProvider implements GameProvider {
 	private McVersion versionData;
 	private boolean hasModLoader = false;
 
-	private static final GameTransformer TRANSFORMER = new GameTransformer(
-			new EntrypointPatch(),
+	private final GameTransformer transformer = new GameTransformer(
+			new EntrypointPatch(this),
 			new BrandingPatch(),
 			new EntrypointPatchFML125());
 
@@ -325,7 +325,8 @@ public class MinecraftGameProvider implements GameProvider {
 			realmsJar = obfJars.get("realms");
 		}
 
-		if (!logJars.isEmpty()) {
+		// Load the logger libraries on the platform CL when in a unit test
+		if (!logJars.isEmpty() && !Boolean.getBoolean(SystemProperties.UNIT_TEST)) {
 			for (Path jar : logJars) {
 				if (gameJars.contains(jar)) {
 					launcher.addToClassPath(jar, ALLOWED_EARLY_CLASS_PREFIXES);
@@ -337,7 +338,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 		setupLogHandler(launcher, true);
 
-		TRANSFORMER.locateEntrypoints(launcher, gameJars);
+		transformer.locateEntrypoints(launcher, gameJars);
 	}
 
 	private void setupLogHandler(FabricLauncher launcher, boolean useTargetCl) {
@@ -404,7 +405,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	@Override
 	public GameTransformer getEntrypointTransformer() {
-		return TRANSFORMER;
+		return transformer;
 	}
 
 	@Override
