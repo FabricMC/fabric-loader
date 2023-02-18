@@ -12,7 +12,7 @@ plugins {
 	id 'maven-publish'
 	id 'checkstyle'
 	id 'com.diffplug.spotless' version "6.12.0"
-	id 'fabric-loom' version '1.0-SNAPSHOT' apply false
+	id 'fabric-loom' version '1.1-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '7.1.2'
 	id 'me.modmuss50.remotesign' version "0.4.0"
 }
@@ -84,7 +84,7 @@ dependencies {
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
 	// Unit testing for mod metadata
-	testImplementation('org.junit.jupiter:junit-jupiter:5.8.2')
+	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
 }
 
 processResources {

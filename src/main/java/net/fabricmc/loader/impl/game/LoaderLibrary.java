@@ -30,6 +30,7 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 
 import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
@@ -49,10 +50,23 @@ enum LoaderLibrary {
 	SAT4J_CORE(ContradictionException.class),
 	SAT4J_PB(SolverFactory.class),
 	SERVER_LAUNCH("fabric-server-launch.properties", EnvType.SERVER), // installer generated jar to run setup loader's class path
-	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER); // installer based launch-through method
+	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER),
+	JUNIT_API("org/junit/jupiter/api/Test.class", null),
+	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class", null),
+	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null),
+	JUNIT_JUPITER("org/junit/jupiter/engine/JupiterTestEngine.class", null),
+	FABRIC_LOADER_JUNIT("net/fabricmc/loader/impl/junit/FabricLoaderLauncherSessionListener.class", null),
+
+	// Logging libraries are only loaded from the platform CL when running as a unit test.
+	LOG4J_API("org/apache/logging/log4j/LogManager.class", true),
+	LOG4J_CORE("META-INF/services/org.apache.logging.log4j.spi.Provider", true),
+	LOG4J_CONFIG("log4j2.xml", true),
+	LOG4J_PLUGIN_3("net/minecrell/terminalconsole/util/LoggerNamePatternSelector.class", true),
+	SLF4J_API("org/slf4j/Logger.class", true);
 
 	final Path path;
 	final EnvType env;
+	final boolean loggerLibrary;
 
 	LoaderLibrary(Class<?> cls) {
 		this(UrlUtil.getCodeSource(cls));
@@ -63,9 +77,14 @@ enum LoaderLibrary {
 
 		this.path = path;
 		this.env = null;
+		this.loggerLibrary = false;
 	}
 
 	LoaderLibrary(String file, EnvType env) {
+		this(file, env, false);
+	}
+
+	LoaderLibrary(String file, EnvType env, boolean loggerLibrary) {
 		URL url = LoaderLibrary.class.getClassLoader().getResource(file);
 
 		try {
@@ -74,9 +93,19 @@ enum LoaderLibrary {
 		} catch (UrlConversionException e) {
 			throw new RuntimeException(e);
 		}
+
+		this.loggerLibrary = false;
+	}
+
+	LoaderLibrary(String path, boolean loggerLibrary) {
+		this(path, null, loggerLibrary);
 	}
 
 	boolean isApplicable(EnvType env) {
+		if (loggerLibrary) {
+			return Boolean.getBoolean(SystemProperties.UNIT_TEST);
+		}
+
 		return this.env == null || this.env == env;
 	}
 }

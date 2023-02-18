@@ -325,7 +325,8 @@ public class MinecraftGameProvider implements GameProvider {
 			realmsJar = obfJars.get("realms");
 		}
 
-		if (!logJars.isEmpty()) {
+		// Load the logger libraries on the platform CL when in a unit test
+		if (!logJars.isEmpty() && !Boolean.getBoolean(SystemProperties.UNIT_TEST)) {
 			for (Path jar : logJars) {
 				if (gameJars.contains(jar)) {
 					launcher.addToClassPath(jar, ALLOWED_EARLY_CLASS_PREFIXES);

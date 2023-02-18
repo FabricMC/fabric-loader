@@ -81,7 +81,7 @@ public final class Knot extends FabricLauncherBase {
 		this.envType = type;
 	}
 
-	protected ClassLoader init(String[] args) {
+	public ClassLoader init(String[] args) {
 		setProperties(properties);
 
 		// configure fabric vars
