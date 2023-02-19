@@ -187,9 +187,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			setup();
 		} catch (ModResolutionException exception) {
 			if (exception.getCause() == null) {
-				throw new FormattedException("Incompatible mod set!", exception.getMessage());
+				throw FormattedException.ofLocalized("exception.incompatible", exception.getMessage());
 			} else {
-				throw new FormattedException("Incompatible mod set!", exception);
+				throw FormattedException.ofLocalized("exception.incompatible", exception);
 			}
 		}
 	}

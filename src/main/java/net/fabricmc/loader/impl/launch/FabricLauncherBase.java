@@ -80,8 +80,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 		GameProvider gameProvider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
 
-		if (gameProvider == null || !gameProvider.displayCrash(actualExc, exc.getMainText())) {
-			FabricGuiEntry.displayError(exc.getMainText(), actualExc, true);
+		if (gameProvider == null || !gameProvider.displayCrash(actualExc, exc.getDisplayedText())) {
+			FabricGuiEntry.displayError(exc.getDisplayedText(), actualExc, true);
 		} else {
 			System.exit(1);
 		}

@@ -455,13 +455,13 @@ public class MinecraftGameProvider implements GameProvider {
 			Class<?> c = loader.loadClass(targetClass);
 			invoker = MethodHandles.lookup().findStatic(c, "main", MethodType.methodType(void.class, String[].class));
 		} catch (NoSuchMethodException | IllegalAccessException | ClassNotFoundException e) {
-			throw new FormattedException("Failed to start Minecraft", e);
+			throw FormattedException.ofLocalized("exception.minecraft.invokeFailure", e);
 		}
 
 		try {
 			invoker.invokeExact(arguments.toArray());
 		} catch (Throwable t) {
-			throw new FormattedException("Minecraft has crashed!", t);
+			throw FormattedException.ofLocalized("exception.minecraft.generic", t);
 		}
 	}
 }

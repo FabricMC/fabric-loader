@@ -163,7 +163,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		try {
 			EntrypointUtils.invoke("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
 		} catch (RuntimeException e) {
-			throw new FormattedException("A mod crashed on startup!", e);
+			throw FormattedException.ofLocalized("exception.initializerFailure", e);
 		}
 	}
 
