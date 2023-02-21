@@ -129,7 +129,7 @@ public final class FabricGuiEntry {
 			if (exception != null) {
 				crashTab.node.addCleanedException(exception);
 			} else {
-				crashTab.node.addMessage("gui.error.missingException", FabricTreeWarningLevel.NONE);
+				crashTab.node.addMessage(Localization.format("gui.error.missingException"), FabricTreeWarningLevel.NONE);
 			}
 
 			// Maybe add an "open mods folder" button?
