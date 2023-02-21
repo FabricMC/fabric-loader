@@ -67,7 +67,6 @@ public final class FormattedException extends RuntimeException {
 		return mainText;
 	}
 
-	/* @Nullable */
 	public String getDisplayedText() {
 		return translatedText == null || translatedText.equals(mainText) ? mainText : translatedText + " (" + mainText + ")";
 	}
