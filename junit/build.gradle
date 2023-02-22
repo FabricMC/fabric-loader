@@ -41,7 +41,7 @@ if (signingEnabled) {
 
 publishing {
 	publications {
-		mavenJava(MavenPublication) {
+		maven(MavenPublication) {
 			artifactId project.archivesBaseName
 			from components.java
 		}
