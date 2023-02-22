@@ -24,12 +24,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.objectweb.asm.Opcodes;
 
@@ -223,26 +225,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		modCandidates = ModResolver.resolve(modCandidates, getEnvironmentType(), envDisabledMods);
 
-		// dump mod list
-
-		StringBuilder modListText = new StringBuilder();
-
-		for (ModCandidate mod : modCandidates) {
-			if (modListText.length() > 0) modListText.append('\n');
-
-			modListText.append("\t- ");
-			modListText.append(mod.getId());
-			modListText.append(' ');
-			modListText.append(mod.getVersion().getFriendlyString());
-
-			if (!mod.getParentMods().isEmpty()) {
-				modListText.append(" via ");
-				modListText.append(mod.getParentMods().iterator().next().getId());
-			}
-		}
-
-		int count = modCandidates.size();
-		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", count, count != 1 ? "s" : "", modListText);
+		dumpModList(modCandidates);
 
 		Path cacheDir = gameDir.resolve(CACHE_DIR_NAME);
 		Path outputdir = cacheDir.resolve(PROCESSED_MODS_DIR_NAME);
@@ -294,6 +277,62 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		modCandidates = null;
+	}
+
+	private void dumpModList(List<ModCandidate> mods) {
+		StringBuilder modListText = new StringBuilder();
+
+		boolean[] lastItemOfNestLevel = new boolean[mods.size()];
+		List<ModCandidate> topLevelMods = mods.stream()
+				.filter(mod -> mod.getParentMods().isEmpty())
+				.collect(Collectors.toList());
+		int topLevelModsCount = topLevelMods.size();
+
+		for (int i = 0; i < topLevelModsCount; i++) {
+			boolean lastItem = i == topLevelModsCount - 1;
+
+			if (lastItem) lastItemOfNestLevel[0] = true;
+
+			dumpModList0(topLevelMods.get(i), modListText, 0, lastItemOfNestLevel);
+		}
+
+		int modsCount = mods.size();
+		Log.info(LogCategory.GENERAL, "Loading %d mod%s:%n%s", modsCount, modsCount != 1 ? "s" : "", modListText);
+	}
+
+	private void dumpModList0(ModCandidate mod, StringBuilder log, int nestLevel, boolean[] lastItemOfNestLevel) {
+		if (log.length() > 0) log.append('\n');
+
+		for (int depth = 0; depth < nestLevel; depth++) {
+			log.append(depth == 0 ? "\t" : lastItemOfNestLevel[depth] ? "    " : "   │");
+		}
+
+		log.append(nestLevel == 0 ? "\t" : "   ");
+		log.append(nestLevel == 0 ? "─" : lastItemOfNestLevel[nestLevel] ? "└──" : "├──");
+		log.append(' ');
+		log.append(mod.getId());
+		log.append(' ');
+		log.append(mod.getVersion().getFriendlyString());
+
+		List<ModCandidate> nestedMods = new ArrayList<>(mod.getNestedMods());
+		nestedMods.sort(Comparator.comparing(nestedMod -> nestedMod.getMetadata().getId()));
+
+		if (!nestedMods.isEmpty()) {
+			Iterator<ModCandidate> iterator = nestedMods.iterator();
+			ModCandidate nestedMod;
+			boolean lastItem;
+
+			while (iterator.hasNext()) {
+				nestedMod = iterator.next();
+				lastItem = !iterator.hasNext();
+
+				if (lastItem) lastItemOfNestLevel[nestLevel+1] = true;
+
+				dumpModList0(nestedMod, log, nestLevel + 1, lastItemOfNestLevel);
+
+				if (lastItem) lastItemOfNestLevel[nestLevel+1] = false;
+			}
+		}
 	}
 
 	private void finishModLoading() {
