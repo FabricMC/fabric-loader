@@ -304,11 +304,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		if (log.length() > 0) log.append('\n');
 
 		for (int depth = 0; depth < nestLevel; depth++) {
-			log.append(depth == 0 ? "\t" : lastItemOfNestLevel[depth] ? "    " : "   │");
+			log.append(depth == 0 ? "\t" : lastItemOfNestLevel[depth] ? "     " : "   | ");
 		}
 
-		log.append(nestLevel == 0 ? "\t" : "   ");
-		log.append(nestLevel == 0 ? "─" : lastItemOfNestLevel[nestLevel] ? "└──" : "├──");
+		log.append(nestLevel == 0 ? "\t" : "  ");
+		log.append(nestLevel == 0 ? "-" : lastItemOfNestLevel[nestLevel] ? " \\--" : " |--");
 		log.append(' ');
 		log.append(mod.getId());
 		log.append(' ');
