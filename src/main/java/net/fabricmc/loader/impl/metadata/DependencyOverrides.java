@@ -53,7 +53,7 @@ public final class DependencyOverrides {
 		try (JsonReader reader = new JsonReader(new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8))) {
 			dependencyOverrides = parse(reader);
 		} catch (IOException | ParseMetadataException e) {
-			throw new FormattedException("Error parsing dependency overrides!", "Failed to parse " + LoaderUtil.normalizePath(path), e);
+			throw FormattedException.ofLocalized("exception.parsingOverride", "Failed to parse " + LoaderUtil.normalizePath(path), e);
 		}
 	}
 

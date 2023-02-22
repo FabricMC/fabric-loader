@@ -16,9 +16,12 @@
 
 package net.fabricmc.loader.impl;
 
+import net.fabricmc.loader.impl.util.Localization;
+
 @SuppressWarnings("serial")
 public final class FormattedException extends RuntimeException {
 	private final String mainText;
+	private String translatedText;
 
 	public FormattedException(String mainText, String message) {
 		super(message);
@@ -44,7 +47,32 @@ public final class FormattedException extends RuntimeException {
 		this.mainText = mainText;
 	}
 
+	public static FormattedException ofLocalized(String key, String message) {
+		return new FormattedException(Localization.formatRoot(key), message).addTranslation(key);
+	}
+
+	public static FormattedException ofLocalized(String key, String format, Object... args) {
+		return new FormattedException(Localization.formatRoot(key), format, args).addTranslation(key);
+	}
+
+	public static FormattedException ofLocalized(String key, String message, Throwable cause) {
+		return new FormattedException(Localization.formatRoot(key), message, cause).addTranslation(key);
+	}
+
+	public static FormattedException ofLocalized(String key, Throwable cause) {
+		return new FormattedException(Localization.formatRoot(key), cause).addTranslation(key);
+	}
+
 	public String getMainText() {
 		return mainText;
+	}
+
+	public String getDisplayedText() {
+		return translatedText == null || translatedText.equals(mainText) ? mainText : translatedText + " (" + mainText + ")";
+	}
+
+	private FormattedException addTranslation(String key) {
+		this.translatedText = Localization.format(key);
+		return this;
 	}
 }

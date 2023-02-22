@@ -26,7 +26,8 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 public final class Localization {
-	public static final ResourceBundle BUNDLE = createBundle("net.fabricmc.loader.Messages");
+	public static final ResourceBundle BUNDLE = createBundle("net.fabricmc.loader.Messages", Locale.getDefault());
+	public static final ResourceBundle ROOT_LOCALE_BUNDLE = createBundle("net.fabricmc.loader.Messages", Locale.ROOT);
 
 	public static String format(String key, Object... args) {
 		String pattern = BUNDLE.getString(key);
@@ -38,9 +39,19 @@ public final class Localization {
 		}
 	}
 
-	private static ResourceBundle createBundle(String name) {
+	public static String formatRoot(String key, Object... args) {
+		String pattern = ROOT_LOCALE_BUNDLE.getString(key);
+
+		if (args.length == 0) {
+			return pattern;
+		} else {
+			return MessageFormat.format(pattern, args);
+		}
+	}
+
+	private static ResourceBundle createBundle(String name, Locale locale) {
 		if (System.getProperty("java.version", "").startsWith("1.")) { // below java 9
-			return ResourceBundle.getBundle(name, Locale.getDefault(), new ResourceBundle.Control() {
+			return ResourceBundle.getBundle(name, locale, new ResourceBundle.Control() {
 				@Override
 				public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload)
 						throws IllegalAccessException, InstantiationException, IOException {
@@ -58,7 +69,7 @@ public final class Localization {
 				};
 			});
 		} else { // java 9 and later
-			return ResourceBundle.getBundle(name);
+			return ResourceBundle.getBundle(name, locale);
 		}
 	}
 }
