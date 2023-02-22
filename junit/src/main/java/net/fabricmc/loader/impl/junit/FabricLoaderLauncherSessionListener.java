@@ -16,6 +16,13 @@
 
 package net.fabricmc.loader.impl.junit;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
@@ -24,7 +31,11 @@ import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 public class FabricLoaderLauncherSessionListener implements LauncherSessionListener {
+	private static final String PROPERTY_FILE_NAME = "fabric-loader-junit.properties";
+
 	static {
+		readClasspathSystemProperties();
+
 		System.setProperty(SystemProperties.DEVELOPMENT, "true");
 		System.setProperty(SystemProperties.UNIT_TEST, "true");
 	}
@@ -38,8 +49,10 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		final Thread currentThread = Thread.currentThread();
 		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
 
+		final EnvType envType = EnvType.valueOf(System.getProperty(SystemProperties.UNIT_TEST_ENV, EnvType.CLIENT.name()).toUpperCase());
+
 		try {
-			knot = new Knot(EnvType.CLIENT);
+			knot = new Knot(envType);
 			classLoader = knot.init(new String[]{});
 		} finally {
 			// Knot.init sets the context class loader, revert it back for now.
@@ -58,5 +71,38 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 	public void launcherSessionClosed(LauncherSession session) {
 		final Thread currentThread = Thread.currentThread();
 		currentThread.setContextClassLoader(launcherSessionClassLoader);
+	}
+
+	// Read system properties from a "fabric-loader-junit.properties" file on the classpath.
+	private static void readClasspathSystemProperties() {
+		try (InputStream is = FabricLoaderLauncherSessionListener.class.getClassLoader().getResourceAsStream(PROPERTY_FILE_NAME)) {
+			if (is == null) {
+				return;
+			}
+
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+				String line;
+
+				while ((line = reader.readLine()) != null) {
+					line = line.trim();
+
+					if (line.isEmpty()) {
+						continue;
+					}
+
+					final int pos = line.indexOf('=');
+
+					if (pos == -1) {
+						continue;
+					}
+
+					final String key = line.substring(0, pos).trim();
+					final String value = line.substring(pos + 1).trim();
+					System.setProperty(key, value);
+				}
+			}
+		} catch (IOException e) {
+			throw new UncheckedIOException("Failed to load fabric loader junit properties", e);
+		}
 	}
 }

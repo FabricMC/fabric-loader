@@ -64,6 +64,8 @@ public final class SystemProperties {
 	public static final String DEBUG_REPLACE_VERSION = "fabric.debug.replaceVersion";
 	// whether fabric loader is running in a unit test, this affects logging classpath setup
 	public static final String UNIT_TEST = "fabric.unitTest";
+	// the env passed to Knot when running the unit tests
+	public static final String UNIT_TEST_ENV = "fabric.unitTest.env";
 
 	private SystemProperties() {
 	}
