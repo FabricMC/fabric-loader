@@ -30,7 +30,6 @@ import org.spongepowered.asm.launch.MixinBootstrap;
 
 import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.mapping.tree.TinyMappingFactory;
@@ -50,7 +49,7 @@ enum LoaderLibrary {
 	SAT4J_CORE(ContradictionException.class),
 	SAT4J_PB(SolverFactory.class),
 	SERVER_LAUNCH("fabric-server-launch.properties", EnvType.SERVER), // installer generated jar to run setup loader's class path
-	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER),
+	SERVER_LAUNCHER("net/fabricmc/installer/ServerLauncher.class", EnvType.SERVER), // installer based launch-through method
 	JUNIT_API("org/junit/jupiter/api/Test.class", null),
 	JUNIT_PLATFORM_ENGINE("org/junit/platform/engine/TestEngine.class", null),
 	JUNIT_PLATFORM_LAUNCHER("org/junit/platform/launcher/core/LauncherFactory.class", null),
@@ -66,7 +65,7 @@ enum LoaderLibrary {
 
 	final Path path;
 	final EnvType env;
-	final boolean loggerLibrary;
+	final boolean junitRunOnly;
 
 	LoaderLibrary(Class<?> cls) {
 		this(UrlUtil.getCodeSource(cls));
@@ -77,14 +76,14 @@ enum LoaderLibrary {
 
 		this.path = path;
 		this.env = null;
-		this.loggerLibrary = false;
+		this.junitRunOnly = false;
 	}
 
 	LoaderLibrary(String file, EnvType env) {
 		this(file, env, false);
 	}
 
-	LoaderLibrary(String file, EnvType env, boolean loggerLibrary) {
+	LoaderLibrary(String file, EnvType env, boolean junitRunOnly) {
 		URL url = LoaderLibrary.class.getClassLoader().getResource(file);
 
 		try {
@@ -94,18 +93,15 @@ enum LoaderLibrary {
 			throw new RuntimeException(e);
 		}
 
-		this.loggerLibrary = false;
+		this.junitRunOnly = junitRunOnly;
 	}
 
 	LoaderLibrary(String path, boolean loggerLibrary) {
 		this(path, null, loggerLibrary);
 	}
 
-	boolean isApplicable(EnvType env) {
-		if (loggerLibrary) {
-			return Boolean.getBoolean(SystemProperties.UNIT_TEST);
-		}
-
-		return this.env == null || this.env == env;
+	boolean isApplicable(EnvType env, boolean junitRun) {
+		return (this.env == null || this.env == env)
+				&& (!junitRunOnly || junitRun);
 	}
 }

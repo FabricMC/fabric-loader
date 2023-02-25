@@ -95,8 +95,10 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 
 		// loader libs
 
+		boolean junitRun = System.getProperty(SystemProperties.UNIT_TEST) != null;
+
 		for (LoaderLibrary lib : LoaderLibrary.values()) {
-			if (!lib.isApplicable(env)) continue;
+			if (!lib.isApplicable(env, junitRun)) continue;
 
 			if (lib.path != null) {
 				Path path = LoaderUtil.normalizeExistingPath(lib.path);
@@ -126,11 +128,11 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 
 		// process indirectly referenced libs
 
-		processManifestClassPath(LoaderLibrary.SERVER_LAUNCH, env); // not used by fabric itself, but others add Log4J this way
+		processManifestClassPath(LoaderLibrary.SERVER_LAUNCH, env, junitRun); // not used by fabric itself, but others add Log4J this way
 	}
 
-	private void processManifestClassPath(LoaderLibrary lib, EnvType env) throws IOException {
-		if (lib.path == null || !lib.isApplicable(env) || !Files.isRegularFile(lib.path)) return;
+	private void processManifestClassPath(LoaderLibrary lib, EnvType env, boolean junitRun) throws IOException {
+		if (lib.path == null || !lib.isApplicable(env, junitRun) || !Files.isRegularFile(lib.path)) return;
 
 		Manifest manifest;
 
