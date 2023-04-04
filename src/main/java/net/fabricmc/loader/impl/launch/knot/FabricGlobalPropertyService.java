@@ -22,6 +22,14 @@ import org.spongepowered.asm.service.IPropertyKey;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 public class FabricGlobalPropertyService implements IGlobalPropertyService {
+	public FabricGlobalPropertyService() {
+		if (!FabricLauncherBase.getLauncher().useFabricMixinServices()) {
+			// If an exception is thrown here, Mixin is designed to skip over this service.
+			// This also happens with its bundled LaunchWrapper and ModLauncher implementations.
+			throw new UnsupportedOperationException("FabricGlobalPropertyService is not supported on this launch platform.");
+		}
+	}
+
 	@Override
 	public IPropertyKey resolveKey(String name) {
 		return new MixinStringPropertyKey(name);

@@ -308,4 +308,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	public boolean isDevelopment() {
 		return isDevelopment;
 	}
+
+	@Override
+	public boolean useFabricMixinServices() {
+		return false;
+	}
 }

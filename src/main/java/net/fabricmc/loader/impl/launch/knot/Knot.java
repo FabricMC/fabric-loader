@@ -338,6 +338,11 @@ public final class Knot extends FabricLauncherBase {
 		return provider.getEntrypoint();
 	}
 
+	@Override
+	public boolean useFabricMixinServices() {
+		return true;
+	}
+
 	public static void main(String[] args) {
 		new Knot(null).init(args);
 	}
