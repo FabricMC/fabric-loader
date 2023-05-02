@@ -173,6 +173,9 @@ public final class ModDiscoverer {
 			throw exception;
 		}
 
+		// get optional set of disabled mod ids
+		Set<String> disabledModIds = findDisabledModIds();
+
 		// gather all mods (root+nested), initialize parent data
 
 		Set<ModCandidate> ret = Collections.newSetFromMap(new IdentityHashMap<>(candidates.size() * 2));
@@ -180,7 +183,7 @@ public final class ModDiscoverer {
 		ModCandidate mod;
 
 		while ((mod = queue.poll()) != null) {
-			if (mod.getMetadata().loadsInEnvironment(envType)) {
+			if (!disabledModIds.contains(mod.getId()) && mod.getMetadata().loadsInEnvironment(envType)) {
 				if (!ret.add(mod)) continue;
 
 				for (ModCandidate child : mod.getNestedMods()) {
@@ -198,6 +201,27 @@ public final class ModDiscoverer {
 		Log.debug(LogCategory.DISCOVERY, "Mod discovery time: %.1f ms", (endTime - startTime) * 1e-6);
 
 		return new ArrayList<>(ret);
+	}
+
+	private static Set<String> findDisabledModIds() {
+		String disabledModIdsProp = System.getProperty(SystemProperties.DISABLE_MOD_IDS);
+
+		if (disabledModIdsProp == null) {
+			return Collections.emptySet();
+		}
+
+		String[] disabledModIdsPropSplit = disabledModIdsProp.split(",");
+		Set<String> result = new HashSet<>(disabledModIdsPropSplit.length);
+
+		for (String disabledModId : disabledModIdsPropSplit) {
+			String trimmedId = disabledModId.trim();
+
+			if (!trimmedId.isEmpty()) {
+				result.add(trimmedId);
+			}
+		}
+
+		return result;
 	}
 
 	private ModCandidate createJavaMod() {
