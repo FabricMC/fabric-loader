@@ -41,6 +41,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -183,8 +184,8 @@ public final class ModDiscoverer {
 		ModCandidate mod;
 
 		while ((mod = queue.poll()) != null) {
-			if (!disabledModIds.contains(mod.getId()) && mod.getMetadata().loadsInEnvironment(envType)) {
-				if (!ret.add(mod)) continue;
+			if (mod.getMetadata().loadsInEnvironment(envType)) {
+				if (disabledModIds.contains(mod.getId()) || !ret.add(mod)) continue;
 
 				for (ModCandidate child : mod.getNestedMods()) {
 					if (child.addParent(mod)) {
@@ -204,24 +205,16 @@ public final class ModDiscoverer {
 	}
 
 	private static Set<String> findDisabledModIds() {
-		String disabledModIdsProp = System.getProperty(SystemProperties.DISABLE_MOD_IDS);
+		String modIdList = System.getProperty(SystemProperties.DISABLE_MOD_IDS);
 
-		if (disabledModIdsProp == null) {
+		if (modIdList == null) {
 			return Collections.emptySet();
 		}
 
-		String[] disabledModIdsPropSplit = disabledModIdsProp.split(",");
-		Set<String> result = new HashSet<>(disabledModIdsPropSplit.length);
-
-		for (String disabledModId : disabledModIdsPropSplit) {
-			String trimmedId = disabledModId.trim();
-
-			if (!trimmedId.isEmpty()) {
-				result.add(trimmedId);
-			}
-		}
-
-		return result;
+		return Arrays.stream(modIdList.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isEmpty())
+				.collect(Collectors.toSet());
 	}
 
 	private ModCandidate createJavaMod() {
