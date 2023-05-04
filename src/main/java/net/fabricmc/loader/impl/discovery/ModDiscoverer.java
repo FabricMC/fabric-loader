@@ -185,7 +185,12 @@ public final class ModDiscoverer {
 
 		while ((mod = queue.poll()) != null) {
 			if (mod.getMetadata().loadsInEnvironment(envType)) {
-				if (disabledModIds.contains(mod.getId()) || !ret.add(mod)) continue;
+				if (disabledModIds.contains(mod.getId())) {
+					Log.info(LogCategory.DISCOVERY, "Skipping disabled mod %s", mod.getId());
+					continue;
+				}
+
+				if (!ret.add(mod)) continue;
 
 				for (ModCandidate child : mod.getNestedMods()) {
 					if (child.addParent(mod)) {
@@ -211,10 +216,12 @@ public final class ModDiscoverer {
 			return Collections.emptySet();
 		}
 
-		return Arrays.stream(modIdList.split(","))
+		Set<String> disabledModIds = Arrays.stream(modIdList.split(","))
 				.map(String::trim)
 				.filter(s -> !s.isEmpty())
 				.collect(Collectors.toSet());
+		Log.debug(LogCategory.DISCOVERY, "Disabled mod ids: %s", disabledModIds);
+		return disabledModIds;
 	}
 
 	private ModCandidate createJavaMod() {
