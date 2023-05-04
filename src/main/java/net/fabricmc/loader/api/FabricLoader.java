@@ -106,8 +106,7 @@ public interface FabricLoader {
 	 *
 	 * <p>The action is invoked by applying the given <code>invoker</code> to each entrypoint instance.
 	 *
-	 * <p>Even if <code>invoker</code> throws an exception for an entrypoint, it will still be invoked for the
-	 * remaining entrypoints. All thrown exceptions will be collected
+	 * <p>Exceptions thrown by <code>invoker</code> will be collected and thrown after all entrypoints have been invoked.
 	 *
 	 * @param key     the key in entrypoint declaration in {@code fabric.mod.json}
 	 * @param type    the type of entrypoints
