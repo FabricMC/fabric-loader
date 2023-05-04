@@ -344,5 +344,6 @@ public final class Knot extends FabricLauncherBase {
 
 	static {
 		LoaderUtil.verifyNotInTargetCl(Knot.class);
+		LoaderUtil.verifyClasspath();
 	}
 }
