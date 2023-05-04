@@ -27,6 +27,12 @@ java {
 	withSourcesJar()
 }
 
+jar {
+	manifest {
+		attributes 'Automatic-Module-Name': 'net.fabricmc.loader.junit'
+	}
+}
+
 if (signingEnabled) {
 	remoteSign {
 		requestUrl = ENV.SIGNING_SERVER
