@@ -205,6 +205,12 @@ public class MinecraftGameProvider implements GameProvider {
 				gameJars.add(commonGameJar);
 			}
 
+			Path assetsJar = classifier.getOrigin(McLibrary.MC_ASSETS_ROOT);
+
+			if (assetsJar != null && !assetsJar.equals(commonGameJar) && !assetsJar.equals(envGameJar)) {
+				gameJars.add(assetsJar);
+			}
+
 			entrypoint = classifier.getClassName(envGameLib);
 			realmsJar = classifier.getOrigin(McLibrary.REALMS);
 			hasModLoader = classifier.has(McLibrary.MODLOADER);
