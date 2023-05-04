@@ -209,6 +209,7 @@ public final class ModDiscoverer {
 		return new ArrayList<>(ret);
 	}
 
+	// retrieve set of disabled mod ids from system property
 	private static Set<String> findDisabledModIds() {
 		String modIdList = System.getProperty(SystemProperties.DISABLE_MOD_IDS);
 
