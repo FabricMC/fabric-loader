@@ -16,6 +16,9 @@
 
 package net.fabricmc.loader.impl.junit;
 
+import java.util.Locale;
+import java.util.Optional;
+
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
@@ -38,8 +41,12 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		final Thread currentThread = Thread.currentThread();
 		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
 
+		// parse the test environment type, defaults to client
+		final EnvType envType = Optional.ofNullable(System.getProperty(SystemProperties.SIDE))
+				.map(FabricLoaderLauncherSessionListener::parseEnvType).orElse(EnvType.CLIENT);
+
 		try {
-			knot = new Knot(EnvType.CLIENT);
+			knot = new Knot(envType);
 			classLoader = knot.init(new String[]{});
 		} finally {
 			// Knot.init sets the context class loader, revert it back for now.
@@ -58,5 +65,16 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 	public void launcherSessionClosed(LauncherSession session) {
 		final Thread currentThread = Thread.currentThread();
 		currentThread.setContextClassLoader(launcherSessionClassLoader);
+	}
+
+	private static EnvType parseEnvType(String side) {
+		switch (side.toLowerCase(Locale.ROOT)) {
+		case "client":
+			return EnvType.CLIENT;
+		case "server":
+			return EnvType.SERVER;
+		default:
+			throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
+		}
 	}
 }
