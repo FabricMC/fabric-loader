@@ -42,8 +42,7 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
 
 		// parse the test environment type, defaults to client
-		final EnvType envType = Optional.ofNullable(System.getProperty(SystemProperties.SIDE))
-				.map(FabricLoaderLauncherSessionListener::parseEnvType).orElse(EnvType.CLIENT);
+		final EnvType envType = EnvType.valueOf(System.getProperty(SystemProperties.SIDE, EnvType.CLIENT.name()).toUpperCase(Locale.ROOT));
 
 		try {
 			knot = new Knot(envType);
