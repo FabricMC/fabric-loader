@@ -64,15 +64,4 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		final Thread currentThread = Thread.currentThread();
 		currentThread.setContextClassLoader(launcherSessionClassLoader);
 	}
-
-	private static EnvType parseEnvType(String side) {
-		switch (side.toLowerCase(Locale.ROOT)) {
-		case "client":
-			return EnvType.CLIENT;
-		case "server":
-			return EnvType.SERVER;
-		default:
-			throw new RuntimeException("Invalid side provided: must be \"client\" or \"server\"!");
-		}
-	}
 }
