@@ -17,7 +17,6 @@
 package net.fabricmc.loader.impl.junit;
 
 import java.util.Locale;
-import java.util.Optional;
 
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
