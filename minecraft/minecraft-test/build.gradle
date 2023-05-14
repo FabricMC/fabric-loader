@@ -9,7 +9,7 @@ loom {
 	}
 }
 
-def minecraft_version = "1.19.3";
+def minecraft_version = "1.19.4";
 
 repositories {
 	mavenCentral()
@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
-	mappings "net.fabricmc:yarn:${minecraft_version}+build.3:v2"
+	mappings "net.fabricmc:yarn:${minecraft_version}+build.2:v2"
 
 	implementation project(":minecraft")
 	implementation project(":minecraft").sourceSets.main.output
@@ -51,16 +51,18 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
 
-import net.fabricmc.loom.util.OperatingSystem
+import net.fabricmc.loom.util.Platform
 import groovy.json.JsonSlurper
 
 configurations {
 	productionRuntime {
 		extendsFrom configurations.minecraftLibraries
 		extendsFrom configurations.loaderLibraries
-		extendsFrom configurations.minecraftRuntimeOnlyLibraries
+		extendsFrom configurations.minecraftRuntimeLibraries
 	}
-	productionRuntimeMods
+	productionRuntimeMods {
+		transitive = false
+	}
 }
 
 dependencies {
@@ -73,8 +75,8 @@ dependencies {
 	}
 
 	// Use Fabric's auto client test
-	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.69.1+1.19.3"
-	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.69.1+1.19.3:testmod"
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.80.0+1.19.4"
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.80.0+1.19.4:testmod"
 }
 
 def loaderJarTask = project(":").tasks.proguardJar
@@ -100,7 +102,7 @@ task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask]) {
 			"--gameDir", workingDir.absolutePath
 		)
 
-		if (OperatingSystem.CURRENT_OS == OperatingSystem.MAC_OS) {
+		if (Platform.CURRENT.operatingSystem.isMacOS()) {
 			jvmArgs(
 				"-XstartOnFirstThread"
 			)
