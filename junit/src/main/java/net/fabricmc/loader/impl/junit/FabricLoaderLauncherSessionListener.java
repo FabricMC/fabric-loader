@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.impl.junit;
 
+import java.util.Locale;
+
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
@@ -38,8 +40,11 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		final Thread currentThread = Thread.currentThread();
 		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
 
+		// parse the test environment type, defaults to client
+		final EnvType envType = EnvType.valueOf(System.getProperty(SystemProperties.SIDE, EnvType.CLIENT.name()).toUpperCase(Locale.ROOT));
+
 		try {
-			knot = new Knot(EnvType.CLIENT);
+			knot = new Knot(envType);
 			classLoader = knot.init(new String[]{});
 		} finally {
 			// Knot.init sets the context class loader, revert it back for now.
