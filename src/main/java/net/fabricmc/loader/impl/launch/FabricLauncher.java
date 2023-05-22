@@ -62,4 +62,8 @@ public interface FabricLauncher {
 	String getTargetNamespace();
 
 	List<Path> getClassPath();
+
+	// Mixin ships with its own for LaunchWrapper etc.,
+	// so we can skip our implementations on such platforms.
+	boolean useFabricMixinServices();
 }
