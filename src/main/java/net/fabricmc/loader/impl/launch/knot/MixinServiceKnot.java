@@ -108,7 +108,7 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 
 	@Override
 	public boolean isValid() {
-		return FabricLauncherBase.getLauncher().useFabricMixinServices();
+		return true;
 	}
 
 	@Override

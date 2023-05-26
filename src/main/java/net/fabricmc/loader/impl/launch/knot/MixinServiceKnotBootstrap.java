@@ -18,17 +18,7 @@ package net.fabricmc.loader.impl.launch.knot;
 
 import org.spongepowered.asm.service.IMixinServiceBootstrap;
 
-import net.fabricmc.loader.impl.launch.FabricLauncherBase;
-
 public class MixinServiceKnotBootstrap implements IMixinServiceBootstrap {
-	public MixinServiceKnotBootstrap() {
-		if (!FabricLauncherBase.getLauncher().useFabricMixinServices()) {
-			// If an exception is thrown here, Mixin is designed to skip over this service.
-			// This also happens with its bundled LaunchWrapper and ModLauncher implementations.
-			throw new UnsupportedOperationException("MixinServiceKnotBootstrap is not supported on this launch platform.");
-		}
-	}
-
 	@Override
 	public String getName() {
 		return "Knot";
