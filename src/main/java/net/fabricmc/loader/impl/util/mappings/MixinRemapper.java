@@ -33,31 +33,33 @@ public class MixinRemapper implements IRemapper {
 
 	@Override
 	public String mapMethodName(String owner, String name, String desc) {
-		return mappings.getMethod(owner, name, desc).getName(toId);
+		final MappingTree.MethodMapping method = mappings.getMethod(owner, name, desc, fromId);
+		return method == null ? name : method.getName(toId);
 	}
 
 	@Override
 	public String mapFieldName(String owner, String name, String desc) {
-		return mappings.getField(owner, name, desc).getName(toId);
+		final MappingTree.FieldMapping field = mappings.getField(owner, name, desc, fromId);
+		return field == null ? name : field.getName(toId);
 	}
 
 	@Override
 	public String map(String typeName) {
-		return mappings.mapClassName(typeName, toId);
+		return mappings.mapClassName(typeName, fromId, toId);
 	}
 
 	@Override
 	public String unmap(String typeName) {
-		return mappings.mapClassName(typeName, fromId);
+		return mappings.mapClassName(typeName, toId, fromId);
 	}
 
 	@Override
 	public String mapDesc(String desc) {
-		return mappings.mapDesc(desc, toId);
+		return mappings.mapDesc(desc, fromId, toId);
 	}
 
 	@Override
 	public String unmapDesc(String desc) {
-		return mappings.mapDesc(desc, fromId);
+		return mappings.mapDesc(desc, toId, fromId);
 	}
 }
