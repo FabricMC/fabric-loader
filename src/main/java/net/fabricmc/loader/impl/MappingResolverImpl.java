@@ -18,80 +18,27 @@ package net.fabricmc.loader.impl;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.mappingio.tree.MappingTree;
 
 class MappingResolverImpl implements MappingResolver {
 	private final MappingTree mappings;
-	private final Set<String> namespaces;
-	private final Map<String, NamespaceData> namespaceDataMap = new HashMap<>();
 	private final String targetNamespace;
-
-	private static class NamespaceData {
-		private final Map<String, String> classNames = new HashMap<>();
-		private final Map<String, String> classNamesInverse = new HashMap<>();
-		private final Map<EntryTriple, String> fieldNames = new HashMap<>();
-		private final Map<EntryTriple, String> methodNames = new HashMap<>();
-	}
+	private final int targetNamespaceId;
 
 	MappingResolverImpl(MappingTree mappings, String targetNamespace) {
 		this.mappings = mappings;
 		this.targetNamespace = targetNamespace;
-
-		HashSet<String> nsSet = new HashSet<>(mappings.getDstNamespaces());
-		nsSet.add(mappings.getSrcNamespace());
-		namespaces = Collections.unmodifiableSet(nsSet);
-	}
-
-	protected final NamespaceData getNamespaceData(String namespace) {
-		return namespaceDataMap.computeIfAbsent(namespace, (fromNamespace) -> {
-			if (!namespaces.contains(namespace)) {
-				throw new IllegalArgumentException("Unknown namespace: " + namespace);
-			}
-
-			NamespaceData data = new NamespaceData();
-			Map<String, String> classNameMap = new HashMap<>();
-
-			for (MappingTree.ClassMapping classEntry : mappings.getClasses()) {
-				String fromClass = mapClassName(classNameMap, classEntry.getName(fromNamespace));
-				String toClass = mapClassName(classNameMap, classEntry.getName(targetNamespace));
-
-				data.classNames.put(fromClass, toClass);
-				data.classNamesInverse.put(toClass, fromClass);
-
-				String mappedClassName = mapClassName(classNameMap, fromClass);
-
-				recordMember(fromNamespace, classEntry.getFields(), data.fieldNames, mappedClassName);
-				recordMember(fromNamespace, classEntry.getMethods(), data.methodNames, mappedClassName);
-			}
-
-			return data;
-		});
-	}
-
-	private static String replaceSlashesWithDots(String cname) {
-		return cname.replace('/', '.');
-	}
-
-	private String mapClassName(Map<String, String> classNameMap, String s) {
-		return classNameMap.computeIfAbsent(s, MappingResolverImpl::replaceSlashesWithDots);
-	}
-
-	private <T extends MappingTree.MemberMapping> void recordMember(String fromNamespace, Collection<T> descriptoredList, Map<EntryTriple, String> putInto, String fromClass) {
-		for (T descriptored : descriptoredList) {
-			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace), descriptored.getDesc(fromNamespace));
-			putInto.put(fromEntry, descriptored.getName(targetNamespace));
-		}
+		this.targetNamespaceId = mappings.getNamespaceId(targetNamespace);
 	}
 
 	@Override
 	public Collection<String> getNamespaces() {
-		return namespaces;
+		HashSet<String> namespaces = new HashSet<>(mappings.getDstNamespaces());
+		namespaces.add(mappings.getSrcNamespace());
+		return Collections.unmodifiableSet(namespaces);
 	}
 
 	@Override
@@ -105,7 +52,7 @@ class MappingResolverImpl implements MappingResolver {
 			throw new IllegalArgumentException("Class names must be provided in dot format: " + className);
 		}
 
-		return getNamespaceData(namespace).classNames.getOrDefault(className, className);
+		return replaceSlashesWithDots(mappings.mapClassName(replaceDotsWithSlashes(className), mappings.getNamespaceId(namespace), targetNamespaceId));
 	}
 
 	@Override
@@ -114,7 +61,7 @@ class MappingResolverImpl implements MappingResolver {
 			throw new IllegalArgumentException("Class names must be provided in dot format: " + className);
 		}
 
-		return getNamespaceData(namespace).classNamesInverse.getOrDefault(className, className);
+		return replaceSlashesWithDots(mappings.mapClassName(replaceDotsWithSlashes(className), targetNamespaceId, mappings.getNamespaceId(namespace)));
 	}
 
 	@Override
@@ -123,7 +70,8 @@ class MappingResolverImpl implements MappingResolver {
 			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
 		}
 
-		return getNamespaceData(namespace).fieldNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
+		MappingTree.FieldMapping field = mappings.getField(replaceDotsWithSlashes(owner), name, descriptor, mappings.getNamespaceId(namespace));
+		return field == null ? name : field.getName(targetNamespaceId);
 	}
 
 	@Override
@@ -132,41 +80,15 @@ class MappingResolverImpl implements MappingResolver {
 			throw new IllegalArgumentException("Class names must be provided in dot format: " + owner);
 		}
 
-		return getNamespaceData(namespace).methodNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
+		MappingTree.MethodMapping method = mappings.getMethod(replaceDotsWithSlashes(owner), name, descriptor, mappings.getNamespaceId(namespace));
+		return method == null ? name : method.getName(targetNamespaceId);
 	}
 
-	private static final class EntryTriple {
-		final String owner;
-		final String name;
-		final String descriptor;
+	private static String replaceSlashesWithDots(String cname) {
+		return cname.replace('/', '.');
+	}
 
-		EntryTriple(String owner, String name, String descriptor) {
-			this.owner = owner;
-			this.name = name;
-			this.descriptor = descriptor;
-		}
-
-		@Override
-		public String toString() {
-			return "EntryTriple{owner=" + owner + ",name=" + name + ",desc=" + descriptor + "}";
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (!(o instanceof EntryTriple)) {
-				return false;
-			} else if (o == this) {
-				return true;
-			} else {
-				EntryTriple other = (EntryTriple) o;
-
-				return other.owner.equals(owner) && other.name.equals(name) && other.descriptor.equals(descriptor);
-			}
-		}
-
-		@Override
-		public int hashCode() {
-			return owner.hashCode() * 37 + name.hashCode() * 19 + descriptor.hashCode();
-		}
+	private static String replaceDotsWithSlashes(String cname) {
+		return cname.replace('.', '/');
 	}
 }
