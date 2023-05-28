@@ -26,10 +26,7 @@ import java.util.Set;
 
 import org.spongepowered.asm.mixin.transformer.ClassInfo;
 
-import net.fabricmc.mapping.tree.ClassDef;
-import net.fabricmc.mapping.tree.Descriptored;
-import net.fabricmc.mapping.tree.TinyTree;
-import net.fabricmc.mapping.util.MixinRemapper;
+import net.fabricmc.mappingio.tree.MappingTree;
 
 public class MixinIntermediaryDevRemapper extends MixinRemapper {
 	private static final String ambiguousName = "<ambiguous>"; // dummy value for ambiguous mappings - needs querying with additional owner and/or desc info
@@ -40,22 +37,22 @@ public class MixinIntermediaryDevRemapper extends MixinRemapper {
 	private final Map<String, String> nameDescFieldLookup = new HashMap<>();
 	private final Map<String, String> nameDescMethodLookup = new HashMap<>();
 
-	public MixinIntermediaryDevRemapper(TinyTree mappings, String from, String to) {
-		super(mappings, from, to);
+	public MixinIntermediaryDevRemapper(MappingTree mappings, String from, String to) {
+		super(mappings, mappings.getNamespaceId(from), mappings.getNamespaceId(to));
 
-		for (ClassDef classDef : mappings.getClasses()) {
+		for (MappingTree.ClassMapping classDef : mappings.getClasses()) {
 			allPossibleClassNames.add(classDef.getName(from));
 			allPossibleClassNames.add(classDef.getName(to));
 
-			putMemberInLookup(from, to, classDef.getFields(), nameFieldLookup, nameDescFieldLookup);
-			putMemberInLookup(from, to, classDef.getMethods(), nameMethodLookup, nameDescMethodLookup);
+			putMemberInLookup(fromId, toId, classDef.getFields(), nameFieldLookup, nameDescFieldLookup);
+			putMemberInLookup(fromId, toId, classDef.getMethods(), nameMethodLookup, nameDescMethodLookup);
 		}
 	}
 
-	private <T extends Descriptored> void putMemberInLookup(String from, String to, Collection<T> descriptored, Map<String, String> nameMap, Map<String, String> nameDescMap) {
+	private <T extends MappingTree.MemberMapping> void putMemberInLookup(int from, int to, Collection<T> descriptored, Map<String, String> nameMap, Map<String, String> nameDescMap) {
 		for (T field : descriptored) {
 			String nameFrom = field.getName(from);
-			String descFrom = field.getDescriptor(from);
+			String descFrom = field.getDesc(from);
 			String nameTo = field.getName(to);
 
 			String prev = nameMap.putIfAbsent(nameFrom, nameTo);

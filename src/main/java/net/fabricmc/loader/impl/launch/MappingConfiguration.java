@@ -29,15 +29,19 @@ import java.util.zip.ZipError;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.mapping.tree.TinyMappingFactory;
-import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.Tiny1Reader;
+import net.fabricmc.mappingio.format.Tiny2Reader;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class MappingConfiguration {
 	private boolean initialized;
 
 	private String gameId;
 	private String gameVersion;
-	private TinyTree mappings;
+	private MemoryMappingTree mappings;
 
 	public String getGameId() {
 		initialize();
@@ -58,7 +62,7 @@ public final class MappingConfiguration {
 				&& (this.gameVersion == null || gameVersion == null || gameVersion.equals(this.gameVersion));
 	}
 
-	public TinyTree getMappings() {
+	public MappingTree getMappings() {
 		initialize();
 
 		return mappings;
@@ -93,7 +97,25 @@ public final class MappingConfiguration {
 
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 					long time = System.currentTimeMillis();
-					mappings = TinyMappingFactory.loadWithDetection(reader);
+					mappings = new MemoryMappingTree();
+
+					// We will only ever need to read tiny here
+					// so to strip the other formats from the included copy of mapping IO, don't use MappingReader.read()
+					reader.mark(4096);
+					final MappingFormat format = MappingReader.detectFormat(reader);
+					reader.reset();
+
+					switch (format) {
+					case TINY:
+						Tiny1Reader.read(reader, mappings);
+						break;
+					case TINY_2:
+						Tiny2Reader.read(reader, mappings);
+						break;
+					default:
+						throw new UnsupportedOperationException("Unsupported mapping format: " + format);
+					}
+
 					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
 				}
 			} catch (IOException | ZipError e) {
@@ -103,7 +125,7 @@ public final class MappingConfiguration {
 
 		if (mappings == null) {
 			Log.info(LogCategory.MAPPINGS, "Mappings not present!");
-			mappings = TinyMappingFactory.EMPTY_TREE;
+			mappings = new MemoryMappingTree();
 		}
 
 		initialized = true;

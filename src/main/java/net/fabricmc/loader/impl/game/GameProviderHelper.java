@@ -47,7 +47,7 @@ import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
-import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
@@ -177,10 +177,10 @@ public final class GameProviderHelper {
 		}
 
 		String targetNamespace = mappingConfig.getTargetNamespace();
-		TinyTree mappings = mappingConfig.getMappings();
+		MappingTree mappings = mappingConfig.getMappings();
 
 		if (mappings == null
-				|| !mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
+				|| !mappings.getDstNamespaces().contains(targetNamespace)) {
 			Log.debug(LogCategory.GAME_REMAP, "No mappings, using input files");
 			return inputFileMap;
 		}
@@ -262,7 +262,7 @@ public final class GameProviderHelper {
 		return ret.resolve(versionDirName.toString().replaceAll("[^\\w\\-\\. ]+", "_"));
 	}
 
-	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, TinyTree mappings, String targetNamespace, FabricLauncher launcher) throws IOException {
+	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String targetNamespace, FabricLauncher launcher) throws IOException {
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
 				.rebuildSourceFilenames(true)

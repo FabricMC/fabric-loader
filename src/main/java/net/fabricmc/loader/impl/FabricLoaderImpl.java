@@ -368,7 +368,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
 			mappingResolver = new MappingResolverImpl(
-					FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings,
+					FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings(),
 					FabricLauncherBase.getLauncher().getTargetNamespace()
 					);
 		}

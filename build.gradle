@@ -74,12 +74,15 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
-	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
 	api 'net.fabricmc:tiny-remapper:0.8.2'
 	api 'net.fabricmc:access-widener:2.1.0'
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
+	include ('net.fabricmc:mapping-io:0.4.0') {
+		// Mapping-io depends on ASM, dont bundle
+		transitive = false
+	}
 
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
@@ -154,6 +157,7 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	configurations = [project.configurations.include]
 
 	relocate 'org.sat4j', 'net.fabricmc.loader.impl.lib.sat4j'
+	relocate 'net.fabricmc.mappingio', 'net.fabricmc.loader.impl.lib.mappingio'
 
 	exclude 'about.html'
 	exclude 'sat4j.version'

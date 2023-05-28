@@ -32,12 +32,12 @@ import net.fabricmc.accesswidener.AccessWidener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
-import net.fabricmc.mapping.tree.TinyMappingFactory;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 enum LoaderLibrary {
 	FABRIC_LOADER(UrlUtil.LOADER_CODE_SOURCE),
-	TINY_MAPPINGS_PARSER(TinyMappingFactory.class),
+	MAPPING_IO(MappingTree.class),
 	SPONGE_MIXIN(MixinBootstrap.class),
 	TINY_REMAPPER(TinyRemapper.class),
 	ACCESS_WIDENER(AccessWidener.class),

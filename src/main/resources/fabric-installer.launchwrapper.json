@@ -8,10 +8,6 @@
         "name": "net.minecraft:launchwrapper:1.12"
       },
       {
-        "name": "net.fabricmc:tiny-mappings-parser:0.3.0+build.17",
-        "url": "https://maven.fabricmc.net/"
-      },
-      {
         "name": "net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5",
         "url": "https://maven.fabricmc.net/"
       },

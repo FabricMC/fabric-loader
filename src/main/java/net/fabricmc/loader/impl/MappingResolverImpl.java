@@ -22,16 +22,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import net.fabricmc.loader.api.MappingResolver;
-import net.fabricmc.mapping.tree.ClassDef;
-import net.fabricmc.mapping.tree.Descriptored;
-import net.fabricmc.mapping.tree.TinyTree;
-import net.fabricmc.mappings.EntryTriple;
+import net.fabricmc.mappingio.tree.MappingTree;
 
 class MappingResolverImpl implements MappingResolver {
-	private final Supplier<TinyTree> mappingsSupplier;
+	private final MappingTree mappings;
 	private final Set<String> namespaces;
 	private final Map<String, NamespaceData> namespaceDataMap = new HashMap<>();
 	private final String targetNamespace;
@@ -43,10 +39,10 @@ class MappingResolverImpl implements MappingResolver {
 		private final Map<EntryTriple, String> methodNames = new HashMap<>();
 	}
 
-	MappingResolverImpl(Supplier<TinyTree> mappingsSupplier, String targetNamespace) {
-		this.mappingsSupplier = mappingsSupplier;
+	MappingResolverImpl(MappingTree mappings, String targetNamespace) {
+		this.mappings = mappings;
 		this.targetNamespace = targetNamespace;
-		namespaces = Collections.unmodifiableSet(new HashSet<>(mappingsSupplier.get().getMetadata().getNamespaces()));
+		namespaces = Collections.unmodifiableSet(new HashSet<>(mappings.getDstNamespaces()));
 	}
 
 	protected final NamespaceData getNamespaceData(String namespace) {
@@ -56,10 +52,9 @@ class MappingResolverImpl implements MappingResolver {
 			}
 
 			NamespaceData data = new NamespaceData();
-			TinyTree mappings = mappingsSupplier.get();
 			Map<String, String> classNameMap = new HashMap<>();
 
-			for (ClassDef classEntry : mappings.getClasses()) {
+			for (MappingTree.ClassMapping classEntry : mappings.getClasses()) {
 				String fromClass = mapClassName(classNameMap, classEntry.getName(fromNamespace));
 				String toClass = mapClassName(classNameMap, classEntry.getName(targetNamespace));
 
@@ -84,9 +79,9 @@ class MappingResolverImpl implements MappingResolver {
 		return classNameMap.computeIfAbsent(s, MappingResolverImpl::replaceSlashesWithDots);
 	}
 
-	private <T extends Descriptored> void recordMember(String fromNamespace, Collection<T> descriptoredList, Map<EntryTriple, String> putInto, String fromClass) {
+	private <T extends MappingTree.MemberMapping> void recordMember(String fromNamespace, Collection<T> descriptoredList, Map<EntryTriple, String> putInto, String fromClass) {
 		for (T descriptored : descriptoredList) {
-			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace), descriptored.getDescriptor(fromNamespace));
+			EntryTriple fromEntry = new EntryTriple(fromClass, descriptored.getName(fromNamespace), descriptored.getDesc(fromNamespace));
 			putInto.put(fromEntry, descriptored.getName(targetNamespace));
 		}
 	}
@@ -135,5 +130,40 @@ class MappingResolverImpl implements MappingResolver {
 		}
 
 		return getNamespaceData(namespace).methodNames.getOrDefault(new EntryTriple(owner, name, descriptor), name);
+	}
+
+	private static final class EntryTriple {
+		final String owner;
+		final String name;
+		final String descriptor;
+
+		EntryTriple(String owner, String name, String descriptor) {
+			this.owner = owner;
+			this.name = name;
+			this.descriptor = descriptor;
+		}
+
+		@Override
+		public String toString() {
+			return "EntryTriple{owner=" + owner + ",name=" + name + ",desc=" + descriptor + "}";
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof EntryTriple)) {
+				return false;
+			} else if (o == this) {
+				return true;
+			} else {
+				EntryTriple other = (EntryTriple) o;
+
+				return other.owner.equals(owner) && other.name.equals(name) && other.descriptor.equals(descriptor);
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			return owner.hashCode() * 37 + name.hashCode() * 19 + descriptor.hashCode();
+		}
 	}
 }
