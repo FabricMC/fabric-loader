@@ -179,9 +179,16 @@ public final class GameProviderHelper {
 		String targetNamespace = mappingConfig.getTargetNamespace();
 		MappingTree mappings = mappingConfig.getMappings();
 
-		if (mappings == null
-				|| !mappings.getDstNamespaces().contains(targetNamespace)) {
+		if (mappings == null) {
 			Log.debug(LogCategory.GAME_REMAP, "No mappings, using input files");
+			return inputFileMap;
+		}
+
+		List<String> namespaces = new ArrayList<>(mappings.getDstNamespaces());
+		namespaces.add(mappings.getSrcNamespace());
+
+		if (!namespaces.contains(targetNamespace)) {
+			Log.debug(LogCategory.GAME_REMAP, "Missing namespace in mappings, using input files");
 			return inputFileMap;
 		}
 

@@ -42,7 +42,10 @@ class MappingResolverImpl implements MappingResolver {
 	MappingResolverImpl(MappingTree mappings, String targetNamespace) {
 		this.mappings = mappings;
 		this.targetNamespace = targetNamespace;
-		namespaces = Collections.unmodifiableSet(new HashSet<>(mappings.getDstNamespaces()));
+
+		HashSet<String> nsSet = new HashSet<>(mappings.getDstNamespaces());
+		nsSet.add(mappings.getSrcNamespace());
+		namespaces = Collections.unmodifiableSet(nsSet);
 	}
 
 	protected final NamespaceData getNamespaceData(String namespace) {

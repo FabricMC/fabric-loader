@@ -65,7 +65,8 @@ public final class FabricMixinBootstrap {
 			MappingTree mappings = mappingConfiguration.getMappings();
 
 			if (mappings != null) {
-				List<String> namespaces = mappings.getDstNamespaces();
+				List<String> namespaces = new ArrayList<>(mappings.getDstNamespaces());
+				namespaces.add(mappings.getSrcNamespace());
 
 				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
 					System.setProperty("mixin.env.remapRefMap", "true");
