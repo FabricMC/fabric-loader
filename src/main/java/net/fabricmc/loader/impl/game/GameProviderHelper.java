@@ -177,15 +177,12 @@ public final class GameProviderHelper {
 		}
 
 		String targetNamespace = mappingConfig.getTargetNamespace();
-		MappingTree mappings = mappingConfig.getMappings();
+		List<String> namespaces = mappingConfig.getNamespaces();
 
-		if (mappings == null) {
+		if (namespaces == null) {
 			Log.debug(LogCategory.GAME_REMAP, "No mappings, using input files");
 			return inputFileMap;
 		}
-
-		List<String> namespaces = new ArrayList<>(mappings.getDstNamespaces());
-		namespaces.add(mappings.getSrcNamespace());
 
 		if (!namespaces.contains(targetNamespace)) {
 			Log.debug(LogCategory.GAME_REMAP, "Missing namespace in mappings, using input files");
@@ -242,7 +239,7 @@ public final class GameProviderHelper {
 
 		try {
 			Files.createDirectories(deobfJarDir);
-			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappings, targetNamespace, launcher);
+			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappingConfig.getMappings(), targetNamespace, launcher);
 		} catch (IOException e) {
 			throw new RuntimeException("error remapping game jars "+inputFiles, e);
 		}

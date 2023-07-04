@@ -22,9 +22,12 @@ import java.io.InputStreamReader;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -37,33 +40,48 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class MappingConfiguration {
-	private boolean initialized;
+	private boolean initializedMetadata;
+	private boolean initializedMappings;
 
+	@Nullable
 	private String gameId;
+	@Nullable
 	private String gameVersion;
+	@Nullable
+	private List<String> namespaces;
+	@Nullable
 	private MemoryMappingTree mappings;
 
+	@Nullable
 	public String getGameId() {
-		initialize();
+		initializeMetadata();
 
 		return gameId;
 	}
 
+	@Nullable
 	public String getGameVersion() {
-		initialize();
+		initializeMetadata();
 
 		return gameVersion;
 	}
 
+	@Nullable
+	public List<String> getNamespaces() {
+		initializeMetadata();
+
+		return namespaces;
+	}
+
 	public boolean matches(String gameId, String gameVersion) {
-		initialize();
+		initializeMetadata();
 
 		return (this.gameId == null || gameId == null || gameId.equals(this.gameId))
 				&& (this.gameVersion == null || gameVersion == null || gameVersion.equals(this.gameVersion));
 	}
 
 	public MappingTree getMappings() {
-		initialize();
+		initializeMappings();
 
 		return mappings;
 	}
@@ -77,49 +95,69 @@ public final class MappingConfiguration {
 		return getTargetNamespace().equals("named");
 	}
 
-	private void initialize() {
-		if (initialized) return;
+	private void initializeMetadata() {
+		if (initializedMetadata) return;
 
-		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		final JarURLConnection connection = openMappingsJar();
 
-		if (url != null) {
-			try {
-				URLConnection connection = url.openConnection();
+		try {
+			if (connection != null) {
+				final Manifest manifest = connection.getManifest();
 
-				if (connection instanceof JarURLConnection) {
-					Manifest manifest = ((JarURLConnection) connection).getManifest();
-
-					if (manifest != null) {
-						gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
-						gameVersion = ManifestUtil.getManifestValue(manifest, new Name("Game-Version"));
-					}
+				if (manifest != null) {
+					gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
+					gameVersion = ManifestUtil.getManifestValue(manifest, new Name("Game-Version"));
 				}
 
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-					long time = System.currentTimeMillis();
-					mappings = new MemoryMappingTree();
-
-					// We will only ever need to read tiny here
-					// so to strip the other formats from the included copy of mapping IO, don't use MappingReader.read()
-					reader.mark(4096);
-					final MappingFormat format = MappingReader.detectFormat(reader);
-					reader.reset();
+					final MappingFormat format = readMappingFormat(reader);
 
 					switch (format) {
 					case TINY:
-						Tiny1Reader.read(reader, mappings);
+						namespaces = Tiny1Reader.getNamespaces(reader);
 						break;
 					case TINY_2:
-						Tiny2Reader.read(reader, mappings);
+						namespaces = Tiny2Reader.getNamespaces(reader);
 						break;
 					default:
 						throw new UnsupportedOperationException("Unsupported mapping format: " + format);
 					}
-
-					Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
 				}
-			} catch (IOException | ZipError e) {
-				throw new RuntimeException("Error reading "+url, e);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Error reading mapping metadata", e);
+		}
+
+		initializedMetadata = true;
+	}
+
+	private void initializeMappings() {
+		if (initializedMappings) return;
+
+		initializeMetadata();
+		final URLConnection connection = openMappingsJar();
+
+		if (connection != null) {
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+				long time = System.currentTimeMillis();
+				mappings = new MemoryMappingTree();
+
+				final MappingFormat format = readMappingFormat(reader);
+
+				switch (format) {
+				case TINY:
+					Tiny1Reader.read(reader, mappings);
+					break;
+				case TINY_2:
+					Tiny2Reader.read(reader, mappings);
+					break;
+				default:
+					throw new UnsupportedOperationException("Unsupported mapping format: " + format);
+				}
+
+				Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
+			} catch (IOException e) {
+				throw new RuntimeException("Error reading mappings", e);
 			}
 		}
 
@@ -128,6 +166,35 @@ public final class MappingConfiguration {
 			mappings = new MemoryMappingTree();
 		}
 
-		initialized = true;
+		initializedMappings = true;
+	}
+
+	@Nullable
+	private JarURLConnection openMappingsJar() {
+		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+
+		if (url != null) {
+			try {
+				URLConnection connection = url.openConnection();
+
+				if (connection instanceof JarURLConnection) {
+					return (JarURLConnection) connection;
+				}
+			} catch (IOException | ZipError e) {
+				throw new RuntimeException("Error reading "+url, e);
+			}
+		}
+
+		return null;
+	}
+
+	private MappingFormat readMappingFormat(BufferedReader reader) throws IOException {
+		// We will only ever need to read tiny here
+		// so to strip the other formats from the included copy of mapping IO, don't use MappingReader.read()
+		reader.mark(4096);
+		final MappingFormat format = MappingReader.detectFormat(reader);
+		reader.reset();
+
+		return format;
 	}
 }
