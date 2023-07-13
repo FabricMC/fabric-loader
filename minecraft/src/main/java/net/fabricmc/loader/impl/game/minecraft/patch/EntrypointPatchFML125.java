@@ -49,6 +49,7 @@ public class EntrypointPatchFML125 extends GamePatch {
 
 			Log.debug(LogCategory.GAME_PATCH, "Detected 1.2.5 FML - Knotifying ModClassLoader...");
 
+			// ModClassLoader_125_FML isn't in the game's class path, so it's loaded from the launcher's class path instead
 			ClassNode patchedClassLoader = new ClassNode();
 
 			try (InputStream stream = launcher.getResourceAsStream(LoaderUtil.getClassFileName(FROM))) {
