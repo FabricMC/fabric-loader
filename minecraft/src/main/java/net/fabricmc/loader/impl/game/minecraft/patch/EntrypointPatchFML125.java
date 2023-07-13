@@ -49,21 +49,18 @@ public class EntrypointPatchFML125 extends GamePatch {
 
 			Log.debug(LogCategory.GAME_PATCH, "Detected 1.2.5 FML - Knotifying ModClassLoader...");
 
-			ClassReader patchedClassLoaderReader = null;
+			ClassNode patchedClassLoader = new ClassNode();
 
 			try (InputStream stream = launcher.getResourceAsStream(LoaderUtil.getClassFileName(FROM))) {
-				patchedClassLoaderReader = new ClassReader(stream);
+				if (stream != null) {
+					ClassReader patchedClassLoaderReader = new ClassReader(stream);
+					patchedClassLoaderReader.accept(patchedClassLoader, 0);
+				} else {
+					throw new IOException("Could not find class " + FROM + " in the launcher classpath while transforming ModClassLoader");
+				}
 			} catch (IOException e) {
-				String errorText = String.format("An error occurred while reading %s", FROM);
-				Log.error(LogCategory.GAME_PATCH, errorText, e);
+				throw new RuntimeException("An error occurred while reading class " + FROM + " while transforming ModClassLoader", e);
 			}
-
-			if (patchedClassLoaderReader == null) {
-				throw new RuntimeException(String.format("Somehow, %s wasn't loaded", FROM));
-			}
-
-			ClassNode patchedClassLoader = new ClassNode();
-			patchedClassLoaderReader.accept(patchedClassLoader, 0);
 
 			ClassNode remappedClassLoader = new ClassNode();
 
