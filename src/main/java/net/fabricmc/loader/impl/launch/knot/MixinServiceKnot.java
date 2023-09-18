@@ -21,6 +21,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
@@ -52,12 +55,75 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 		lock = new ReEntranceLock(1);
 	}
 
+	/**
+	 * Current benchmark start time
+	 */
+	private static long start;
+	/**
+	 * All recorded times
+	 */
+	private static Map<String, Time> times = new HashMap<String, Time>();
+	/**
+	 * Mutable long, so we can easily store the times in a Map
+	 */
+	static final class Time {
+		long value;
+
+		public Long asLong() {
+			return Long.valueOf(this.value);
+		}
+	}
+
+	/**
+	 * Callback from injected code, begin benchmarking a specific transformer
+	 *
+	 * @param name transformer name
+	 */
+	public static void before(String name) {
+		start = System.currentTimeMillis();
+	}
+
+	/**
+	 * Callback from injected code, end benchmarking a transformer
+	 *
+	 * @param name transformer name
+	 */
+	public static void after(String name) {
+		long elapsed = System.currentTimeMillis() - start;
+		Time time = times.get(name);
+		if (time == null) {
+			time = new Time();
+			times.put(name, time);
+		}
+		time.value += elapsed;
+	}
+
+	/**
+	 * Method to obtain current time information
+	 *
+	 * @return Times as key/value pairs with transformer class name as key and
+	 *      total time as value
+	 */
+	public static Map<String, Long> getTimes() {
+		Map<String, Long> times = new TreeMap<String, Long>();
+		for (Map.Entry<String, Time> entry : MixinServiceKnot.times.entrySet()) {
+			times.put(entry.getKey(), entry.getValue().asLong());
+		}
+		return times;
+	}
+
 	public byte[] getClassBytes(String name, String transformedName) throws IOException {
 		return FabricLauncherBase.getLauncher().getClassByteArray(name, true);
 	}
 
 	public byte[] getClassBytes(String name, boolean runTransformers) throws ClassNotFoundException, IOException {
+		if (runTransformers) {
+			before(name);
+		}
 		byte[] classBytes = FabricLauncherBase.getLauncher().getClassByteArray(name, runTransformers);
+		if (runTransformers) {
+			after(name);
+		}
 
 		if (classBytes != null) {
 			return classBytes;

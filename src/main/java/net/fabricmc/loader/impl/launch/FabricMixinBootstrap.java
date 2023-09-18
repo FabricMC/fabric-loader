@@ -51,6 +51,7 @@ public final class FabricMixinBootstrap {
 	private static boolean initialized = false;
 
 	public static void init(EnvType side, FabricLoaderImpl loader) {
+		Log.info(LogCategory.MIXIN, "FabricMixin bootstrap init.");
 		if (initialized) {
 			throw new RuntimeException("FabricMixinBootstrap has already been initialized!");
 		}
@@ -61,6 +62,7 @@ public final class FabricMixinBootstrap {
 		MixinBootstrap.init();
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+			Log.info(LogCategory.MIXIN, "Dev: mixin mappings scanning.");
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 			TinyTree mappings = mappingConfiguration.getMappings();
 
@@ -83,6 +85,7 @@ public final class FabricMixinBootstrap {
 		}
 
 		Map<String, ModContainerImpl> configToModMap = new HashMap<>();
+		Log.info(LogCategory.MIXIN, "Computing mixin configs.");
 
 		for (ModContainerImpl mod : loader.getModsInternal()) {
 			for (String config : mod.getMetadata().getMixinConfigs(side)) {
@@ -102,6 +105,7 @@ public final class FabricMixinBootstrap {
 			if (mod == null) continue;
 		}
 
+		Log.info(LogCategory.MIXIN, "Applying mixin decorators.");
 		try {
 			IMixinConfig.class.getMethod("decorate", String.class, Object.class);
 			MixinConfigDecorator.apply(configToModMap);

@@ -153,8 +153,10 @@ public final class Knot extends FabricLauncherBase {
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
 		FabricLauncherBase.finishMixinBootstrapping();
 
+		Log.info(LogCategory.KNOT, "Init transformers.");
 		classLoader.initializeTransformers();
 
+		Log.info(LogCategory.KNOT, "Unlock classpath.");
 		provider.unlockClassPath(this);
 		unlocked = true;
 

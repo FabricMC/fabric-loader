@@ -138,6 +138,7 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		}
 
 		mixinReady = true;
+		Log.info(LogCategory.MIXIN, "FabricMixin bootstrap complete.");
 	}
 
 	public static boolean isMixinReady() {

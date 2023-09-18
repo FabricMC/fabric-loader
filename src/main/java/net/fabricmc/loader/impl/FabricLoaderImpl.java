@@ -263,7 +263,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		// add mods
-
+		Log.info(LogCategory.GENERAL, "Adding %s mods", modCandidates.size());
 		for (ModCandidate mod : modCandidates) {
 			if (!mod.hasPath() && !mod.isBuiltin()) {
 				try {
@@ -338,6 +338,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private void finishModLoading() {
 		// add mods to classpath
 		// TODO: This can probably be made safer, but that's a long-term goal
+		Log.info(LogCategory.GENERAL, "Adding classpaths of codesources for %s mods", mods.size());
 		for (ModContainerImpl mod : mods) {
 			if (!mod.getMetadata().getId().equals(MOD_ID) && !mod.getMetadata().getType().equals("builtin")) {
 				for (Path path : mod.getCodeSourcePaths()) {
@@ -426,6 +427,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void setupLanguageAdapters() {
+		Log.info(LogCategory.KNOT, "Setting up languages.");
 		adapterMap.put("default", DefaultLanguageAdapter.INSTANCE);
 
 		for (ModContainerImpl mod : mods) {
@@ -445,6 +447,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void setupMods() {
+		Log.info(LogCategory.KNOT, "Setting up mods.");
 		for (ModContainerImpl mod : mods) {
 			try {
 				for (String in : mod.getInfo().getOldInitializers()) {
@@ -464,6 +467,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	public void loadAccessWideners() {
+		Log.info(LogCategory.KNOT, "Loading access wideners.");
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
 
 		for (net.fabricmc.loader.api.ModContainer modContainer : getAllMods()) {
@@ -483,6 +487,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	public void prepareModInit(Path newRunDir, Object gameInstance) {
+		Log.info(LogCategory.KNOT, "prepareModInit on %s dir %s.", gameInstance, newRunDir);
 		if (!frozen) {
 			throw new RuntimeException("Cannot instantiate mods when not frozen!");
 		}
