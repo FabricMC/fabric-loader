@@ -61,6 +61,10 @@ final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAcce
 		return delegate;
 	}
 
+	public DynamicURLClassLoader getUrlLoader() {
+		return urlLoader;
+	}
+
 	@Override
 	public URL getResource(String name) {
 		Objects.requireNonNull(name);
@@ -79,6 +83,13 @@ final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAcce
 		Objects.requireNonNull(name);
 
 		return urlLoader.findResource(name);
+	}
+
+	@Override
+	public Enumeration<URL> findResources(String name) throws IOException {
+		Objects.requireNonNull(name);
+
+		return urlLoader.findResources(name);
 	}
 
 	@Override
