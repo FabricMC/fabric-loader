@@ -61,10 +61,6 @@ final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAcce
 		return delegate;
 	}
 
-	public DynamicURLClassLoader getUrlLoader() {
-		return urlLoader;
-	}
-
 	@Override
 	public URL getResource(String name) {
 		Objects.requireNonNull(name);
