@@ -1,10 +1,10 @@
 apply plugin: 'maven-publish'
 apply plugin: 'me.modmuss50.remotesign'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+base {
+	archivesName = "fabric-loader-junit"
+}
 
-archivesBaseName = "fabric-loader-junit"
 version = rootProject.version
 group = rootProject.group
 
@@ -18,13 +18,15 @@ repositories {
 dependencies {
 	api project(":")
 
-	api platform("org.junit:junit-bom:5.9.2")
+	api platform("org.junit:junit-bom:5.10.0")
 	api "org.junit.jupiter:junit-jupiter-engine"
 	implementation "org.junit.platform:junit-platform-launcher"
 }
 
 java {
 	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 jar {
@@ -48,7 +50,7 @@ if (signingEnabled) {
 publishing {
 	publications {
 		maven(MavenPublication) {
-			artifactId project.archivesBaseName
+			artifactId project.base.archivesName.get()
 			from components.java
 		}
 	}
