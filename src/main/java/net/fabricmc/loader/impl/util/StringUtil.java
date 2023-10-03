@@ -20,13 +20,24 @@ public final class StringUtil {
 	public static String capitalize(String s) {
 		if (s.isEmpty()) return s;
 
-		int cp = s.codePointAt(0);
+		int pos;
+
+		for (pos = 0; pos < s.length(); pos++) {
+			if (Character.isLetterOrDigit(s.codePointAt(pos))) {
+				break;
+			}
+		}
+
+		if (pos == s.length()) return s;
+
+		int cp = s.codePointAt(pos);
 		int cpUpper = Character.toUpperCase(cp);
 		if (cpUpper == cp) return s;
 
 		StringBuilder ret = new StringBuilder(s.length());
+		ret.append(s, 0, pos);
 		ret.appendCodePoint(cpUpper);
-		ret.append(s, Character.charCount(cp), s.length());
+		ret.append(s, pos + Character.charCount(cp), s.length());
 
 		return ret.toString();
 	}
