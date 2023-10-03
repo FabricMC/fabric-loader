@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
@@ -98,6 +99,22 @@ public interface FabricLoader {
 	 * @see LanguageAdapter
 	 */
 	<T> List<EntrypointContainer<T>> getEntrypointContainers(String key, Class<T> type);
+
+	/**
+	 * Invokes an action on all entrypoints that would be returned by {@link #getEntrypointContainers(String, Class)} for the given
+	 * <code>key</code> and <code>type</code>.
+	 *
+	 * <p>The action is invoked by applying the given <code>invoker</code> to each entrypoint instance.
+	 *
+	 * <p>Exceptions thrown by <code>invoker</code> will be collected and thrown after all entrypoints have been invoked.
+	 *
+	 * @param key     the key in entrypoint declaration in {@code fabric.mod.json}
+	 * @param type    the type of entrypoints
+	 * @param invoker applied to each entrypoint to invoke the desired action
+	 * @param <T>     the type of entrypoints
+	 * @see #getEntrypointContainers(String, Class)
+	 */
+	<T> void invokeEntrypoints(String key, Class<T> type, Consumer<? super T> invoker);
 
 	/**
 	 * Get the object share for inter-mod communication.
