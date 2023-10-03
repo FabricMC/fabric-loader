@@ -50,10 +50,11 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class Knot extends FabricLauncherBase {
+	private static final boolean IS_DEVELOPMENT = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
+
 	protected Map<String, Object> properties = new HashMap<>();
 
 	private KnotClassLoaderInterface classLoader;
-	private boolean isDevelopment;
 	private EnvType envType;
 	private final List<Path> classPath = new ArrayList<>();
 	private GameProvider provider;
@@ -129,8 +130,6 @@ public final class Knot extends FabricLauncherBase {
 		provider = createGameProvider(args);
 		Log.finishBuiltinConfig();
 		Log.info(LogCategory.GAME_PROVIDER, "Loading %s %s with Fabric Loader %s", provider.getGameName(), provider.getRawGameVersion(), FabricLoaderImpl.VERSION);
-
-		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
 
 		// Setup classloader
 		// TODO: Provide KnotCompatibilityClassLoader in non-exclusive-Fabric pre-1.13 environments?
@@ -258,7 +257,7 @@ public final class Knot extends FabricLauncherBase {
 	@Override
 	public String getTargetNamespace() {
 		// TODO: Won't work outside of Yarn
-		return isDevelopment ? "named" : "intermediary";
+		return IS_DEVELOPMENT ? "named" : "intermediary";
 	}
 
 	@Override
@@ -329,7 +328,7 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public boolean isDevelopment() {
-		return isDevelopment;
+		return IS_DEVELOPMENT;
 	}
 
 	@Override
@@ -343,5 +342,9 @@ public final class Knot extends FabricLauncherBase {
 
 	static {
 		LoaderUtil.verifyNotInTargetCl(Knot.class);
+
+		if (IS_DEVELOPMENT) {
+			LoaderUtil.verifyClasspath();
+		}
 	}
 }
