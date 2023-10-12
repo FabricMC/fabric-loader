@@ -37,6 +37,7 @@ dependencies {
 	}
 
 	testImplementation project(":junit")
+	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 test {
