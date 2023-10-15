@@ -1,15 +1,12 @@
 apply plugin: "fabric-loom"
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
 loom {
 	runConfigs.configureEach {
 		ideConfigGenerated = true
 	}
 }
 
-def minecraft_version = "1.19.4";
+def minecraft_version = "1.20.2"
 
 repositories {
 	mavenCentral()
@@ -17,7 +14,7 @@ repositories {
 
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
-	mappings "net.fabricmc:yarn:${minecraft_version}+build.2:v2"
+	mappings "net.fabricmc:yarn:${minecraft_version}+build.1:v2"
 
 	implementation project(":minecraft")
 	implementation project(":minecraft").sourceSets.main.output
@@ -40,10 +37,16 @@ dependencies {
 	}
 
 	testImplementation project(":junit")
+	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 test {
 	useJUnitPlatform()
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -75,8 +78,8 @@ dependencies {
 	}
 
 	// Use Fabric's auto client test
-	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.80.0+1.19.4"
-	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.80.0+1.19.4:testmod"
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.89.3+1.20.2"
+	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.89.3+1.20.2:testmod"
 }
 
 def loaderJarTask = project(":").tasks.proguardJar

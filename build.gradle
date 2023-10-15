@@ -1,7 +1,7 @@
 buildscript {
 	dependencies {
 		classpath 'org.kohsuke:github-api:1.135'
-		classpath 'com.guardsquare:proguard-gradle:' + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11) ? '7.3.2' : '7.1.0')
+		classpath 'com.guardsquare:proguard-gradle:' + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11) ? '7.4.0-beta02' : '7.1.0')
 	}
 }
 
@@ -11,16 +11,15 @@ plugins {
 	id 'eclipse'
 	id 'maven-publish'
 	id 'checkstyle'
-	id 'com.diffplug.spotless' version "6.12.0"
-	id 'fabric-loom' version '1.2-SNAPSHOT' apply false
+	id 'com.diffplug.spotless' version "6.22.0"
+	id 'fabric-loom' version '1.4-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '8.1.1'
 	id 'me.modmuss50.remotesign' version "0.4.0"
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-archivesBaseName = "fabric-loader"
+base {
+	archivesName = "fabric-loader"
+}
 
 def ENV = System.getenv()
 
@@ -85,6 +84,7 @@ dependencies {
 
 	// Unit testing for mod metadata
 	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
+	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 processResources {
@@ -97,6 +97,8 @@ processResources {
 
 java {
 	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 jar {
@@ -139,7 +141,7 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	from project(":minecraft").sourceSets.main.output
 	from getSat4jAbout.destinationDir
 	from("LICENSE") {
-		rename { "${it}_${project.archivesBaseName}"}
+		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 
 	manifest {
@@ -205,8 +207,8 @@ task copyJson() {
 	def inJson = file('src/main/resources/fabric-installer.json')
 	def inLwJson = file('src/main/resources/fabric-installer.launchwrapper.json')
 
-	def outJson = file("build/libs/${archivesBaseName}-${version}.json")
-	def outLwJson = file("build/libs/${archivesBaseName}-${version}.launchwrapper.json")
+	def outJson = file("build/libs/${project.base.archivesName.get()}-${version}.json")
+	def outLwJson = file("build/libs/${project.base.archivesName.get()}-${version}.launchwrapper.json")
 
 	inputs.files (inJson, inLwJson)
 	outputs.files(outJson, outLwJson)
