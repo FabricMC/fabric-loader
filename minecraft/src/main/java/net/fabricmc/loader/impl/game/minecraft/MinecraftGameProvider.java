@@ -45,6 +45,7 @@ import net.fabricmc.loader.impl.game.LibClassifier;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
+import net.fabricmc.loader.impl.game.minecraft.patch.TinyFDPatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
@@ -88,7 +89,8 @@ public class MinecraftGameProvider implements GameProvider {
 	private final GameTransformer transformer = new GameTransformer(
 			new EntrypointPatch(this),
 			new BrandingPatch(),
-			new EntrypointPatchFML125());
+			new EntrypointPatchFML125(),
+			new TinyFDPatch());
 
 	@Override
 	public String getGameId() {
