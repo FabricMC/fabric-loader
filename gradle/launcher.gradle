@@ -1,0 +1,88 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+// A task to install the development version of Fabric Loader to the Minecraft launcher
+tasks.register("installDevelopmentVersion", InstallDevelopmentVersionTask) {
+	installerJson = file("src/main/resources/fabric-installer.json")
+	loaderJar = proguardJar.outputs.files.singleFile
+	dependsOn proguardJar
+}
+
+abstract class InstallDevelopmentVersionTask extends DefaultTask {
+	@Input
+	@Option(option = "mc-version", description = "The Minecraft version to install")
+	abstract Property<String> getMinecraftVersion()
+
+	@Input
+	@Option(option = "version-name", description = "The profile name to use")
+	abstract Property<String> getVersionName()
+
+	@InputFile
+	abstract RegularFileProperty getInstallerJson()
+
+	@InputFile
+	abstract RegularFileProperty getLoaderJar()
+
+	@OutputFile
+	abstract RegularFileProperty getVersionJsonFile()
+
+	@OutputFile
+	abstract RegularFileProperty getLoaderLibraryFile()
+
+	InstallDevelopmentVersionTask() {
+		versionName.convention("fabric-loader-${project.version.toString()}")
+		minecraftVersion.convention("1.20.2")
+		versionJsonFile.set(project.layout.file(project.provider {
+			new File(getDotMinecraftDirectory(), "versions/${versionName.get()}/${versionName.get()}.json")
+		}))
+		loaderLibraryFile.set(project.layout.file(project.provider {
+			new File(getDotMinecraftDirectory(), "libraries/net/fabricmc/fabric-loader/${project.version.toString()}/fabric-loader-${project.version.toString()}.jar")
+		}))
+	}
+
+	@TaskAction
+	void runTask() {
+		loaderLibraryFile.get().getAsFile().parentFile.mkdirs()
+		loaderLibraryFile.get().getAsFile().bytes = loaderJar.get().getAsFile().bytes
+
+		def installerJson = new JsonSlurper().parse(installerJson.get().getAsFile())
+
+		// Creates the versions json for the Minecraft launcher
+		def versionMeta = [
+			id: versionName.get(),
+			time: new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+			releaseTime: new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+			type: "release",
+			inheritsFrom: minecraftVersion.get(),
+			mainClass: installerJson.mainClasses.client,
+			libraries: installerJson.libraries.common,
+		]
+
+		versionMeta.libraries.add([
+			name: "net.fabricmc:fabric-loader:${project.version.toString()}",
+			url: "https://maven.fabricmc.net/",
+		])
+
+		versionMeta.libraries.add([
+			name: "net.fabricmc:intermediary:${minecraftVersion.get()}",
+			url: "https://maven.fabricmc.net/",
+		])
+
+		versionJsonFile.get().getAsFile().parentFile.mkdirs()
+		versionJsonFile.get().asFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(versionMeta))
+
+		project.logger.lifecycle("Installed Fabric Loader ${project.version.toString()} for Minecraft ${minecraftVersion.get()} as ${versionName.get()}")
+	}
+
+	static File getDotMinecraftDirectory() {
+		def os = System.getProperty("os.name").toLowerCase(Locale.ROOT)
+		if (os.contains("win")) {
+			return new File(System.getenv("APPDATA"), ".minecraft")
+		} else if (os.contains("mac")) {
+			return new File(System.getProperty("user.home"), "Library/Application Support/minecraft")
+		} else {
+			return new File(System.getProperty("user.home"), ".minecraft")
+		}
+	}
+}
+

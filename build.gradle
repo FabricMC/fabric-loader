@@ -112,6 +112,7 @@ dependencies {
 }
 
 apply from: rootProject.file('gradle/installer-json.gradle')
+apply from: rootProject.file('gradle/launcher.gradle')
 
 processResources {
 	inputs.property "version", project.version

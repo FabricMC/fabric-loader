@@ -1,4 +1,6 @@
-tasks.register("generateInstallerJson", GenerateInstallerJson) {
+import groovy.json.JsonOutput
+
+tasks.register("generateInstallerJson", GenerateInstallerJsonTask) {
 	configurations = [ common: "installer" ]
 	outputFile = file("src/main/resources/fabric-installer.json")
 	options = [
@@ -9,7 +11,7 @@ tasks.register("generateInstallerJson", GenerateInstallerJson) {
 	]
 }
 
-tasks.register("generateLaunchWrapperInstallerJson", GenerateInstallerJson) {
+tasks.register("generateLaunchWrapperInstallerJson", GenerateInstallerJsonTask) {
 	configurations = [ common: "installerLaunchWrapper" ]
 	outputFile = file("src/main/resources/fabric-installer.launchwrapper.json")
 	options = [
@@ -33,7 +35,7 @@ tasks.register("generateLaunchWrapperInstallerJson", GenerateInstallerJson) {
 	]
 }
 
-abstract class GenerateInstallerJson extends DefaultTask {
+abstract class GenerateInstallerJsonTask extends DefaultTask {
 	@Input
 	abstract MapProperty<String, String> getConfigurations()
 
@@ -43,7 +45,7 @@ abstract class GenerateInstallerJson extends DefaultTask {
 	@OutputFile
 	abstract RegularFileProperty getOutputFile()
 
-	GenerateInstallerJson() {
+	GenerateInstallerJsonTask() {
 		outputs.upToDateWhen { false }
 	}
 
@@ -72,7 +74,7 @@ abstract class GenerateInstallerJson extends DefaultTask {
 		}
 
 		json.putAll(options.get())
-		getOutputFile().get().asFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(json))
+		getOutputFile().get().asFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(json))
 	}
 
 	Map<String, Object> resolveHashes(String artifact) {
