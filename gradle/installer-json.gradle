@@ -52,6 +52,7 @@ abstract class GenerateInstallerJson extends DefaultTask {
 
 		def json = [
 		    version: 2,
+			min_java_version: 8,
 			libraries: [
 				client: [],
 				common: [],
