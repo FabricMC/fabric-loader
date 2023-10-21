@@ -188,6 +188,8 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	exclude 'about.html'
 	exclude 'sat4j.version'
 	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
+	exclude 'META-INF/*.RSA'
+	exclude 'META-INF/*.SF'
 
 	outputs.upToDateWhen { false }
 }
