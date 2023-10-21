@@ -74,11 +74,12 @@ abstract class GenerateInstallerJson extends DefaultTask {
 		getOutputFile().get().asFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(json))
 	}
 
-	Map<String, String> resolveHashes(String artifact) {
+	Map<String, Object> resolveHashes(String artifact) {
 		if (artifact.startsWith("net.minecraft:launchwrapper")) {
 			// Launch wrapper only has sha1 hashes on its maven.
 			return [
 				md5: resolveHash(artifact, "sha1"),
+				size: resolveSize(artifact),
 			]
 		}
 
@@ -87,10 +88,17 @@ abstract class GenerateInstallerJson extends DefaultTask {
 			sha1: resolveHash(artifact, "sha1"),
 			sha256: resolveHash(artifact, "sha256"),
 			sha512: resolveHash(artifact, "sha512"),
+			size: resolveSize(artifact),
 		]
 	}
+
 	String resolveHash(String artifact, String hash) {
 		def config = project.configurations.detachedConfiguration(project.dependencies.create("${artifact}@jar.${hash}"))
 		return config.singleFile.text
+	}
+
+	long resolveSize(String artifact) {
+		def config = project.configurations.detachedConfiguration(project.dependencies.create("${artifact}@jar"))
+		return config.singleFile.size()
 	}
 }
