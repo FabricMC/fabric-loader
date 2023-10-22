@@ -1,3 +1,6 @@
+import net.fabricmc.loom.build.nesting.JarNester
+import org.slf4j.LoggerFactory
+
 buildscript {
 	dependencies {
 		classpath 'org.kohsuke:github-api:1.135'
@@ -69,9 +72,13 @@ configurations {
 		transitive = false
 		extendsFrom installer
 	}
+	development {
+		transitive = false
+	}
 
 	api {
 		extendsFrom installer
+		extendsFrom development
 	}
 }
 
@@ -103,6 +110,8 @@ dependencies {
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 	include "net.fabricmc:tiny-remapper:0.8.2"
 	include "net.fabricmc:access-widener:2.1.0"
+
+	development "io.github.llamalad7:mixinextras-fabric:0.2.0"
 
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
@@ -191,6 +200,10 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
 	exclude 'META-INF/*.RSA'
 	exclude 'META-INF/*.SF'
+
+	doLast {
+		JarNester.nestJars(project.configurations.development.files, archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
+	}
 
 	outputs.upToDateWhen { false }
 }

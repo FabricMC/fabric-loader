@@ -1,7 +1,10 @@
 import groovy.json.JsonOutput
 
 tasks.register("generateInstallerJson", GenerateInstallerJsonTask) {
-	configurations = [ common: "installer" ]
+	configurations = [ common: "installer", development: "development"]
+	repositoryOverrides = [
+	    "mixinextras-fabric": "https://repo.maven.apache.org/maven2/"
+	]
 	outputFile = file("src/main/resources/fabric-installer.json")
 	options = [
 		mainClasses: [
@@ -39,6 +42,10 @@ abstract class GenerateInstallerJsonTask extends DefaultTask {
 	@Input
 	abstract MapProperty<String, String> getConfigurations()
 
+	@Optional
+	@Input
+	abstract MapProperty<String, String> getRepositoryOverrides()
+
 	@Input
 	abstract MapProperty<String, Object> getOptions()
 
@@ -66,7 +73,8 @@ abstract class GenerateInstallerJsonTask extends DefaultTask {
 		configurations.get().each { side, name ->
 			def resolvedArtifacts = project.configurations.getByName(name).resolvedConfiguration.resolvedArtifacts
 			for (final def artifact in resolvedArtifacts) {
-				def library = [name: artifact.moduleVersion.toString(), url: "https://maven.fabricmc.net/"]
+				def repo = repositoryOverrides.get()[artifact.moduleVersion.id.name] ?: "https://maven.fabricmc.net/"
+				def library = [name: artifact.moduleVersion.toString(), url: repo]
 				library.putAll(resolveHashes(artifact.moduleVersion.toString()))
 
 				json.libraries[side].add(library)
