@@ -1,7 +1,7 @@
 import groovy.json.JsonOutput
 
 tasks.register("generateInstallerJson", GenerateInstallerJsonTask) {
-	configurations = [ common: "installer" ]
+	configurations = [ common: "installer", development: "development" ]
 	outputFile = file("src/main/resources/fabric-installer.json")
 	options = [
 		mainClasses: [
@@ -12,7 +12,7 @@ tasks.register("generateInstallerJson", GenerateInstallerJsonTask) {
 }
 
 tasks.register("generateLaunchWrapperInstallerJson", GenerateInstallerJsonTask) {
-	configurations = [ common: "installerLaunchWrapper" ]
+	configurations = [ common: "installerLaunchWrapper", development: "development" ]
 	outputFile = file("src/main/resources/fabric-installer.launchwrapper.json")
 	options = [
 		mainClass: "net.minecraft.launchwrapper.Launch",
