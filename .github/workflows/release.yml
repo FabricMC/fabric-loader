@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-Fix       image: eclipse-temurin:21-jdk
+      image: eclipse-temurin:21-jdk
       options: --user root
     steps:
       - run: apt update && apt install git -y && git --version
