@@ -208,7 +208,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
-		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(System.getProperty(SystemProperties.MODS_DIRECTORY) != null ? Paths.get(System.getProperty(SystemProperties.MODS_DIRECTORY)) : gameDir.resolve("mods"), remapRegularMods));
+		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory0(), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		Map<String, Set<ModCandidate>> envDisabledMods = new HashMap<>();
@@ -591,6 +591,13 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	@Override
 	public String[] getLaunchArguments(boolean sanitize) {
 		return getGameProvider().getLaunchArguments(sanitize);
+	}
+
+	@Override
+	protected Path getModsDirectory0() {
+		String directory = System.getProperty(SystemProperties.MODS_FOLDER);
+
+		return directory != null ? Paths.get(directory) : gameDir.resolve("mods");
 	}
 
 	/**
