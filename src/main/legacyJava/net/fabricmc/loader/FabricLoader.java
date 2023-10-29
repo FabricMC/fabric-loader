@@ -17,10 +17,12 @@
 package net.fabricmc.loader;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 /**
  * The main class for mod loading operations.
@@ -37,7 +39,7 @@ public abstract class FabricLoader implements net.fabricmc.loader.api.FabricLoad
 	public static final FabricLoader INSTANCE = FabricLoaderImpl.InitHelper.get();
 
 	public File getModsDirectory() {
-		return getGameDir().resolve("mods").toFile();
+		return System.getProperty(SystemProperties.MODS_DIRECTORY) != null ? Paths.get(System.getProperty(SystemProperties.MODS_DIRECTORY)).toFile() : getGameDir().resolve("mods").toFile();
 	}
 
 	@Override
