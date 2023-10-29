@@ -18,12 +18,10 @@ package net.fabricmc.loader;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.impl.util.SystemProperties;
 
 /**
  * The main class for mod loading operations.
