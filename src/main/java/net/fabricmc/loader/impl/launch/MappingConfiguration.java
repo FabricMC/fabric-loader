@@ -34,8 +34,8 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
-import net.fabricmc.mappingio.format.Tiny1Reader;
-import net.fabricmc.mappingio.format.Tiny2Reader;
+import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
@@ -113,11 +113,11 @@ public final class MappingConfiguration {
 					final MappingFormat format = readMappingFormat(reader);
 
 					switch (format) {
-					case TINY:
-						namespaces = Tiny1Reader.getNamespaces(reader);
+					case TINY_FILE:
+						namespaces = Tiny1FileReader.getNamespaces(reader);
 						break;
-					case TINY_2:
-						namespaces = Tiny2Reader.getNamespaces(reader);
+					case TINY_2_FILE:
+						namespaces = Tiny2FileReader.getNamespaces(reader);
 						break;
 					default:
 						throw new UnsupportedOperationException("Unsupported mapping format: " + format);
@@ -145,11 +145,11 @@ public final class MappingConfiguration {
 				final MappingFormat format = readMappingFormat(reader);
 
 				switch (format) {
-				case TINY:
-					Tiny1Reader.read(reader, mappings);
+				case TINY_FILE:
+					Tiny1FileReader.read(reader, mappings);
 					break;
-				case TINY_2:
-					Tiny2Reader.read(reader, mappings);
+				case TINY_2_FILE:
+					Tiny2FileReader.read(reader, mappings);
 					break;
 				default:
 					throw new UnsupportedOperationException("Unsupported mapping format: " + format);

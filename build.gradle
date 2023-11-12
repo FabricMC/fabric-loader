@@ -82,7 +82,7 @@ dependencies {
 
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
-	include ('net.fabricmc:mapping-io:0.4.0') {
+	include ('net.fabricmc:mapping-io:0.5.0-beta.3') {
 		// Mapping-io depends on ASM, dont bundle
 		transitive = false
 	}
@@ -168,6 +168,8 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	exclude 'about.html'
 	exclude 'sat4j.version'
 	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
+	exclude 'META-INF/*.RSA'
+	exclude 'META-INF/*.SF'
 
 	outputs.upToDateWhen { false }
 }

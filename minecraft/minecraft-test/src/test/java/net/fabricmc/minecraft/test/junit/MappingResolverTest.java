@@ -31,33 +31,33 @@ public class MappingResolverTest {
 
 	@Test
 	void getNamespaces() {
-		assertIterableEquals(mappingResolver.getNamespaces(), List.of("named", "official", "intermediary"));
+		assertIterableEquals(List.of("named", "official", "intermediary"), mappingResolver.getNamespaces());
 	}
 
 	@Test
 	void getCurrentRuntimeNamespace() {
-		assertEquals(mappingResolver.getCurrentRuntimeNamespace(), "named");
+		assertEquals("named", mappingResolver.getCurrentRuntimeNamespace());
 	}
 
 	@Test
 	void mapClassName() {
-		assertEquals(mappingResolver.mapClassName("intermediary", "net.minecraft.class_310"), "net.minecraft.client.MinecraftClient");
-		assertEquals(mappingResolver.mapClassName("intermediary", "net.minecraft.class_310$class_5859"), "net.minecraft.client.MinecraftClient$ChatRestriction");
-		assertEquals(mappingResolver.mapClassName("intermediary", "net.minecraft.Unknown"), "net.minecraft.Unknown");
+		assertEquals("net.minecraft.client.MinecraftClient", mappingResolver.mapClassName("intermediary", "net.minecraft.class_310"));
+		assertEquals("net.minecraft.client.MinecraftClient$ChatRestriction", mappingResolver.mapClassName("intermediary", "net.minecraft.class_310$class_5859"));
+		assertEquals("net.minecraft.Unknown", mappingResolver.mapClassName("intermediary", "net.minecraft.Unknown"));
 	}
 
 	@Test
 	void unmapClassName() {
-		assertEquals(mappingResolver.unmapClassName("intermediary", "net.minecraft.server.command.DebugPathCommand"), "net.minecraft.class_6327");
+		assertEquals("net.minecraft.class_6327", mappingResolver.unmapClassName("intermediary", "net.minecraft.server.command.DebugPathCommand"));
 	}
 
 	@Test
 	void mapFieldName() {
-		assertEquals(mappingResolver.mapFieldName("intermediary", "net.minecraft.class_2586", "field_11863", "Lnet/minecraft/class_1937;"), "world");
+		assertEquals("world", mappingResolver.mapFieldName("intermediary", "net.minecraft.class_2586", "field_11863", "Lnet/minecraft/class_1937;"));
 	}
 
 	@Test
 	void mapMethodName() {
-		assertEquals(mappingResolver.mapMethodName("intermediary", "net.minecraft.class_3222", "method_14220", "()Lnet/minecraft/class_3218;"), "getWorld");
+		assertEquals("getWorld", mappingResolver.mapMethodName("intermediary", "net.minecraft.class_2586", "method_10997", "()Lnet/minecraft/class_1937;"));
 	}
 }
