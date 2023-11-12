@@ -41,6 +41,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -173,6 +174,9 @@ public final class ModDiscoverer {
 			throw exception;
 		}
 
+		// get optional set of disabled mod ids
+		Set<String> disabledModIds = findDisabledModIds();
+
 		// gather all mods (root+nested), initialize parent data
 
 		Set<ModCandidate> ret = Collections.newSetFromMap(new IdentityHashMap<>(candidates.size() * 2));
@@ -181,6 +185,11 @@ public final class ModDiscoverer {
 
 		while ((mod = queue.poll()) != null) {
 			if (mod.getMetadata().loadsInEnvironment(envType)) {
+				if (disabledModIds.contains(mod.getId())) {
+					Log.info(LogCategory.DISCOVERY, "Skipping disabled mod %s", mod.getId());
+					continue;
+				}
+
 				if (!ret.add(mod)) continue;
 
 				for (ModCandidate child : mod.getNestedMods()) {
@@ -198,6 +207,22 @@ public final class ModDiscoverer {
 		Log.debug(LogCategory.DISCOVERY, "Mod discovery time: %.1f ms", (endTime - startTime) * 1e-6);
 
 		return new ArrayList<>(ret);
+	}
+
+	// retrieve set of disabled mod ids from system property
+	private static Set<String> findDisabledModIds() {
+		String modIdList = System.getProperty(SystemProperties.DISABLE_MOD_IDS);
+
+		if (modIdList == null) {
+			return Collections.emptySet();
+		}
+
+		Set<String> disabledModIds = Arrays.stream(modIdList.split(","))
+				.map(String::trim)
+				.filter(s -> !s.isEmpty())
+				.collect(Collectors.toSet());
+		Log.debug(LogCategory.DISCOVERY, "Disabled mod ids: %s", disabledModIds);
+		return disabledModIds;
 	}
 
 	private ModCandidate createJavaMod() {

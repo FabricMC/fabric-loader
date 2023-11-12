@@ -18,9 +18,13 @@ package net.fabricmc.loader.impl.util;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 public final class LoaderUtil {
 	public static String getClassFileName(String className) {
@@ -49,6 +53,19 @@ public final class LoaderUtil {
 			// Such additions may be indirect, a JAR can use the Class-Path manifest attribute to drag additional
 			// libraries with it, likely recursively.
 			throw new IllegalStateException("trying to load "+cls.getName()+" from target class loader");
+		}
+	}
+
+	public static void verifyClasspath() {
+		try {
+			final List<URL> resources = Collections.list(LoaderUtil.class.getClassLoader().getResources("net/fabricmc/loader/api/FabricLoader.class"));
+
+			if (resources.size() != 1) {
+				// This usually happens when fabric loader has been added to the classpath more than once.
+				throw new IllegalStateException("duplicate fabric loader classes found on classpath: " + resources.stream().map(URL::toString).collect(Collectors.joining(", ")));
+			}
+		} catch (IOException e) {
+			throw new UncheckedIOException("Failed to get resources", e);
 		}
 	}
 

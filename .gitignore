@@ -23,3 +23,6 @@
 
 !/minecraft
 !/junit
+
+# MacOS junk files
+.DS_Store

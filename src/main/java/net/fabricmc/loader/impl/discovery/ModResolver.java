@@ -155,7 +155,7 @@ public class ModResolver {
 				}
 			}
 
-			throw new ModResolutionException("Mod resolution encountered an incompatible mod set!%s",
+			throw new ModResolutionException("Some of your mods are incompatible with the game or each other!%s",
 					ResultAnalyzer.gatherErrors(result, selectedMods, modsById, envDisabledMods, envType));
 		}
 

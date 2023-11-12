@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.Opcodes;
@@ -60,6 +61,7 @@ import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
@@ -71,7 +73,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
-	public static final String VERSION = "0.14.21";
+	public static final String VERSION = "0.14.24";
 	public static final String MOD_ID = "fabricloader";
 
 	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
@@ -365,6 +367,35 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	@Override
+	public <T> void invokeEntrypoints(String key, Class<T> type, Consumer<? super T> invoker) {
+		if (!hasEntrypoints(key)) {
+			Log.debug(LogCategory.ENTRYPOINT, "No subscribers for entrypoint '%s'", key);
+			return;
+		}
+
+		RuntimeException exception = null;
+		Collection<EntrypointContainer<T>> entrypoints = FabricLoaderImpl.INSTANCE.getEntrypointContainers(key, type);
+
+		Log.debug(LogCategory.ENTRYPOINT, "Iterating over entrypoint '%s'", key);
+
+		for (EntrypointContainer<T> container : entrypoints) {
+			try {
+				invoker.accept(container.getEntrypoint());
+			} catch (Throwable t) {
+				exception = ExceptionUtil.gatherExceptions(t,
+						exception,
+						exc -> new RuntimeException(String.format("Could not execute entrypoint stage '%s' due to errors, provided by '%s'!",
+								key, container.getProvider().getMetadata().getId()),
+								exc));
+			}
+		}
+
+		if (exception != null) {
+			throw exception;
+		}
+	}
+
+	@Override
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
 			final String targetNamespace = FabricLauncherBase.getLauncher().getTargetNamespace();
@@ -477,7 +508,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			if (path == null) throw new RuntimeException(String.format("Missing accessWidener file %s from mod %s", accessWidener, modContainer.getMetadata().getId()));
 
 			try (BufferedReader reader = Files.newBufferedReader(path)) {
-				accessWidenerReader.read(reader, getMappingResolver().getCurrentRuntimeNamespace());
+				accessWidenerReader.read(reader, FabricLauncherBase.getLauncher().getTargetNamespace());
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
 			}
