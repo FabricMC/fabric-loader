@@ -18,6 +18,7 @@ package net.fabricmc.minecraft.test.junit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import net.minecraft.block.GrassBlock;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -53,6 +55,14 @@ public class JunitTest {
 		GrassBlock grassBlock = (GrassBlock) Blocks.GRASS_BLOCK;
 		boolean canGrow = grassBlock.canGrow(null, null, null, null);
 		assertFalse(canGrow);
+	}
+
+	@Test
+	public void testMixinExtras() {
+		// MixinGrassBlock sets isFertilizable to true
+		GrassBlock grassBlock = (GrassBlock) Blocks.GRASS_BLOCK;
+		boolean isFertilizable = grassBlock.isFertilizable(null, BlockPos.ORIGIN, null);
+		assertTrue(isFertilizable);
 	}
 
 	@Test
