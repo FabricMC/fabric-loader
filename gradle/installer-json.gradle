@@ -1,0 +1,107 @@
+import groovy.json.JsonOutput
+
+tasks.register("generateInstallerJson", GenerateInstallerJsonTask) {
+	configurations = [ common: "installer" ]
+	outputFile = file("src/main/resources/fabric-installer.json")
+	options = [
+		mainClasses: [
+			client: "net.fabricmc.loader.impl.launch.knot.KnotClient",
+			server: "net.fabricmc.loader.impl.launch.knot.KnotServer"
+		]
+	]
+}
+
+tasks.register("generateLaunchWrapperInstallerJson", GenerateInstallerJsonTask) {
+	configurations = [ common: "installerLaunchWrapper" ]
+	outputFile = file("src/main/resources/fabric-installer.launchwrapper.json")
+	options = [
+		mainClass: "net.minecraft.launchwrapper.Launch",
+		arguments: [
+			client: [],
+			common: [],
+			server: [],
+		],
+		launchwrapper: [
+			tweakers: [
+				client: [
+					"net.fabricmc.loader.impl.game.minecraft.launchwrapper.FabricClientTweaker"
+				],
+				common: [],
+				server: [
+					"net.fabricmc.loader.impl.game.minecraft.launchwrapper.FabricServerTweaker"
+				]
+			]
+		]
+	]
+}
+
+abstract class GenerateInstallerJsonTask extends DefaultTask {
+	@Input
+	abstract MapProperty<String, String> getConfigurations()
+
+	@Input
+	abstract MapProperty<String, Object> getOptions()
+
+	@OutputFile
+	abstract RegularFileProperty getOutputFile()
+
+	GenerateInstallerJsonTask() {
+		outputs.upToDateWhen { false }
+	}
+
+	@TaskAction
+	def run() {
+
+		def json = [
+		    version: 2,
+			min_java_version: 8,
+			libraries: [
+				client: [],
+				common: [],
+				server: [],
+				development: [],
+			]
+		]
+
+		configurations.get().each { side, name ->
+			def resolvedArtifacts = project.configurations.getByName(name).resolvedConfiguration.resolvedArtifacts
+			for (final def artifact in resolvedArtifacts) {
+				def library = [name: artifact.moduleVersion.toString(), url: "https://maven.fabricmc.net/"]
+				library.putAll(resolveHashes(artifact.moduleVersion.toString()))
+
+				json.libraries[side].add(library)
+			}
+		}
+
+		json.putAll(options.get())
+		getOutputFile().get().asFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(json))
+	}
+
+	Map<String, Object> resolveHashes(String artifact) {
+		if (artifact.startsWith("net.minecraft:launchwrapper")) {
+			// Launch wrapper only has sha1 hashes on its maven.
+			return [
+				md5: resolveHash(artifact, "sha1"),
+				size: resolveSize(artifact),
+			]
+		}
+
+		return [
+			md5: resolveHash(artifact, "md5"),
+			sha1: resolveHash(artifact, "sha1"),
+			sha256: resolveHash(artifact, "sha256"),
+			sha512: resolveHash(artifact, "sha512"),
+			size: resolveSize(artifact),
+		]
+	}
+
+	String resolveHash(String artifact, String hash) {
+		def config = project.configurations.detachedConfiguration(project.dependencies.create("${artifact}@jar.${hash}"))
+		return config.singleFile.text
+	}
+
+	long resolveSize(String artifact) {
+		def config = project.configurations.detachedConfiguration(project.dependencies.create("${artifact}@jar"))
+		return config.singleFile.size()
+	}
+}

@@ -54,31 +54,55 @@ sourceSets {
 }
 
 configurations {
-	include
+	include {
+		transitive = false
+	}
 
 	implementation {
 		extendsFrom include
 	}
+
+	installer {
+		transitive = false
+	}
+	installerLaunchWrapper {
+		transitive = false
+		extendsFrom installer
+	}
+
+	api {
+		extendsFrom installer
+	}
 }
+
+repositories {
+	maven {
+		name = 'Mojang'
+		url = 'https://libraries.minecraft.net/'
+		content {
+			includeGroup "net.minecraft"
+		}
+	}
+}
+
 
 dependencies {
 	// fabric-loader dependencies
-	api "org.ow2.asm:asm:${project.asm_version}"
-	api "org.ow2.asm:asm-analysis:${project.asm_version}"
-	api "org.ow2.asm:asm-commons:${project.asm_version}"
-	api "org.ow2.asm:asm-tree:${project.asm_version}"
-	api "org.ow2.asm:asm-util:${project.asm_version}"
+	installer "org.ow2.asm:asm:${project.asm_version}"
+	installer "org.ow2.asm:asm-analysis:${project.asm_version}"
+	installer "org.ow2.asm:asm-commons:${project.asm_version}"
+	installer "org.ow2.asm:asm-tree:${project.asm_version}"
+	installer "org.ow2.asm:asm-util:${project.asm_version}"
+	installer "net.fabricmc:sponge-mixin:${project.mixin_version}"
+	// removed with mapping-io PR
+	installer "net.fabricmc:tiny-mappings-parser:0.3.0+build.17"
+	installerLaunchWrapper "net.minecraft:launchwrapper:1.12"
 
-	api("net.fabricmc:sponge-mixin:${project.mixin_version}") {
-		exclude module: 'launchwrapper'
-		exclude module: 'guava'
-	}
-	api 'net.fabricmc:tiny-mappings-parser:0.3.0+build.17'
-	api 'net.fabricmc:tiny-remapper:0.8.2'
-	api 'net.fabricmc:access-widener:2.1.0'
-
+	// impl dependencies
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
+	include "net.fabricmc:tiny-remapper:0.8.2"
+	include "net.fabricmc:access-widener:2.1.0"
 
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
@@ -86,6 +110,9 @@ dependencies {
 	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
 	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
+
+apply from: rootProject.file('gradle/installer-json.gradle')
+apply from: rootProject.file('gradle/launcher.gradle')
 
 processResources {
 	inputs.property "version", project.version
@@ -156,10 +183,14 @@ task fatJar(type: ShadowJar, dependsOn: getSat4jAbout) {
 	configurations = [project.configurations.include]
 
 	relocate 'org.sat4j', 'net.fabricmc.loader.impl.lib.sat4j'
+	relocate 'net.fabricmc.accesswidener', 'net.fabricmc.loader.impl.lib.accesswidener'
+	relocate 'net.fabricmc.tinyremapper', 'net.fabricmc.loader.impl.lib.tinyremapper'
 
 	exclude 'about.html'
 	exclude 'sat4j.version'
 	exclude 'META-INF/maven/org.ow2.sat4j/*/**'
+	exclude 'META-INF/*.RSA'
+	exclude 'META-INF/*.SF'
 
 	outputs.upToDateWhen { false }
 }
