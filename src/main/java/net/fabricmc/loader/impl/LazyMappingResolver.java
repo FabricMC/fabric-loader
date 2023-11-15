@@ -52,6 +52,11 @@ public class LazyMappingResolver implements MappingResolver {
 
 	@Override
 	public String mapClassName(String namespace, String className) {
+		if (namespace.equals(currentRuntimeNamespace)) {
+			// Skip loading the mappings if the namespace is the same as the current runtime namespace
+			return className;
+		}
+
 		return getDelegate().mapClassName(namespace, className);
 	}
 
@@ -62,11 +67,21 @@ public class LazyMappingResolver implements MappingResolver {
 
 	@Override
 	public String mapFieldName(String namespace, String owner, String name, String descriptor) {
+		if (namespace.equals(currentRuntimeNamespace)) {
+			// Skip loading the mappings if the namespace is the same as the current runtime namespace
+			return name;
+		}
+
 		return getDelegate().mapFieldName(namespace, owner, name, descriptor);
 	}
 
 	@Override
 	public String mapMethodName(String namespace, String owner, String name, String descriptor) {
+		if (namespace.equals(currentRuntimeNamespace)) {
+			// Skip loading the mappings if the namespace is the same as the current runtime namespace
+			return name;
+		}
+
 		return getDelegate().mapMethodName(namespace, owner, name, descriptor);
 	}
 }

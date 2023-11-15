@@ -85,7 +85,7 @@ dependencies {
 def loaderJarTask = project(":").tasks.proguardJar
 
 // This is very far beyond loom's API if you copy this, you're on your own.
-task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask]) {
+task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask, remapJar]) {
 	classpath.from configurations.productionRuntime
 	classpath.from loaderJarTask
 	mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
@@ -111,7 +111,10 @@ task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask]) {
 			)
 		}
 
-		def mods = configurations.productionRuntimeMods.files.join(File.pathSeparator)
+		def modFiles = []
+		modFiles.addAll configurations.productionRuntimeMods.files
+		modFiles.add remapJar.archiveFile.get().asFile
+		def mods = modFiles.join(File.pathSeparator)
 
 		jvmArgs(
 			"-Dfabric.addMods=${mods}",
