@@ -28,7 +28,6 @@ import net.fabricmc.api.EnvType;
  */
 @Deprecated
 public interface FabricLauncher {
-	MappingConfiguration getMappingConfiguration();
 	void propose(URL url);
 	EnvType getEnvironmentType();
 	boolean isClassLoaded(String name);

@@ -45,11 +45,6 @@ public class FabricLauncherBase implements FabricLauncher {
 	}
 
 	@Override
-	public MappingConfiguration getMappingConfiguration() {
-		return new MappingConfiguration();
-	}
-
-	@Override
 	public void propose(URL url) {
 		parent.addToClassPath(UrlUtil.asPath(url));
 	}

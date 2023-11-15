@@ -43,7 +43,7 @@ import net.fabricmc.loader.impl.launch.knot.MixinServiceKnotBootstrap;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.MixinIntermediaryDevRemapper;
-import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mappingio.tree.MappingTree;
 
 public final class FabricMixinBootstrap {
 	private FabricMixinBootstrap() { }
@@ -62,10 +62,11 @@ public final class FabricMixinBootstrap {
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
-			TinyTree mappings = mappingConfiguration.getMappings();
+			MappingTree mappings = mappingConfiguration.getMappings();
 
 			if (mappings != null) {
-				List<String> namespaces = mappings.getMetadata().getNamespaces();
+				List<String> namespaces = new ArrayList<>(mappings.getDstNamespaces());
+				namespaces.add(mappings.getSrcNamespace());
 
 				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
 					System.setProperty("mixin.env.remapRefMap", "true");

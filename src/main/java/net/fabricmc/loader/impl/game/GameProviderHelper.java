@@ -47,7 +47,7 @@ import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
-import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
@@ -177,11 +177,15 @@ public final class GameProviderHelper {
 		}
 
 		String targetNamespace = mappingConfig.getTargetNamespace();
-		TinyTree mappings = mappingConfig.getMappings();
+		List<String> namespaces = mappingConfig.getNamespaces();
 
-		if (mappings == null
-				|| !mappings.getMetadata().getNamespaces().contains(targetNamespace)) {
+		if (namespaces == null) {
 			Log.debug(LogCategory.GAME_REMAP, "No mappings, using input files");
+			return inputFileMap;
+		}
+
+		if (!namespaces.contains(targetNamespace)) {
+			Log.debug(LogCategory.GAME_REMAP, "Missing namespace in mappings, using input files");
 			return inputFileMap;
 		}
 
@@ -235,7 +239,7 @@ public final class GameProviderHelper {
 
 		try {
 			Files.createDirectories(deobfJarDir);
-			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappings, targetNamespace, launcher);
+			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappingConfig.getMappings(), targetNamespace, launcher);
 		} catch (IOException e) {
 			throw new RuntimeException("error remapping game jars "+inputFiles, e);
 		}
@@ -262,7 +266,7 @@ public final class GameProviderHelper {
 		return ret.resolve(versionDirName.toString().replaceAll("[^\\w\\-\\. ]+", "_"));
 	}
 
-	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, TinyTree mappings, String targetNamespace, FabricLauncher launcher) throws IOException {
+	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String targetNamespace, FabricLauncher launcher) throws IOException {
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
 				.rebuildSourceFilenames(true)

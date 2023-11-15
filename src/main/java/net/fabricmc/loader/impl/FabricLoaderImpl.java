@@ -399,10 +399,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	@Override
 	public MappingResolver getMappingResolver() {
 		if (mappingResolver == null) {
-			mappingResolver = new MappingResolverImpl(
-					FabricLauncherBase.getLauncher().getMappingConfiguration()::getMappings,
-					FabricLauncherBase.getLauncher().getTargetNamespace()
-					);
+			final String targetNamespace = FabricLauncherBase.getLauncher().getTargetNamespace();
+
+			mappingResolver = new LazyMappingResolver(() -> new MappingResolverImpl(
+				FabricLauncherBase.getLauncher().getMappingConfiguration().getMappings(),
+				targetNamespace
+			), targetNamespace);
 		}
 
 		return mappingResolver;

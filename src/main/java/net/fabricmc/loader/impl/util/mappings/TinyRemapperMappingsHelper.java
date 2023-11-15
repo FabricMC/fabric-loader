@@ -16,10 +16,7 @@
 
 package net.fabricmc.loader.impl.util.mappings;
 
-import net.fabricmc.mapping.tree.ClassDef;
-import net.fabricmc.mapping.tree.FieldDef;
-import net.fabricmc.mapping.tree.MethodDef;
-import net.fabricmc.mapping.tree.TinyTree;
+import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.tinyremapper.IMappingProvider;
 
 public class TinyRemapperMappingsHelper {
@@ -29,19 +26,28 @@ public class TinyRemapperMappingsHelper {
 		return new IMappingProvider.Member(className, memberName, descriptor);
 	}
 
-	public static IMappingProvider create(TinyTree mappings, String from, String to) {
+	public static IMappingProvider create(MappingTree mappings, String from, String to) {
 		return (acceptor) -> {
-			for (ClassDef classDef : mappings.getClasses()) {
-				String className = classDef.getName(from);
-				acceptor.acceptClass(className, classDef.getName(to));
+			final int fromId = mappings.getNamespaceId(from);
+			final int toId = mappings.getNamespaceId(to);
 
-				for (FieldDef field : classDef.getFields()) {
-					acceptor.acceptField(memberOf(className, field.getName(from), field.getDescriptor(from)), field.getName(to));
+			for (MappingTree.ClassMapping classDef : mappings.getClasses()) {
+				final String className = classDef.getName(fromId);
+				String dstName = classDef.getName(toId);
+
+				if (dstName == null) {
+					dstName = className;
 				}
 
-				for (MethodDef method : classDef.getMethods()) {
-					IMappingProvider.Member methodIdentifier = memberOf(className, method.getName(from), method.getDescriptor(from));
-					acceptor.acceptMethod(methodIdentifier, method.getName(to));
+				acceptor.acceptClass(className, dstName);
+
+				for (MappingTree.FieldMapping field : classDef.getFields()) {
+					acceptor.acceptField(memberOf(className, field.getName(fromId), field.getDesc(fromId)), field.getName(toId));
+				}
+
+				for (MappingTree.MethodMapping method : classDef.getMethods()) {
+					IMappingProvider.Member methodIdentifier = memberOf(className, method.getName(fromId), method.getDesc(fromId));
+					acceptor.acceptMethod(methodIdentifier, method.getName(toId));
 				}
 			}
 		};

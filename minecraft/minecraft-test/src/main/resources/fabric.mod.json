@@ -8,5 +8,10 @@
       "config": "fabricmc.test.mixins.client.json",
       "environment": "client"
     }
-  ]
+  ],
+  "entrypoints": {
+    "main": [
+      "net.fabricmc.minecraft.test.TestEntrypoint"
+    ]
+  }
 }

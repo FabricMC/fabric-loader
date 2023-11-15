@@ -59,15 +59,6 @@
                 "sha256": "43d46bce43e1df1210970ce2e8610c4f617bb4173093eae975f7abd4de1bf0fa",
                 "sha512": "bc177a4c5cfb5605e627bfbd9101ec69df260fc54f0e8792a962e953df9c29a84a3deb8a243dfec91dba3845224b950fac5673e1d98d9ad78badb2394063eafd",
                 "size": 1451874
-            },
-            {
-                "name": "net.fabricmc:tiny-mappings-parser:0.3.0+build.17",
-                "url": "https://maven.fabricmc.net/",
-                "md5": "2ecb50617a3a012062e53ca4cda50936",
-                "sha1": "02f10540a290e382a7cd35c16ec3900046a4e252",
-                "sha256": "ab91038c4b1bff9b0999eb6959e012cd0e0bf116401ebab37001ec325d877ba6",
-                "sha512": "b105efe66ee8404d503db28f98f4b0c53efc04f218a1e115001080ea7c08dfeff38b37fb95757ce8261fc3ecf617007b511b995d3f371e78659f37d154695665",
-                "size": 82671
             }
         ],
         "server": [
