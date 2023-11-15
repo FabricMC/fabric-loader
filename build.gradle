@@ -105,7 +105,7 @@ dependencies {
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 	include "net.fabricmc:tiny-remapper:0.8.2"
 	include "net.fabricmc:access-widener:2.1.0"
-	include ('net.fabricmc:mapping-io:0.5.0-beta.3') {
+	include ('net.fabricmc:mapping-io:0.5.0') {
 		// Mapping-io depends on ASM, dont bundle
 		transitive = false
 	}
