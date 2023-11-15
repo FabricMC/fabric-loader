@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.mappings.FilteringMappingVisitor;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
@@ -141,15 +142,16 @@ public final class MappingConfiguration {
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 				long time = System.currentTimeMillis();
 				mappings = new MemoryMappingTree();
+				final FilteringMappingVisitor mappingFilter = new FilteringMappingVisitor(mappings);
 
 				final MappingFormat format = readMappingFormat(reader);
 
 				switch (format) {
 				case TINY_FILE:
-					Tiny1FileReader.read(reader, mappings);
+					Tiny1FileReader.read(reader, mappingFilter);
 					break;
 				case TINY_2_FILE:
-					Tiny2FileReader.read(reader, mappings);
+					Tiny2FileReader.read(reader, mappingFilter);
 					break;
 				default:
 					throw new UnsupportedOperationException("Unsupported mapping format: " + format);
