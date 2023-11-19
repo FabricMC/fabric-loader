@@ -274,12 +274,14 @@ public final class GameProviderHelper {
 
 		Set<Path> depPaths = new HashSet<>();
 
-		for (Path path : launcher.getClassPath()) {
-			if (!inputFiles.contains(path)) {
-				depPaths.add(path);
+		if (System.getProperty(SystemProperties.DEBUG_DEOBFUSCATE_WITH_CLASSPATH) != null) {
+			for (Path path : launcher.getClassPath()) {
+				if (!inputFiles.contains(path)) {
+					depPaths.add(path);
 
-				Log.debug(LogCategory.GAME_REMAP, "Appending '%s' to remapper classpath", path);
-				remapper.readClassPathAsync(path);
+					Log.debug(LogCategory.GAME_REMAP, "Appending '%s' to remapper classpath", path);
+					remapper.readClassPathAsync(path);
+				}
 			}
 		}
 
