@@ -3,6 +3,7 @@ apply plugin: "fabric-loom"
 loom {
 	runConfigs.configureEach {
 		ideConfigGenerated = true
+		property("fabric.debug.replaceVersion", "fabricloader:$version")
 	}
 }
 
