@@ -36,6 +36,7 @@ dependencies {
 		exclude module: 'launchwrapper'
 		exclude module: 'guava'
 	}
+	annotationProcessor "io.github.llamalad7:mixinextras-fabric:$mixin_extras_version"
 
 	testImplementation project(":junit")
 	testRuntimeOnly('org.junit.platform:junit-platform-launcher')

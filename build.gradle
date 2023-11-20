@@ -117,7 +117,7 @@ dependencies {
 		transitive = false
 	}
 
-	development "io.github.llamalad7:mixinextras-fabric:0.3.0"
+	development "io.github.llamalad7:mixinextras-fabric:$mixin_extras_version"
 
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
