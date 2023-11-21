@@ -32,7 +32,6 @@ import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.TimeoutException;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
@@ -54,9 +53,10 @@ public class ModResolver {
 	private static List<ModCandidate> findCompatibleSet(Collection<ModCandidate> candidates, EnvType envType, Map<String, Set<ModCandidate>> envDisabledMods) throws ModResolutionException {
 		// sort all mods by priority
 
+		ModPrioComparator comparator = new ModPrioComparator(candidates);
 		List<ModCandidate> allModsSorted = new ArrayList<>(candidates);
 
-		allModsSorted.sort(modPrioComparator);
+		allModsSorted.sort(comparator);
 
 		// group/index all mods by id
 
@@ -206,102 +206,6 @@ public class ModResolver {
 		}
 
 		return uniqueSelectedMods;
-	}
-
-	private static final Comparator<ModCandidate> modPrioComparator = new Comparator<ModCandidate>() {
-		@Override
-		public int compare(ModCandidate a, ModCandidate b) {
-			// descending sort prio (less/earlier is higher prio):
-			// root mods first, lower id first, higher version first, less nesting first, parent cmp
-			// if the ids are different the id+version comparison will consider all id+version pairs from each mod and its provides
-			//   multiple overlaps with provides use a comparison counter to give the mod with the most version advantages priority
-			// if the ids are equal the mod versions are assumed to represent desired priorities even if provided versions disagree
-
-			if (a.isRoot()) {
-				if (!b.isRoot()) {
-					return -1; // only a is root
-				}
-			} else if (b.isRoot()) {
-				return 1; // only b is root
-			}
-
-			// sort id desc
-			int idCmp = a.getId().compareTo(b.getId());
-
-			if (idCmp != 0) {
-				if (a.getProvides().isEmpty() && b.getProvides().isEmpty()) {
-					return idCmp;
-				} else {
-					int cmp = compareOverlappingIds(a, b, idCmp);
-					if (cmp != 0) return cmp;
-				}
-			} else {
-				// sort version desc (lower version later)
-				int versionCmp = b.getVersion().compareTo(a.getVersion());
-				if (versionCmp != 0) return versionCmp;
-			}
-
-			// sort nestLevel asc
-			int nestCmp = a.getMinNestLevel() - b.getMinNestLevel(); // >0 if nest(a) > nest(b)
-			if (nestCmp != 0) return nestCmp;
-
-			if (a.isRoot()) return 0; // both root
-
-			List<ModCandidate> parents = new ArrayList<>(a.getParentMods().size() + b.getParentMods().size());
-			parents.addAll(a.getParentMods());
-			parents.addAll(b.getParentMods());
-			parents.sort(this);
-
-			if (a.getParentMods().contains(parents.get(0))) {
-				if (b.getParentMods().contains(parents.get(0))) {
-					return 0;
-				} else {
-					return -1;
-				}
-			} else {
-				return 1;
-			}
-		}
-	};
-
-	private static int compareOverlappingIds(ModCandidate a, ModCandidate b, int idCmp) {
-		assert !a.getId().equals(b.getId()); // should have been handled before
-		assert idCmp != 0;
-
-		int ret = 0; // sum of individual normalized pair comparisons, may cancel each other out
-		boolean matched = false; // whether any ids overlap, for falling back to main id comparison as if there were no provides
-
-		for (String provIdA : a.getProvides()) { // a-provides vs b
-			if (provIdA.equals(b.getId())) {
-				Version providedVersionA = a.getVersion();
-				ret += Integer.signum(b.getVersion().compareTo(providedVersionA));
-				matched = true;
-			}
-		}
-
-		for (String provIdB : b.getProvides()) {
-			if (provIdB.equals(a.getId())) { // a vs b-provides
-				Version providedVersionB = b.getVersion();
-				ret += Integer.signum(providedVersionB.compareTo(a.getVersion()));
-				matched = true;
-
-				continue;
-			}
-
-			for (String provIdA : a.getProvides()) { // a-provides vs b-provides
-				if (provIdB.equals(provIdA)) {
-					Version providedVersionA = a.getVersion();
-					Version providedVersionB = b.getVersion();
-
-					ret += Integer.signum(providedVersionB.compareTo(providedVersionA));
-					matched = true;
-
-					break;
-				}
-			}
-		}
-
-		return matched ? ret : idCmp; // idCmp is != 0, so no need to compare version
 	}
 
 	static void preselectMod(ModCandidate mod, List<ModCandidate> allModsSorted, Map<String, List<ModCandidate>> modsById,
