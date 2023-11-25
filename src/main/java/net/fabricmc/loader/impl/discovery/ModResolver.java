@@ -51,24 +51,12 @@ public class ModResolver {
 	}
 
 	private static List<ModCandidate> findCompatibleSet(Collection<ModCandidate> candidates, EnvType envType, Map<String, Set<ModCandidate>> envDisabledMods) throws ModResolutionException {
-		// sort all mods by priority
+		// sort all mods by priority and group by id
 
-		ModPrioComparator comparator = new ModPrioComparator(candidates);
 		List<ModCandidate> allModsSorted = new ArrayList<>(candidates);
-
-		allModsSorted.sort(comparator);
-
-		// group/index all mods by id
-
 		Map<String, List<ModCandidate>> modsById = new LinkedHashMap<>(); // linked to ensure consistent execution
 
-		for (ModCandidate mod : allModsSorted) {
-			modsById.computeIfAbsent(mod.getId(), ignore -> new ArrayList<>()).add(mod);
-
-			for (String provided : mod.getProvides()) {
-				modsById.computeIfAbsent(provided, ignore -> new ArrayList<>()).add(mod);
-			}
-		}
+		ModPrioSorter.sort(allModsSorted, modsById);
 
 		// soften positive deps from schema 0 or 1 mods on mods that are present but disabled for the current env
 		// this is a workaround necessary due to many mods declaring deps that are unsatisfiable in some envs and loader before 0.12x not verifying them properly
