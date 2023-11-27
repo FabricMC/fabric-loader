@@ -134,8 +134,8 @@ public class EnvironmentStrippingData extends ClassVisitor {
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
 		return new FieldVisitor(api) {
 			@Override
-			public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-				return visitMemberAnnotation(descriptor, visible, () -> stripFields.add(name + descriptor));
+			public AnnotationVisitor visitAnnotation(String annotationDescriptor, boolean visible) {
+				return visitMemberAnnotation(annotationDescriptor, visible, () -> stripFields.add(name + descriptor));
 			}
 		};
 	}
