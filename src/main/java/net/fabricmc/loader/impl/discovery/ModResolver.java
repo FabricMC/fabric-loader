@@ -51,23 +51,12 @@ public class ModResolver {
 	}
 
 	private static List<ModCandidate> findCompatibleSet(Collection<ModCandidate> candidates, EnvType envType, Map<String, Set<ModCandidate>> envDisabledMods) throws ModResolutionException {
-		// sort all mods by priority
+		// sort all mods by priority and group by id
 
 		List<ModCandidate> allModsSorted = new ArrayList<>(candidates);
-
-		allModsSorted.sort(modPrioComparator);
-
-		// group/index all mods by id
-
 		Map<String, List<ModCandidate>> modsById = new LinkedHashMap<>(); // linked to ensure consistent execution
 
-		for (ModCandidate mod : allModsSorted) {
-			modsById.computeIfAbsent(mod.getId(), ignore -> new ArrayList<>()).add(mod);
-
-			for (String provided : mod.getProvides()) {
-				modsById.computeIfAbsent(provided, ignore -> new ArrayList<>()).add(mod);
-			}
-		}
+		ModPrioSorter.sort(allModsSorted, modsById);
 
 		// soften positive deps from schema 0 or 1 mods on mods that are present but disabled for the current env
 		// this is a workaround necessary due to many mods declaring deps that are unsatisfiable in some envs and loader before 0.12x not verifying them properly
@@ -206,51 +195,6 @@ public class ModResolver {
 
 		return uniqueSelectedMods;
 	}
-
-	private static final Comparator<ModCandidate> modPrioComparator = new Comparator<ModCandidate>() {
-		@Override
-		public int compare(ModCandidate a, ModCandidate b) {
-			// descending sort prio (less/earlier is higher prio):
-			// root mods first, lower id first, higher version first, less nesting first, parent cmp
-
-			if (a.isRoot()) {
-				if (!b.isRoot()) {
-					return -1; // only a is root
-				}
-			} else if (b.isRoot()) {
-				return 1; // only b is root
-			}
-
-			// sort id desc
-			int idCmp = a.getId().compareTo(b.getId());
-			if (idCmp != 0) return idCmp;
-
-			// sort version desc (lower version later)
-			int versionCmp = b.getVersion().compareTo(a.getVersion());
-			if (versionCmp != 0) return versionCmp;
-
-			// sort nestLevel asc
-			int nestCmp = a.getMinNestLevel() - b.getMinNestLevel(); // >0 if nest(a) > nest(b)
-			if (nestCmp != 0) return nestCmp;
-
-			if (a.isRoot()) return 0; // both root
-
-			List<ModCandidate> parents = new ArrayList<>(a.getParentMods().size() + b.getParentMods().size());
-			parents.addAll(a.getParentMods());
-			parents.addAll(b.getParentMods());
-			parents.sort(this);
-
-			if (a.getParentMods().contains(parents.get(0))) {
-				if (b.getParentMods().contains(parents.get(0))) {
-					return 0;
-				} else {
-					return -1;
-				}
-			} else {
-				return 1;
-			}
-		}
-	};
 
 	static void preselectMod(ModCandidate mod, List<ModCandidate> allModsSorted, Map<String, List<ModCandidate>> modsById,
 			Map<String, ModCandidate> selectedMods, List<ModCandidate> uniqueSelectedMods) throws ModResolutionException {
