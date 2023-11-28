@@ -76,7 +76,7 @@
             }
         ]
     },
-    "mainClasses": {
+    "mainClass": {
         "client": "net.fabricmc.loader.impl.launch.knot.KnotClient",
         "server": "net.fabricmc.loader.impl.launch.knot.KnotServer"
     }

@@ -54,7 +54,7 @@ abstract class InstallDevelopmentVersionTask extends DefaultTask {
 			releaseTime: new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
 			type: "release",
 			inheritsFrom: minecraftVersion.get(),
-			mainClass: installerJson.mainClasses.client,
+			mainClass: installerJson.mainClass.client,
 			libraries: installerJson.libraries.common,
 		]
 
