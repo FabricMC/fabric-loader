@@ -16,21 +16,35 @@
 
 package net.fabricmc.minecraft.test.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.GrassBlock;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 
 @Mixin(GrassBlock.class)
 public class MixinGrassBlock {
 	@Inject(method = "canGrow", at = @At("HEAD"), cancellable = true)
 	public void canGrow(World world, Random random, BlockPos pos, BlockState state, CallbackInfoReturnable<Boolean> cir) {
 		cir.setReturnValue(false);
+	}
+
+	@WrapOperation(method = "isFertilizable", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/WorldView;getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"))
+	private BlockState testMixinExtras(WorldView instance, BlockPos pos, Operation<BlockState> original, @Local(argsOnly = true) BlockState state) {
+		if (state == null) {
+			return Blocks.AIR.getDefaultState();
+		}
+
+		return original.call(instance, pos);
 	}
 }

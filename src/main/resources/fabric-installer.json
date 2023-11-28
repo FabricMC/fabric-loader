@@ -65,7 +65,15 @@
             
         ],
         "development": [
-            
+            {
+                "name": "io.github.llamalad7:mixinextras-fabric:0.3.0",
+                "url": "https://maven.fabricmc.net/",
+                "md5": "b8627d24b59a04d4b23576ce2fe5b22a",
+                "sha1": "46c525ed982e80bcced01f7dc1dd99b738f08f79",
+                "sha256": "bccb03e951ff722a8f03179521a0813bf282e58d02fa77420d62ed630e7e2b0b",
+                "sha512": "4e08cf603df8ac02d3ed571657dd8bd7d704040698766020eedc4a8806edf8ad6006c206c976fe7fbe97271d0a1d0d729f7cb2e8d14544e8838c274d8b5d9f0b",
+                "size": 169320
+            }
         ]
     },
     "mainClasses": {
