@@ -1,0 +1,122 @@
+apply plugin: "fabric-loom"
+
+import groovy.json.JsonSlurper
+
+loom {
+	runConfigs.configureEach {
+		property("fabric.debug.replaceVersion", "fabricloader:$version")
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+configurations {
+	productionRuntime {
+		extendsFrom configurations.minecraftLibraries
+		extendsFrom configurations.loaderLibraries
+		extendsFrom configurations.minecraftRuntimeLibraries
+	}
+	productionRuntimeMods {
+		transitive = false
+	}
+}
+
+dependencies {
+	implementation project(":minecraft")
+	implementation project(":minecraft").sourceSets.main.output
+	implementation project(":").sourceSets.main.output
+
+	// Required for mixin annotation processor
+	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-analysis:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+
+	/**
+	 * Ensure we are using the mixin version loader is built against to test the AP.
+	 * Otherwise Loom will default to an older version (due to no mod loader on the mod* configs)
+	 */
+	annotationProcessor ("net.fabricmc:sponge-mixin:${project.mixin_version}") {
+		exclude module: 'launchwrapper'
+		exclude module: 'guava'
+	}
+	annotationProcessor "io.github.llamalad7:mixinextras-fabric:$mixin_extras_version"
+
+	// Include the external libraries on the classpath
+	def installerJson = new JsonSlurper().parse(rootProject.file("src/main/resources/fabric-installer.json"))
+	installerJson.libraries.common.each {
+		productionRuntime it.name
+	}
+}
+
+def loaderJarTask = project(":").tasks.proguardJar
+
+// This is very far beyond loom's API if you copy this, you're on your own.
+tasks.register('runProductionAutoTestClient', JavaExec) {
+	dependsOn loaderJarTask
+	dependsOn remapJar
+
+	classpath.from configurations.productionRuntime
+	classpath.from loaderJarTask
+	mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
+	workingDir = file("run")
+
+	dependsOn tasks.named("downloadAssets")
+
+	doFirst {
+		classpath.from loom.minecraftProvider.minecraftClientJar
+		workingDir.mkdirs()
+
+		args(
+			"--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
+			"--assetsDir", new File(loom.files.userCache, "assets").absolutePath,
+			"--gameDir", workingDir.absolutePath
+		)
+
+		if (System.properties['os.name'].toLowerCase().contains('mac')) {
+			jvmArgs(
+				"-XstartOnFirstThread"
+			)
+		}
+
+		def modFiles = []
+		modFiles.addAll configurations.productionRuntimeMods.files
+		modFiles.add remapJar.archiveFile.get().asFile
+		def mods = modFiles.join(File.pathSeparator)
+
+		jvmArgs(
+			"-Dfabric.addMods=${mods}",
+			"-Dfabric.autoTest"
+		)
+	}
+}
+
+tasks.register('runProductionAutoTestServer', JavaExec) {
+	dependsOn loaderJarTask
+	dependsOn remapJar
+
+	classpath.from configurations.productionRuntime
+	classpath.from loaderJarTask
+	mainClass = "net.fabricmc.loader.impl.launch.knot.KnotServer"
+	workingDir = file("run")
+
+	doFirst {
+		classpath.from loom.minecraftProvider.minecraftServerJar
+		workingDir.mkdirs()
+
+		args("nogui")
+
+		def modFiles = []
+		modFiles.addAll configurations.productionRuntimeMods.files
+		modFiles.add remapJar.archiveFile.get().asFile
+		def mods = modFiles.join(File.pathSeparator)
+
+		jvmArgs(
+			"-Dfabric.addMods=${mods}",
+			"-Dfabric.autoTest"
+		)
+	}
+}

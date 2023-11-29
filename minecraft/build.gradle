@@ -5,6 +5,10 @@ repositories {
 	}
 }
 
+subprojects {
+	apply from: parent.file('test.build.gradle')
+}
+
 dependencies {
 	api project(":")
 
