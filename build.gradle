@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 buildscript {
 	dependencies {
 		classpath 'org.kohsuke:github-api:1.135'
-		classpath 'com.guardsquare:proguard-gradle:' + (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11) ? '7.4.0-beta02' : '7.1.0')
+		classpath 'com.guardsquare:proguard-gradle:7.4.1'
 	}
 }
 
@@ -230,7 +230,10 @@ task proguardJar(type: ProGuardTask, dependsOn: fatJar) {
 		}
 	}
 
-	libraryjars JavaVersion.current().java9Compatible ? "${System.getProperty('java.home')}/jmods" : "${System.getProperty('java.home')}/lib/rt.jar"
+	def java8 = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(8)
+	}.get()
+	libraryjars java8.metadata.installationPath.file("jre/lib/rt.jar")
 
 	injars fatJar.archiveFile
 	outjars proguardFile

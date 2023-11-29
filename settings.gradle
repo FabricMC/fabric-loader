@@ -12,8 +12,8 @@ rootProject.name='fabric-loader'
 include "minecraft"
 include "junit"
 
-if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-	include "minecraft:minecraft-test"
-} else {
-	println("Minecraft test sub project requires java 17 or higher!")
+if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+	throw new RuntimeException("Java 17 or later is required to build Fabric Loader")
 }
+
+include "minecraft:minecraft-test"
