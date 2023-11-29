@@ -64,7 +64,7 @@ tasks.register('runProductionAutoTestClient', JavaExec) {
 	mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
 	workingDir = file("run")
 
-	dependsOn tasks.named("downloadAssets")
+	dependsOn tasks.named("configureClientLaunch")
 
 	doFirst {
 		classpath.from loom.minecraftProvider.minecraftClientJar
@@ -75,6 +75,14 @@ tasks.register('runProductionAutoTestClient', JavaExec) {
 			"--assetsDir", new File(loom.files.userCache, "assets").absolutePath,
 			"--gameDir", workingDir.absolutePath
 		)
+
+		def versionInfo = loom.minecraftProvider.versionInfo
+
+		if (versionInfo.hasNativesToExtract()) {
+			def nativesPath = loom.files.getNativesDirectory(project).getAbsolutePath()
+			systemProperty("java.library.path", nativesPath)
+			systemProperty("org.lwjgl.librarypath", nativesPath)
+		}
 
 		if (System.properties['os.name'].toLowerCase().contains('mac')) {
 			jvmArgs(
