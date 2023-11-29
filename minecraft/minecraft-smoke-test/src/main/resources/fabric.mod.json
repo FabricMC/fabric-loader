@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "minecraft-smoke-test",
+  "name": "Minecraft Smoke Test Mod",
+  "version": "1.0.0",
+  "entrypoints": {
+    "main": [
+      "net.fabricmc.minecraft.test.smoke.TestEntrypoint"
+    ]
+  }
+}

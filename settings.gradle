@@ -35,7 +35,8 @@ include "minecraft"
 include "junit"
 
 if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-	throw new RuntimeException("Java 17 or later is required to build Fabric Loader")
+	throw new UnsupportedOperationException("Java 17 or later is required")
 }
 
 include "minecraft:minecraft-test"
+include "minecraft:minecraft-smoke-test"
