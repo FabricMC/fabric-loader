@@ -1,0 +1,12 @@
+plugins {
+	id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+	plugins {
+		create("toolchain-resolver") {
+			id = "net.fabricmc.loader.gradle.toolchain"
+			implementationClass = "net.fabricmc.loader.gradle.toolchain.ToolchainResolverPlugin"
+		}
+	}
+}

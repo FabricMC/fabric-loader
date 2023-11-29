@@ -6,8 +6,30 @@ pluginManagement {
 		}
 		gradlePluginPortal()
 	}
+	includeBuild('gradle/toolchain-resolver')
 }
+
+plugins {
+	id("org.gradle.toolchains.foojay-resolver") version "0.7.0"
+	id("net.fabricmc.loader.gradle.toolchain")
+}
+
 rootProject.name='fabric-loader'
+
+toolchainManagement {
+	jvm {
+		javaRepositories {
+			// Ensure that our custom resolver is first, this takes priority
+			repository('fabric') {
+				resolverClass = net.fabricmc.loader.gradle.toolchain.FabricJavaToolchainResolver
+			}
+
+			repository('foojay') {
+				resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+			}
+		}
+	}
+}
 
 include "minecraft"
 include "junit"
