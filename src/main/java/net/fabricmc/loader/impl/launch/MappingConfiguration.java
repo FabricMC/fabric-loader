@@ -99,15 +99,17 @@ public final class MappingConfiguration {
 	private void initializeMetadata() {
 		if (initializedMetadata) return;
 
-		final JarURLConnection connection = openMappingsJar();
+		final URLConnection connection = openMappings();
 
 		try {
 			if (connection != null) {
-				final Manifest manifest = connection.getManifest();
+				if (connection instanceof JarURLConnection) {
+					final Manifest manifest = ((JarURLConnection)connection).getManifest();
 
-				if (manifest != null) {
-					gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
-					gameVersion = ManifestUtil.getManifestValue(manifest, new Name("Game-Version"));
+					if (manifest != null) {
+						gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
+						gameVersion = ManifestUtil.getManifestValue(manifest, new Name("Game-Version"));
+					}
 				}
 
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
@@ -136,7 +138,7 @@ public final class MappingConfiguration {
 		if (initializedMappings) return;
 
 		initializeMetadata();
-		final URLConnection connection = openMappingsJar();
+		final URLConnection connection = openMappings();
 
 		if (connection != null) {
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
@@ -172,16 +174,12 @@ public final class MappingConfiguration {
 	}
 
 	@Nullable
-	private JarURLConnection openMappingsJar() {
+	private URLConnection openMappings() {
 		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
 
 		if (url != null) {
 			try {
-				URLConnection connection = url.openConnection();
-
-				if (connection instanceof JarURLConnection) {
-					return (JarURLConnection) connection;
-				}
+				return url.openConnection();
 			} catch (IOException | ZipError e) {
 				throw new RuntimeException("Error reading "+url, e);
 			}
