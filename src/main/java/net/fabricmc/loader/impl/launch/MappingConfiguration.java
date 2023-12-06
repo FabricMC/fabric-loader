@@ -104,7 +104,7 @@ public final class MappingConfiguration {
 		try {
 			if (connection != null) {
 				if (connection instanceof JarURLConnection) {
-					final Manifest manifest = ((JarURLConnection)connection).getManifest();
+					final Manifest manifest = ((JarURLConnection) connection).getManifest();
 
 					if (manifest != null) {
 						gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
