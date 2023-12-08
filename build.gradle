@@ -296,7 +296,7 @@ javadoc {
 		links(
 				'https://asm.ow2.io/javadoc/',
 				'https://docs.oracle.com/javase/8/docs/api/',
-				'https://logging.apache.org/log4j/2.x/log4j-api/apidocs/'
+				'https://logging.apache.org/log4j/2.x/javadoc/log4j-api/'
 		)
 		// Disable the crazy super-strict doclint tool in Java 8
 		addStringOption('Xdoclint:none', '-quiet')
