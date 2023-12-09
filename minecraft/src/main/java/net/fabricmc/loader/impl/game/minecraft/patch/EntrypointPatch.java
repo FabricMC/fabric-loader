@@ -21,7 +21,6 @@ import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -62,7 +61,7 @@ public class EntrypointPatch extends GamePatch {
 	}
 
 	@Override
-	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
+	public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
 		EnvType type = launcher.getEnvironmentType();
 		String entrypoint = launcher.getEntrypoint();
 		Version gameVersion = getGameVersion();
@@ -74,7 +73,7 @@ public class EntrypointPatch extends GamePatch {
 		String gameEntrypoint = null;
 		boolean serverHasFile = true;
 		boolean isApplet = entrypoint.contains("Applet");
-		ClassNode mainClass = readClass(classSource.apply(entrypoint));
+		ClassNode mainClass = classSource.apply(entrypoint);
 
 		if (mainClass == null) {
 			throw new RuntimeException("Could not load main class " + entrypoint + "!");
@@ -189,7 +188,7 @@ public class EntrypointPatch extends GamePatch {
 		if (gameEntrypoint.equals(entrypoint) || is20w22aServerOrHigher) {
 			gameClass = mainClass;
 		} else {
-			gameClass = readClass(classSource.apply(gameEntrypoint));
+			gameClass = classSource.apply(gameEntrypoint);
 			if (gameClass == null) throw new RuntimeException("Could not load game class " + gameEntrypoint + "!");
 		}
 
@@ -527,22 +526,22 @@ public class EntrypointPatch extends GamePatch {
 		}
 	}
 
-	private boolean hasSuperClass(String cls, String superCls, Function<String, ClassReader> classSource) {
+	private boolean hasSuperClass(String cls, String superCls, Function<String, ClassNode> classSource) {
 		if (cls.contains("$") || (!cls.startsWith("net/minecraft") && cls.contains("/"))) {
 			return false;
 		}
 
-		ClassReader reader = classSource.apply(cls);
+		ClassNode classNode = classSource.apply(cls);
 
-		return reader != null && reader.getSuperName().equals(superCls);
+		return classNode != null && classNode.superName.equals(superCls);
 	}
 
-	private boolean hasStrInMethod(String cls, String methodName, String methodDesc, String str, Function<String, ClassReader> classSource) {
+	private boolean hasStrInMethod(String cls, String methodName, String methodDesc, String str, Function<String, ClassNode> classSource) {
 		if (cls.contains("$") || (!cls.startsWith("net/minecraft") && cls.contains("/"))) {
 			return false;
 		}
 
-		ClassNode node = readClass(classSource.apply(cls));
+		ClassNode node = classSource.apply(cls);
 		if (node == null) return false;
 
 		for (MethodNode method : node.methods) {
