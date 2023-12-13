@@ -23,7 +23,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -33,14 +32,6 @@ import org.objectweb.asm.tree.MethodNode;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 
 public abstract class GamePatch {
-	protected static ClassNode readClass(ClassReader reader) {
-		if (reader == null) return null;
-
-		ClassNode node = new ClassNode();
-		reader.accept(node, 0);
-		return node;
-	}
-
 	protected FieldNode findField(ClassNode node, Predicate<FieldNode> predicate) {
 		return node.fields.stream().filter(predicate).findAny().orElse(null);
 	}
@@ -128,5 +119,5 @@ public abstract class GamePatch {
 		return ((access & 0x0F) == (Opcodes.ACC_PUBLIC | 0 /* non-static */));
 	}
 
-	public abstract void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter);
+	public abstract void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter);
 }

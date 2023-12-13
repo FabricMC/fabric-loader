@@ -20,7 +20,6 @@ import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -35,12 +34,12 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class BrandingPatch extends GamePatch {
 	@Override
-	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
+	public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
 		for (String brandClassName : new String[] {
 				"net.minecraft.client.ClientBrandRetriever",
 				"net.minecraft.server.MinecraftServer"
 		}) {
-			ClassNode brandClass = readClass(classSource.apply(brandClassName));
+			ClassNode brandClass = classSource.apply(brandClassName);
 
 			if (brandClass != null) {
 				if (applyBrandingPatch(brandClass)) {

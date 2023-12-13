@@ -20,7 +20,6 @@ import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -47,7 +46,7 @@ public final class TinyFDPatch extends GamePatch {
 	private static final String DIALOG_TITLE = "Select settings file (.json)";
 
 	@Override
-	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
+	public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
 		if (launcher.getEnvironmentType() != EnvType.CLIENT) {
 			// Fix should only be applied to clients.
 			return;
@@ -61,7 +60,7 @@ public final class TinyFDPatch extends GamePatch {
 			className = FabricLoader.getInstance().getMappingResolver().mapClassName("intermediary", MORE_OPTIONS_DIALOG_CLASS_NAME);
 		}
 
-		final ClassNode classNode = readClass(classSource.apply(className));
+		final ClassNode classNode = classSource.apply(className);
 
 		if (classNode == null) {
 			// Class is not present in this version, nothing to do.

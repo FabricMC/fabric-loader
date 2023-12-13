@@ -40,7 +40,7 @@ public class EntrypointPatchFML125 extends GamePatch {
 	private static final String TO_INTERNAL = "cpw/mods/fml/common/ModClassLoader";
 
 	@Override
-	public void process(FabricLauncher launcher, Function<String, ClassReader> classSource, Consumer<ClassNode> classEmitter) {
+	public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
 		if (classSource.apply(TO) != null
 				&& classSource.apply("cpw.mods.fml.relauncher.FMLRelauncher") == null) {
 			if (!(launcher instanceof Knot)) {

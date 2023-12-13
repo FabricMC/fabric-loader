@@ -67,29 +67,23 @@ public class GameTransformer {
 		patchedClasses = new HashMap<>();
 
 		try (SimpleClassPath cp = new SimpleClassPath(gameJars)) {
-			Function<String, ClassReader> classSource = name -> {
-				byte[] data = patchedClasses.get(name);
+			Map<String, ClassNode> patchedClassNodes = new HashMap<>();
 
-				if (data != null) {
-					return new ClassReader(data);
+			final Function<String, ClassNode> classSource = name -> {
+				// Reuse previously patched classes if available
+				if (patchedClassNodes.containsKey(name)) {
+					return patchedClassNodes.get(name);
 				}
 
-				try {
-					CpEntry entry = cp.getEntry(LoaderUtil.getClassFileName(name));
-					if (entry == null) return null;
-
-					try (InputStream is = entry.getInputStream()) {
-						return new ClassReader(is);
-					} catch (IOException | ZipError e) {
-						throw new RuntimeException(String.format("error reading %s in %s: %s", name, LoaderUtil.normalizePath(entry.getOrigin()), e), e);
-					}
-				} catch (IOException e) {
-					throw ExceptionUtil.wrap(e);
-				}
+				return readClassNode(cp, name);
 			};
 
 			for (GamePatch patch : patches) {
-				patch.process(launcher, classSource, this::addPatchedClass);
+				patch.process(launcher, classSource, classNode -> patchedClassNodes.put(classNode.name, classNode));
+			}
+
+			for (ClassNode patchedClassNode : patchedClassNodes.values()) {
+				addPatchedClass(patchedClassNode);
 			}
 		} catch (IOException e) {
 			throw ExceptionUtil.wrap(e);
@@ -99,6 +93,27 @@ public class GameTransformer {
 		entrypointsLocated = true;
 	}
 
+	private ClassNode readClassNode(SimpleClassPath classpath, String name) {
+		byte[] data = patchedClasses.get(name);
+
+		if (data != null) {
+			return readClass(new ClassReader(data));
+		}
+
+		try {
+			CpEntry entry = classpath.getEntry(LoaderUtil.getClassFileName(name));
+			if (entry == null) return null;
+
+			try (InputStream is = entry.getInputStream()) {
+				return readClass(new ClassReader(is));
+			} catch (IOException | ZipError e) {
+				throw new RuntimeException(String.format("error reading %s in %s: %s", name, LoaderUtil.normalizePath(entry.getOrigin()), e), e);
+			}
+		} catch (IOException e) {
+			throw ExceptionUtil.wrap(e);
+		}
+	}
+
 	/**
 	 * This must run first, contractually!
 	 * @param className The class name,
@@ -106,5 +121,13 @@ public class GameTransformer {
 	 */
 	public byte[] transform(String className) {
 		return patchedClasses.get(className);
+	}
+
+	private static ClassNode readClass(ClassReader reader) {
+		if (reader == null) return null;
+
+		ClassNode node = new ClassNode();
+		reader.accept(node, 0);
+		return node;
 	}
 }
