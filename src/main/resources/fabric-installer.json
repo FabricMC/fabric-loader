@@ -66,13 +66,13 @@
         ],
         "development": [
             {
-                "name": "io.github.llamalad7:mixinextras-fabric:0.3.1",
+                "name": "io.github.llamalad7:mixinextras-fabric:0.3.2",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "ff03a8550fb5d191af224ce73226363e",
-                "sha1": "fc567b040eab7e994998ab2b8f7c034c2ec01365",
-                "sha256": "ee5a9983b43b763c05897700798a92b446ce7c3400c9aba53bec98c2bee1aa54",
-                "sha512": "ae8ce69d7269e012a35f820a598dcfc07ec0fd616219ba163aa17a24ef1bce4b092d6c59938759ad05c91d3f8428259dbdc4708cb3dd166bcf010e7c7cd1e317",
-                "size": 169317
+                "md5": "de356324f66d567e011be2203e8b2847",
+                "sha1": "33c53c7014a170a9cdfbc801f7a77a0eefd3bd00",
+                "sha256": "31a3ea710fcf8da5ab9fc9a3f7d2f3d6013e8203e7731650fa432091cdfd0180",
+                "sha512": "01e4cac72217dca4b873a2baff099e161be8830519b014e3cfb7535ba8d2cad7154bc66ceec2d555d13a6ca39fbb484e9706a68eb7fa59cbd134602d78ec4b01",
+                "size": 169184
             }
         ]
     },
