@@ -18,6 +18,7 @@ package net.fabricmc.loader.impl.discovery;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -28,8 +29,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.commons.Remapper;
@@ -41,6 +46,7 @@ import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
+import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -49,10 +55,15 @@ import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 public final class RuntimeModRemapper {
+	private static final String REMAP_TYPE_MANIFEST_KEY = "Fabric-Loom-Mixin-Remap-Type";
+	private static final String REMAP_TYPE_STATIC = "static";
+
 	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir) {
 		List<ModCandidate> modsToRemap = new ArrayList<>();
+		Set<InputTag> remapMixins = new HashSet<>();
 
 		for (ModCandidate mod : modCandidates) {
 			if (mod.getRequiresRemap()) {
@@ -67,6 +78,7 @@ public final class RuntimeModRemapper {
 		TinyRemapper remapper = TinyRemapper.newRemapper()
 				.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), "intermediary", launcher.getTargetNamespace()))
 				.renameInvalidLocals(false)
+				.extension(new MixinExtension(remapMixins::contains))
 				.build();
 
 		try {
@@ -93,6 +105,10 @@ public final class RuntimeModRemapper {
 				} else {
 					info.inputPath = mod.copyToDir(tmpDir, true);
 					info.inputIsTemp = true;
+				}
+
+				if (requiresMixinRemap(info.inputPath)) {
+					remapMixins.add(tag);
 				}
 
 				info.outputPath = outputDir.resolve(mod.getDefaultFileName());
@@ -203,6 +219,12 @@ public final class RuntimeModRemapper {
 		return Arrays.stream(content.split(File.pathSeparator))
 				.map(Paths::get)
 				.collect(Collectors.toList());
+	}
+
+	private static boolean requiresMixinRemap(Path inputPath) throws IOException, URISyntaxException {
+		final Manifest manifest = ManifestUtil.readManifest(inputPath.toUri().toURL());
+		final Attributes mainAttributes = manifest.getMainAttributes();
+		return REMAP_TYPE_STATIC.equalsIgnoreCase(mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY));
 	}
 
 	private static class RemapInfo {
