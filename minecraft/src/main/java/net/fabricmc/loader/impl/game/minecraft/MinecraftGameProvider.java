@@ -243,7 +243,7 @@ public class MinecraftGameProvider implements GameProvider {
 		// expose obfuscated jar locations for mods to more easily remap code from obfuscated to intermediary
 		ObjectShare share = FabricLoaderImpl.INSTANCE.getObjectShare();
 		share.put("fabric-loader:inputGameJar", gameJars.get(0)); // deprecated
-		share.put("fabric-loader:inputGameJars", gameJars);
+		share.put("fabric-loader:inputGameJars", Collections.unmodifiableList(new ArrayList<>(gameJars))); // need to make copy as gameJars is later mutated to hold the remapped jars
 		if (realmsJar != null) share.put("fabric-loader:inputRealmsJar", realmsJar);
 
 		String version = arguments.remove(Arguments.GAME_VERSION);
