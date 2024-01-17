@@ -287,7 +287,7 @@ public final class McVersionLookup {
 			int year = Integer.parseInt(matcher.group(1));
 			int week = Integer.parseInt(matcher.group(2));
 
-			if (year >= 23 && week >= 51) {
+			if (year == 23 && week >= 51 || year >= 24) {
 				return "1.20.5";
 			} else if (year == 23 && week >= 40 && week <= 46) {
 				return "1.20.3";
