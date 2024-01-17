@@ -204,7 +204,17 @@ public final class GameProviderHelper {
 			Path outputFile = deobfJarDir.resolve(deobfJarFilename);
 			Path tmpFile = deobfJarDir.resolve(deobfJarFilename + ".tmp");
 
-			if (Files.exists(tmpFile)) { // previous unfinished remap attempt
+			boolean corrupted = false;
+			if (Files.exists(outputFile)) {
+				//noinspection EmptyTryBlock
+                try (JarFile ignored = new JarFile(outputFile.toFile())) {
+                    // The constructor will throw if the file is invalid
+                } catch (IOException e) {
+                    corrupted = true;
+                }
+            }
+
+			if (Files.exists(tmpFile) || corrupted) { // previous unfinished remap attempt
 				Log.warn(LogCategory.GAME_REMAP, "Incomplete remapped file found! This means that the remapping process failed on the previous launch. If this persists, make sure to let us at Fabric know!");
 
 				try {
