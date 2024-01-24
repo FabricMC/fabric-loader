@@ -338,9 +338,9 @@ public final class McVersionLookup {
 			} else if (year == 14 && week >= 2 && week <= 34) {
 				return "1.8";
 			} else if (year == 13 && week >= 47 && week <= 49) {
-				return "1.7.4";
+				return "1.7.3";
 			} else if (year == 13 && week >= 36 && week <= 43) {
-				return "1.7.2";
+				return "1.7";
 			} else if (year == 13 && week >= 16 && week <= 26) {
 				return "1.6";
 			} else if (year == 13 && week >= 11 && week <= 12) {
@@ -350,11 +350,11 @@ public final class McVersionLookup {
 			} else if (year == 12 && week >= 49 && week <= 50) {
 				return "1.4.6";
 			} else if (year == 12 && week >= 32 && week <= 42) {
-				return "1.4.2";
+				return "1.4";
 			} else if (year == 12 && week >= 15 && week <= 30) {
-				return "1.3.1";
+				return "1.3";
 			} else if (year == 12 && week >= 3 && week <= 8) {
-				return "1.2.1";
+				return "1.2";
 			} else if (year == 11 && week >= 47 || year == 12 && week <= 1) {
 				return "1.1";
 			}
