@@ -3,6 +3,8 @@
 
 !/src
 !/build.gradle
+!/test.build.gradle
 !/.gitignore
 
 !/minecraft-test
+!/minecraft-smoke-test
