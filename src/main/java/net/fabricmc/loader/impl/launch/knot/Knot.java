@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -101,31 +100,22 @@ public final class Knot extends FabricLauncherBase {
 			}
 		}
 
-		classPath.clear();
-
-		List<String> missing = null;
-		List<String> unsupported = null;
+		List<Path> paths = new ArrayList<>();
+		List<String> unsupported = new ArrayList<>();
 
 		for (String cpEntry : System.getProperty("java.class.path").split(File.pathSeparator)) {
 			if (cpEntry.equals("*") || cpEntry.endsWith(File.separator + "*")) {
-				if (unsupported == null) unsupported = new ArrayList<>();
 				unsupported.add(cpEntry);
 				continue;
 			}
 
-			Path path = Paths.get(cpEntry);
-
-			if (!Files.exists(path)) {
-				if (missing == null) missing = new ArrayList<>();
-				missing.add(cpEntry);
-				continue;
-			}
-
-			classPath.add(LoaderUtil.normalizeExistingPath(path));
+			paths.add(Paths.get(cpEntry));
 		}
 
-		if (unsupported != null) Log.warn(LogCategory.KNOT, "Knot does not support wildcard class path entries: %s - the game may not load properly!", String.join(", ", unsupported));
-		if (missing != null) Log.warn(LogCategory.KNOT, "Class path entries reference missing files: %s - the game may not load properly!", String.join(", ", missing));
+		if (!unsupported.isEmpty()) Log.warn(LogCategory.KNOT, "Knot does not support wildcard class path entries: %s - the game may not load properly!", String.join(", ", unsupported));
+
+		classPath.clear();
+		classPath.addAll(normalizeClassPath(paths));
 
 		provider = createGameProvider(args);
 		Log.finishBuiltinConfig();

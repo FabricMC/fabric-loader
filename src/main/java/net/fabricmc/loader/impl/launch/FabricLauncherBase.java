@@ -20,7 +20,22 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipError;
+import java.util.zip.ZipFile;
 
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
@@ -28,6 +43,9 @@ import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.gui.FabricGuiEntry;
+import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.ManifestUtil;
+import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -142,5 +160,77 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 
 	public static boolean isMixinReady() {
 		return mixinReady;
+	}
+
+	/**
+	 * Normalize the class path by normalizing the paths, deduplicating, resolving/expanding indirect references and
+	 * suppressing purely other-jar referencing jars.
+	 */
+	protected static List<Path> normalizeClassPath(List<Path> cp) {
+		Set<Path> checkedPaths = new HashSet<>(cp.size());
+		List<Path> ret = new ArrayList<>(cp.size());
+		List<Path> missing = new ArrayList<>();
+		Deque<Path> queue = new ArrayDeque<>(cp);
+		Path path;
+
+		while ((path = queue.pollFirst()) != null) {
+			if (!Files.exists(path)) {
+				missing.add(path);
+				continue;
+			}
+
+			path = LoaderUtil.normalizeExistingPath(path);
+			if (!checkedPaths.add(path)) continue;
+
+			if (Files.isRegularFile(path)) { // jar, expand (resolve additional manifest-referenced cp entries) and suppress file if it is only such a referencing container
+				try (ZipFile zf = new ZipFile(path.toFile())) {
+					Manifest manifest = ManifestUtil.readManifest(zf);
+					List<URL> urls;
+
+					if (manifest != null
+							&& (urls = ManifestUtil.getClassPath(manifest, path)) != null) {
+						for (int i = urls.size() - 1; i >= 0; i--) {
+							queue.addFirst(UrlUtil.asPath(urls.get(i)));
+						}
+
+						// check for non-manifest/signature files to determine whether the jar can be ignored
+
+						final String prefix = ManifestUtil.MANIFEST_DIR+"/";
+						boolean foundNonManifest = false;
+
+						for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements(); ) {
+							ZipEntry entry = e.nextElement();
+							if (entry.isDirectory()) continue;
+
+							String name = entry.getName();
+							String fileName;
+
+							if (!name.startsWith(prefix) // file outside META-INF
+									|| (fileName = name.substring(prefix.length())).indexOf('/') >= 0 // file not directly within META-INF
+									|| !fileName.equals(ManifestUtil.MANIFEST_FILE) && !ManifestUtil.isSignatureFile(fileName)) { // neither MANIFEST.MF nor one of the sig files
+								foundNonManifest = true;
+								break;
+							}
+						}
+
+						if (!foundNonManifest) { // only a jar with a manifest and potentially signature, ignore
+							// don't add to ret
+							continue;
+						}
+					}
+				} catch (ZipError | Exception e) {
+					throw new RuntimeException("error reading "+path, e);
+				}
+			}
+
+			ret.add(path);
+		}
+
+		if (!missing.isEmpty()) {
+			Log.warn(LogCategory.GENERAL, "Class path entries reference missing files: %s - the game may not load properly!",
+					missing.stream().map(Path::toString).collect(Collectors.joining(", ")));
+		}
+
+		return ret;
 	}
 }
