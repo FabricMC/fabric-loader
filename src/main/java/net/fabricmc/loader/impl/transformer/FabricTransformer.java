@@ -24,11 +24,14 @@ import net.fabricmc.accesswidener.AccessWidenerClassVisitor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 public final class FabricTransformer {
+	private static final boolean FIX_PACKAGE_ACCESS = System.getProperty(SystemProperties.FIX_PACKAGE_ACCESS) != null;
+
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.startsWith("com.mojang.blaze3d.") || name.indexOf('.') < 0;
-		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
+		boolean transformAccess = isMinecraftClass && (FIX_PACKAGE_ACCESS || FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack());
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
 		boolean applyAccessWidener = isMinecraftClass && FabricLoaderImpl.INSTANCE.getAccessWidener().getTargets().contains(name);
 
