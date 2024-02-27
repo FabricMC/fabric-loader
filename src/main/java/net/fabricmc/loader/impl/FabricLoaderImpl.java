@@ -77,6 +77,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public static final String VERSION = "0.15.7";
 	public static final String MOD_ID = "fabricloader";
 
+	// Relative to game dir
+	private static final String MOD_CACHE_DIR = ".cache";
+	private static final String MOD_CONFIG_DIR = "config";
+
+	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
 	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to loader cache dir
 	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to loader cache dir
 	private static final String TMP_DIR_NAME = "tmp"; // relative to loader cache dir
@@ -131,10 +136,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		setGameDir(provider.getLaunchDirectory());
 	}
 
-	public void setGameDir(Path gameDir) {
+	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir;
-		this.cacheDir = gameDir.resolve(".cache");
-		this.configDir = gameDir.resolve("config");
+		this.cacheDir = gameDir.resolve(MOD_CACHE_DIR);
+		this.configDir = gameDir.resolve(MOD_CONFIG_DIR);
 	}
 
 	@Override
@@ -176,11 +181,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	/**
-	 * @return The game instance's temporary file directory.
+	 * @return The game instance's temporary file directory for a particular mod.
 	 */
 	@Override
-	public Path getCacheDir() {
-		return ensureDirExists(cacheDir, "cache");
+	public Path getCacheDir(String modId) {
+		return ensureDirExists(cacheDir.resolve(modId), "cache");
 	}
 
 	/**
@@ -243,7 +248,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		dumpModList(modCandidates);
 
-		Path loaderCacheDir = getCacheDir().resolve(MOD_ID);
+		Path loaderCacheDir = gameDir.resolve(CACHE_DIR_NAME);
 		Path outputDir = loaderCacheDir.resolve(PROCESSED_MODS_DIR_NAME);
 
 		// runtime mod remapping
