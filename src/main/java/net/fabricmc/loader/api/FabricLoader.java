@@ -212,6 +212,13 @@ public interface FabricLoader {
 	File getGameDirectory();
 
 	/**
+	 * Get the current directory for temporary files.
+	 *
+	 * @return the cache directory
+	 */
+	Path getCacheDir();
+
+	/**
 	 * Get the current directory for game configuration files.
 	 *
 	 * @return the configuration directory
