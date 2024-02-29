@@ -284,6 +284,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void dumpNonFabricMods(List<Path> nonFabricMods) {
+		if (nonFabricMods.isEmpty()) return;
 		StringBuilder outputText = new StringBuilder();
 
 		for (Path nonFabricMod : nonFabricMods) {
