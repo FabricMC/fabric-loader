@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
@@ -283,7 +284,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		modCandidates = null;
 	}
 
-	private void dumpNonFabricMods(List<Path> nonFabricMods) {
+	@VisibleForTesting
+	public void dumpNonFabricMods(List<Path> nonFabricMods) {
 		if (nonFabricMods.isEmpty()) return;
 		StringBuilder outputText = new StringBuilder();
 

@@ -17,9 +17,8 @@
 package net.fabricmc.loader.impl.discovery;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -51,21 +50,17 @@ public class GetNonFabricModsTest {
 	 * Set up the mock loader and discoverer
 	 */
 	@BeforeEach
-	public void setUp() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+	public void setUp() {
 		GameProvider provider = mock();
-		Mockito.when(provider.getBuiltinMods()).thenReturn(Collections.emptyList());
+		when(provider.getBuiltinMods()).thenReturn(Collections.emptyList());
 
 		launcher = mock();
-		Mockito.when(launcher.getEnvironmentType()).thenReturn(EnvType.CLIENT);
-		Mockito.when(launcher.isDevelopment()).thenReturn(false);
-
-		Method setLauncher = FabricLauncherBase.class.getDeclaredMethod("setLauncher", FabricLauncher.class);
-		setLauncher.setAccessible(true);
-		setLauncher.invoke(null, launcher);
-
+		when(launcher.getEnvironmentType()).thenReturn(EnvType.CLIENT);
+		when(launcher.isDevelopment()).thenReturn(false);
+		FabricLauncherBase.setLauncher(launcher);
 		loader = mock();
-		Mockito.when(loader.getGameProvider()).thenReturn(provider);
-		Mockito.when(loader.isDevelopmentEnvironment()).thenReturn(false);
+		when(loader.getGameProvider()).thenReturn(provider);
+		when(loader.isDevelopmentEnvironment()).thenReturn(false);
 
 		loaderConstruction = Mockito.mockConstructionWithAnswer(FabricLoaderImpl.class, invocation -> loader);
 

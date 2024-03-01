@@ -19,8 +19,6 @@ package net.fabricmc.test;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,21 +34,6 @@ import net.fabricmc.loader.impl.util.log.LogHandler;
 
 public class LogNonFabricModsTest {
 	private LogHandler logHandler;
-
-	/*
-	 * Calls dumpNonFabricMods using reflection, so we don't need to make the class
-	 * and method public.
-	 */
-	private static void dumpNonFabricMods(List<Path> nonFabricMods) {
-		try {
-			Method method = FabricLoaderImpl.class.getDeclaredMethod("dumpNonFabricMods", List.class);
-			method.setAccessible(true);
-			method.invoke(FabricLoaderImpl.INSTANCE, nonFabricMods);
-		} catch (NoSuchMethodException | IllegalArgumentException | IllegalAccessException
-				| InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	/*
 	 * Setup log handler before each test.
@@ -75,7 +58,7 @@ public class LogNonFabricModsTest {
 		nonFabricMods.add(Paths.get("mods/non_fabric_mod2.jar"));
 		nonFabricMods.add(Paths.get("mods/non_fabric_mod3.jar"));
 
-		dumpNonFabricMods(nonFabricMods);
+		FabricLoaderImpl.INSTANCE.dumpNonFabricMods(nonFabricMods);
 
 		String expectedLog = "Found 3 non-fabric mods:"
 				+ "\n\t- non_fabric_mod1.jar"
