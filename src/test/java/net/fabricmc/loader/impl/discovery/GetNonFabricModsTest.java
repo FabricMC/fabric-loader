@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +41,6 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 public class GetNonFabricModsTest {
 	private FabricLoaderImpl loader;
-	private FabricLauncher launcher;
 	private ModDiscoverer discoverer;
 	private MockedConstruction<FabricLoaderImpl> loaderConstruction;
 
@@ -54,7 +52,7 @@ public class GetNonFabricModsTest {
 		GameProvider provider = mock();
 		when(provider.getBuiltinMods()).thenReturn(Collections.emptyList());
 
-		launcher = mock();
+		FabricLauncher launcher = mock();
 		when(launcher.getEnvironmentType()).thenReturn(EnvType.CLIENT);
 		when(launcher.isDevelopment()).thenReturn(false);
 		FabricLauncherBase.setLauncher(launcher);
@@ -82,8 +80,8 @@ public class GetNonFabricModsTest {
 
 		boolean foundDummyFabricMod = false;
 
-		for (int i = 0; i < acceptedMods.size(); i++) {
-			if (acceptedMods.get(i).getId().equals("dummy")) {
+		for (ModCandidate acceptedMod : acceptedMods) {
+			if (acceptedMod.getId().equals("dummy")) {
 				foundDummyFabricMod = true;
 				break;
 			}
@@ -104,7 +102,6 @@ public class GetNonFabricModsTest {
 	public static class MockCandidateFinder implements ModCandidateFinder {
 		@Override
 		public void findCandidates(ModCandidateConsumer out) {
-			List<Path> modPaths = new ArrayList<>();
 			out.accept(Paths.get("./src/test/resources/testing/discovery/dummyFabricMod.jar"), false);
 			out.accept(Paths.get("./src/test/resources/testing/discovery/dummyNonFabricMod.jar"), false);
 		}
