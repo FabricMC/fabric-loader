@@ -70,6 +70,11 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 					continue;
 				}
 
+				// Skip synthetic methods, such as the main(String[]) method added by kotlin when using top-level functions
+				if (m.isSynthetic()) {
+					continue;
+				}
+
 				methodList.add(m);
 			}
 
