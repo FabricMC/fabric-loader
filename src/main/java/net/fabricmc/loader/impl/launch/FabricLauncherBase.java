@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
@@ -58,7 +59,8 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		properties = propertiesA;
 	}
 
-	private static void setLauncher(FabricLauncher launcherA) {
+	@VisibleForTesting
+	public static void setLauncher(FabricLauncher launcherA) {
 		if (launcher != null && launcher != launcherA) {
 			throw new RuntimeException("Duplicate setLauncher call!");
 		}
