@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;

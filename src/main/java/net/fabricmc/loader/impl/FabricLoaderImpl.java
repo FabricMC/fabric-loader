@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
