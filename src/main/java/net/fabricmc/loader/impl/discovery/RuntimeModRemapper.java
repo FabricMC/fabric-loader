@@ -37,6 +37,12 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
+import net.fabricmc.accesswidener.AccessWidener;
+
+import net.fabricmc.accesswidener.AccessWidenerClassVisitor;
+
+import net.fabricmc.loader.impl.FabricLoaderImpl;
+
 import org.objectweb.asm.commons.Remapper;
 
 import net.fabricmc.accesswidener.AccessWidenerReader;
@@ -60,6 +66,7 @@ import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 public final class RuntimeModRemapper {
 	private static final String REMAP_TYPE_MANIFEST_KEY = "Fabric-Loom-Mixin-Remap-Type";
 	private static final String REMAP_TYPE_STATIC = "static";
+	private static final String SOURCE_NAMESPACE = "intermediary";
 
 	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir) {
 		List<ModCandidate> modsToRemap = new ArrayList<>();
@@ -73,29 +80,19 @@ public final class RuntimeModRemapper {
 
 		if (modsToRemap.isEmpty()) return;
 
-		FabricLauncher launcher = FabricLauncherBase.getLauncher();
-
-		TinyRemapper remapper = TinyRemapper.newRemapper()
-				.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), "intermediary", launcher.getTargetNamespace()))
-				.renameInvalidLocals(false)
-				.extension(new MixinExtension(remapMixins::contains))
-				.build();
-
-		try {
-			remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to populate remap classpath", e);
-		}
-
 		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
 
+		TinyRemapper remapper = null;
+
 		try {
+			FabricLauncher launcher = FabricLauncherBase.getLauncher();
+
+			AccessWidener mergedAccessWidener = new AccessWidener();
+			mergedAccessWidener.visitHeader(SOURCE_NAMESPACE);
+
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = new RemapInfo();
 				infoMap.put(mod, info);
-
-				InputTag tag = remapper.createInputTag();
-				info.tag = tag;
 
 				if (mod.hasPath()) {
 					List<Path> paths = mod.getPaths();
@@ -107,12 +104,49 @@ public final class RuntimeModRemapper {
 					info.inputIsTemp = true;
 				}
 
+				info.outputPath = outputDir.resolve(mod.getDefaultFileName());
+				Files.deleteIfExists(info.outputPath);
+
+				String accessWidener = mod.getMetadata().getAccessWidener();
+
+				if (accessWidener != null) {
+					info.accessWidenerPath = accessWidener;
+
+					try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(info.inputPath, false)) {
+						FileSystem fs = jarFs.get();
+						info.sourceAccessWidener = Files.readAllBytes(fs.getPath(accessWidener));
+					} catch (Throwable t) {
+						throw new RuntimeException("Error reading access widener for mod '" +mod.getId()+ "'!", t);
+					}
+
+					new AccessWidenerReader(mergedAccessWidener).read(info.sourceAccessWidener);
+				}
+			}
+
+			remapper = TinyRemapper.newRemapper()
+					.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), SOURCE_NAMESPACE, launcher.getTargetNamespace()))
+					.renameInvalidLocals(false)
+					.extension(new MixinExtension(remapMixins::contains))
+					.extraAnalyzeVisitor((mrjVersion, className, next) ->
+							AccessWidenerClassVisitor.createClassVisitor(FabricLoaderImpl.ASM_VERSION, next, mergedAccessWidener)
+					)
+					.build();
+
+			try {
+				remapper.readClassPathAsync(getRemapClasspath().toArray(new Path[0]));
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to populate remap classpath", e);
+			}
+
+			for (ModCandidate mod : modsToRemap) {
+				RemapInfo info = infoMap.get(mod);
+
+				InputTag tag = remapper.createInputTag();
+				info.tag = tag;
+
 				if (requiresMixinRemap(info.inputPath)) {
 					remapMixins.add(tag);
 				}
-
-				info.outputPath = outputDir.resolve(mod.getDefaultFileName());
-				Files.deleteIfExists(info.outputPath);
 
 				remapper.readInputsAsync(tag, info.inputPath);
 			}
@@ -140,17 +174,8 @@ public final class RuntimeModRemapper {
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
-				String accessWidener = mod.getMetadata().getAccessWidener();
-
-				if (accessWidener != null) {
-					info.accessWidenerPath = accessWidener;
-
-					try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(info.inputPath, false)) {
-						FileSystem fs = jarFs.get();
-						info.accessWidener = remapAccessWidener(Files.readAllBytes(fs.getPath(accessWidener)), remapper.getRemapper());
-					} catch (Throwable t) {
-						throw new RuntimeException("Error remapping access widener for mod '"+mod.getId()+"'!", t);
-					}
+				if (info.sourceAccessWidener != null) {
+					info.accessWidener = remapAccessWidener(info.sourceAccessWidener, remapper.getRemapper(), launcher.getTargetNamespace());
 				}
 			}
 
@@ -173,7 +198,9 @@ public final class RuntimeModRemapper {
 				mod.setPaths(Collections.singletonList(info.outputPath));
 			}
 		} catch (Throwable t) {
-			remapper.finish();
+			if (remapper != null) {
+				remapper.finish();
+			}
 
 			for (RemapInfo info : infoMap.values()) {
 				if (info.outputPath == null) {
@@ -199,11 +226,11 @@ public final class RuntimeModRemapper {
 		}
 	}
 
-	private static byte[] remapAccessWidener(byte[] input, Remapper remapper) {
+	private static byte[] remapAccessWidener(byte[] input, Remapper remapper, String targetNamespace) {
 		AccessWidenerWriter writer = new AccessWidenerWriter();
-		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, "intermediary", "named");
+		AccessWidenerRemapper remappingDecorator = new AccessWidenerRemapper(writer, remapper, SOURCE_NAMESPACE, targetNamespace);
 		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(remappingDecorator);
-		accessWidenerReader.read(input, "intermediary");
+		accessWidenerReader.read(input, SOURCE_NAMESPACE);
 		return writer.write();
 	}
 
@@ -234,6 +261,7 @@ public final class RuntimeModRemapper {
 		boolean inputIsTemp;
 		OutputConsumerPath outputConsumerPath;
 		String accessWidenerPath;
+		byte[] sourceAccessWidener;
 		byte[] accessWidener;
 	}
 }
