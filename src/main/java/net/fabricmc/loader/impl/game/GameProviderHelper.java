@@ -155,6 +155,12 @@ public final class GameProviderHelper {
 
 	private static boolean emittedInfo = false;
 
+	private static String getSourceNamespace(List<String> namespaces, EnvType envType) {
+		if (namespaces.contains("official")) return "official";
+
+		return envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
+	}
+
 	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher) {
 		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", inputFileMap);
 
@@ -184,7 +190,9 @@ public final class GameProviderHelper {
 			return inputFileMap;
 		}
 
-		if (!namespaces.contains(targetNamespace)) {
+		String sourceNamespace = getSourceNamespace(namespaces, launcher.getEnvironmentType());
+
+		if (!namespaces.contains(targetNamespace) || !namespaces.contains(sourceNamespace)) {
 			Log.debug(LogCategory.GAME_REMAP, "Missing namespace in mappings, using input files");
 			return inputFileMap;
 		}
@@ -239,7 +247,7 @@ public final class GameProviderHelper {
 
 		try {
 			Files.createDirectories(deobfJarDir);
-			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappingConfig.getMappings(), targetNamespace, launcher);
+			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappingConfig.getMappings(), sourceNamespace, targetNamespace, launcher);
 		} catch (IOException e) {
 			throw new RuntimeException("error remapping game jars "+inputFiles, e);
 		}
@@ -266,9 +274,9 @@ public final class GameProviderHelper {
 		return ret.resolve(versionDirName.toString().replaceAll("[^\\w\\-\\. ]+", "_"));
 	}
 
-	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String targetNamespace, FabricLauncher launcher) throws IOException {
+	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String sourceNamespace, String targetNamespace, FabricLauncher launcher) throws IOException {
 		TinyRemapper remapper = TinyRemapper.newRemapper()
-				.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
+				.withMappings(TinyRemapperMappingsHelper.create(mappings, sourceNamespace, targetNamespace))
 				.rebuildSourceFilenames(true)
 				.build();
 
