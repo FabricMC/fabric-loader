@@ -155,12 +155,6 @@ public final class GameProviderHelper {
 
 	private static boolean emittedInfo = false;
 
-	private static String getSourceNamespace(List<String> namespaces, EnvType envType) {
-		if (namespaces.contains("official")) return "official";
-
-		return envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
-	}
-
 	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher) {
 		return deobfuscate(inputFileMap, gameId, gameVersion, gameDir, launcher, "official");
 	}
