@@ -16,15 +16,15 @@
 
 package net.fabricmc.loader.impl.util.mappings;
 
+import java.io.IOException;
+import java.util.Objects;
+
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.tinyremapper.IMappingProvider;
-
-import java.io.IOException;
-import java.util.Objects;
 
 public class TinyRemapperMappingsHelper {
 	private TinyRemapperMappingsHelper() { }

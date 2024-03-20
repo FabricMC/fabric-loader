@@ -328,7 +328,9 @@ public class MinecraftGameProvider implements GameProvider {
 				if (!mergedVersionPredicate.test(Version.parse(getNormalizedGameVersion()))) {
 					sourceNamespace = envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
 				}
-			} catch (VersionParsingException ignored) {}
+			} catch (VersionParsingException ignored) {
+				Log.warn(LogCategory.GAME_PROVIDER, "Failed to determine source namespace for remapping, defaulting to 'official'...");
+			}
 
 			obfJars = GameProviderHelper.deobfuscate(obfJars,
 					getGameId(), getNormalizedGameVersion(),
