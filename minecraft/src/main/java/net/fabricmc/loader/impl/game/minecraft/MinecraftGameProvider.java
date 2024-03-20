@@ -35,8 +35,10 @@ import java.util.Set;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.ObjectShare;
+import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
@@ -318,10 +320,20 @@ public class MinecraftGameProvider implements GameProvider {
 				obfJars.put("realms", realmsJar);
 			}
 
+			String sourceNamespace = "official";
+
+			try {
+				VersionPredicate mergedVersionPredicate = VersionPredicate.parse(">=1.3");
+
+				if (!mergedVersionPredicate.test(Version.parse(getNormalizedGameVersion()))) {
+					sourceNamespace = envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
+				}
+			} catch (VersionParsingException ignored) {}
+
 			obfJars = GameProviderHelper.deobfuscate(obfJars,
 					getGameId(), getNormalizedGameVersion(),
 					getLaunchDirectory(),
-					launcher);
+					launcher, sourceNamespace);
 
 			for (int i = 0; i < gameJars.size(); i++) {
 				Path newJar = obfJars.get(names[i]);
