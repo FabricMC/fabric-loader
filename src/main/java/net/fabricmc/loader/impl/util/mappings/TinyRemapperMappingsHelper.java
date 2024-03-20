@@ -16,8 +16,15 @@
 
 package net.fabricmc.loader.impl.util.mappings;
 
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.tinyremapper.IMappingProvider;
+
+import java.io.IOException;
+import java.util.Objects;
 
 public class TinyRemapperMappingsHelper {
 	private TinyRemapperMappingsHelper() { }
@@ -27,11 +34,26 @@ public class TinyRemapperMappingsHelper {
 	}
 
 	public static IMappingProvider create(MappingTree mappings, String from, String to) {
-		return (acceptor) -> {
-			final int fromId = mappings.getNamespaceId(from);
-			final int toId = mappings.getNamespaceId(to);
+		if (!Objects.equals(mappings.getSrcNamespace(), from)) {
+			MemoryMappingTree filteredTree = new MemoryMappingTree();
+			MappingSourceNsSwitch sourceSwitcher = new MappingSourceNsSwitch(filteredTree, from, true);
 
-			for (MappingTree.ClassMapping classDef : mappings.getClasses()) {
+			try {
+				mappings.accept(sourceSwitcher);
+
+				mappings = filteredTree;
+			} catch (IOException exception) {
+				Log.warn(LogCategory.GAME_REMAP, "Failed to switch mappings source namespace...", exception);
+			}
+		}
+
+		MappingTree finalMappings = mappings;
+
+		return (acceptor) -> {
+			final int fromId = finalMappings.getNamespaceId(from);
+			final int toId = finalMappings.getNamespaceId(to);
+
+			for (MappingTree.ClassMapping classDef : finalMappings.getClasses()) {
 				final String className = classDef.getName(fromId);
 				String dstName = classDef.getName(toId);
 
