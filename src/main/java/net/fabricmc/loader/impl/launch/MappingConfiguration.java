@@ -22,7 +22,9 @@ import java.io.InputStreamReader;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 import java.util.zip.ZipError;
@@ -34,6 +36,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.FilteringMappingVisitor;
 import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.adapter.MappingNsCompleter;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.mappingio.format.tiny.Tiny1FileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
@@ -157,6 +160,19 @@ public final class MappingConfiguration {
 					break;
 				default:
 					throw new UnsupportedOperationException("Unsupported mapping format: " + format);
+				}
+
+				if (!mappings.getDstNamespaces().contains("official")) {
+					MemoryMappingTree completedTree = new MemoryMappingTree();
+
+					Map<String, String> completableToComplete = new HashMap<>();
+					completableToComplete.put("clientOfficial", "intermediary");
+					completableToComplete.put("serverOfficial", "intermediary");
+
+					MappingNsCompleter completer = new MappingNsCompleter(completedTree, completableToComplete);
+					mappings.accept(completer);
+
+					mappings = completedTree;
 				}
 
 				Log.debug(LogCategory.MAPPINGS, "Loading mappings took %d ms", System.currentTimeMillis() - time);
