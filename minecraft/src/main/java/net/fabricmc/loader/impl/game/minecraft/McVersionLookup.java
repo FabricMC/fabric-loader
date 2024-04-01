@@ -599,6 +599,10 @@ public final class McVersionLookup {
 			// Minecraft 23w13a_or_b, forked from 23w13a
 			return "1.20-alpha.23.13.ab";
 
+		case "24w14potato":
+			// Minecraft 24w14potato, forked from 24w12a
+			return "1.20.5-alpha.24.12.potato";
+
 		default:
 			return null; //Don't recognise the version
 		}
