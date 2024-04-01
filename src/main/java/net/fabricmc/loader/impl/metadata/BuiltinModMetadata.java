@@ -33,7 +33,6 @@ import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.api.metadata.Person;
-import net.fabricmc.loader.impl.util.version.VersionParser;
 
 public final class BuiltinModMetadata extends AbstractModMetadata {
 	private final String id;
@@ -172,7 +171,7 @@ public final class BuiltinModMetadata extends AbstractModMetadata {
 			this.name = this.id = id;
 
 			try {
-				this.version = VersionParser.parseSemantic(version);
+				this.version = Version.parse(version);
 			} catch (VersionParsingException e) {
 				throw new RuntimeException(e);
 			}
