@@ -38,6 +38,10 @@ public final class VersionPredicateParser {
 	public static VersionPredicate parse(String predicate) throws VersionParsingException {
 		List<SingleVersionPredicate> predicateList = new ArrayList<>();
 
+		if (predicate.startsWith("/") && predicate.endsWith("/")) {
+			return new RegexVersionPredicate(predicate);
+		}
+
 		for (String s : predicate.split(" ")) {
 			s = s.trim();
 
@@ -267,4 +271,51 @@ public final class VersionPredicateParser {
 			return ret.toString();
 		}
 	}
+
+	static class RegexVersionPredicate implements VersionPredicate {
+		private final String regex;
+
+		RegexVersionPredicate(String regex) {
+			this.regex = regex.substring(1, regex.length() - 1);
+		}
+
+		@Override
+		public boolean test(Version version) {
+			Objects.requireNonNull(version, "null version");
+
+			return version.toString().matches(regex);
+		}
+
+		@Override
+		public Collection<? extends PredicateTerm> getTerms() {
+			return Collections.emptyList();
+		}
+
+		@Override
+		public VersionInterval getInterval() {
+			return null;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof RegexVersionPredicate) {
+				RegexVersionPredicate o = (RegexVersionPredicate) obj;
+
+				return Objects.equals(regex, o.regex);
+			} else {
+				return false;
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			return regex.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return regex;
+		}
+	}
+
 }

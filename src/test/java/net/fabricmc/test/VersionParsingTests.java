@@ -93,6 +93,13 @@ public class VersionParsingTests {
 		testTrue(tryParseSemantic("1.0.0+20130313144700", false));
 		testTrue(tryParseSemantic("1.0.0-beta+exp.sha.5114f85", false));
 
+		// Test: Regex version
+		{
+			Predicate<Version> predicate = VersionPredicateParser.parse("/0\\.5\\.1-f-.+/");
+			testTrue(predicate.test(new SemanticVersionImpl("0.5.1-f-build.1417+mc1.20.1", false)));
+			testFalse(predicate.test(new SemanticVersionImpl("0.5.1-g-build.1417+mc1.20.1", false)));
+		}
+
 		// Test: comparator range with pre-releases.
 		{
 			Predicate<Version> predicate = VersionPredicateParser.parse(">=0.3.1-beta.2 <0.4.0");
