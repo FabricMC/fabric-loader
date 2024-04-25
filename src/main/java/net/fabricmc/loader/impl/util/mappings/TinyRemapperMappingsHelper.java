@@ -16,62 +16,14 @@
 
 package net.fabricmc.loader.impl.util.mappings;
 
-import java.io.IOException;
-import java.util.Objects;
-
-import net.fabricmc.loader.impl.util.log.Log;
-import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.tree.MappingTree;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.tinyremapper.IMappingProvider;
+import net.fabricmc.tinyremapper.TinyUtils;
 
 public class TinyRemapperMappingsHelper {
 	private TinyRemapperMappingsHelper() { }
 
-	private static IMappingProvider.Member memberOf(String className, String memberName, String descriptor) {
-		return new IMappingProvider.Member(className, memberName, descriptor);
-	}
-
 	public static IMappingProvider create(MappingTree mappings, String from, String to) {
-		if (!Objects.equals(mappings.getSrcNamespace(), from)) {
-			MemoryMappingTree filteredTree = new MemoryMappingTree();
-			MappingSourceNsSwitch sourceSwitcher = new MappingSourceNsSwitch(filteredTree, from, true);
-
-			try {
-				mappings.accept(sourceSwitcher);
-
-				mappings = filteredTree;
-			} catch (IOException exception) {
-				Log.warn(LogCategory.GAME_REMAP, "Failed to switch mappings source namespace...", exception);
-			}
-		}
-
-		MappingTree finalMappings = mappings;
-
-		return (acceptor) -> {
-			final int fromId = finalMappings.getNamespaceId(from);
-			final int toId = finalMappings.getNamespaceId(to);
-
-			for (MappingTree.ClassMapping classDef : finalMappings.getClasses()) {
-				final String className = classDef.getName(fromId);
-				String dstName = classDef.getName(toId);
-
-				if (dstName == null) {
-					dstName = className;
-				}
-
-				acceptor.acceptClass(className, dstName);
-
-				for (MappingTree.FieldMapping field : classDef.getFields()) {
-					acceptor.acceptField(memberOf(className, field.getName(fromId), field.getDesc(fromId)), field.getName(toId));
-				}
-
-				for (MappingTree.MethodMapping method : classDef.getMethods()) {
-					IMappingProvider.Member methodIdentifier = memberOf(className, method.getName(fromId), method.getDesc(fromId));
-					acceptor.acceptMethod(methodIdentifier, method.getName(toId));
-				}
-			}
-		};
+		return TinyUtils.createMappingProvider(mappings, from, to);
 	}
 }
