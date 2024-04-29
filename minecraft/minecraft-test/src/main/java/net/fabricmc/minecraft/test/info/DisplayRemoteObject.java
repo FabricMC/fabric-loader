@@ -1,16 +1,16 @@
 package net.fabricmc.minecraft.test.info;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.info.ProgressBar;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DisplayRemoteObject extends UnicastRemoteObject implements DisplayRemote {
@@ -28,8 +28,6 @@ public class DisplayRemoteObject extends UnicastRemoteObject implements DisplayR
 					 UnsupportedLookAndFeelException e) {
 				throw new RuntimeException(e);
 			}
-			JLabel modMessages = new JLabel("Mod Messages");
-			frame.add(modMessages);
 			frame.setSize(480, 300);
 			frame.setVisible(true);
 			ConcurrentHashMap<String, JProgressBar> cache = new ConcurrentHashMap<>();

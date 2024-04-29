@@ -8,7 +8,6 @@ import net.fabricmc.loader.api.info.EntrypointInvocationSession;
 import net.fabricmc.loader.api.info.Message;
 import net.fabricmc.loader.api.info.ModMessageReceiver;
 import net.fabricmc.loader.api.info.ProgressBar;
-import net.fabricmc.loader.impl.gui.FabricGuiEntry;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
@@ -23,6 +22,7 @@ import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+@SuppressWarnings("InfiniteLoopStatement")
 public class EarlyDisplayEntrypoint implements PreLaunchEntrypoint, Runnable, EntrypointInfoReceiver, ModMessageReceiver {
 
 	private DisplayRemote remote;
@@ -69,8 +69,7 @@ public class EarlyDisplayEntrypoint implements PreLaunchEntrypoint, Runnable, En
 			}
 		}
 
-		if (javaPath == null) throw new RuntimeException("can't find java executable in "+javaBinDir);
-		System.out.println(javaPath.toString() + " -Xmx1G" + " -cp " + UrlUtil.getCodeSource(EarlyDisplayInit.class).toString() + ":" + UrlUtil.LOADER_CODE_SOURCE.toString() + " " + FabricGuiEntry.class.getName());
+		if (javaPath == null) throw new RuntimeException("can't find java executable in " + javaBinDir);
 		Process process = new ProcessBuilder(javaPath.toString(), "-Xmx1G", "-cp", UrlUtil.getCodeSource(EarlyDisplayInit.class).toString() + ":" + UrlUtil.LOADER_CODE_SOURCE.toString(), EarlyDisplayInit.class.getName())
 				.redirectOutput(ProcessBuilder.Redirect.INHERIT)
 				.redirectError(ProcessBuilder.Redirect.INHERIT)
@@ -79,13 +78,6 @@ public class EarlyDisplayEntrypoint implements PreLaunchEntrypoint, Runnable, En
 		final Thread shutdownHook = new Thread(process::destroy);
 
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
-
-
-//		int rVal = process.waitFor();
-//
-//		Runtime.getRuntime().removeShutdownHook(shutdownHook);
-//
-//		if (rVal != 0) throw new IOException("subprocess exited with code "+rVal);
 	}
 
 	private static final ConcurrentLinkedDeque<ProgressBar> progressBars = new ConcurrentLinkedDeque<>();
@@ -106,11 +98,9 @@ public class EarlyDisplayEntrypoint implements PreLaunchEntrypoint, Runnable, En
 
 	@Override
 	public EntrypointInvocationSession createEntrypointInvocationSession(String entrypointName, int size) {
-		MyEntrypointInvocationSession myEntrypointInvocationSession = new MyEntrypointInvocationSession();
-		myEntrypointInvocationSession.name = entrypointName;
-		myEntrypointInvocationSession.size = size;
-		myEntrypointInvocationSession.progressBar = FabricLoader.getInstance().getModMessageSession().progressBar(entrypointName, size);
-		return myEntrypointInvocationSession;
+		TestEntrypointInvocationSession testEntrypointInvocationSession = new TestEntrypointInvocationSession();
+		testEntrypointInvocationSession.progressBar = FabricLoader.getInstance().getModMessageSession().progressBar(entrypointName, size);
+		return testEntrypointInvocationSession;
 	}
 
 	@Override
@@ -127,9 +117,7 @@ public class EarlyDisplayEntrypoint implements PreLaunchEntrypoint, Runnable, En
 		}
 	}
 
-	private static class MyEntrypointInvocationSession implements EntrypointInvocationSession {
-		private String name;
-		private int size;
+	private static class TestEntrypointInvocationSession implements EntrypointInvocationSession {
 		private ProgressBar progressBar;
 
 		@Override
