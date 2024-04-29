@@ -35,6 +35,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import net.fabricmc.loader.api.info.EntrypointInfoReceiver;
+import net.fabricmc.loader.api.info.EntrypointInvocationSession;
+import net.fabricmc.loader.api.info.ModMessageSession;
+
 import org.objectweb.asm.Opcodes;
 
 import net.fabricmc.accesswidener.AccessWidener;
@@ -369,26 +373,45 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	@Override
 	public <T> void invokeEntrypoints(String key, Class<T> type, Consumer<? super T> invoker) {
+		RuntimeException exception = null;
+		Collection<EntrypointContainer<T>> entrypoints = FabricLoaderImpl.INSTANCE.getEntrypointContainers(key, type);
+		List<EntrypointInvocationSession> sessions = new ArrayList<>();
+		int size = entrypoints.size();
+		for (EntrypointInfoReceiver entrypointInfoReceiver : FabricLoaderImpl.INSTANCE.getEntrypointInfoReceivers()) {
+			sessions.add(entrypointInfoReceiver.createEntrypointInvocationSession(key, size));
+		}
+
 		if (!hasEntrypoints(key)) {
 			Log.debug(LogCategory.ENTRYPOINT, "No subscribers for entrypoint '%s'", key);
 			return;
 		}
 
-		RuntimeException exception = null;
-		Collection<EntrypointContainer<T>> entrypoints = FabricLoaderImpl.INSTANCE.getEntrypointContainers(key, type);
-
 		Log.debug(LogCategory.ENTRYPOINT, "Iterating over entrypoint '%s'", key);
 
+		int index = 0;
 		for (EntrypointContainer<T> container : entrypoints) {
+			index++;
+			for (EntrypointInvocationSession session : sessions) {
+				session.preInvoke(container.getProvider(), index, size);
+			}
 			try {
 				invoker.accept(container.getEntrypoint());
 			} catch (Throwable t) {
+				for (EntrypointInvocationSession session : sessions) {
+					//noinspection ReassignedVariable,AssignmentToCatchBlockParameter
+					t = session.error(container.getProvider(), t, index, size);
+				}
+				if (t == null) continue;
 				exception = ExceptionUtil.gatherExceptions(t,
 						exception,
 						exc -> new RuntimeException(String.format("Could not execute entrypoint stage '%s' due to errors, provided by '%s'!",
 								key, container.getProvider().getMetadata().getId()),
 								exc));
 			}
+		}
+
+		for (EntrypointInvocationSession session : sessions) {
+			session.close();
 		}
 
 		if (exception != null) {
@@ -593,6 +616,16 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	@Override
 	public String[] getLaunchArguments(boolean sanitize) {
 		return getGameProvider().getLaunchArguments(sanitize);
+	}
+
+	@Override
+	public List<EntrypointInfoReceiver> getEntrypointInfoReceivers() {
+		return null;
+	}
+
+	@Override
+	public ModMessageSession getModMessageSession() {
+		return null;
 	}
 
 	@Override
