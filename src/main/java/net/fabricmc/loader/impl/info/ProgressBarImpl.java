@@ -1,6 +1,9 @@
 package net.fabricmc.loader.impl.info;
 
+import net.fabricmc.loader.api.info.ModMessageReceiver;
 import net.fabricmc.loader.api.info.ProgressBar;
+
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +80,7 @@ public class ProgressBarImpl implements ProgressBar, Serializable {
 		ProgressBarImpl progressBar = new ProgressBarImpl(name, steps);
 		progressBar.parent = this;
 		this.children.add(progressBar);
+		FabricLoaderImpl.INSTANCE.getEntrypoints("modMessageReceiver", ModMessageReceiver.class).forEach(entrypoint -> entrypoint.progressBar(progressBar));
 		return progressBar;
 	}
 
