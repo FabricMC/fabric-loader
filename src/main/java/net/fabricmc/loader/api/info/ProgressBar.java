@@ -1,5 +1,7 @@
 package net.fabricmc.loader.api.info;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Closeable;
 
 /**
@@ -21,4 +23,12 @@ public interface ProgressBar extends Closeable {
 	void close();
 
 	boolean isCompleted();
+
+	/**
+	 * Create a child progress bar.
+	 */
+	ProgressBar progressBar(String name, int steps);
+
+	@Nullable
+	ProgressBar getParent();
 }
