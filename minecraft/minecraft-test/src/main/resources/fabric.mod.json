@@ -12,6 +12,40 @@
   "entrypoints": {
     "main": [
       "net.fabricmc.minecraft.test.TestEntrypoint"
+    ],
+    "preLaunch": [
+      "net.fabricmc.minecraft.test.info.EarlyDisplayEntrypoint"
+    ],
+    "entrypointReceiver": [
+      "net.fabricmc.minecraft.test.info.EarlyDisplayEntrypoint"
+    ],
+    "modMessageReceiver": [
+      "net.fabricmc.minecraft.test.info.EarlyDisplayEntrypoint"
+    ],
+    "test": [
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint",
+      "net.fabricmc.minecraft.test.info.TestEntrypoint"
     ]
   }
 }
