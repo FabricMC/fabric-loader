@@ -7,11 +7,18 @@ import java.io.Closeable;
  */
 public interface ProgressBar extends Closeable {
 	void increment();
-	float progress();
+	float percentage();
+	int progress();
 
+	/**
+	 * @return The total amount of steps the progress bar has.
+	 */
+	int steps();
 	void set(int steps);
 	String title();
 	void title(String title);
 	@Override
 	void close();
+
+	boolean isCompleted();
 }

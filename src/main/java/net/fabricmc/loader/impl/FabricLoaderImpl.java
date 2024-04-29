@@ -37,7 +37,9 @@ import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.info.EntrypointInfoReceiver;
 import net.fabricmc.loader.api.info.EntrypointInvocationSession;
-import net.fabricmc.loader.api.info.ModMessageSession;
+import net.fabricmc.loader.api.info.ModMessageSender;
+
+import net.fabricmc.loader.impl.info.ModMessageSenderImpl;
 
 import org.objectweb.asm.Opcodes;
 
@@ -620,12 +622,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	@Override
 	public List<EntrypointInfoReceiver> getEntrypointInfoReceivers() {
-		return null;
+		return getEntrypoints("entrypointReceiver", EntrypointInfoReceiver.class);
 	}
 
 	@Override
-	public ModMessageSession getModMessageSession() {
-		return null;
+	public ModMessageSender getModMessageSession() {
+		return new ModMessageSenderImpl();
 	}
 
 	@Override
