@@ -46,7 +46,7 @@ public class ProgressBarTest {
 
 				@Override
 				public void close() {
-
+					progressBar.close();
 				}
 			};
 		}
