@@ -40,6 +40,11 @@ public class ProgressBarTest {
 				}
 
 				@Override
+				public Throwable error(ModContainer mod, Throwable throwable, int index, int size) {
+					return throwable;
+				}
+
+				@Override
 				public void close() {
 
 				}
