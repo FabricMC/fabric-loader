@@ -386,7 +386,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 				exception = ExceptionUtil.gatherExceptions(t,
 						exception,
 						exc -> new RuntimeException(String.format("Could not execute entrypoint stage '%s' due to errors, provided by '%s'!",
-								key, container.getProvider().getMetadata().getId()),
+								key, container.getEntrypointName()),
 								exc));
 			}
 		}
