@@ -38,5 +38,7 @@ public interface EntrypointContainer<T> {
 	/**
 	 * Returns a string representation of the entrypoint.
 	 */
-	String getEntrypointName();
+	default String getEntrypointName() {
+		return getProvider().getMetadata().getId();
+	}
 }
