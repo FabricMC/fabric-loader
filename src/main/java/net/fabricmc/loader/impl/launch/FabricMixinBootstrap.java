@@ -159,8 +159,6 @@ public final class FabricMixinBootstrap {
 				for (LoaderMixinVersionEntry version : versions) {
 					if (minLoaderVersion.compareTo(version.loaderVersion) >= 0) { // lower bound is >= current version
 						return version.mixinVersion;
-					} else {
-						break;
 					}
 				}
 			}
