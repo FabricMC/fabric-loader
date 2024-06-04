@@ -236,4 +236,12 @@ public interface FabricLoader {
 	 * @return the launch arguments for the game
 	 */
 	String[] getLaunchArguments(boolean sanitize);
+
+	/**
+	 * Get a {@link ModDirectories} instance, proving access to various cache or data directories.
+	 *
+	 * @param modId the ID of the mod.
+	 * @return A {@link ModDirectories} instance.
+	 */
+	ModDirectories getDirectories(String modId);
 }
