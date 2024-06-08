@@ -120,7 +120,7 @@ public final class FabricMixinBootstrap {
 			// maximum loader version and bundled fabric mixin version, DESCENDING ORDER, LATEST FIRST
 			// loader versions with new mixin versions need to be added here
 
-			// addVersion("0.13", FabricUtil.COMPATIBILITY_0_11_0); // example for next entry (latest first!)
+			addVersion("0.16.0", FabricUtil.COMPATIBILITY_0_14_0);
 			addVersion("0.12.0-", FabricUtil.COMPATIBILITY_0_10_0);
 		}
 
@@ -159,8 +159,6 @@ public final class FabricMixinBootstrap {
 				for (LoaderMixinVersionEntry version : versions) {
 					if (minLoaderVersion.compareTo(version.loaderVersion) >= 0) { // lower bound is >= current version
 						return version.mixinVersion;
-					} else {
-						break;
 					}
 				}
 			}
