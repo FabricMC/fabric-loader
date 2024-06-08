@@ -25,6 +25,8 @@ import java.util.function.Consumer;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.api.info.EntrypointInfoReceiver;
+import net.fabricmc.loader.api.info.ModMessageSender;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
 /**
@@ -236,4 +238,7 @@ public interface FabricLoader {
 	 * @return the launch arguments for the game
 	 */
 	String[] getLaunchArguments(boolean sanitize);
+
+	List<EntrypointInfoReceiver> getEntrypointInfoReceivers();
+	ModMessageSender getModMessageSession();
 }
