@@ -52,7 +52,6 @@ import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.FabricMixinBootstrap;
 import net.fabricmc.loader.impl.util.Arguments;
-import net.fabricmc.loader.impl.util.FileSystemUtil;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -237,13 +236,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	@Override
 	public Manifest getManifest(Path originPath) {
 		try {
-			if (Files.isDirectory(originPath)) {
-				return ManifestUtil.readManifest(originPath);
-			} else {
-				try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(originPath, false)) {
-					return ManifestUtil.readManifest(jarFs.get().getRootDirectories().iterator().next());
-				}
-			}
+			return ManifestUtil.readManifest(originPath);
 		} catch (IOException e) {
 			Log.warn(LOG_CATEGORY, "Error reading Manifest", e);
 			return null;

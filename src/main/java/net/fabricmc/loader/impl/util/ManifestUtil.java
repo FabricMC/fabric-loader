@@ -43,11 +43,11 @@ public final class ManifestUtil {
 		return readManifest(url);
 	}
 
-	public static Manifest readManifest(URL codeSourceUrl) throws IOException, URISyntaxException {
+	private static Manifest readManifest(URL codeSourceUrl) throws IOException, URISyntaxException {
 		Path path = UrlUtil.asPath(codeSourceUrl);
 
 		if (Files.isDirectory(path)) {
-			return readManifest(path);
+			return readManifestFromBasePath(path);
 		} else {
 			URLConnection connection = new URL("jar:" + codeSourceUrl.toString() + "!/").openConnection();
 
@@ -56,12 +56,22 @@ public final class ManifestUtil {
 			}
 
 			try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
-				return readManifest(jarFs.get().getRootDirectories().iterator().next());
+				return readManifestFromBasePath(jarFs.get().getRootDirectories().iterator().next());
 			}
 		}
 	}
 
-	public static Manifest readManifest(Path basePath) throws IOException {
+	public static Manifest readManifest(Path codeSource) throws IOException {
+		if (Files.isDirectory(codeSource)) {
+			return readManifestFromBasePath(codeSource);
+		} else {
+			try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(codeSource, false)) {
+				return readManifestFromBasePath(jarFs.get().getRootDirectories().iterator().next());
+			}
+		}
+	}
+
+	public static Manifest readManifestFromBasePath(Path basePath) throws IOException {
 		Path path = basePath.resolve("META-INF").resolve("MANIFEST.MF");
 		if (!Files.exists(path)) return null;
 
