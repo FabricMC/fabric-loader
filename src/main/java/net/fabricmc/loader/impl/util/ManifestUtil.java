@@ -33,17 +33,17 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 
 public final class ManifestUtil {
-	public static Manifest readManifest(Class<?> cls) throws IOException, URISyntaxException {
+	public static Manifest readManifest(Class<?> cls, boolean allowCaching) throws IOException, URISyntaxException {
 		CodeSource cs = cls.getProtectionDomain().getCodeSource();
 		if (cs == null) return null;
 
 		URL url = cs.getLocation();
 		if (url == null) return null;
 
-		return readManifest(url);
+		return readManifest(url, allowCaching);
 	}
 
-	public static Manifest readManifest(URL codeSourceUrl) throws IOException, URISyntaxException {
+	public static Manifest readManifest(URL codeSourceUrl, boolean allowCaching) throws IOException, URISyntaxException {
 		Path path = UrlUtil.asPath(codeSourceUrl);
 
 		if (Files.isDirectory(path)) {
@@ -52,6 +52,7 @@ public final class ManifestUtil {
 			URLConnection connection = new URL("jar:" + codeSourceUrl.toString() + "!/").openConnection();
 
 			if (connection instanceof JarURLConnection) {
+				connection.setUseCaches(allowCaching);
 				return ((JarURLConnection) connection).getManifest();
 			}
 

@@ -222,7 +222,7 @@ public final class RuntimeModRemapper {
 	}
 
 	private static boolean requiresMixinRemap(Path inputPath) throws IOException, URISyntaxException {
-		final Manifest manifest = ManifestUtil.readManifest(inputPath.toUri().toURL());
+		final Manifest manifest = ManifestUtil.readManifest(inputPath.toUri().toURL(), false);
 		final Attributes mainAttributes = manifest.getMainAttributes();
 		return REMAP_TYPE_STATIC.equalsIgnoreCase(mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY));
 	}
