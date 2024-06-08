@@ -74,6 +74,7 @@ public final class ModDiscoverer {
 	private final EnvType envType = FabricLoaderImpl.INSTANCE.getEnvironmentType();
 	private final Map<Long, ModScanTask> jijDedupMap = new ConcurrentHashMap<>(); // avoids reading the same jar twice
 	private final List<NestedModInitData> nestedModInitDatas = Collections.synchronizedList(new ArrayList<>()); // breaks potential cycles from deduplication
+	private final List<Path> nonFabricMods = Collections.synchronizedList(new ArrayList<>());
 
 	public ModDiscoverer(VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
 		this.versionOverrides = versionOverrides;
@@ -221,6 +222,10 @@ public final class ModDiscoverer {
 		return new ArrayList<>(ret);
 	}
 
+	public List<Path> getNonFabricMods() {
+		return Collections.unmodifiableList(nonFabricMods);
+	}
+
 	// retrieve set of disabled mod ids from system property
 	private static Set<String> findDisabledModIds() {
 		String modIdList = System.getProperty(SystemProperties.DISABLE_MOD_IDS);
@@ -320,7 +325,11 @@ public final class ModDiscoverer {
 		private ModCandidate computeJarFile(Path path) throws IOException, ParseMetadataException {
 			try (ZipFile zf = new ZipFile(path.toFile())) {
 				ZipEntry entry = zf.getEntry("fabric.mod.json");
-				if (entry == null) return null;
+
+				if (entry == null) {
+					nonFabricMods.add(path);
+					return null;
+				}
 
 				LoaderModMetadata metadata;
 
