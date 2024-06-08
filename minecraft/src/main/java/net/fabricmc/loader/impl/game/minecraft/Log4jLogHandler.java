@@ -87,7 +87,7 @@ public final class Log4jLogHandler implements LogHandler {
 		Manifest manifest;
 
 		try {
-			manifest = ManifestUtil.readManifest(LogManager.class);
+			manifest = ManifestUtil.readManifest(LogManager.class, true);
 		} catch (IOException | URISyntaxException e) {
 			Log.warn(LogCategory.GAME_PROVIDER, "Can't read Log4J2 Manifest", e);
 			return true;

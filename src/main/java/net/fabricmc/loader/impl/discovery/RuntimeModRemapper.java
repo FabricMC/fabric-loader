@@ -122,18 +122,18 @@ public final class RuntimeModRemapper {
 				RemapInfo info = infoMap.get(mod);
 				OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(info.outputPath).build();
 
-				FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(info.inputPath, false);
+				try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(info.inputPath, false)) {
+					if (jarFs.get() == null) {
+						throw new RuntimeException("Could not open JAR file " + info.inputPath.getFileName() + " for NIO reading!");
+					}
 
-				if (delegate.get() == null) {
-					throw new RuntimeException("Could not open JAR file " + info.inputPath.getFileName() + " for NIO reading!");
+					Path inputJar = jarFs.get().getRootDirectories().iterator().next();
+					outputConsumer.addNonClassFiles(inputJar, NonClassCopyMode.FIX_META_INF, remapper);
+
+					info.outputConsumerPath = outputConsumer;
+
+					remapper.apply(outputConsumer, info.tag);
 				}
-
-				Path inputJar = delegate.get().getRootDirectories().iterator().next();
-				outputConsumer.addNonClassFiles(inputJar, NonClassCopyMode.FIX_META_INF, remapper);
-
-				info.outputConsumerPath = outputConsumer;
-
-				remapper.apply(outputConsumer, info.tag);
 			}
 
 			//Done in a 3rd loop as this can happen when the remapper is doing its thing.
@@ -222,7 +222,7 @@ public final class RuntimeModRemapper {
 	}
 
 	private static boolean requiresMixinRemap(Path inputPath) throws IOException, URISyntaxException {
-		final Manifest manifest = ManifestUtil.readManifest(inputPath.toUri().toURL());
+		final Manifest manifest = ManifestUtil.readManifest(inputPath.toUri().toURL(), false);
 		final Attributes mainAttributes = manifest.getMainAttributes();
 		return REMAP_TYPE_STATIC.equalsIgnoreCase(mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY));
 	}
