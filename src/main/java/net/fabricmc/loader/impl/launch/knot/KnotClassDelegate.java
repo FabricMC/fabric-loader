@@ -371,7 +371,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 			try {
 				if (Files.isDirectory(path)) {
-					manifest = ManifestUtil.readManifest(path);
+					manifest = ManifestUtil.readManifestFromBasePath(path);
 				} else {
 					URLConnection connection = new URL("jar:" + path.toUri().toString() + "!/").openConnection();
 
@@ -382,7 +382,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 					if (manifest == null) {
 						try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(path, false)) {
-							manifest = ManifestUtil.readManifest(jarFs.get().getRootDirectories().iterator().next());
+							manifest = ManifestUtil.readManifestFromBasePath(jarFs.get().getRootDirectories().iterator().next());
 						}
 					}
 
