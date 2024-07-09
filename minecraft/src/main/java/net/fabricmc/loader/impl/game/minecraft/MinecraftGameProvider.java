@@ -35,10 +35,8 @@ import java.util.Set;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.ObjectShare;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
@@ -50,6 +48,7 @@ import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.minecraft.patch.TinyFDPatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -322,14 +321,11 @@ public class MinecraftGameProvider implements GameProvider {
 
 			String sourceNamespace = "official";
 
-			try {
-				VersionPredicate mergedVersionPredicate = VersionPredicate.parse(">=1.3");
+			MappingConfiguration mappingConfig = launcher.getMappingConfiguration();
+			List<String> mappingNamespaces = mappingConfig.getNamespaces();
 
-				if (!mergedVersionPredicate.test(Version.parse(getNormalizedGameVersion()))) {
-					sourceNamespace = envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
-				}
-			} catch (VersionParsingException ignored) {
-				Log.warn(LogCategory.GAME_PROVIDER, "Failed to determine source namespace for remapping, defaulting to 'official'...");
+			if (mappingNamespaces != null && !mappingNamespaces.contains(sourceNamespace)) {
+				sourceNamespace = envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
 			}
 
 			obfJars = GameProviderHelper.deobfuscate(obfJars,
