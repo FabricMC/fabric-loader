@@ -111,12 +111,12 @@ public final class RuntimeModRemapper {
 
 					try (FileSystemUtil.FileSystemDelegate jarFs = FileSystemUtil.getJarFileSystem(info.inputPath, false)) {
 						FileSystem fs = jarFs.get();
-						info.sourceAccessWidener = Files.readAllBytes(fs.getPath(accessWidener));
+						info.accessWidener = Files.readAllBytes(fs.getPath(accessWidener));
 					} catch (Throwable t) {
 						throw new RuntimeException("Error reading access widener for mod '" +mod.getId()+ "'!", t);
 					}
 
-					new AccessWidenerReader(mergedAccessWidener).read(info.sourceAccessWidener);
+					new AccessWidenerReader(mergedAccessWidener).read(info.accessWidener);
 				}
 			}
 
@@ -171,8 +171,8 @@ public final class RuntimeModRemapper {
 			for (ModCandidate mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
-				if (info.sourceAccessWidener != null) {
-					info.accessWidener = remapAccessWidener(info.sourceAccessWidener, remapper.getRemapper(), launcher.getTargetNamespace());
+				if (info.accessWidener != null) {
+					info.accessWidener = remapAccessWidener(info.accessWidener, remapper.getRemapper(), launcher.getTargetNamespace());
 				}
 			}
 
@@ -258,7 +258,6 @@ public final class RuntimeModRemapper {
 		boolean inputIsTemp;
 		OutputConsumerPath outputConsumerPath;
 		String accessWidenerPath;
-		byte[] sourceAccessWidener;
 		byte[] accessWidener;
 	}
 }
