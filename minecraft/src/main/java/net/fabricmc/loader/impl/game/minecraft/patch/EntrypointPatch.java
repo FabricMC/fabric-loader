@@ -43,7 +43,6 @@ import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.loader.impl.util.version.VersionParser;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public class EntrypointPatch extends GamePatch {
@@ -567,7 +566,7 @@ public class EntrypointPatch extends GamePatch {
 
 	private Version getGameVersion() {
 		try {
-			return VersionParser.parseSemantic(gameProvider.getNormalizedGameVersion());
+			return Version.parse(gameProvider.getNormalizedGameVersion());
 		} catch (VersionParsingException e) {
 			throw new RuntimeException(e);
 		}

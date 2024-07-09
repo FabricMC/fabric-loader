@@ -47,6 +47,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
@@ -73,6 +74,7 @@ public final class ModDiscoverer {
 	private final EnvType envType = FabricLoaderImpl.INSTANCE.getEnvironmentType();
 	private final Map<Long, ModScanTask> jijDedupMap = new ConcurrentHashMap<>(); // avoids reading the same jar twice
 	private final List<NestedModInitData> nestedModInitDatas = Collections.synchronizedList(new ArrayList<>()); // breaks potential cycles from deduplication
+	private final List<Path> nonFabricMods = Collections.synchronizedList(new ArrayList<>());
 
 	public ModDiscoverer(VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
 		this.versionOverrides = versionOverrides;
@@ -118,6 +120,17 @@ public final class ModDiscoverer {
 
 		// add builtin mods
 		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
+			if (!(mod.metadata.getVersion() instanceof SemanticVersion)) {
+				String error = String.format("%s uses the non-semantic version %s, which doesn't support range comparisons and may cause mod dependencies against it to fail unexpectedly. Consider updating Fabric Loader or explicitly specifying the game version with the fabric.gameVersion system property.",
+						mod.metadata.getId(), mod.metadata.getVersion());
+
+				if (loader.isDevelopmentEnvironment()) { // fail hard in-dev
+					throw new FormattedException("Invalid game version", error);
+				} else {
+					Log.warn(LogCategory.GENERAL, error);
+				}
+			}
+
 			ModCandidate candidate = ModCandidate.createBuiltin(mod, versionOverrides, depOverrides);
 			candidates.add(MetadataVerifier.verifyIndev(candidate, loader.isDevelopmentEnvironment()));
 		}
@@ -207,6 +220,10 @@ public final class ModDiscoverer {
 		Log.debug(LogCategory.DISCOVERY, "Mod discovery time: %.1f ms", (endTime - startTime) * 1e-6);
 
 		return new ArrayList<>(ret);
+	}
+
+	public List<Path> getNonFabricMods() {
+		return Collections.unmodifiableList(nonFabricMods);
 	}
 
 	// retrieve set of disabled mod ids from system property
@@ -308,7 +325,11 @@ public final class ModDiscoverer {
 		private ModCandidate computeJarFile(Path path) throws IOException, ParseMetadataException {
 			try (ZipFile zf = new ZipFile(path.toFile())) {
 				ZipEntry entry = zf.getEntry("fabric.mod.json");
-				if (entry == null) return null;
+
+				if (entry == null) {
+					nonFabricMods.add(path);
+					return null;
+				}
 
 				LoaderModMetadata metadata;
 

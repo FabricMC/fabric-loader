@@ -48,6 +48,7 @@ import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.minecraft.patch.TinyFDPatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.launch.MappingConfiguration;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.Arguments;
@@ -318,10 +319,19 @@ public class MinecraftGameProvider implements GameProvider {
 				obfJars.put("realms", realmsJar);
 			}
 
+			String sourceNamespace = "official";
+
+			MappingConfiguration mappingConfig = launcher.getMappingConfiguration();
+			List<String> mappingNamespaces = mappingConfig.getNamespaces();
+
+			if (mappingNamespaces != null && !mappingNamespaces.contains(sourceNamespace)) {
+				sourceNamespace = envType == EnvType.CLIENT ? "clientOfficial" : "serverOfficial";
+			}
+
 			obfJars = GameProviderHelper.deobfuscate(obfJars,
 					getGameId(), getNormalizedGameVersion(),
 					getLaunchDirectory(),
-					launcher);
+					launcher, sourceNamespace);
 
 			for (int i = 0; i < gameJars.size(); i++) {
 				Path newJar = obfJars.get(names[i]);

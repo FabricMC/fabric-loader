@@ -46,12 +46,12 @@ import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
+import net.fabricmc.tinyremapper.TinyUtils;
 
 public final class GameProviderHelper {
 	private GameProviderHelper() { }
@@ -156,6 +156,10 @@ public final class GameProviderHelper {
 	private static boolean emittedInfo = false;
 
 	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher) {
+		return deobfuscate(inputFileMap, gameId, gameVersion, gameDir, launcher, "official");
+	}
+
+	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher, String sourceNamespace) {
 		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", inputFileMap);
 
 		if (launcher.isDevelopment()) { // in-dev is already deobfuscated
@@ -184,7 +188,7 @@ public final class GameProviderHelper {
 			return inputFileMap;
 		}
 
-		if (!namespaces.contains(targetNamespace)) {
+		if (!namespaces.contains(targetNamespace) || !namespaces.contains(sourceNamespace)) {
 			Log.debug(LogCategory.GAME_REMAP, "Missing namespace in mappings, using input files");
 			return inputFileMap;
 		}
@@ -239,7 +243,7 @@ public final class GameProviderHelper {
 
 		try {
 			Files.createDirectories(deobfJarDir);
-			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappingConfig.getMappings(), targetNamespace, launcher);
+			deobfuscate0(inputFiles, outputFiles, tmpFiles, mappingConfig.getMappings(), sourceNamespace, targetNamespace, launcher);
 		} catch (IOException e) {
 			throw new RuntimeException("error remapping game jars "+inputFiles, e);
 		}
@@ -266,9 +270,9 @@ public final class GameProviderHelper {
 		return ret.resolve(versionDirName.toString().replaceAll("[^\\w\\-\\. ]+", "_"));
 	}
 
-	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String targetNamespace, FabricLauncher launcher) throws IOException {
+	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String sourceNamespace, String targetNamespace, FabricLauncher launcher) throws IOException {
 		TinyRemapper remapper = TinyRemapper.newRemapper()
-				.withMappings(TinyRemapperMappingsHelper.create(mappings, "official", targetNamespace))
+				.withMappings(TinyUtils.createMappingProvider(mappings, sourceNamespace, targetNamespace))
 				.rebuildSourceFilenames(true)
 				.build();
 

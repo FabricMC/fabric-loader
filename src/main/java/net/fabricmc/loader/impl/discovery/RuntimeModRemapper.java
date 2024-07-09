@@ -53,11 +53,11 @@ import net.fabricmc.loader.impl.util.ManifestUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
-import net.fabricmc.loader.impl.util.mappings.TinyRemapperMappingsHelper;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
+import net.fabricmc.tinyremapper.TinyUtils;
 import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 public final class RuntimeModRemapper {
@@ -121,7 +121,7 @@ public final class RuntimeModRemapper {
 			}
 
 			remapper = TinyRemapper.newRemapper()
-					.withMappings(TinyRemapperMappingsHelper.create(launcher.getMappingConfiguration().getMappings(), SOURCE_NAMESPACE, launcher.getTargetNamespace()))
+					.withMappings(TinyUtils.createMappingProvider(launcher.getMappingConfiguration().getMappings(), SOURCE_NAMESPACE, launcher.getTargetNamespace()))
 					.renameInvalidLocals(false)
 					.extension(new MixinExtension(remapMixins::contains))
 					.extraAnalyzeVisitor((mrjVersion, className, next) ->
@@ -246,8 +246,9 @@ public final class RuntimeModRemapper {
 	}
 
 	private static boolean requiresMixinRemap(Path inputPath) throws IOException, URISyntaxException {
-		final Manifest manifest = ManifestUtil.readManifest(inputPath.toUri().toURL());
+		final Manifest manifest = ManifestUtil.readManifest(inputPath);
 		final Attributes mainAttributes = manifest.getMainAttributes();
+
 		return REMAP_TYPE_STATIC.equalsIgnoreCase(mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY));
 	}
 
