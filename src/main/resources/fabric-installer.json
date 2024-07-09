@@ -52,13 +52,13 @@
                 "size": 91131
             },
             {
-                "name": "net.fabricmc:sponge-mixin:0.14.0+mixin.0.8.6",
+                "name": "net.fabricmc:sponge-mixin:0.15.0+mixin.0.8.7",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "8280fb756f93c34d5d6fb392779541f7",
-                "sha1": "c265173c84346e9e5d42a2384b2b02bd39a4a899",
-                "sha256": "3f22c86d1a89e0c2b1cdd4388d495b50c744add9a7f2e96a8937f0dfd8d0f0b1",
-                "sha512": "a8bcbb9436c0a70eb7d5eb3e3b90ed7bddc1b568553f450cab32eb75244002ff17a6285d60a56294180f7023780ddc1b3afe4255ef0b8d518159ab8ab5be07b0",
-                "size": 1484799
+                "md5": "65ff9052ede9283e70770e0cd4eccdf4",
+                "sha1": "2ce1c5d57a061f3e259ec30b8b0cb2dc889c5156",
+                "sha256": "265ffe8b5b3a6b7e0c93749fe431bbb58523b429663caf1bc722d4ed72856702",
+                "sha512": "aab4337b86572ecaef1754ad39a76b946e5862ab54e87f2496992a01f9da7aa3e0025e9655a702bd83b87f5e91eb8576e7efcc4c5060c699c07876bc68b23e50",
+                "size": 1494859
             }
         ],
         "server": [
