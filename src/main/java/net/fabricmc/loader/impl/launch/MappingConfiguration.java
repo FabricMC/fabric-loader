@@ -30,6 +30,7 @@ import java.util.zip.ZipError;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.impl.util.ManifestUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 import net.fabricmc.loader.impl.util.mappings.FilteringMappingVisitor;
@@ -41,6 +42,8 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class MappingConfiguration {
+	private static final boolean FIX_PACKAGE_ACCESS = System.getProperty(SystemProperties.FIX_PACKAGE_ACCESS) != null;
+
 	private boolean initializedMetadata;
 	private boolean initializedMappings;
 
@@ -93,7 +96,7 @@ public final class MappingConfiguration {
 
 	public boolean requiresPackageAccessHack() {
 		// TODO
-		return getTargetNamespace().equals("named");
+		return FIX_PACKAGE_ACCESS || getTargetNamespace().equals("named");
 	}
 
 	private void initializeMetadata() {
