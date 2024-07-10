@@ -1,0 +1,84 @@
+def minecraftOptionsMap = [
+	"1.20.2": [
+		javaVersion: 17,
+	],
+	"1.16.5": [
+		javaVersion: 8,
+	],
+	"1.12.2": [
+		javaVersion: 8,
+		noIntermediary: true,
+	],
+	"1.4.7": [
+		javaVersion: 8,
+		noIntermediary: true,
+	],
+	"1.2.5": [
+		javaVersion: 8,
+		noIntermediary: true,
+		notMerged: true,
+	]
+]
+
+def minecraftVersion = System.getProperty("smoke_minecraft_version") ?: minecraftOptionsMap.keySet().first()
+def minecraftOptions = minecraftOptionsMap.get(minecraftVersion)
+def testServer = Boolean.getBoolean("smoke_test_server")
+
+if (minecraftOptions == null) {
+	throw new RuntimeException("Unknown minecraft version: ${minecraftVersion}")
+}
+
+for (def taskName : ["runProductionAutoTestClient", "runProductionAutoTestServer"]) {
+	tasks.named(taskName) {
+		javaLauncher = javaToolchains.launcherFor {
+			languageVersion = JavaLanguageVersion.of(minecraftOptions.javaVersion)
+		}
+	}
+}
+
+tasks.register("smokeTest") {
+	dependsOn "runProductionAutoTest${testServer ? "Server" : "Client"}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+	it.options.release = minecraftOptions.javaVersion
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraftVersion}"
+	mappings loom.layered() {
+		// We dont care about mappings
+	}
+
+	if (!minecraftOptions.noIntermediary) {
+		productionRuntime "net.fabricmc:intermediary:${minecraftVersion}"
+	}
+}
+
+loom {
+	if (minecraftOptions.noIntermediary) {
+		noIntermediateMappings()
+	}
+
+	if (minecraftOptions.notMerged) {
+		if (testServer) {
+			serverOnlyMinecraftJar()
+		} else {
+			clientOnlyMinecraftJar()
+		}
+	}
+}
+
+tasks.register("writeSmokeTestCommands") {
+	doLast {
+		StringJoiner output = new StringJoiner("\n")
+
+		minecraftOptionsMap.each { version, options ->
+			output.add("./gradlew :minecraft:minecraft-smoke-test:smokeTest -Dsmoke_minecraft_version=${version} -Dsmoke_test_server=false")
+			output.add("./gradlew :minecraft:minecraft-smoke-test:smokeTest -Dsmoke_minecraft_version=${version} -Dsmoke_test_server=true")
+		}
+
+		rootProject.file("runSmokeTests.sh").text = output.toString()
+	}
+}
