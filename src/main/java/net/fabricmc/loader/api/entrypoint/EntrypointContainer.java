@@ -36,9 +36,9 @@ public interface EntrypointContainer<T> {
 	ModContainer getProvider();
 
 	/**
-	 * Returns a string representation of the entrypoint.
+	 * Returns a string representation of the entrypoint's definition.
 	 */
-	default String getEntrypointName() {
-		return getProvider().getMetadata().getId();
+	default String getDefinition() {
+		return "";
 	}
 }

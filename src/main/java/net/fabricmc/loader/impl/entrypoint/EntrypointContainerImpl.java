@@ -66,7 +66,7 @@ public final class EntrypointContainerImpl<T> implements EntrypointContainer<T> 
 	}
 
 	@Override
-	public String getEntrypointName() {
-		return entry.toString();
+	public String getDefinition() {
+		return entry.getDefinition();
 	}
 }
