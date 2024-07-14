@@ -39,6 +39,8 @@ public final class EntrypointStorage {
 		boolean isOptional();
 
 		ModContainerImpl getModContainer();
+
+		String getDefinition();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -87,6 +89,11 @@ public final class EntrypointStorage {
 		public ModContainerImpl getModContainer() {
 			return mod;
 		}
+
+		@Override
+		public String getDefinition() {
+			return value;
+		}
 	}
 
 	private static final class NewEntry implements Entry {
@@ -131,6 +138,11 @@ public final class EntrypointStorage {
 		@Override
 		public ModContainerImpl getModContainer() {
 			return mod;
+		}
+
+		@Override
+		public String getDefinition() {
+			return value;
 		}
 	}
 
