@@ -27,6 +27,7 @@ import java.util.Set;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.metadata.ContactInformation;
 import net.fabricmc.loader.api.metadata.version.VersionComparisonOperator;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
@@ -36,6 +37,10 @@ public final class VersionPredicateParser {
 	private static final VersionComparisonOperator[] OPERATORS = VersionComparisonOperator.values();
 
 	public static VersionPredicate parse(String predicate) throws VersionParsingException {
+		return parse(predicate, null);
+	}
+
+	public static VersionPredicate parse(String predicate, ContactInformation contact) throws VersionParsingException {
 		List<SingleVersionPredicate> predicateList = new ArrayList<>();
 
 		for (String s : predicate.split(" ")) {
@@ -55,7 +60,7 @@ public final class VersionPredicateParser {
 				}
 			}
 
-			Version version = VersionParser.parse(s, true);
+			Version version = VersionParser.parse(s, true, contact);
 
 			if (version instanceof SemanticVersion) {
 				SemanticVersion semVer = (SemanticVersion) version;
@@ -80,10 +85,12 @@ public final class VersionPredicateParser {
 
 					version = new SemanticVersionImpl(newComponents, "", semVer.getBuildKey().orElse(null));
 				}
-			} else if (!operator.isMinInclusive() && !operator.isMaxInclusive()) { // non-semver without inclusive bound
-				throw new VersionParsingException("Invalid predicate: "+predicate+", version ranges need to be semantic version compatible to use operators that exclude the bound!");
-			} else { // non-semver with inclusive bound
-				operator = VersionComparisonOperator.EQUAL;
+			} else if (!(version instanceof CommitHashVersion)) {
+				if (!operator.isMinInclusive() && !operator.isMaxInclusive()) { // unknown format without inclusive bound
+					throw new VersionParsingException("Invalid predicate: "+predicate+", version ranges need to be comparable to use operators that exclude the bound!");
+				} else { // unknown format with inclusive bound
+					operator = VersionComparisonOperator.EQUAL;
+				}
 			}
 
 			predicateList.add(new SingleVersionPredicate(operator, version));

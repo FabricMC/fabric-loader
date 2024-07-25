@@ -18,6 +18,7 @@ package net.fabricmc.loader.api.metadata.version;
 
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.impl.util.version.CommitHashVersion;
 import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 
 public enum VersionComparisonOperator {
@@ -26,6 +27,11 @@ public enum VersionComparisonOperator {
 		@Override
 		public boolean test(SemanticVersion a, SemanticVersion b) {
 			return a.compareTo((Version) b) >= 0;
+		}
+
+		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			return a.compareTo(b) >= 0;
 		}
 
 		@Override
@@ -40,6 +46,11 @@ public enum VersionComparisonOperator {
 		}
 
 		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			return a.compareTo(b) <= 0;
+		}
+
+		@Override
 		public SemanticVersion maxVersion(SemanticVersion version) {
 			return version;
 		}
@@ -48,6 +59,11 @@ public enum VersionComparisonOperator {
 		@Override
 		public boolean test(SemanticVersion a, SemanticVersion b) {
 			return a.compareTo((Version) b) > 0;
+		}
+
+		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			return a.compareTo(b) > 0;
 		}
 
 		@Override
@@ -62,6 +78,11 @@ public enum VersionComparisonOperator {
 		}
 
 		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			return a.compareTo(b) < 0;
+		}
+
+		@Override
 		public SemanticVersion maxVersion(SemanticVersion version) {
 			return version;
 		}
@@ -70,6 +91,11 @@ public enum VersionComparisonOperator {
 		@Override
 		public boolean test(SemanticVersion a, SemanticVersion b) {
 			return a.compareTo((Version) b) == 0;
+		}
+
+		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			return a.compareTo(b) == 0;
 		}
 
 		@Override
@@ -91,6 +117,11 @@ public enum VersionComparisonOperator {
 		}
 
 		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			throw new UnsupportedOperationException("This operator is not supported for Git hash string versions");
+		}
+
+		@Override
 		public SemanticVersion minVersion(SemanticVersion version) {
 			return version;
 		}
@@ -105,6 +136,11 @@ public enum VersionComparisonOperator {
 		public boolean test(SemanticVersion a, SemanticVersion b) {
 			return a.compareTo((Version) b) >= 0
 					&& a.getVersionComponent(0) == b.getVersionComponent(0);
+		}
+
+		@Override
+		public boolean test(CommitHashVersion a, CommitHashVersion b) {
+			throw new UnsupportedOperationException("This operator is not supported for Git hash string versions");
 		}
 
 		@Override
@@ -143,6 +179,8 @@ public enum VersionComparisonOperator {
 	public final boolean test(Version a, Version b) {
 		if (a instanceof SemanticVersion && b instanceof SemanticVersion) {
 			return test((SemanticVersion) a, (SemanticVersion) b);
+		} else if (a instanceof CommitHashVersion && b instanceof CommitHashVersion) {
+			return test((CommitHashVersion) a, (CommitHashVersion) b);
 		} else if (minInclusive || maxInclusive) {
 			return a.getFriendlyString().equals(b.getFriendlyString());
 		} else {
@@ -151,6 +189,8 @@ public enum VersionComparisonOperator {
 	}
 
 	public abstract boolean test(SemanticVersion a, SemanticVersion b);
+
+	public abstract boolean test(CommitHashVersion a, CommitHashVersion b);
 
 	public SemanticVersion minVersion(SemanticVersion version) {
 		return null;

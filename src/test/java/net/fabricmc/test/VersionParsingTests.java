@@ -16,7 +16,13 @@
 
 package net.fabricmc.test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Predicate;
+
+import net.fabricmc.loader.api.metadata.ContactInformation;
+import net.fabricmc.loader.impl.metadata.ContactInformationImpl;
+import net.fabricmc.loader.impl.util.version.CommitHashVersion;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +35,15 @@ public class VersionParsingTests {
 	private static Exception tryParseSemantic(String s, boolean storeX) {
 		try {
 			new SemanticVersionImpl(s, storeX);
+			return null;
+		} catch (VersionParsingException e) {
+			return e;
+		}
+	}
+
+	private static Exception tryParseCommitHash(String s, String sources) {
+		try {
+			new CommitHashVersion(s, sources);
 			return null;
 		} catch (VersionParsingException e) {
 			return e;
@@ -317,6 +332,42 @@ public class VersionParsingTests {
 			testFalse(predicate.test(new SemanticVersionImpl("0.9.0-rc.5", false)));
 			testFalse(predicate.test(new SemanticVersionImpl("2.0.0", false)));
 			testFalse(predicate.test(new SemanticVersionImpl("2.0.0-beta.2", false)));
+		}
+
+		// Test: Commit Hash versions
+		testTrue(tryParseCommitHash("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/"));
+		testTrue(tryParseCommitHash("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader"));
+		testTrue(tryParseCommitHash("d9a000670180e73569a6983c423dd4299278afda", "http://github.com/fabricMC/fabric-loader/"));
+		testTrue(tryParseCommitHash("d9a000670180e73569a6983c423dd4299278afda", "github.com/fabricMC/fabric-loader/"));
+
+		// Test: Comparing Commit Hash versions.
+		Map<String, String> contactMap = new HashMap<String, String>() {{
+			put("sources", "https://github.com/fabricMC/fabric-loader/");
+		}};
+		ContactInformation contact = new ContactInformationImpl(contactMap);
+		{
+			Predicate<Version> predicate = VersionPredicateParser.parse("d9a000670180e73569a6983c423dd4299278afda", contact);
+			testTrue(predicate.test(new CommitHashVersion("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/")));
+		}
+		{
+			Predicate<Version> predicate = VersionPredicateParser.parse(">=4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
+			testTrue(predicate.test(new CommitHashVersion("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/")));
+		}
+		{
+			Predicate<Version> predicate = VersionPredicateParser.parse("<4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
+			testFalse(predicate.test(new CommitHashVersion("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/")));
+		}
+
+		// Test: Unsupported Commit Hash version predicates
+		try {
+			VersionPredicateParser.parse("~4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
+		} catch (UnsupportedOperationException e) {
+			testFalse(e);
+		}
+		try {
+			VersionPredicateParser.parse("^4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
+		} catch (UnsupportedOperationException e) {
+			testFalse(e);
 		}
 	}
 }

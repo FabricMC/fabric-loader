@@ -19,9 +19,14 @@ package net.fabricmc.loader.impl.util.version;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.metadata.ContactInformation;
 
 public final class VersionParser {
 	public static Version parse(String s, boolean storeX) throws VersionParsingException {
+		return parse(s, storeX, null);
+	}
+
+	public static Version parse(String s, boolean storeX, ContactInformation contact) throws VersionParsingException {
 		if (s == null || s.isEmpty()) {
 			throw new VersionParsingException("Version must be a non-empty string!");
 		}
@@ -31,7 +36,16 @@ public final class VersionParser {
 		try {
 			version = new SemanticVersionImpl(s, storeX);
 		} catch (VersionParsingException e) {
-			version = new StringVersion(s);
+			String sources;
+			if (contact != null && (sources = contact.get("sources").orElse(null)) != null) {
+				try {
+					version = new CommitHashVersion(s, sources);
+				} catch (VersionParsingException ex) {
+					version = new StringVersion(s);
+				}
+			} else {
+				version = new StringVersion(s);
+			}
 		}
 
 		return version;

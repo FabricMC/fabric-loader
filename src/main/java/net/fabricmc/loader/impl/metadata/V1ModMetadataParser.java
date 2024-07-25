@@ -115,7 +115,7 @@ final class V1ModMetadataParser {
 				}
 
 				try {
-					version = VersionParser.parse(reader.nextString(), false);
+					version = VersionParser.parse(reader.nextString(), false, contact);
 				} catch (VersionParsingException e) {
 					throw new ParseMetadataException("Failed to parse version", e);
 				}
