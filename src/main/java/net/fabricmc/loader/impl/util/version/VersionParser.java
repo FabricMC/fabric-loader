@@ -37,6 +37,7 @@ public final class VersionParser {
 			version = new SemanticVersionImpl(s, storeX);
 		} catch (VersionParsingException e) {
 			String sources;
+
 			if (contact != null && (sources = contact.get("sources").orElse(null)) != null) {
 				try {
 					version = new CommitHashVersion(s, sources);

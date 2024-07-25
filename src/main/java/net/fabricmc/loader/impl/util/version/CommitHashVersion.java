@@ -16,12 +16,6 @@
 
 package net.fabricmc.loader.impl.util.version;
 
-import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.impl.lib.gson.JsonReader;
-
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -30,6 +24,12 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.jetbrains.annotations.NotNull;
+
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.impl.lib.gson.JsonReader;
 
 public class CommitHashVersion implements Version {
 	private static final Pattern GIT_COMMIT_HASH_PATTERN = Pattern.compile("^[0-9a-fA-F]{40}$");
@@ -46,12 +46,14 @@ public class CommitHashVersion implements Version {
 		this.commitHash = commitHash;
 
 		Matcher matcher = SOURCES_PATTERN.matcher(sources);
+
 		if (!matcher.matches()) {
 			throw new VersionParsingException("Unsupported or invalid sources link");
 		}
 
 		String apiUrlString = String.format("https://api.github.com/repos/%s/%s/git/commits/%s", matcher.group(1), matcher.group(2), this.commitHash);
 		URL apiUrl;
+
 		try {
 			apiUrl = new URL(apiUrlString);
 		} catch (MalformedURLException e) {
@@ -59,6 +61,7 @@ public class CommitHashVersion implements Version {
 		}
 
 		String dateString;
+
 		try (JsonReader reader = new JsonReader(new InputStreamReader(apiUrl.openStream()))) {
 			reader.beginObject();
 
@@ -70,11 +73,13 @@ public class CommitHashVersion implements Version {
 
 			reader.nextName();
 			reader.beginObject();
+
 			// skip name, email
 			for (int i = 0; i < 2; i++) {
 				reader.nextName();
 				reader.skipValue();
 			}
+
 			reader.nextName();
 			dateString = reader.nextString();
 		} catch (IOException e) {
@@ -82,6 +87,7 @@ public class CommitHashVersion implements Version {
 		}
 
 		Instant date;
+
 		try {
 			date = Instant.parse(dateString);
 		} catch (DateTimeParseException e) {
