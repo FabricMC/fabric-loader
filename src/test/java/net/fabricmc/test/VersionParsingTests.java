@@ -340,11 +340,8 @@ public class VersionParsingTests {
 		testTrue(tryParseCommitHash("d9a000670180e73569a6983c423dd4299278afda", "github.com/fabricMC/fabric-loader/"));
 
 		// Test: Comparing Commit Hash versions.
-		Map<String, String> contactMap = new HashMap<String, String>() {
-			{
-				put("sources", "https://github.com/fabricMC/fabric-loader/");
-			}
-		};
+		Map<String, String> contactMap = new HashMap<>();
+		contactMap.put("sources", "https://github.com/fabricMC/fabric-loader/");
 		ContactInformation contact = new ContactInformationImpl(contactMap);
 
 		{
