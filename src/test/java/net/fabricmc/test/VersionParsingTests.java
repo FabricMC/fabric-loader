@@ -345,14 +345,17 @@ public class VersionParsingTests {
 			put("sources", "https://github.com/fabricMC/fabric-loader/");
 		}};
 		ContactInformation contact = new ContactInformationImpl(contactMap);
+
 		{
 			Predicate<Version> predicate = VersionPredicateParser.parse("d9a000670180e73569a6983c423dd4299278afda", contact);
 			testTrue(predicate.test(new CommitHashVersion("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/")));
 		}
+
 		{
 			Predicate<Version> predicate = VersionPredicateParser.parse(">=4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
 			testTrue(predicate.test(new CommitHashVersion("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/")));
 		}
+
 		{
 			Predicate<Version> predicate = VersionPredicateParser.parse("<4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
 			testFalse(predicate.test(new CommitHashVersion("d9a000670180e73569a6983c423dd4299278afda", "https://github.com/fabricMC/fabric-loader/")));
@@ -364,6 +367,7 @@ public class VersionParsingTests {
 		} catch (UnsupportedOperationException e) {
 			testFalse(e);
 		}
+
 		try {
 			VersionPredicateParser.parse("^4dbcb72dcce4e4034f58ed3839da41aae097c901", contact);
 		} catch (UnsupportedOperationException e) {
