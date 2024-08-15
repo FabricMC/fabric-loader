@@ -34,4 +34,11 @@ public interface EntrypointContainer<T> {
 	 * Returns the mod that provided this entrypoint.
 	 */
 	ModContainer getProvider();
+
+	/**
+	 * Returns a string representation of the entrypoint's definition.
+	 */
+	default String getDefinition() {
+		return "";
+	}
 }

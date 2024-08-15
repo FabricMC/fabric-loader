@@ -64,4 +64,9 @@ public final class EntrypointContainerImpl<T> implements EntrypointContainer<T> 
 	public ModContainer getProvider() {
 		return entry.getModContainer();
 	}
+
+	@Override
+	public String getDefinition() {
+		return entry.getDefinition();
+	}
 }
