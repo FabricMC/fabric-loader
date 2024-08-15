@@ -30,7 +30,7 @@ import java.util.Optional;
 
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin;
-import net.fabricmc.loader.impl.discovery.ModCandidate;
+import net.fabricmc.loader.impl.discovery.ModCandidateImpl;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
@@ -47,13 +47,13 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
 	private volatile List<Path> roots;
 
-	public ModContainerImpl(ModCandidate candidate) {
+	public ModContainerImpl(ModCandidateImpl candidate) {
 		this.info = candidate.getMetadata();
 		this.codeSourcePaths = candidate.getPaths();
 		this.parentModId = candidate.getParentMods().isEmpty() ? null : candidate.getParentMods().iterator().next().getId();
 		this.childModIds = candidate.getNestedMods().isEmpty() ? Collections.emptyList() : new ArrayList<>(candidate.getNestedMods().size());
 
-		for (ModCandidate c : candidate.getNestedMods()) {
+		for (ModCandidateImpl c : candidate.getNestedMods()) {
 			if (c.getParentMods().size() <= 1 || c.getParentMods().iterator().next() == candidate) {
 				childModIds.add(c.getId());
 			}

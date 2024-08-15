@@ -22,16 +22,16 @@ class Explanation implements Comparable<Explanation> {
 	private static int nextCmpId;
 
 	final ErrorKind error;
-	final ModCandidate mod;
+	final ModCandidateImpl mod;
 	final ModDependency dep;
 	final String data;
 	private final int cmpId;
 
-	Explanation(ErrorKind error, ModCandidate mod) {
+	Explanation(ErrorKind error, ModCandidateImpl mod) {
 		this(error, mod, null, null);
 	}
 
-	Explanation(ErrorKind error, ModCandidate mod, ModDependency dep) {
+	Explanation(ErrorKind error, ModCandidateImpl mod, ModDependency dep) {
 		this(error, mod, dep, null);
 	}
 
@@ -39,11 +39,11 @@ class Explanation implements Comparable<Explanation> {
 		this(error, null, data);
 	}
 
-	Explanation(ErrorKind error, ModCandidate mod, String data) {
+	Explanation(ErrorKind error, ModCandidateImpl mod, String data) {
 		this(error, mod, null, data);
 	}
 
-	private Explanation(ErrorKind error, ModCandidate mod, ModDependency dep, String data) {
+	private Explanation(ErrorKind error, ModCandidateImpl mod, ModDependency dep, String data) {
 		this.error = error;
 		this.mod = mod;
 		this.dep = dep;

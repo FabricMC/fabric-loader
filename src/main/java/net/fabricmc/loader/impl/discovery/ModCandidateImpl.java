@@ -41,10 +41,10 @@ import net.fabricmc.loader.impl.metadata.DependencyOverrides;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 
-public final class ModCandidate implements DomainObject.Mod {
-	static final Comparator<ModCandidate> ID_VERSION_COMPARATOR = new Comparator<ModCandidate>() {
+public final class ModCandidateImpl implements DomainObject.Mod {
+	static final Comparator<ModCandidateImpl> ID_VERSION_COMPARATOR = new Comparator<ModCandidateImpl>() {
 		@Override
-		public int compare(ModCandidate a, ModCandidate b) {
+		public int compare(ModCandidateImpl a, ModCandidateImpl b) {
 			int cmp = a.getId().compareTo(b.getId());
 
 			return cmp != 0 ? cmp : a.getVersion().compareTo(b.getVersion());
@@ -57,25 +57,25 @@ public final class ModCandidate implements DomainObject.Mod {
 	private final long hash;
 	private final LoaderModMetadata metadata;
 	private final boolean requiresRemap;
-	private final Collection<ModCandidate> nestedMods;
-	private final Collection<ModCandidate> parentMods;
+	private final Collection<ModCandidateImpl> nestedMods;
+	private final Collection<ModCandidateImpl> parentMods;
 	private int minNestLevel;
 	private SoftReference<ByteBuffer> dataRef;
 
-	static ModCandidate createBuiltin(BuiltinMod mod, VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
+	static ModCandidateImpl createBuiltin(BuiltinMod mod, VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
 		LoaderModMetadata metadata = new BuiltinMetadataWrapper(mod.metadata);
 		versionOverrides.apply(metadata);
 		depOverrides.apply(metadata);
 
-		return new ModCandidate(mod.paths, null, -1, metadata, false, Collections.emptyList());
+		return new ModCandidateImpl(mod.paths, null, -1, metadata, false, Collections.emptyList());
 	}
 
-	static ModCandidate createPlain(List<Path> paths, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
-		return new ModCandidate(paths, null, -1, metadata, requiresRemap, nestedMods);
+	static ModCandidateImpl createPlain(List<Path> paths, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidateImpl> nestedMods) {
+		return new ModCandidateImpl(paths, null, -1, metadata, requiresRemap, nestedMods);
 	}
 
-	static ModCandidate createNested(String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
-		return new ModCandidate(null, localPath, hash, metadata, requiresRemap, nestedMods);
+	static ModCandidateImpl createNested(String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidateImpl> nestedMods) {
+		return new ModCandidateImpl(null, localPath, hash, metadata, requiresRemap, nestedMods);
 	}
 
 	static long hash(ZipEntry entry) {
@@ -88,7 +88,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		return hash & 0xffffffffL;
 	}
 
-	private ModCandidate(List<Path> paths, String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidate> nestedMods) {
+	private ModCandidateImpl(List<Path> paths, String localPath, long hash, LoaderModMetadata metadata, boolean requiresRemap, Collection<ModCandidateImpl> nestedMods) {
 		this.originPaths = paths;
 		this.paths = paths;
 		this.localPath = localPath;
@@ -165,15 +165,15 @@ public final class ModCandidate implements DomainObject.Mod {
 		return requiresRemap;
 	}
 
-	public Collection<ModCandidate> getNestedMods() {
+	public Collection<ModCandidateImpl> getNestedMods() {
 		return nestedMods;
 	}
 
-	public Collection<ModCandidate> getParentMods() {
+	public Collection<ModCandidateImpl> getParentMods() {
 		return parentMods;
 	}
 
-	boolean addParent(ModCandidate parent) {
+	boolean addParent(ModCandidateImpl parent) {
 		if (minNestLevel == 0) return false;
 		if (parentMods.contains(parent)) return false;
 
@@ -196,7 +196,7 @@ public final class ModCandidate implements DomainObject.Mod {
 		}
 	}
 
-	boolean updateMinNestLevel(ModCandidate parent) {
+	boolean updateMinNestLevel(ModCandidateImpl parent) {
 		if (minNestLevel <= parent.minNestLevel) return false;
 
 		this.minNestLevel = parent.minNestLevel + 1;
@@ -290,7 +290,7 @@ public final class ModCandidate implements DomainObject.Mod {
 			return;
 		}
 
-		ModCandidate parent = getBestSourcingParent();
+		ModCandidateImpl parent = getBestSourcingParent();
 
 		if (parent.paths != null) {
 			if (parent.paths.size() != 1) throw new UnsupportedOperationException("multiple parent paths for "+this);
@@ -334,7 +334,7 @@ public final class ModCandidate implements DomainObject.Mod {
 
 			ret = ByteBuffer.wrap(Files.readAllBytes(paths.get(0)));
 		} else {
-			ModCandidate parent = getBestSourcingParent();
+			ModCandidateImpl parent = getBestSourcingParent();
 
 			if (parent.paths != null) {
 				if (parent.paths.size() != 1) throw new UnsupportedOperationException("multiple parent paths for "+this);
@@ -369,12 +369,12 @@ public final class ModCandidate implements DomainObject.Mod {
 		return ret;
 	}
 
-	private ModCandidate getBestSourcingParent() {
+	private ModCandidateImpl getBestSourcingParent() {
 		if (parentMods.isEmpty()) return null;
 
-		ModCandidate ret = null;
+		ModCandidateImpl ret = null;
 
-		for (ModCandidate parent : parentMods) {
+		for (ModCandidateImpl parent : parentMods) {
 			if (parent.minNestLevel >= minNestLevel) continue;
 
 			if (parent.paths != null && parent.paths.size() == 1

@@ -42,7 +42,7 @@ final class ModPrioSorter {
 	 * @param mods mods to sort
 	 * @param modsById grouped mods output
 	 */
-	static void sort(List<ModCandidate> mods, Map<String, List<ModCandidate>> modsById) {
+	static void sort(List<ModCandidateImpl> mods, Map<String, List<ModCandidateImpl>> modsById) {
 		// sort all mods by priority
 
 		mods.sort(comparator);
@@ -51,7 +51,7 @@ final class ModPrioSorter {
 
 		Set<String> providedMods = new HashSet<>();
 
-		for (ModCandidate mod : mods) {
+		for (ModCandidateImpl mod : mods) {
 			modsById.computeIfAbsent(mod.getId(), ignore -> new ArrayList<>()).add(mod);
 
 			for (String provided : mod.getProvides()) {
@@ -80,7 +80,7 @@ final class ModPrioSorter {
 		Set<String> potentiallyOverlappingIds = new HashSet<>();
 
 		for (int i = 0, size = mods.size(); i < size; i++) {
-			ModCandidate mod = mods.get(i);
+			ModCandidateImpl mod = mods.get(i);
 			String id = mod.getId();
 
 			//System.out.printf("%d: %s%n", i, mod);
@@ -111,7 +111,7 @@ final class ModPrioSorter {
 			int earliestIdx = -1;
 
 			for (int j = i - 1; j >= startIdx; j--) {
-				ModCandidate cmpMod = mods.get(j);
+				ModCandidateImpl cmpMod = mods.get(j);
 				String cmpId = cmpMod.getId();
 				if (cmpId.equals(id)) break; // can't move mod past another mod with the same id since that mod since that mod would have a higher version due to the previous sorting step and thus always has higher prio
 
@@ -141,14 +141,14 @@ final class ModPrioSorter {
 		}
 	}
 
-	private static final Comparator<ModCandidate> comparator = new Comparator<ModCandidate>() {
+	private static final Comparator<ModCandidateImpl> comparator = new Comparator<ModCandidateImpl>() {
 		@Override
-		public int compare(ModCandidate a, ModCandidate b) {
+		public int compare(ModCandidateImpl a, ModCandidateImpl b) {
 			return ModPrioSorter.compare(a, b);
 		}
 	};
 
-	private static int compare(ModCandidate a, ModCandidate b) {
+	private static int compare(ModCandidateImpl a, ModCandidateImpl b) {
 		// descending sort prio (less/earlier is higher prio):
 		// root mods first, lower id first, higher version first, less nesting first, parent cmp
 
@@ -179,12 +179,12 @@ final class ModPrioSorter {
 		return compareParents(a, b);
 	}
 
-	private static int compareParents(ModCandidate a, ModCandidate b) {
+	private static int compareParents(ModCandidateImpl a, ModCandidateImpl b) {
 		assert !a.getParentMods().isEmpty() && !b.getParentMods().isEmpty();
 
-		ModCandidate minParent = null;
+		ModCandidateImpl minParent = null;
 
-		for (ModCandidate mod : a.getParentMods()) {
+		for (ModCandidateImpl mod : a.getParentMods()) {
 			if (minParent == null || mod != minParent && compare(minParent, mod) > 0) {
 				minParent = mod;
 			}
@@ -193,7 +193,7 @@ final class ModPrioSorter {
 		assert minParent != null;
 		boolean found = false;
 
-		for (ModCandidate mod : b.getParentMods()) {
+		for (ModCandidateImpl mod : b.getParentMods()) {
 			if (mod == minParent) { // both a and b have minParent
 				found = true;
 			} else if (compare(minParent, mod) > 0) { // b has a higher prio parent than a
@@ -204,7 +204,7 @@ final class ModPrioSorter {
 		return found ? 0 : -1; // only a has minParent if !found, so only a has the highest prio parent
 	}
 
-	private static int compareOverlappingIds(ModCandidate a, ModCandidate b, int noMatchResult) {
+	private static int compareOverlappingIds(ModCandidateImpl a, ModCandidateImpl b, int noMatchResult) {
 		assert !a.getId().equals(b.getId()); // should have been handled before
 
 		int ret = 0; // sum of individual normalized pair comparisons, may cancel each other out

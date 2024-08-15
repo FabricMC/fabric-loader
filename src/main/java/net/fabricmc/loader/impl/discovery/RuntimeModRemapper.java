@@ -65,11 +65,11 @@ public final class RuntimeModRemapper {
 	private static final String REMAP_TYPE_STATIC = "static";
 	private static final String SOURCE_NAMESPACE = "intermediary";
 
-	public static void remap(Collection<ModCandidate> modCandidates, Path tmpDir, Path outputDir) {
-		List<ModCandidate> modsToRemap = new ArrayList<>();
+	public static void remap(Collection<ModCandidateImpl> modCandidates, Path tmpDir, Path outputDir) {
+		List<ModCandidateImpl> modsToRemap = new ArrayList<>();
 		Set<InputTag> remapMixins = new HashSet<>();
 
-		for (ModCandidate mod : modCandidates) {
+		for (ModCandidateImpl mod : modCandidates) {
 			if (mod.getRequiresRemap()) {
 				modsToRemap.add(mod);
 			}
@@ -77,7 +77,7 @@ public final class RuntimeModRemapper {
 
 		if (modsToRemap.isEmpty()) return;
 
-		Map<ModCandidate, RemapInfo> infoMap = new HashMap<>();
+		Map<ModCandidateImpl, RemapInfo> infoMap = new HashMap<>();
 
 		TinyRemapper remapper = null;
 
@@ -87,7 +87,7 @@ public final class RuntimeModRemapper {
 			AccessWidener mergedAccessWidener = new AccessWidener();
 			mergedAccessWidener.visitHeader(SOURCE_NAMESPACE);
 
-			for (ModCandidate mod : modsToRemap) {
+			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = new RemapInfo();
 				infoMap.put(mod, info);
 
@@ -135,7 +135,7 @@ public final class RuntimeModRemapper {
 				throw new RuntimeException("Failed to populate remap classpath", e);
 			}
 
-			for (ModCandidate mod : modsToRemap) {
+			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
 				InputTag tag = remapper.createInputTag();
@@ -149,7 +149,7 @@ public final class RuntimeModRemapper {
 			}
 
 			//Done in a 2nd loop as we need to make sure all the inputs are present before remapping
-			for (ModCandidate mod : modsToRemap) {
+			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 				OutputConsumerPath outputConsumer = new OutputConsumerPath.Builder(info.outputPath).build();
 
@@ -168,7 +168,7 @@ public final class RuntimeModRemapper {
 			}
 
 			//Done in a 3rd loop as this can happen when the remapper is doing its thing.
-			for (ModCandidate mod : modsToRemap) {
+			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
 				if (info.accessWidener != null) {
@@ -178,7 +178,7 @@ public final class RuntimeModRemapper {
 
 			remapper.finish();
 
-			for (ModCandidate mod : modsToRemap) {
+			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
 				info.outputConsumerPath.close();

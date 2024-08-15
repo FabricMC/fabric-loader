@@ -47,8 +47,8 @@ final class ResultAnalyzer {
 	private static final boolean SHOW_INACTIVE = false;
 
 	@SuppressWarnings("unused")
-	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
-			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
+	static String gatherErrors(ModSolver.Result result, Map<String, ModCandidateImpl> selectedMods, Map<String, List<ModCandidateImpl>> modsById,
+			Map<String, Set<ModCandidateImpl>> envDisabledMods, EnvType envType) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
@@ -65,18 +65,18 @@ final class ResultAnalyzer {
 				suggestFix = false;
 			}
 
-			List<ModCandidate> matches = new ArrayList<>();
+			List<ModCandidateImpl> matches = new ArrayList<>();
 
 			for (Explanation explanation : result.reason) {
 				assert explanation.error.isDependencyError;
 
 				ModDependency dep = explanation.dep;
-				ModCandidate selected = selectedMods.get(dep.getModId());
+				ModCandidateImpl selected = selectedMods.get(dep.getModId());
 
 				if (selected != null) {
 					matches.add(selected);
 				} else {
-					List<ModCandidate> candidates = modsById.get(dep.getModId());
+					List<ModCandidateImpl> candidates = modsById.get(dep.getModId());
 					if (candidates != null) matches.addAll(candidates);
 				}
 
@@ -87,25 +87,25 @@ final class ResultAnalyzer {
 			if (SHOW_INACTIVE && result.fix != null && !result.fix.inactiveMods.isEmpty()) {
 				pw.printf("\n%s", Localization.format("resolution.inactiveMods"));
 
-				List<Map.Entry<ModCandidate, InactiveReason>> entries = new ArrayList<>(result.fix.inactiveMods.entrySet());
+				List<Map.Entry<ModCandidateImpl, InactiveReason>> entries = new ArrayList<>(result.fix.inactiveMods.entrySet());
 
 				// sort by root, id, version
-				entries.sort(new Comparator<Map.Entry<ModCandidate, ?>>() {
+				entries.sort(new Comparator<Map.Entry<ModCandidateImpl, ?>>() {
 					@Override
-					public int compare(Entry<ModCandidate, ?> o1, Entry<ModCandidate, ?> o2) {
-						ModCandidate a = o1.getKey();
-						ModCandidate b = o2.getKey();
+					public int compare(Entry<ModCandidateImpl, ?> o1, Entry<ModCandidateImpl, ?> o2) {
+						ModCandidateImpl a = o1.getKey();
+						ModCandidateImpl b = o2.getKey();
 
 						if (a.isRoot() != b.isRoot()) {
 							return a.isRoot() ? -1 : 1;
 						}
 
-						return ModCandidate.ID_VERSION_COMPARATOR.compare(a, b);
+						return ModCandidateImpl.ID_VERSION_COMPARATOR.compare(a, b);
 					}
 				});
 
-				for (Map.Entry<ModCandidate, InactiveReason> entry : entries) {
-					ModCandidate mod = entry.getKey();
+				for (Map.Entry<ModCandidateImpl, InactiveReason> entry : entries) {
+					ModCandidateImpl mod = entry.getKey();
 					InactiveReason reason = entry.getValue();
 					String reasonKey = String.format("resolution.inactive.%s", reason.id);
 
@@ -122,11 +122,11 @@ final class ResultAnalyzer {
 	}
 
 	private static void formatFix(ModSolver.Fix fix,
-			ModSolver.Result result, Map<String, ModCandidate> selectedMods, Map<String, List<ModCandidate>> modsById,
-			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType,
+			ModSolver.Result result, Map<String, ModCandidateImpl> selectedMods, Map<String, List<ModCandidateImpl>> modsById,
+			Map<String, Set<ModCandidateImpl>> envDisabledMods, EnvType envType,
 			PrintWriter pw) {
 		for (AddModVar mod : fix.modsToAdd) {
-			Set<ModCandidate> envDisabledAlternatives = envDisabledMods.get(mod.getId());
+			Set<ModCandidateImpl> envDisabledAlternatives = envDisabledMods.get(mod.getId());
 
 			if (envDisabledAlternatives == null) {
 				pw.printf("\n\t - %s", Localization.format("resolution.solution.addMod",
@@ -143,23 +143,23 @@ final class ResultAnalyzer {
 			}
 		}
 
-		for (ModCandidate mod : fix.modsToRemove) {
+		for (ModCandidateImpl mod : fix.modsToRemove) {
 			pw.printf("\n\t - %s", Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getLocalPath()));
 		}
 
-		for (Entry<AddModVar, List<ModCandidate>> entry : fix.modReplacements.entrySet()) {
+		for (Entry<AddModVar, List<ModCandidateImpl>> entry : fix.modReplacements.entrySet()) {
 			AddModVar newMod = entry.getKey();
-			List<ModCandidate> oldMods = entry.getValue();
+			List<ModCandidateImpl> oldMods = entry.getValue();
 			String oldModsFormatted = formatOldMods(oldMods);
 
 			if (oldMods.size() != 1 || !oldMods.get(0).getId().equals(newMod.getId())) { // replace mods with another mod (different mod id)
 				String newModName = newMod.getId();
-				ModCandidate alt = selectedMods.get(newMod.getId());
+				ModCandidateImpl alt = selectedMods.get(newMod.getId());
 
 				if (alt != null) {
 					newModName = getName(alt);
 				} else {
-					List<ModCandidate> alts = modsById.get(newMod.getId());
+					List<ModCandidateImpl> alts = modsById.get(newMod.getId());
 					if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
 				}
 
@@ -168,7 +168,7 @@ final class ResultAnalyzer {
 						newModName,
 						formatVersionRequirements(newMod.getVersionIntervals())));
 			} else { // replace mod version only
-				ModCandidate oldMod = oldMods.get(0);
+				ModCandidateImpl oldMod = oldMods.get(0);
 				boolean hasOverlap = !VersionInterval.and(newMod.getVersionIntervals(),
 						Collections.singletonList(new VersionIntervalImpl(oldMod.getVersion(), true, oldMod.getVersion(), true))).isEmpty();
 
@@ -187,7 +187,7 @@ final class ResultAnalyzer {
 					for (ModDependency dep : oldMod.getDependencies()) {
 						if (dep.getKind().isSoft()) continue;
 
-						ModCandidate mod = fix.activeMods.get(dep.getModId());
+						ModCandidateImpl mod = fix.activeMods.get(dep.getModId());
 
 						if (mod != null) {
 							if (dep.matches(mod.getVersion()) != dep.getKind().isPositive()) {
@@ -219,14 +219,14 @@ final class ResultAnalyzer {
 		}
 	}
 
-	static String gatherWarnings(List<ModCandidate> uniqueSelectedMods, Map<String, ModCandidate> selectedMods,
-			Map<String, Set<ModCandidate>> envDisabledMods, EnvType envType) {
+	static String gatherWarnings(List<ModCandidateImpl> uniqueSelectedMods, Map<String, ModCandidateImpl> selectedMods,
+			Map<String, Set<ModCandidateImpl>> envDisabledMods, EnvType envType) {
 		StringWriter sw = new StringWriter();
 
 		try (PrintWriter pw = new PrintWriter(sw)) {
-			for (ModCandidate mod : uniqueSelectedMods) {
+			for (ModCandidateImpl mod : uniqueSelectedMods) {
 				for (ModDependency dep : mod.getDependencies()) {
-					ModCandidate depMod;
+					ModCandidateImpl depMod;
 
 					switch (dep.getKind()) {
 					case RECOMMENDS:
@@ -259,11 +259,11 @@ final class ResultAnalyzer {
 		}
 	}
 
-	private static List<ModCandidate> toList(ModCandidate mod) {
+	private static List<ModCandidateImpl> toList(ModCandidateImpl mod) {
 		return mod != null ? Collections.singletonList(mod) : Collections.emptyList();
 	}
 
-	private static void addErrorToList(ModCandidate mod, ModDependency dep, List<ModCandidate> matches, boolean presentForOtherEnv, boolean suggestFix, String prefix, PrintWriter pw) {
+	private static void addErrorToList(ModCandidateImpl mod, ModDependency dep, List<ModCandidateImpl> matches, boolean presentForOtherEnv, boolean suggestFix, String prefix, PrintWriter pw) {
 		Object[] args = new Object[] {
 				getName(mod),
 				getVersion(mod),
@@ -281,7 +281,7 @@ final class ResultAnalyzer {
 			if (dep.getKind().isPositive()) {
 				present = false;
 
-				for (ModCandidate match : matches) {
+				for (ModCandidateImpl match : matches) {
 					if (dep.matches(match.getVersion())) { // there is a satisfying mod version, but it can't be loaded for other reasons
 						present = true;
 						break;
@@ -307,13 +307,13 @@ final class ResultAnalyzer {
 		}
 
 		if (SHOW_PATH_INFO) {
-			for (ModCandidate m : matches) {
+			for (ModCandidateImpl m : matches) {
 				appendJijInfo(m, prefix, true, pw);
 			}
 		}
 	}
 
-	private static void appendJijInfo(ModCandidate mod, String prefix, boolean mentionMod, PrintWriter pw) {
+	private static void appendJijInfo(ModCandidateImpl mod, String prefix, boolean mentionMod, PrintWriter pw) {
 		String loc;
 		String path;
 
@@ -326,16 +326,16 @@ final class ResultAnalyzer {
 		} else {
 			loc = "normal";
 
-			List<ModCandidate> paths = new ArrayList<>();
+			List<ModCandidateImpl> paths = new ArrayList<>();
 			paths.add(mod);
 
-			ModCandidate cur = mod;
+			ModCandidateImpl cur = mod;
 
 			do {
-				ModCandidate best = null;
+				ModCandidateImpl best = null;
 				int maxDiff = 0;
 
-				for (ModCandidate parent : cur.getParentMods()) {
+				for (ModCandidateImpl parent : cur.getParentMods()) {
 					int diff = cur.getMinNestLevel() - parent.getMinNestLevel();
 
 					if (diff > maxDiff) {
@@ -353,7 +353,7 @@ final class ResultAnalyzer {
 			StringBuilder pathSb = new StringBuilder();
 
 			for (int i = paths.size() - 1; i >= 0; i--) {
-				ModCandidate m = paths.get(i);
+				ModCandidateImpl m = paths.get(i);
 
 				if (pathSb.length() > 0) pathSb.append(" -> ");
 				pathSb.append(m.getLocalPath());
@@ -385,12 +385,12 @@ final class ResultAnalyzer {
 	}
 
 	@SuppressWarnings("unused")
-	private static String formatOldMods(Collection<ModCandidate> mods) {
-		List<ModCandidate> modsSorted = new ArrayList<>(mods);
-		modsSorted.sort(ModCandidate.ID_VERSION_COMPARATOR);
+	private static String formatOldMods(Collection<ModCandidateImpl> mods) {
+		List<ModCandidateImpl> modsSorted = new ArrayList<>(mods);
+		modsSorted.sort(ModCandidateImpl.ID_VERSION_COMPARATOR);
 		List<String> ret = new ArrayList<>(modsSorted.size());
 
-		for (ModCandidate m : modsSorted) {
+		for (ModCandidateImpl m : modsSorted) {
 			if (SHOW_PATH_INFO && m.hasPath() && !m.isBuiltin()) {
 				ret.add(Localization.format("resolution.solution.replaceMod.oldMod", getName(m), getVersion(m), m.getLocalPath()));
 			} else {
@@ -401,7 +401,7 @@ final class ResultAnalyzer {
 		return formatEnumeration(ret, true);
 	}
 
-	private static String getName(ModCandidate candidate) {
+	private static String getName(ModCandidateImpl candidate) {
 		String typePrefix;
 
 		switch (candidate.getMetadata().getType()) {
@@ -416,11 +416,11 @@ final class ResultAnalyzer {
 		return String.format("%s'%s' (%s)", typePrefix, candidate.getMetadata().getName(), candidate.getId());
 	}
 
-	private static String getVersion(ModCandidate candidate) {
+	private static String getVersion(ModCandidateImpl candidate) {
 		return candidate.getVersion().getFriendlyString();
 	}
 
-	private static String getVersions(Collection<ModCandidate> candidates) {
+	private static String getVersions(Collection<ModCandidateImpl> candidates) {
 		return candidates.stream().map(ResultAnalyzer::getVersion).collect(Collectors.joining("/"));
 	}
 
