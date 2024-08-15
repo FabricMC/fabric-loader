@@ -289,7 +289,7 @@ public final class McVersionLookup {
 
 			if (year >= 24 && week >= 33) {
 				return "1.21.2";
-			} else if (year >= 24 && week >= 18 && week <= 21) {
+			} else if (year == 24 && week >= 18 && week <= 21) {
 				return "1.21";
 			} else if (year == 23 && week >= 51 || year == 24 && week <= 14) {
 				return "1.20.5";
