@@ -35,7 +35,8 @@ enum McLibrary implements LibraryType {
 	LOG4J_PLUGIN_3("net/minecrell/terminalconsole/util/LoggerNamePatternSelector.class"), // in terminalconsoleappender, used by loom's log4j config
 	GSON("com/google/gson/TypeAdapter.class"), // used by log4j plugins
 	SLF4J_API("org/slf4j/Logger.class"),
-	SLF4J_CORE("META-INF/services/org.slf4j.spi.SLF4JServiceProvider");
+	SLF4J_CORE("META-INF/services/org.slf4j.spi.SLF4JServiceProvider"),
+	ASM("org/objectweb/asm/ClassReader.class"); // To be ignored when included in the server bundle.
 
 	static final McLibrary[] GAME = { MC_CLIENT, MC_SERVER, MC_BUNDLER };
 	static final McLibrary[] LOGGING = { LOG4J_API, LOG4J_CORE, LOG4J_CONFIG, LOG4J_PLUGIN, LOG4J_PLUGIN_2, LOG4J_PLUGIN_3, GSON, SLF4J_API, SLF4J_CORE };

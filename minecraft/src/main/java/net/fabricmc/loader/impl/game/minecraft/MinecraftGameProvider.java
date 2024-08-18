@@ -224,6 +224,11 @@ public class MinecraftGameProvider implements GameProvider {
 			Log.configureBuiltin(hasLogLib, !hasLogLib);
 
 			for (McLibrary lib : McLibrary.LOGGING) {
+				if (envType == EnvType.SERVER && lib == McLibrary.ASM) {
+					// ASM should always come from the system classpath, ignore it when provided by the server bundler.
+					continue;
+				}
+
 				Path path = classifier.getOrigin(lib);
 
 				if (path != null) {
