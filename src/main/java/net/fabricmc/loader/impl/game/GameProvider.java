@@ -17,7 +17,9 @@
 package net.fabricmc.loader.impl.game;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +28,7 @@ import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 public interface GameProvider { // name directly referenced in net.fabricmc.loader.impl.launch.knot.Knot.findEmbedddedGameProvider() and service loader records
 	String getGameId();
@@ -36,7 +39,11 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 
 	String getEntrypoint();
 	Path getLaunchDirectory();
-	List<Path> getModDirectories();
+	default List<Path> getModDirectories() {
+		String directory = System.getProperty(SystemProperties.MODS_FOLDER);
+
+		return directory != null ? Collections.singletonList(Paths.get(directory)) : Collections.singletonList(getLaunchDirectory().resolve("mods"));
+	}
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
 

@@ -150,13 +150,6 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
-	public List<Path> getModDirectories() {
-		String directory = System.getProperty(SystemProperties.MODS_FOLDER);
-
-		return directory != null ? Collections.singletonList(Paths.get(directory)) : Collections.singletonList(getLaunchDirectory().resolve("mods"));
-	}
-	
-	@Override
 	public boolean isObfuscated() {
 		return true; // generally yes...
 	}
@@ -489,5 +482,4 @@ public class MinecraftGameProvider implements GameProvider {
 			throw FormattedException.ofLocalized("exception.minecraft.generic", t);
 		}
 	}
-
 }
