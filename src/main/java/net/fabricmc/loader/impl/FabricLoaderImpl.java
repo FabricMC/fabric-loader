@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -209,7 +208,9 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
-		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory0(), remapRegularMods));
+		for(Path dir : getModDirectories0()) {
+			discoverer.addCandidateFinder(new DirectoryModCandidateFinder(dir, remapRegularMods));
+		}
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		Map<String, Set<ModCandidateImpl>> envDisabledMods = new HashMap<>();
@@ -610,13 +611,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		return getGameProvider().getLaunchArguments(sanitize);
 	}
 
-	@Override
-	protected Path getModsDirectory0() {
-		String directory = System.getProperty(SystemProperties.MODS_FOLDER);
-
-		return directory != null ? Paths.get(directory) : gameDir.resolve("mods");
-	}
-
 	/**
 	 * Provides singleton for static init assignment regardless of load order.
 	 */
@@ -632,5 +626,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	static {
 		LoaderUtil.verifyNotInTargetCl(FabricLoaderImpl.class);
+	}
+
+	@Override
+	public List<Path> getModDirectories0() {
+		return provider.getModDirectories();
 	}
 }

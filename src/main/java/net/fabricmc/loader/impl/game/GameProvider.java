@@ -36,6 +36,7 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 
 	String getEntrypoint();
 	Path getLaunchDirectory();
+	List<Path> getModDirectories();
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
 

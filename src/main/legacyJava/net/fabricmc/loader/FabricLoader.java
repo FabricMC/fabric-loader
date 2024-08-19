@@ -37,8 +37,16 @@ public abstract class FabricLoader implements net.fabricmc.loader.api.FabricLoad
 	@Deprecated
 	public static final FabricLoader INSTANCE = FabricLoaderImpl.InitHelper.get();
 
+	/**
+	 * @deprecated Use {@link getModDirectories()} instead
+	 */
+	@Deprecated
 	public File getModsDirectory() {
-		return getModsDirectory0().toFile();
+		return getModDirectories0().get(0).toFile();
+	}
+	
+	public List<Path> getModDirectories() {
+		return getModDirectories0();
 	}
 
 	@Override
@@ -54,5 +62,5 @@ public abstract class FabricLoader implements net.fabricmc.loader.api.FabricLoad
 		return (List) getAllMods();
 	}
 
-	protected abstract Path getModsDirectory0();
+	protected abstract List<Path> getModDirectories0();
 }
