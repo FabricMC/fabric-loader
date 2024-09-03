@@ -92,24 +92,17 @@ public final class ModDiscoverer {
 		List<Future<ModCandidateImpl>> futures = new ArrayList<>();
 
 		ModCandidateConsumer taskSubmitter = (paths, requiresRemap) -> {
-			if (paths.size() == 1) {
-				Path path = LoaderUtil.normalizeExistingPath(paths.get(0));
+			List<Path> pendingPaths = new ArrayList<>(paths.size());
+
+			for (Path path : paths) {
+				assert path.equals(LoaderUtil.normalizeExistingPath(path));
 
 				if (processedPaths.add(path)) {
-					futures.add(pool.submit(new ModScanTask(Collections.singletonList(path), requiresRemap)));
-				}
-			} else {
-				List<Path> normalizedPaths = new ArrayList<>(paths.size());
-
-				for (Path path : paths) {
-					normalizedPaths.add(LoaderUtil.normalizeExistingPath(path));
-				}
-
-				if (!processedPaths.containsAll(normalizedPaths)) {
-					processedPaths.addAll(normalizedPaths);
-					futures.add(pool.submit(new ModScanTask(normalizedPaths, requiresRemap)));
+					pendingPaths.add(path);
 				}
 			}
+
+			futures.add(pool.submit(new ModScanTask(pendingPaths, requiresRemap)));
 		};
 
 		for (ModCandidateFinder finder : candidateFinders) {
