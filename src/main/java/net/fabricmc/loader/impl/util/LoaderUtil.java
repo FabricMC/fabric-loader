@@ -24,9 +24,13 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 public final class LoaderUtil {
+	private static final ConcurrentMap<Path, Path> pathNormalizationCache = new ConcurrentHashMap<>();
+
 	public static String getClassFileName(String className) {
 		return className.replace('.', '/').concat(".class");
 	}
@@ -40,6 +44,10 @@ public final class LoaderUtil {
 	}
 
 	public static Path normalizeExistingPath(Path path) {
+		return pathNormalizationCache.computeIfAbsent(path, LoaderUtil::normalizeExistingPath0);
+	}
+
+	private static Path normalizeExistingPath0(Path path) {
 		try {
 			return path.toRealPath();
 		} catch (IOException e) {
