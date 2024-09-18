@@ -358,7 +358,7 @@ remoteSign {
 
 	useDummyForTesting = ENV.SIGNING_SERVER == null
 
-	sign(finalJar.archiveFile.get().getAsFile(), signedJar, "proguard").configure {
+	sign(finalJar.archiveFile.get().getAsFile(), signedJar, "final").configure {
 		dependsOn finalJar
 	}
 
@@ -372,7 +372,7 @@ publishing {
 		mavenJava(MavenPublication) {
 			// add all the jars that should be included when publishing to maven
 			artifact(signedJar) {
-				builtBy(signedJar)
+				builtBy(tasks.signFinal)
 				classifier = null
 			}
 			artifact(sourcesJar)
