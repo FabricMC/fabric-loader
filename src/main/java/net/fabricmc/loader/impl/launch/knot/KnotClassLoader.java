@@ -51,7 +51,7 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	private final KnotClassDelegate<KnotClassLoader> delegate;
 
 	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
-		super("fabric", new DynamicURLClassLoader(new URL[0]));
+		super("knot", new DynamicURLClassLoader(new URL[0]));
 		this.originalLoader = getClass().getClassLoader();
 		this.urlLoader = (DynamicURLClassLoader) getParent();
 		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, originalLoader, provider);
