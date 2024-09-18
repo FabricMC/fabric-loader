@@ -21,16 +21,16 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
-import java.security.SecureClassLoader;
 import java.util.Enumeration;
 import java.util.Objects;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
+import net.fabricmc.loader.impl.mrj.AbstractSecureClassLoader;
 
 // class name referenced by string constant in net.fabricmc.loader.impl.util.LoaderUtil.verifyNotInTargetCl
-final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAccess {
+final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLoaderAccess {
 	private static final class DynamicURLClassLoader extends URLClassLoader {
 		private DynamicURLClassLoader(URL[] urls) {
 			super(urls, new DummyClassLoader());
@@ -51,7 +51,7 @@ final class KnotClassLoader extends SecureClassLoader implements ClassLoaderAcce
 	private final KnotClassDelegate<KnotClassLoader> delegate;
 
 	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
-		super(new DynamicURLClassLoader(new URL[0]));
+		super("fabric", new DynamicURLClassLoader(new URL[0]));
 		this.originalLoader = getClass().getClassLoader();
 		this.urlLoader = (DynamicURLClassLoader) getParent();
 		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, originalLoader, provider);

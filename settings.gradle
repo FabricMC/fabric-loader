@@ -9,11 +9,10 @@ pluginManagement {
 }
 rootProject.name='fabric-loader'
 
+if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+	throw new UnsupportedOperationException("Fabric Loader requires Java 17+ to build.")
+}
+
 include "minecraft"
 include "junit"
-
-if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-	include "minecraft:minecraft-test"
-} else {
-	println("Minecraft test sub project requires java 17 or higher!")
-}
+include "minecraft:minecraft-test"
