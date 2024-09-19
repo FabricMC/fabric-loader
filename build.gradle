@@ -238,7 +238,10 @@ tasks.register('proguardJar', ProGuardTask) {
 		}
 	}
 
-	libraryjars "${System.getProperty('java.home')}/jmods"
+	def java8 = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(8)
+	}.get()
+	libraryjars java8.metadata.installationPath.file("jre/lib/rt.jar")
 
 	injars fatJar.archiveFile
 	outjars proguardTmpFile
