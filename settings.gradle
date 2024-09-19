@@ -14,6 +14,12 @@ include "junit"
 
 if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
 	include "minecraft:minecraft-test"
+
+	file("minecraft/minecraft-test/versions").listFiles().each { file ->
+		if (file.isDirectory()) {
+			include("minecraft:minecraft-test:versions:${file.name}")
+		}
+	}
 } else {
 	println("Minecraft test sub project requires java 17 or higher!")
 }

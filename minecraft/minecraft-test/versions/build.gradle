@@ -1,0 +1,106 @@
+import groovy.json.JsonSlurper
+
+subprojects {
+	def meta = new JsonSlurper().parse(file("meta.json"))
+	def minecraftVersion = meta.minecraftVersion
+	def hasIntermediary = meta.hasIntermediary == null ? true : meta.hasIntermediary
+	def mergedJars = meta.mergedJars == null ? true : meta.mergedJars
+	def mods = meta.mods == null ? [] : meta.mods
+
+	apply plugin: "fabric-loom"
+
+	loom {
+		if (!hasIntermediary) {
+			noIntermediateMappings()
+		}
+
+		if (!mergedJars) {
+			clientOnlyMinecraftJar()
+		}
+	}
+
+	configurations {
+		productionRuntime {
+			extendsFrom configurations.minecraftLibraries
+			extendsFrom configurations.loaderLibraries
+			extendsFrom configurations.minecraftRuntimeLibraries
+		}
+		productionRuntimeMods {
+			transitive = false
+		}
+	}
+
+	dependencies {
+		minecraft "com.mojang:minecraft:$minecraftVersion"
+		mappings loom.layered() {
+			// We dont need mappings
+		}
+
+		if (hasIntermediary) {
+			productionRuntime "net.fabricmc:intermediary:$minecraftVersion"
+		}
+
+		// Add the launcher libraries to the classpath
+		def installerJson = new JsonSlurper().parse(rootProject.file("src/main/resources/fabric-installer.json"))
+		installerJson.libraries.common.each {
+			productionRuntime it.name
+		}
+
+		mods.each {
+			productionRuntimeMods it
+		}
+	}
+
+	def loaderJarTask = project(":").tasks.proguardJar
+
+	def runProductionClient =  tasks.register("runProductionClient", JavaExec) {
+		classpath.from configurations.productionRuntime
+		classpath.from loaderJarTask
+		mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
+		workingDir = file("run")
+		group = "test"
+
+		javaLauncher = javaToolchains.launcherFor {
+			languageVersion = JavaLanguageVersion.of(meta.javaVersion)
+		}
+
+		doFirst {
+			classpath.from loom.minecraftProvider.minecraftClientJar
+			workingDir.mkdirs()
+
+			args(
+				"--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
+				"--assetsDir", new File(loom.files.userCache, "assets").absolutePath,
+				"--gameDir", workingDir.absolutePath
+			)
+
+			if (net.fabricmc.loom.util.Platform.CURRENT.operatingSystem.isMacOS()) {
+				jvmArgs(
+					"-XstartOnFirstThread"
+				)
+			}
+
+			if (loom.minecraftProvider.versionInfo.hasNativesToExtract()) {
+				def nativesPath = loom.files.getNativesDirectory(project).getAbsolutePath()
+				systemProperty("java.library.path", nativesPath)
+				systemProperty("org.lwjgl.librarypath", nativesPath)
+			}
+
+			def modFiles = []
+			modFiles.addAll configurations.productionRuntimeMods.files
+			jvmArgs(
+				"-Dfabric.addMods=${modFiles.join(File.pathSeparator)}"
+			)
+		}
+	}
+
+	afterEvaluate {
+		runProductionClient.configure {
+			dependsOn downloadAssets
+
+			if (loom.minecraftProvider.versionInfo.hasNativesToExtract()) {
+				dependsOn extractNatives
+			}
+		}
+	}
+}

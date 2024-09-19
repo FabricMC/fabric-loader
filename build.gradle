@@ -15,7 +15,7 @@ plugins {
 	id 'maven-publish'
 	id 'checkstyle'
 	id 'com.diffplug.spotless' version "6.22.0"
-	id 'fabric-loom' version '1.4-SNAPSHOT' apply false
+	id 'fabric-loom' version '1.7-SNAPSHOT' apply false
 	id 'com.github.johnrengelman.shadow' version '8.1.1'
 	id 'me.modmuss50.remotesign' version "0.4.0"
 }
