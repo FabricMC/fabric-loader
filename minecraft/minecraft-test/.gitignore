@@ -5,7 +5,7 @@
 !/build.gradle
 !/.gitignore
 
-!/versions/
+!/versions/*/
 /versions/*/.gradle
 /versions/*/build
 /versions/*/run

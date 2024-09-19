@@ -16,7 +16,7 @@ if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
 	include "minecraft:minecraft-test"
 
 	file("minecraft/minecraft-test/versions").listFiles().each { file ->
-		if (file.isDirectory()) {
+		if (file.isDirectory() && new File(file, "meta.json").exists()) {
 			include("minecraft:minecraft-test:versions:${file.name}")
 		}
 	}
