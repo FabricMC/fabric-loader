@@ -6,6 +6,10 @@ dependencies {
 	implementation project(":")
 }
 
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 8
+}
+
 def autoTestMod = tasks.jar
 
 subprojects {
@@ -35,6 +39,20 @@ subprojects {
 		}
 		productionRuntimeMods {
 			transitive = false
+		}
+	}
+
+	repositories {
+		exclusiveContent {
+			forRepository {
+				maven {
+					name = "CurseForge"
+					url = "https://cursemaven.com"
+				}
+			}
+			filter {
+				includeGroup "curse.maven"
+			}
 		}
 	}
 
