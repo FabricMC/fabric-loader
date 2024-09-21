@@ -1,11 +1,8 @@
-# Ignore everything
-/*
+/.gradle
+/build
+/run
 
-!/src
-!/build.gradle
-!/.gitignore
-
-!/versions/*/
-/versions/*/.gradle
-/versions/*/build
-/versions/*/run
+versions/build
+versions/*/build
+versions/*/.gradle
+versions/*/run

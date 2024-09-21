@@ -17,9 +17,19 @@
 package net.fabricmc.test.autotest;
 
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public class AutoTestEntrypoint implements PreLaunchEntrypoint {
 	@Override
 	public void onPreLaunch() {
+		Thread thread = new Thread(ClientAutoTest::runTest);
+		thread.setDaemon(true);
+		thread.setName("Fabric Auto Test");
+		thread.setUncaughtExceptionHandler((t, e) -> {
+			Log.error(LogCategory.TEST, "Uncaught exception in Fabric Auto Test thread!", e);
+			System.exit(1);
+		});
+		thread.start();
 	}
 }
