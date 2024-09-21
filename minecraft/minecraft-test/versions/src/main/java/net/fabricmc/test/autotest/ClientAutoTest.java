@@ -46,7 +46,7 @@ public final class ClientAutoTest {
 	private static final ModContainer MOD_CONTAINER;
 
 	public static void runTest() {
-		Point quitButton = waitUntil("Minecraft title screen", imageOnScreen("quit_button.png"), Duration.ofMinutes(10));
+		Point quitButton = waitUntil("Minecraft title screen", imageOnScreen("quit_button.png", "quit_button_aof.png"), Duration.ofMinutes(10));
 		saveScreenshot("title_screen");
 		clickPoint(quitButton);
 	}
@@ -142,7 +142,7 @@ public final class ClientAutoTest {
 
 			Log.info(LogCategory.TEST, "Waiting for " + what + "...");
 
-			waitFor(Duration.ofSeconds(1));
+			waitFor(Duration.ofSeconds(5));
 		}
 	}
 
