@@ -77,9 +77,23 @@ subprojects {
 		}
 	}
 
+	// Generate a a list of mod paths so we dont hit the command line length limit on windows
+	def modsListFile = tasks.register("modsListFile") {
+		inputs.files configurations.productionRuntime
+		inputs.file autoTestMod.archiveFile
+		outputs.file(layout.buildDirectory.file("mods.txt"))
+		doLast {
+			def modFiles = []
+			modFiles.addAll configurations.productionRuntimeMods.files
+			modFiles.add autoTestMod.archiveFile.get().asFile
+			file(layout.buildDirectory.file("mods.txt").get().asFile).text = modFiles.join("\n")
+		}
+	}
+
 	def loaderJarTask = project(":").tasks.proguardJar
 
-	def runProductionClient =  tasks.register("runProductionClient", JavaExec) {
+	def runProductionClient = tasks.register("runProductionClient", JavaExec) {
+		dependsOn modsListFile
 		classpath.from configurations.productionRuntime
 		classpath.from loaderJarTask
 		mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
@@ -113,12 +127,35 @@ subprojects {
 				systemProperty("org.lwjgl.librarypath", nativesPath)
 			}
 
-			def modFiles = []
-			modFiles.addAll configurations.productionRuntimeMods.files
-			modFiles.add autoTestMod.archiveFile.get().asFile
 			jvmArgs(
-				"-Dfabric.addMods=${modFiles.join(File.pathSeparator)}"
+				"-Dfabric.addMods=@${tasks.modsListFile.outputs.files.singleFile.absolutePath}"
 			)
+		}
+	}
+
+	if (meta.modpack != null) {
+		configurations {
+			modpack
+		}
+
+		dependencies {
+			modpack meta.modpack
+		}
+
+		tasks.register("extractModpack", Copy) {
+			from(zipTree(configurations.modpack.singleFile)) {
+				include "overrides/**"
+				eachFile { fcd ->
+					fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
+				}
+				includeEmptyDirs = false
+			}
+			into runProductionClient.get().workingDir
+			group = "test"
+		}
+
+		runProductionClient.configure {
+			dependsOn extractModpack
 		}
 	}
 
