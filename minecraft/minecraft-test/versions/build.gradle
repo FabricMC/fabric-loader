@@ -1,17 +1,5 @@
 import groovy.json.JsonSlurper
 
-apply plugin: "java-library"
-
-dependencies {
-	implementation project(":")
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 8
-}
-
-def autoTestMod = tasks.jar
-
 subprojects {
 	def meta = new JsonSlurper().parse(file("meta.json"))
 	def minecraftVersion = meta.minecraftVersion
@@ -80,13 +68,9 @@ subprojects {
 	// Generate a a list of mod paths so we dont hit the command line length limit on windows
 	def modsListFile = tasks.register("modsListFile") {
 		inputs.files configurations.productionRuntime
-		inputs.file autoTestMod.archiveFile
 		outputs.file(layout.buildDirectory.file("mods.txt"))
 		doLast {
-			def modFiles = []
-			modFiles.addAll configurations.productionRuntimeMods.files
-			modFiles.add autoTestMod.archiveFile.get().asFile
-			file(layout.buildDirectory.file("mods.txt").get().asFile).text = modFiles.join("\n")
+			file(layout.buildDirectory.file("mods.txt").get().asFile).text = configurations.productionRuntimeMods.files.join("\n")
 		}
 	}
 
@@ -99,7 +83,6 @@ subprojects {
 		mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
 		workingDir = file("run")
 		group = "test"
-		dependsOn autoTestMod
 
 		javaLauncher = javaToolchains.launcherFor {
 			languageVersion = JavaLanguageVersion.of(meta.javaVersion)

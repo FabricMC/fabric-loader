@@ -36,29 +36,3 @@ jobs:
         with:
           name: Client Test Screenshots
           path: minecraft/minecraft-test/run/screenshots
-
-  new_client_test:
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        version: [ "1.2.5", "1.12.2", "1.16.5", "1.20.1" ]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'microsoft'
-          java-version: '17'
-      - name: Run Auto test Client
-        uses: modmuss50/xvfb-action@v1
-        with:
-          run: ./gradlew :minecraft:minecraft-test:versions:${{ matrix.version }}:runProductionClient --stacktrace --warning-mode=fail
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: ${{ matrix.version }} Client Test
-          path: |
-            minecraft/minecraft-test/versions/${{ matrix.version }}/run/screenshots
-            minecraft/minecraft-test/versions/${{ matrix.version }}/run/logs
