@@ -19,10 +19,13 @@ package net.fabricmc.loader.impl.util;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandleProxies;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.fabricmc.loader.api.LanguageAdapter;
@@ -63,14 +66,20 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 				throw new LanguageAdapterException("Class " + c.getName() + " cannot be cast to " + type.getName() + "!");
 			}
 		} else /* length == 2 */ {
-			List<Method> methodList = new ArrayList<>();
+			List<Executable> methodList = new ArrayList<>();
 
-			for (Method m : c.getDeclaredMethods()) {
-				if (!(m.getName().equals(methodSplit[1]))) {
-					continue;
+			boolean isConstructor = methodSplit[1].equals("<init>");
+
+			if(isConstructor) {
+				Collections.addAll(methodList, c.getDeclaredConstructors());
+			} else {
+				for(Method m : c.getDeclaredMethods()) {
+					if(!(m.getName().equals(methodSplit[1]))) {
+						continue;
+					}
+
+					methodList.add(m);
 				}
-
-				methodList.add(m);
 			}
 
 			try {
@@ -106,10 +115,10 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 				throw new LanguageAdapterException("Found multiple method entries of name " + value + "!");
 			}
 
-			final Method targetMethod = methodList.get(0);
+			final Executable targetMethod = methodList.get(0);
 			Object object = null;
 
-			if ((targetMethod.getModifiers() & Modifier.STATIC) == 0) {
+			if ((targetMethod.getModifiers() & Modifier.STATIC) == 0 && !isConstructor) {
 				try {
 					object = c.getDeclaredConstructor().newInstance();
 				} catch (Exception e) {
@@ -120,8 +129,11 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 			MethodHandle handle;
 
 			try {
-				handle = MethodHandles.lookup()
-						.unreflect(targetMethod);
+				if(isConstructor) {
+					handle = MethodHandles.lookup().findConstructor(c, MethodType.methodType(void.class, targetMethod.getParameterTypes()));
+				} else {
+					handle = MethodHandles.lookup().unreflect((Method) targetMethod);
+				}
 			} catch (Exception ex) {
 				throw new LanguageAdapterException(ex);
 			}
