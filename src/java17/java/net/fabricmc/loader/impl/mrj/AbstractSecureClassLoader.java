@@ -22,4 +22,8 @@ public abstract class AbstractSecureClassLoader extends SecureClassLoader {
 	public AbstractSecureClassLoader(String name, ClassLoader parent) {
 		super(name, parent);
 	}
+
+	static {
+		ClassLoader.registerAsParallelCapable();
+	}
 }
