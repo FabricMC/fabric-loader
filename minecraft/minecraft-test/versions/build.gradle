@@ -1,0 +1,160 @@
+import groovy.json.JsonSlurper
+
+subprojects {
+	def meta = new JsonSlurper().parse(file("meta.json"))
+	def minecraftVersion = meta.minecraftVersion
+	def hasIntermediary = meta.hasIntermediary == null ? true : meta.hasIntermediary
+	def mergedJars = meta.mergedJars == null ? true : meta.mergedJars
+	def mods = meta.mods == null ? [] : meta.mods
+
+	apply plugin: "fabric-loom"
+
+	loom {
+		if (!hasIntermediary) {
+			noIntermediateMappings()
+		}
+
+		if (!mergedJars) {
+			clientOnlyMinecraftJar()
+		}
+	}
+
+	configurations {
+		productionRuntime {
+			extendsFrom configurations.minecraftLibraries
+			extendsFrom configurations.loaderLibraries
+			extendsFrom configurations.minecraftRuntimeLibraries
+		}
+		productionRuntimeMods {
+			transitive = false
+		}
+	}
+
+	repositories {
+		exclusiveContent {
+			forRepository {
+				maven {
+					name = "CurseForge"
+					url = "https://cursemaven.com"
+				}
+			}
+			filter {
+				includeGroup "curse.maven"
+			}
+		}
+	}
+
+	dependencies {
+		minecraft "com.mojang:minecraft:$minecraftVersion"
+		mappings loom.layered() {
+			// We dont need mappings
+		}
+
+		if (hasIntermediary) {
+			productionRuntime "net.fabricmc:intermediary:$minecraftVersion"
+		}
+
+		// Add the launcher libraries to the classpath
+		def installerJson = new JsonSlurper().parse(rootProject.file("src/main/resources/fabric-installer.json"))
+		installerJson.libraries.common.each {
+			productionRuntime it.name
+		}
+
+		mods.each {
+			productionRuntimeMods it
+		}
+	}
+
+	// Generate a a list of mod paths so we dont hit the command line length limit on windows
+	def modsListFile = tasks.register("modsListFile") {
+		inputs.files configurations.productionRuntime
+		outputs.file(layout.buildDirectory.file("mods.txt"))
+		doLast {
+			file(layout.buildDirectory.file("mods.txt").get().asFile).text = configurations.productionRuntimeMods.files.join("\n")
+		}
+	}
+
+	def loaderJarTask = project(":").tasks.proguardJar
+
+	def runProductionClient = tasks.register("runProductionClient", JavaExec) {
+		dependsOn modsListFile
+		classpath.from configurations.productionRuntime
+		classpath.from loaderJarTask
+		mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
+		workingDir = file("run")
+		group = "test"
+
+		javaLauncher = javaToolchains.launcherFor {
+			languageVersion = JavaLanguageVersion.of(meta.javaVersion)
+		}
+
+		doFirst {
+			classpath.from loom.minecraftProvider.minecraftClientJar
+			workingDir.mkdirs()
+
+			def optionsTxt = new File(workingDir, "options.txt")
+
+			if (!optionsTxt.exists()) {
+				optionsTxt.text = "onboardAccessibility:false\n"
+			}
+
+			args(
+				"--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
+				"--assetsDir", new File(loom.files.userCache, "assets").absolutePath,
+				"--gameDir", workingDir.absolutePath
+			)
+
+			if (net.fabricmc.loom.util.Platform.CURRENT.operatingSystem.isMacOS()) {
+				jvmArgs(
+					"-XstartOnFirstThread"
+				)
+			}
+
+			if (loom.minecraftProvider.versionInfo.hasNativesToExtract()) {
+				def nativesPath = loom.files.getNativesDirectory(project).getAbsolutePath()
+				systemProperty("java.library.path", nativesPath)
+				systemProperty("org.lwjgl.librarypath", nativesPath)
+			}
+
+			jvmArgs(
+				"-Dfabric.addMods=@${tasks.modsListFile.outputs.files.singleFile.absolutePath}"
+			)
+		}
+	}
+
+	if (meta.modpack != null) {
+		configurations {
+			modpack
+		}
+
+		dependencies {
+			modpack meta.modpack
+		}
+
+		tasks.register("extractModpack", Copy) {
+			from(zipTree(configurations.modpack.singleFile)) {
+				include "overrides/**"
+				eachFile { fcd ->
+					fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
+				}
+				includeEmptyDirs = false
+			}
+			into runProductionClient.get().workingDir
+			group = "test"
+		}
+
+		runProductionClient.configure {
+			dependsOn extractModpack
+		}
+	}
+
+	afterEvaluate {
+		runProductionClient.configure {
+			dependsOn downloadAssets
+
+			if (loom.minecraftProvider.versionInfo.hasNativesToExtract()) {
+				dependsOn extractNatives
+			}
+		}
+	}
+}
