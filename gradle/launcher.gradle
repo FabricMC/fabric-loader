@@ -4,8 +4,7 @@ import groovy.json.JsonSlurper
 // A task to install the development version of Fabric Loader to the Minecraft launcher
 tasks.register("installDevelopmentVersion", InstallDevelopmentVersionTask) {
 	installerJson = file("src/main/resources/fabric-installer.json")
-	loaderJar = proguardJar.outputs.files.singleFile
-	dependsOn proguardJar
+	loaderJar = finalJar.archiveFile
 }
 
 abstract class InstallDevelopmentVersionTask extends DefaultTask {

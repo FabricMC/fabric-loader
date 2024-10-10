@@ -7,19 +7,23 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
+
+plugins {
+	id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+
 rootProject.name='fabric-loader'
+
+if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+	throw new UnsupportedOperationException("Fabric Loader requires Java 17+ to build.")
+}
 
 include "minecraft"
 include "junit"
+include "minecraft:minecraft-test"
 
-if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-	include "minecraft:minecraft-test"
-
-	file("minecraft/minecraft-test/versions").listFiles().each { file ->
-		if (file.isDirectory() && new File(file, "meta.json").exists()) {
-			include("minecraft:minecraft-test:versions:${file.name}")
-		}
+file("minecraft/minecraft-test/versions").listFiles().each { file ->
+	if (file.isDirectory() && new File(file, "meta.json").exists()) {
+		include("minecraft:minecraft-test:versions:${file.name}")
 	}
-} else {
-	println("Minecraft test sub project requires java 17 or higher!")
 }

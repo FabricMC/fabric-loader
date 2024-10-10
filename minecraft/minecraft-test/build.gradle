@@ -84,7 +84,7 @@ dependencies {
 	productionRuntimeMods "net.fabricmc.fabric-api:fabric-api:0.89.3+1.20.2:testmod"
 }
 
-def loaderJarTask = project(":").tasks.proguardJar
+def loaderJarTask = project(":").tasks.finalJar
 
 // This is very far beyond loom's API if you copy this, you're on your own.
 task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask, remapJar]) {
