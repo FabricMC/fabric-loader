@@ -212,6 +212,14 @@ public interface FabricLoader {
 	File getGameDirectory();
 
 	/**
+	 * Get the current directory for temporary files for a particular mod.
+	 *
+	 * @param modId The ID of the mod to get the cache directory for
+	 * @return the cache directory
+	 */
+	Path getCacheDir(String modId);
+
+	/**
 	 * Get the current directory for game configuration files.
 	 *
 	 * @return the configuration directory
