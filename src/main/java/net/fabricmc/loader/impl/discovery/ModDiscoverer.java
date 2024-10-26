@@ -102,7 +102,9 @@ public final class ModDiscoverer {
 				}
 			}
 
-			futures.add(pool.submit(new ModScanTask(pendingPaths, requiresRemap)));
+			if (!pendingPaths.isEmpty()) {
+				futures.add(pool.submit(new ModScanTask(pendingPaths, requiresRemap)));
+			}
 		};
 
 		for (ModCandidateFinder finder : candidateFinders) {
