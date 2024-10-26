@@ -55,7 +55,7 @@ public final class McVersionLookup {
 			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
 			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
 			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names: Infdev 12345678-9
-			+ "(rd|inf)-\\d+|" // early rd-123, inf-123
+			+ "(rd|inf?)-\\d+|" // early rd-123, in-20100223, inf-123
 			+ "1\\.RV-Pre1|3D Shareware v1\\.34|23w13a_or_b|24w14potato|" // odd exceptions
 			+ "(.*[Ee]xperimental [Ss]napshot )(\\d+)" // Experimental versions.
 			);
@@ -66,7 +66,7 @@ public final class McVersionLookup {
 	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile("(?:.*[Ee]xperimental [Ss]napshot )(\\d+)");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
-	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
+	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
 	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
