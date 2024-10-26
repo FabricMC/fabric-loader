@@ -83,7 +83,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private IMixinTransformer mixinTransformer;
 	private boolean transformInitialized = false;
 	private volatile Set<Path> codeSources = Collections.emptySet();
-	private volatile Set<Path> validParentCodeSources = Collections.emptySet();
+	private volatile Set<Path> validParentCodeSources = null; // null = disabled isolation, game provider has to set it to opt in
 	private final Map<Path, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
 

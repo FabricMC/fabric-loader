@@ -93,7 +93,7 @@ public final class FabricMixinBootstrap {
 				try {
 					Mixins.addConfiguration(config);
 				} catch (Throwable t) {
-					throw new RuntimeException(String.format("Error creating Mixin config %s for mod %s", config, mod.getMetadata().getId()), t);
+					throw new RuntimeException(String.format("Error parsing or using Mixin config %s for mod %s", config, mod.getMetadata().getId()), t);
 				}
 			}
 		}
