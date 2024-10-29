@@ -34,6 +34,8 @@ public final class SystemProperties {
 	public static final String LOG_LEVEL = "fabric.log.level";
 	// a path to a directory to replace the default mod search directory
 	public static final String MODS_FOLDER = "fabric.modsFolder";
+	// whether to load mods recursively from the mods folder. Paths that contain "disabled" are ignored
+	public static final String LOAD_MODS_RECURSIVELY = "fabric.loadModsRecursively";
 	// additional mods to load (path separator separated paths, @ prefix for meta-file with each line referencing an actual file)
 	public static final String ADD_MODS = "fabric.addMods";
 	// a comma-separated list of mod ids to disable, even if they're discovered. mostly useful for unit testing.
