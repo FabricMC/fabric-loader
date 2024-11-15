@@ -125,8 +125,7 @@ public final class RuntimeModRemapper {
 					.renameInvalidLocals(false)
 					.extension(new MixinExtension(remapMixins::contains))
 					.extraAnalyzeVisitor((mrjVersion, className, next) ->
-							AccessWidenerClassVisitor.createClassVisitor(FabricLoaderImpl.ASM_VERSION, next, mergedAccessWidener)
-					)
+					AccessWidenerClassVisitor.createClassVisitor(FabricLoaderImpl.ASM_VERSION, next, mergedAccessWidener))
 					.build();
 
 			try {
@@ -245,8 +244,15 @@ public final class RuntimeModRemapper {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Determine whether a jar requires Mixin remapping with tiny remapper.
+	 *
+	 * <p>This is typically the case when a mod was built without the Mixin annotation processor generating refmaps.
+	 */
 	private static boolean requiresMixinRemap(Path inputPath) throws IOException, URISyntaxException {
 		final Manifest manifest = ManifestUtil.readManifest(inputPath);
+		if (manifest == null) return false;
+
 		final Attributes mainAttributes = manifest.getMainAttributes();
 
 		return REMAP_TYPE_STATIC.equalsIgnoreCase(mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY));
