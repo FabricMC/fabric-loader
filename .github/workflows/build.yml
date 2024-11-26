@@ -31,7 +31,7 @@ jobs:
         uses: modmuss50/xvfb-action@v1
         with:
           run: ./gradlew :minecraft:minecraft-test:runProductionAutoTestClient --stacktrace --warning-mode=fail
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Client Test Screenshots
