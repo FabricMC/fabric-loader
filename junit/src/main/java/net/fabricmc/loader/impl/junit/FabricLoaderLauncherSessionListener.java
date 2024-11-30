@@ -31,12 +31,20 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		System.setProperty(SystemProperties.UNIT_TEST, "true");
 	}
 
-	private final Knot knot;
-	private final ClassLoader classLoader;
+	private static Knot knot = null;
+	private static ClassLoader classLoader = null;
 
 	private ClassLoader launcherSessionClassLoader;
 
 	public FabricLoaderLauncherSessionListener() {
+		setup();
+	}
+
+	private synchronized static void setup() {
+		if (knot != null) {
+			return;
+		}
+
 		final Thread currentThread = Thread.currentThread();
 		final ClassLoader originalClassLoader = currentThread.getContextClassLoader();
 
