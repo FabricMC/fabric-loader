@@ -40,7 +40,7 @@ public class FabricLoaderLauncherSessionListener implements LauncherSessionListe
 		setup();
 	}
 
-	private synchronized static void setup() {
+	private static synchronized void setup() {
 		if (knot != null) {
 			return;
 		}
