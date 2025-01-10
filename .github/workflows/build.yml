@@ -14,7 +14,7 @@ jobs:
       - run: ./gradlew build publishToMavenLocal --stacktrace --warning-mode fail
       - uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
+          name: Artifacts ${{ matrix.java }}
           path: build/libs/
 
   client_test:
