@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "id": "v1-parsing-test",
+  "version": "1.0.0-SNAPSHOT",
+  "name": "Example mod 1",
+  "description": "A simple unit test for parsing a \"fabric.mod.json\"",
+  "authors": [
+    {
+      "name": "FabricMC",
+      "contact": {
+        "homepage": "https://fabricmc.net/",
+        "sources": "https://github.com/FabricMC",
+        "discord_link": "https://discord.gg/v6v4pMv"
+      }
+    },
+    "Another author"
+  ],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.fabricmc.test.mod.ClientEntrypoint",
+      "net.fabricmc.test.mod.ClientEntrypoint2"
+    ],
+    "custom_entrypoint": [
+      {
+        "value": "net.fabricmc.test.mod.extension.CustomEntrypoint",
+        "adapter": "default"
+      }
+    ]
+  },
+  "icon": "assets/test/mod/icon.png",
+  "contact": {
+    "homepage": "https://fabricmc.net/"
+  },
+  "depends": {
+    "fabricloader": ">=0.2.0",
+    "some_mod": [">=1.12.2", {
+      "version": ">=1.0.0",
+      "if": {
+        "fabricloader": ">=0.4.0"
+      },
+      "environment": "client"
+    }],
+    "another_mod_only_on_server": [{
+      "version": ">=1.12.2",
+      "if": {
+        "fabricloader": ">=0.4.0"
+      },
+      "environment": "server"
+    }, {
+      "version": ">=1.13.0",
+      "environment": "client"
+    }],
+    "very_complex_mod": {
+        "version": ">=1.0.0",
+        "if": {
+          "some_mod": {
+            "version": ">=1.0.0",
+            "if": {
+              "fabricloader": {
+                "version": ">=0.4.0",
+                "if": {
+                  "another_mod_only_on_server": ">=2.6.7",
+                  "mod_i_dont_want": "<0.0.0"
+                }
+              },
+              "another_mod_only_on_server": {
+                "version": ">=1.10.0",
+                "environment": "server"
+              }
+            }
+          },
+          "another_mod_only_on_server": ">=1.14.0"
+        }
+      }
+  }
+}
