@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl.discovery;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,6 +33,7 @@ import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.TimeoutException;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
@@ -40,7 +42,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public class ModResolver {
-	public static List<ModCandidateImpl> resolve(Collection<ModCandidateImpl> candidates, EnvType envType, Map<String, Set<ModCandidateImpl>> envDisabledMods) throws ModResolutionException {
+	public static List<ModCandidateImpl> resolve(Collection<ModCandidateImpl> candidates, EnvType envType, Map<String, Set<ModCandidateImpl>> envDisabledMods) throws ModResolutionException, VersionParsingException {
 		long startTime = System.nanoTime();
 		List<ModCandidateImpl> result = findCompatibleSet(candidates, envType, envDisabledMods);
 
@@ -50,7 +52,22 @@ public class ModResolver {
 		return result;
 	}
 
-	private static List<ModCandidateImpl> findCompatibleSet(Collection<ModCandidateImpl> candidates, EnvType envType, Map<String, Set<ModCandidateImpl>> envDisabledMods) throws ModResolutionException {
+	private static List<ModCandidateImpl> findCompatibleSet(Collection<ModCandidateImpl> candidates, EnvType envType, Map<String, Set<ModCandidateImpl>> envDisabledMods) throws ModResolutionException, VersionParsingException {
+		Map<String, List<DomainObject.Mod>> domainObjectsById = new HashMap<>();
+
+		for (ModCandidateImpl mod : candidates) {
+			domainObjectsById.put(mod.getId(), Collections.singletonList(mod));
+		}
+
+		// resolve conditional dependencies
+		for (ModCandidateImpl mod : candidates) {
+			for (ModDependency dep : mod.getDependencies()) {
+				dep.resolveDependencyConditions(domainObjectsById, envType);
+			}
+
+			mod.getMetadata().setDependencies(mod.getDependencies().stream().filter(ModDependency::isActive).collect(Collectors.toList()));
+		}
+
 		// sort all mods by priority and group by id
 
 		List<ModCandidateImpl> allModsSorted = new ArrayList<>(candidates);

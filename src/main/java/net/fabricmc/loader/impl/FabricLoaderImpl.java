@@ -45,6 +45,7 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.ObjectShare;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
@@ -197,10 +198,12 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			} else {
 				throw FormattedException.ofLocalized("exception.incompatible", exception);
 			}
+		} catch (VersionParsingException exception) {
+			throw new RuntimeException("Failed to parse version", exception);
 		}
 	}
 
-	private void setup() throws ModResolutionException {
+	private void setup() throws ModResolutionException, VersionParsingException {
 		boolean remapRegularMods = isDevelopmentEnvironment();
 		VersionOverrides versionOverrides = new VersionOverrides();
 		DependencyOverrides depOverrides = new DependencyOverrides(configDir);

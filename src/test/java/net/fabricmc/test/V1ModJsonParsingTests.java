@@ -28,15 +28,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.CustomValue;
+import net.fabricmc.loader.impl.discovery.DomainObject;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModMetadataParser;
@@ -63,6 +69,12 @@ final class V1ModJsonParsingTests {
 		errorPath = testLocation.resolve("error");
 	}
 
+	private static LoaderModMetadata parseMetadata(Path path) throws IOException, ParseMetadataException {
+		try (InputStream is = Files.newInputStream(path)) {
+			return ModMetadataParser.parseMetadata(is, "dummy", Collections.emptyList(), new VersionOverrides(), new DependencyOverrides(Paths.get("randomMissing")), false);
+		}
+	}
+
 	/*
 	 * Spec compliance tests
 	 */
@@ -79,6 +91,72 @@ final class V1ModJsonParsingTests {
 		final LoaderModMetadata reversedMetadata = parseMetadata(specPath.resolve("required_reversed.json"));
 		assertNotNull(reversedMetadata, "Failed to read mod metadata!");
 		validateRequiredValues(reversedMetadata);
+	}
+
+	@Test
+	@DisplayName("Test conditional dependencies")
+	public void testConditionalDependencies() throws IOException, ParseMetadataException, VersionParsingException {
+		final LoaderModMetadata metadata = parseMetadata(specPath.resolve("conditional_dependencies.json"));
+		assertNotNull(metadata, "Failed to read mod metadata!");
+
+		String deps = metadata.getDependencies().toString();
+		System.out.println("Dependencies: " + deps);
+
+		Stack<Character> symbols = new Stack<>();
+
+		for (char c : deps.toCharArray()) {
+			if (c == '[' || c == '{' || c == '(') {
+				symbols.push(c);
+			} else if (c == ']' || c == '}' || c == ')') {
+				char expected;
+				switch (c) {
+				case ']':
+					expected = '[';
+					break;
+				case '}':
+					expected = '{';
+					break;
+				case ')':
+					expected = '(';
+					break;
+				default:
+					throw new RuntimeException("Unexpected symbol: " + c);
+				}
+
+				if (symbols.peek() != expected) {
+					throw new RuntimeException("Mismatched symbols: " + c + " vs " + symbols.peek());
+				}
+
+				symbols.pop();
+			}
+		}
+
+		DummyMod some_mod = new DummyMod("some_mod", Version.parse("1.0.0"));
+		DummyMod another_mod_only_on_server = new DummyMod("another_mod_only_on_server", Version.parse("1.0.0"));
+		DummyMod mod_i_dont_want = new DummyMod("mod_i_dont_want", Version.parse("1.0.0"));
+		DummyMod fabric_loader = new DummyMod("fabricloader", Version.parse("0.6.0"));
+
+		List<DummyMod> dummys = new java.util.ArrayList<>();
+		dummys.add(some_mod);
+		dummys.add(another_mod_only_on_server);
+		dummys.add(mod_i_dont_want);
+		dummys.add(fabric_loader);
+
+		Map<String, List<DomainObject.Mod>> allMods = new java.util.HashMap<>();
+
+		for (DummyMod dummy : dummys) {
+			allMods.put(dummy.getId(), Collections.singletonList(dummy));
+		}
+
+		metadata.getDependencies().forEach(dep -> {
+			try {
+				dep.resolveDependencyConditions(allMods, EnvType.SERVER);
+			} catch (VersionParsingException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		System.out.println("Resolved dependencies: " + metadata.getDependencies());
 	}
 
 	@Test
@@ -219,11 +297,26 @@ final class V1ModJsonParsingTests {
 	 */
 
 	@Test
-	public void testWarnings() { }
+	public void testWarnings() {
+	}
 
-	private static LoaderModMetadata parseMetadata(Path path) throws IOException, ParseMetadataException {
-		try (InputStream is = Files.newInputStream(path)) {
-			return ModMetadataParser.parseMetadata(is, "dummy", Collections.emptyList(), new VersionOverrides(), new DependencyOverrides(Paths.get("randomMissing")), false);
+	private static class DummyMod implements DomainObject.Mod {
+		private final String id;
+		private final Version version;
+
+		DummyMod(String id, Version version) {
+			this.id = id;
+			this.version = version;
+		}
+
+		@Override
+		public String getId() {
+			return id;
+		}
+
+		@Override
+		public Version getVersion() {
+			return version;
 		}
 	}
 }

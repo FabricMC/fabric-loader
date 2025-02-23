@@ -38,13 +38,16 @@ import net.fabricmc.loader.impl.lib.gson.JsonToken;
 import net.fabricmc.loader.impl.util.version.VersionParser;
 
 final class V1ModMetadataParser {
+	private V1ModMetadataParser() {
+	}
+
 	/**
 	 * Reads a {@code fabric.mod.json} file of schema version {@code 1}.
 	 *
 	 * @param logger the logger to print warnings to
 	 * @param reader the json reader to read the file with
 	 * @return the metadata of this file, null if the file could not be parsed
-	 * @throws IOException         if there was any issue reading the file
+	 * @throws IOException if there was any issue reading the file
 	 */
 	static LoaderModMetadata parse(JsonReader reader) throws IOException, ParseMetadataException {
 		List<ParseWarning> warnings = new ArrayList<>();
@@ -433,6 +436,7 @@ final class V1ModMetadataParser {
 		reader.endArray();
 	}
 
+	@SuppressWarnings("checkstyle:Indentation")
 	private static void readDependenciesContainer(JsonReader reader, ModDependency.Kind kind, List<ModDependency> out) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Dependency container must be an object!", reader);
@@ -443,30 +447,44 @@ final class V1ModMetadataParser {
 		while (reader.hasNext()) {
 			final String modId = reader.nextName();
 			final List<String> matcherStringList = new ArrayList<>();
+			final List<ModDependency> conditionalMatcherList = new ArrayList<>();
 
 			switch (reader.peek()) {
 			case STRING:
 				matcherStringList.add(reader.nextString());
 				break;
+			case BEGIN_OBJECT:
+				readConditionalMatcher(reader, conditionalMatcherList);
+				break;
 			case BEGIN_ARRAY:
 				reader.beginArray();
 
 				while (reader.hasNext()) {
-					if (reader.peek() != JsonToken.STRING) {
-						throw new ParseMetadataException("Dependency version range array must only contain string values", reader);
+					switch (reader.peek()) {
+					case STRING:
+						// String values are universal
+						matcherStringList.add(reader.nextString());
+						break;
+					case BEGIN_OBJECT:
+						// Object values are conditional
+						// These matchers are actually CONDITION type dependencies
+						// If one of these is activated, it's matcher will be used in this dependency
+						readConditionalMatcher(reader, conditionalMatcherList);
+						break;
+					default:
+						throw new ParseMetadataException("Dependency version range array must only contain string values or objects", reader);
 					}
-
-					matcherStringList.add(reader.nextString());
 				}
 
 				reader.endArray();
 				break;
 			default:
-				throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
+				throw new ParseMetadataException("Dependency version range must be a string, objects or array of strings or objects!", reader);
 			}
 
 			try {
-				out.add(new ModDependencyImpl(kind, modId, matcherStringList));
+				// condition environment is processed in CONDITION type dependencies
+				out.add(new ModDependencyImpl(kind, modId, matcherStringList, ModEnvironment.UNIVERSAL, conditionalMatcherList));
 			} catch (VersionParsingException e) {
 				throw new ParseMetadataException(e);
 			}
@@ -506,7 +524,7 @@ final class V1ModMetadataParser {
 
 						personName = reader.nextString();
 						break;
-						// Effectively optional
+					// Effectively optional
 					case "contact":
 						contactInformation = V1ModMetadataParser.readContactInfo(reader);
 						break;
@@ -662,6 +680,69 @@ final class V1ModMetadataParser {
 		reader.endObject();
 	}
 
-	private V1ModMetadataParser() {
+	private static void readConditionalMatcher(JsonReader reader, List<ModDependency> out) throws IOException, ParseMetadataException {
+		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
+			throw new ParseMetadataException("Conditional dependencies must be in an object!", reader);
+		}
+
+		reader.beginObject();
+
+		final List<ModDependency> ifOut = new ArrayList<>();
+		List<String> matcherStringList = new ArrayList<>();
+		ModEnvironment environment = null;
+
+		while (reader.hasNext()) {
+			final String key = reader.nextName();
+
+			switch (key) {
+			case "version":
+				switch (reader.peek()) {
+				case STRING:
+					matcherStringList.add(reader.nextString());
+					break;
+				case BEGIN_ARRAY:
+					reader.beginArray();
+
+					while (reader.hasNext()) {
+						if (reader.peek() != JsonToken.STRING) {
+							throw new ParseMetadataException("Dependency version range array must only contain string values", reader);
+						}
+
+						matcherStringList.add(reader.nextString());
+					}
+
+					reader.endArray();
+					break;
+				default:
+					throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
+				}
+
+				break;
+			case "if":
+				readDependenciesContainer(reader, ModDependency.Kind.DEPENDS, ifOut);
+				break;
+			case "environment":
+				environment = readEnvironment(reader);
+				break;
+			default:
+				throw new ParseMetadataException("Invalid key in conditional dependency object: " + key, reader);
+			}
+		}
+
+		if (matcherStringList.isEmpty()) {
+			throw new ParseMetadataException.MissingField("Conditional dependency object must have a 'version' field!");
+		}
+
+		if (environment == null) {
+			environment = ModEnvironment.UNIVERSAL; // Default to universal
+		}
+
+		reader.endObject();
+
+		try {
+			out.add(new ModDependencyImpl(ModDependency.Kind.CONDITION, "CONDITIONAL", matcherStringList, environment, ifOut));
+		} catch (VersionParsingException e) {
+			throw new ParseMetadataException(e);
+		}
 	}
 }

@@ -21,9 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.api.metadata.version.VersionPredicate;
+import net.fabricmc.loader.impl.discovery.DomainObject;
 
 /**
  * Represents a dependency.
@@ -47,6 +50,26 @@ public interface ModDependency {
 	boolean matches(Version version);
 
 	/**
+	 * Returns if the dependency is active.
+	 * If not, this dependency should be ignored.
+	 * Must be called after {@link #resolveDependencyConditions(Map, EnvType)}.
+	 */
+	boolean isActive();
+
+	/**
+	 * If the dependency kind is CONDITION, this method will resolve its matchers (dependencies) and environment.
+	 * If all the matchers are met, the dependency is considered active.
+	 * <br>
+	 * If the dependency kind is not CONDITION, this method will collect all active CONDITION dependencies' matchers.
+	 * These matchers will be added to the list of ranges.
+	 * If the ranges list is empty, the dependency is considered not active.
+	 * <br>
+	 * <b>Be aware that this method modifies the list of ranges, and must be called before {@link #isActive()}.</b>
+	 * @param allMods all mods in the environment
+	 */
+	void resolveDependencyConditions(Map<String, List<DomainObject.Mod>> allMods, EnvType envType) throws VersionParsingException;
+
+	/**
 	 * Returns a representation of the dependency's version requirements.
 	 *
 	 * @return representation of the dependency's version requirements
@@ -60,12 +83,18 @@ public interface ModDependency {
 	 */
 	List<VersionInterval> getVersionIntervals();
 
+	/**
+	 * @return the dependency's version requirements in string list form.
+	 */
+	List<String> getMatcherStrings();
+
 	enum Kind {
 		DEPENDS("depends", true, false),
 		RECOMMENDS("recommends", true, true),
 		SUGGESTS("suggests", true, true),
 		CONFLICTS("conflicts", false, true),
-		BREAKS("breaks", false, false);
+		BREAKS("breaks", false, false),
+		CONDITION("conditional", true, false);
 
 		private static final Map<String, Kind> map = createMap();
 		private final String key;

@@ -29,11 +29,13 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModEnvironment;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.lib.gson.JsonReader;
 import net.fabricmc.loader.impl.lib.gson.JsonToken;
@@ -126,7 +128,8 @@ public final class DependencyOverrides {
 						reader);
 			}
 
-			List<ModDependency> deps = readDependencies(reader, kind);
+			List<ModDependency> deps = new ArrayList<>();
+			readDependenciesContainer(reader, kind, deps);
 
 			if (!deps.isEmpty() || op == Operation.REPLACE) {
 				modOverrides.computeIfAbsent(kind, ignore -> new EnumMap<>(Operation.class)).put(op, deps);
@@ -157,49 +160,149 @@ public final class DependencyOverrides {
 		return ret;
 	}
 
-	private static List<ModDependency> readDependencies(JsonReader reader, ModDependency.Kind kind) throws IOException, ParseMetadataException {
+	/**
+	 * See {@link V1ModMetadataParser}.
+	 */
+	private static ModEnvironment readEnvironment(JsonReader reader) throws ParseMetadataException, IOException {
+		final String environment = reader.nextString().toLowerCase(Locale.ROOT);
+
+		if (environment.isEmpty() || environment.equals("*")) {
+			return ModEnvironment.UNIVERSAL;
+		} else if (environment.equals("client")) {
+			return ModEnvironment.CLIENT;
+		} else if (environment.equals("server")) {
+			return ModEnvironment.SERVER;
+		} else {
+			throw new ParseMetadataException("Invalid environment type: " + environment + "!", reader);
+		}
+	}
+
+	/**
+	 * See {@link V1ModMetadataParser}.
+	 */
+	private static void readDependenciesContainer(JsonReader reader, ModDependency.Kind kind, List<ModDependency> out) throws IOException, ParseMetadataException {
 		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
 			throw new ParseMetadataException("Dependency container must be an object!", reader);
 		}
 
-		List<ModDependency> ret = new ArrayList<>();
 		reader.beginObject();
 
 		while (reader.hasNext()) {
 			final String modId = reader.nextName();
 			final List<String> matcherStringList = new ArrayList<>();
+			final List<ModDependency> conditionalMatcherList = new ArrayList<>();
 
 			switch (reader.peek()) {
 			case STRING:
 				matcherStringList.add(reader.nextString());
 				break;
+			case BEGIN_OBJECT:
+				readConditionalMatcher(reader, conditionalMatcherList);
+				break;
 			case BEGIN_ARRAY:
 				reader.beginArray();
 
 				while (reader.hasNext()) {
-					if (reader.peek() != JsonToken.STRING) {
-						throw new ParseMetadataException("Dependency version range array must only contain string values", reader);
+					switch (reader.peek()) {
+					case STRING:
+						// String values are universal
+						matcherStringList.add(reader.nextString());
+						break;
+					case BEGIN_OBJECT:
+						// Object values are conditional
+						// These matchers are actually CONDITION type dependencies
+						// If one of these is activated, it's matcher will be used in this dependency
+						readConditionalMatcher(reader, conditionalMatcherList);
+						break;
+					default:
+						throw new ParseMetadataException("Dependency version range array must only contain string values or objects", reader);
 					}
-
-					matcherStringList.add(reader.nextString());
 				}
 
 				reader.endArray();
 				break;
 			default:
-				throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
+				throw new ParseMetadataException("Dependency version range must be a string, objects or array of strings or objects!", reader);
 			}
 
 			try {
-				ret.add(new ModDependencyImpl(kind, modId, matcherStringList));
+				// condition environment is processed in CONDITION type dependencies
+				out.add(new ModDependencyImpl(kind, modId, matcherStringList, ModEnvironment.UNIVERSAL, conditionalMatcherList));
 			} catch (VersionParsingException e) {
 				throw new ParseMetadataException(e);
 			}
 		}
 
 		reader.endObject();
+	}
 
-		return ret;
+	/**
+	 * See {@link V1ModMetadataParser}.
+	 */
+	private static void readConditionalMatcher(JsonReader reader, List<ModDependency> out) throws IOException, ParseMetadataException {
+		if (reader.peek() != JsonToken.BEGIN_OBJECT) {
+			throw new ParseMetadataException("Conditional dependencies must be in an object!", reader);
+		}
+
+		reader.beginObject();
+
+		final List<ModDependency> ifOut = new ArrayList<>();
+		List<String> matcherStringList = new ArrayList<>();
+		ModEnvironment environment = null;
+
+		while (reader.hasNext()) {
+			final String key = reader.nextName();
+
+			switch (key) {
+			case "version":
+				switch (reader.peek()) {
+				case STRING:
+					matcherStringList.add(reader.nextString());
+					break;
+				case BEGIN_ARRAY:
+					reader.beginArray();
+
+					while (reader.hasNext()) {
+						if (reader.peek() != JsonToken.STRING) {
+							throw new ParseMetadataException("Dependency version range array must only contain string values", reader);
+						}
+
+						matcherStringList.add(reader.nextString());
+					}
+
+					reader.endArray();
+					break;
+				default:
+					throw new ParseMetadataException("Dependency version range must be a string or string array!", reader);
+				}
+
+				break;
+			case "if":
+				readDependenciesContainer(reader, ModDependency.Kind.DEPENDS, ifOut);
+				break;
+			case "environment":
+				environment = readEnvironment(reader);
+				break;
+			default:
+				throw new ParseMetadataException("Invalid key in conditional dependency object: " + key, reader);
+			}
+		}
+
+		if (matcherStringList.isEmpty()) {
+			throw new ParseMetadataException.MissingField("Conditional dependency object must have a 'version' field!");
+		}
+
+		if (environment == null) {
+			environment = ModEnvironment.UNIVERSAL; // Default to universal
+		}
+
+		reader.endObject();
+
+		try {
+			out.add(new ModDependencyImpl(ModDependency.Kind.CONDITION, "CONDITIONAL", matcherStringList, environment, ifOut));
+		} catch (VersionParsingException e) {
+			throw new ParseMetadataException(e);
+		}
 	}
 
 	public void apply(LoaderModMetadata metadata) {
