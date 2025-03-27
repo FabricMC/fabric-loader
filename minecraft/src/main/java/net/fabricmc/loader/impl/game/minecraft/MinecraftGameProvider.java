@@ -42,6 +42,7 @@ import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
 import net.fabricmc.loader.impl.game.LibClassifier;
+import net.fabricmc.loader.impl.game.minecraft.patch.AppletPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
@@ -91,7 +92,8 @@ public class MinecraftGameProvider implements GameProvider {
 			new EntrypointPatch(this),
 			new BrandingPatch(),
 			new EntrypointPatchFML125(),
-			new TinyFDPatch());
+			new TinyFDPatch(),
+			new AppletPatch());
 
 	@Override
 	public String getGameId() {
