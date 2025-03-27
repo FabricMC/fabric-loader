@@ -37,7 +37,7 @@ public class Applet extends Panel {
     public boolean isActive() {
         if (appletLauncher != null) {
             return appletLauncher.isActive();
-        } else {        // If stub field not filled in, applet never active
+        } else {
             return false;
         }
     }
