@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./gradlew build publishToMavenLocal --stacktrace --warning-mode fail
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Artifacts
           path: build/libs/
