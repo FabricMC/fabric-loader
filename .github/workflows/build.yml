@@ -5,7 +5,7 @@ jobs:
     strategy:
       matrix:
         java: [17-jdk, 21-jdk]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     container:
       image: eclipse-temurin:${{ matrix.java }}
       options: --user root
@@ -18,7 +18,7 @@ jobs:
           path: build/libs/
 
   client_test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'microsoft'
-          java-version: '17'
+          java-version: '21'
       - name: Run Auto test Client
         uses: modmuss50/xvfb-action@v1
         with:
