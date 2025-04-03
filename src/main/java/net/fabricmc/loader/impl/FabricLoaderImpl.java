@@ -44,6 +44,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.ModDirectories;
 import net.fabricmc.loader.api.ObjectShare;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.discovery.ArgumentModCandidateFinder;
@@ -61,10 +62,13 @@ import net.fabricmc.loader.impl.launch.knot.Knot;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
 import net.fabricmc.loader.impl.metadata.EntrypointMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
+import net.fabricmc.loader.impl.metadata.MetadataVerifier;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 import net.fabricmc.loader.impl.util.DefaultLanguageAdapter;
 import net.fabricmc.loader.impl.util.ExceptionUtil;
+import net.fabricmc.loader.impl.util.GlobalDirectories;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.ModDirectoriesImpl;
 import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -78,7 +82,6 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public static final String VERSION = "0.16.12";
 	public static final String MOD_ID = "fabricloader";
 
-	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
 	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to cache dir
 	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to cache dir
 	private static final String TMP_DIR_NAME = "tmp"; // relative to cache dir
@@ -101,6 +104,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private GameProvider provider;
 	private Path gameDir;
 	private Path configDir;
+	private GlobalDirectories globalDirectories;
 
 	private FabricLoaderImpl() { }
 
@@ -135,6 +139,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir;
 		this.configDir = gameDir.resolve("config");
+		this.globalDirectories = GlobalDirectories.create(getEnvironmentType(), gameDir);
 	}
 
 	@Override
@@ -232,7 +237,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		dumpModList(modCandidates);
 		dumpNonFabricMods(discoverer.getNonFabricMods());
 
-		Path cacheDir = gameDir.resolve(CACHE_DIR_NAME);
+		Path cacheDir = getDirectories(MOD_ID).getCacheDir();
 		Path outputdir = cacheDir.resolve(PROCESSED_MODS_DIR_NAME);
 
 		// runtime mod remapping
@@ -608,6 +613,15 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	@Override
 	public String[] getLaunchArguments(boolean sanitize) {
 		return getGameProvider().getLaunchArguments(sanitize);
+	}
+
+	@Override
+	public ModDirectories getDirectories(String modId) {
+		if (!MetadataVerifier.isValidModId(modId)) {
+			throw new IllegalArgumentException("Invalid mod ID: " + modId);
+		}
+
+		return new ModDirectoriesImpl(modId, getGameDir(), globalDirectories);
 	}
 
 	@Override
