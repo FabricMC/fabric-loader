@@ -15,8 +15,8 @@ plugins {
 	id 'maven-publish'
 	id 'checkstyle'
 	id 'com.diffplug.spotless' version "6.22.0"
-	id 'fabric-loom' version '1.4-SNAPSHOT' apply false
-	id 'com.github.johnrengelman.shadow' version '8.1.1'
+	id 'fabric-loom' version '1.7-SNAPSHOT' apply false
+	id 'io.github.goooler.shadow' version '8.1.8'
 	id 'me.modmuss50.remotesign' version "0.4.0"
 }
 
@@ -114,7 +114,7 @@ dependencies {
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 	include "net.fabricmc:tiny-remapper:0.10.4"
 	include "net.fabricmc:access-widener:2.1.0"
-	include ('net.fabricmc:mapping-io:0.5.0') {
+	include ('net.fabricmc:mapping-io:0.6.1') {
 		// Mapping-io depends on ASM, dont bundle
 		transitive = false
 	}
@@ -124,10 +124,10 @@ dependencies {
 	testCompileOnly 'org.jetbrains:annotations:23.0.0'
 
 	// Unit testing for mod metadata
-	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
+	testImplementation('org.junit.jupiter:junit-jupiter:5.10.3')
 	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 
-	testImplementation("org.mockito:mockito-core:5.10.0")
+	testImplementation("org.mockito:mockito-core:5.12.0")
 }
 
 apply from: rootProject.file('gradle/installer-json.gradle')
