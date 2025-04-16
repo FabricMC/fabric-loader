@@ -46,6 +46,7 @@ import net.fabricmc.loader.impl.util.UrlConversionException;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.log.TinyRemapperLoggerAdapter;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.tinyremapper.InputTag;
 import net.fabricmc.tinyremapper.NonClassCopyMode;
@@ -271,7 +272,7 @@ public final class GameProviderHelper {
 	}
 
 	private static void deobfuscate0(List<Path> inputFiles, List<Path> outputFiles, List<Path> tmpFiles, MappingTree mappings, String sourceNamespace, String targetNamespace, FabricLauncher launcher) throws IOException {
-		TinyRemapper remapper = TinyRemapper.newRemapper()
+		TinyRemapper remapper = TinyRemapper.newRemapper(new TinyRemapperLoggerAdapter(LogCategory.GAME_REMAP))
 				.withMappings(TinyUtils.createMappingProvider(mappings, sourceNamespace, targetNamespace))
 				.rebuildSourceFilenames(true)
 				.build();

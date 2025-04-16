@@ -112,12 +112,9 @@ dependencies {
 	// impl dependencies
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
-	include "net.fabricmc:tiny-remapper:0.10.4"
+	include "net.fabricmc:tiny-remapper:0.11.0"
 	include "net.fabricmc:access-widener:2.1.0"
-	include ('net.fabricmc:mapping-io:0.5.0') {
-		// Mapping-io depends on ASM, dont bundle
-		transitive = false
-	}
+	include "net.fabricmc:mapping-io:0.7.1"
 
 	development "io.github.llamalad7:mixinextras-fabric:$mixin_extras_version"
 
