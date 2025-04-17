@@ -78,10 +78,14 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	public static final String VERSION = "0.16.14";
 	public static final String MOD_ID = "fabricloader";
 
+	// Relative to game dir
+	private static final String MOD_CACHE_DIR = ".cache";
+	private static final String MOD_CONFIG_DIR = "config";
+
 	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
-	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to cache dir
-	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to cache dir
-	private static final String TMP_DIR_NAME = "tmp"; // relative to cache dir
+	private static final String PROCESSED_MODS_DIR_NAME = "processedMods"; // relative to loader cache dir
+	public static final String REMAPPED_JARS_DIR_NAME = "remappedJars"; // relative to loader cache dir
+	private static final String TMP_DIR_NAME = "tmp"; // relative to loader cache dir
 
 	protected final Map<String, ModContainerImpl> modMap = new HashMap<>();
 	private List<ModCandidateImpl> modCandidates;
@@ -100,6 +104,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private MappingResolver mappingResolver;
 	private GameProvider provider;
 	private Path gameDir;
+	private Path cacheDir;
 	private Path configDir;
 
 	private FabricLoaderImpl() { }
@@ -134,7 +139,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir;
-		this.configDir = gameDir.resolve("config");
+		this.cacheDir = gameDir.resolve(MOD_CACHE_DIR);
+		this.configDir = gameDir.resolve(MOD_CONFIG_DIR);
 	}
 
 	@Override
@@ -163,20 +169,32 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		return getGameDir().toFile();
 	}
 
+	private Path ensureDirExists(Path path, String name) {
+		if (!Files.exists(path)) {
+			try {
+				Files.createDirectories(path);
+			} catch (IOException e) {
+				throw new RuntimeException("Creating " + name + " directory", e);
+			}
+		}
+
+		return path;
+	}
+
+	/**
+	 * @return The game instance's temporary file directory for a particular mod.
+	 */
+	@Override
+	public Path getCacheDir(String modId) {
+		return ensureDirExists(cacheDir.resolve(modId), "cache");
+	}
+
 	/**
 	 * @return The game instance's configuration directory.
 	 */
 	@Override
 	public Path getConfigDir() {
-		if (!Files.exists(configDir)) {
-			try {
-				Files.createDirectories(configDir);
-			} catch (IOException e) {
-				throw new RuntimeException("Creating config directory", e);
-			}
-		}
-
-		return configDir;
+		return ensureDirExists(configDir, "config");
 	}
 
 	@Override
@@ -232,8 +250,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		dumpModList(modCandidates);
 		dumpNonFabricMods(discoverer.getNonFabricMods());
 
-		Path cacheDir = gameDir.resolve(CACHE_DIR_NAME);
-		Path outputdir = cacheDir.resolve(PROCESSED_MODS_DIR_NAME);
+		Path loaderCacheDir = gameDir.resolve(CACHE_DIR_NAME);
+		Path outputDir = loaderCacheDir.resolve(PROCESSED_MODS_DIR_NAME);
 
 		// runtime mod remapping
 
@@ -241,7 +259,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			if (System.getProperty(SystemProperties.REMAP_CLASSPATH_FILE) == null) {
 				Log.warn(LogCategory.MOD_REMAP, "Runtime mod remapping disabled due to no fabric.remapClasspathFile being specified. You may need to update loom.");
 			} else {
-				RuntimeModRemapper.remap(modCandidates, cacheDir.resolve(TMP_DIR_NAME), outputdir);
+				RuntimeModRemapper.remap(modCandidates, loaderCacheDir.resolve(TMP_DIR_NAME), outputDir);
 			}
 		}
 
@@ -272,7 +290,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		for (ModCandidateImpl mod : modCandidates) {
 			if (!mod.hasPath() && !mod.isBuiltin()) {
 				try {
-					mod.setPaths(Collections.singletonList(mod.copyToDir(outputdir, false)));
+					mod.setPaths(Collections.singletonList(mod.copyToDir(outputDir, false)));
 				} catch (IOException e) {
 					throw new RuntimeException("Error extracting mod "+mod, e);
 				}
