@@ -67,6 +67,8 @@ public final class McVersionLookup {
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
+	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(0\\.\\d\\d?)a(?:_(\\d\\d))?");
+	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?)(0\\.\\d\\d?)(?:_(\\d\\d))?(?:_st)?(?:_(\\d\\d))?(?:\\-[a-zA-Z]+)*");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 
 	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
@@ -465,8 +467,20 @@ public final class McVersionLookup {
 			version = "1.0.0-alpha." + matcher.group(1);
 		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // indev/infdev 12345678: 0.31.12345678
 			version = "0.31." + matcher.group(1);
-		} else if (version.startsWith("c0.")) { // classic: unchanged, except remove prefix
-			version = version.substring(1);
+		} else if ((matcher = EARLY_CLASSIC_PATTERN.matcher(version)).matches()) { // early classic c0.0.13a_03: 0.13.3
+			if ((version = matcher.group(2)) != null) { // try get patch number
+				while (version.charAt(0) == '0') version = version.substring(1); // remove leading 0s for patch number
+				version = matcher.group(1) + "." + version;
+			} else {
+				version = matcher.group(1) + ".0";
+			}
+		} else if ((matcher = LATE_CLASSIC_PATTERN.matcher(version)).matches()) { // late classic c0.24_st_03: 0.24.3
+			if ((version = matcher.group(2)) != null || (version = matcher.group(3)) != null) { // try get patch number before and after _st
+				while (version.charAt(0) == '0') version = version.substring(1); // remove leading 0s for patch number
+				version = matcher.group(1) + "." + version;
+			} else {
+				version = matcher.group(1) + ".0";
+			}
 		} else if (version.startsWith("rd-")) { // pre-classic
 			version = version.substring("rd-".length());
 			if ("20090515".equals(version)) version = "150000"; // account for a weird exception to the pre-classic versioning scheme
