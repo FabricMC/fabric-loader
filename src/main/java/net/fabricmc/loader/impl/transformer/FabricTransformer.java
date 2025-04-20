@@ -27,7 +27,11 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 public final class FabricTransformer {
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
-		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.startsWith("com.mojang.blaze3d.") || name.indexOf('.') < 0;
+		boolean isMinecraftClass = name.startsWith("net.minecraft.") // unobf classes in indev and later
+									|| name.startsWith("com.mojang.minecraft") // unobf classes in classic
+									|| name.startsWith("com.mojang.rubydung") // unobf classes in pre-classic
+									|| name.startsWith("com.mojang.blaze3d.") // unobf blaze3d classes
+									|| name.indexOf('.') < 0; // obf classes
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
 		boolean applyAccessWidener = isMinecraftClass && FabricLoaderImpl.INSTANCE.getAccessWidener().getTargets().contains(name);
