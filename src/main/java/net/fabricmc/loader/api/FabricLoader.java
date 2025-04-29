@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.game.GameProvider;
 
 /**
  * The public-facing FabricLoader instance.
@@ -220,6 +221,8 @@ public interface FabricLoader {
 
 	@Deprecated
 	File getConfigDirectory();
+
+	GameProvider getGameProvider();
 
 	/**
 	 * Gets the command line arguments used to launch the game.
