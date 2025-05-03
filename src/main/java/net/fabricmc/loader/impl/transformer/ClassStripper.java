@@ -87,11 +87,11 @@ public class ClassStripper extends ClassVisitor {
 							|| !stripFields.contains(name+descriptor)) { // ignore non-stripped fields
 						super.visitFieldInsn(opcode, owner, name, descriptor);
 					} else {
+						super.visitInsn(descriptor.equals("J") || descriptor.equals("D") ? Opcodes.POP2 : Opcodes.POP); // pop field value
+
 						if (opcode == Opcodes.PUTFIELD) {
 							super.visitInsn(Opcodes.POP); // pop this
 						}
-
-						super.visitInsn(descriptor.equals("J") || descriptor.equals("D") ? Opcodes.POP2 : Opcodes.POP); // pop field value
 					}
 				}
 			};
