@@ -23,6 +23,7 @@ import java.util.List;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Strips the specified interfaces, fields and methods from a class.
@@ -31,6 +32,7 @@ public class ClassStripper extends ClassVisitor {
 	private final Collection<String> stripInterfaces;
 	private final Collection<String> stripFields;
 	private final Collection<String> stripMethods;
+	private String className;
 
 	public ClassStripper(int api, ClassVisitor classVisitor, Collection<String> stripInterfaces, Collection<String> stripFields, Collection<String> stripMethods) {
 		super(api, classVisitor);
@@ -41,6 +43,8 @@ public class ClassStripper extends ClassVisitor {
 
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		this.className = name;
+
 		if (!this.stripInterfaces.isEmpty()) {
 			List<String> interfacesList = new ArrayList<>();
 
@@ -58,13 +62,41 @@ public class ClassStripper extends ClassVisitor {
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-		if (stripFields.contains(name + descriptor)) return null;
-		return super.visitField(access, name, descriptor, signature, value);
+		if (stripFields.contains(name + descriptor)) {
+			return null;
+		} else {
+			return super.visitField(access, name, descriptor, signature, value);
+		}
 	}
 
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-		if (stripMethods.contains(name + descriptor)) return null;
-		return super.visitMethod(access, name, descriptor, signature, exceptions);
+		if (stripMethods.contains(name + descriptor)) {
+			return null;
+		}
+
+		MethodVisitor ret = super.visitMethod(access, name, descriptor, signature, exceptions);
+
+		// strip field writes from static init and constructor
+		if (!stripFields.isEmpty() && (name.equals("<clinit>") || name.equals("<init>"))) {
+			ret = new MethodVisitor(api, ret) {
+				@Override
+				public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+					if (opcode != Opcodes.PUTFIELD && opcode != Opcodes.PUTSTATIC // ignore non-writes
+							|| !owner.equals(className) // ignore writes to other classes
+							|| !stripFields.contains(name+descriptor)) { // ignore non-stripped fields
+						super.visitFieldInsn(opcode, owner, name, descriptor);
+					} else {
+						if (opcode == Opcodes.PUTFIELD) {
+							super.visitInsn(Opcodes.POP); // pop this
+						}
+
+						super.visitInsn(descriptor.equals("J") || descriptor.equals("D") ? Opcodes.POP2 : Opcodes.POP); // pop field value
+					}
+				}
+			};
+		}
+
+		return ret;
 	}
 }
