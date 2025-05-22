@@ -61,6 +61,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 		return LoaderUtil.hasAwtSupport();
 	}
 
+	default boolean isAccessWidenable(String className) {
+		return false;
+	}
+
 	class BuiltinMod {
 		public BuiltinMod(List<Path> paths, ModMetadata metadata) {
 			Objects.requireNonNull(paths, "null paths");

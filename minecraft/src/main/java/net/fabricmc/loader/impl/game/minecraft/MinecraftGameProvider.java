@@ -482,4 +482,10 @@ public class MinecraftGameProvider implements GameProvider {
 			throw FormattedException.ofLocalized("exception.minecraft.generic", t);
 		}
 	}
+
+	@Override
+	public boolean isAccessWidenable(String className) {
+		return className.startsWith("net.minecraft.") || className.startsWith("com.mojang.blaze3d.")
+				|| className.indexOf('.') < 0;
+	}
 }
