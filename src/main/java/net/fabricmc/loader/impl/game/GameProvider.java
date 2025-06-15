@@ -61,7 +61,7 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 		return LoaderUtil.hasAwtSupport();
 	}
 
-	default boolean isAccessWidenable(String className) {
+	default boolean canWidenAccess(String className) {
 		return false;
 	}
 
