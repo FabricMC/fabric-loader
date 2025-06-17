@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl.util;
 import java.io.File;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -36,10 +37,14 @@ public final class UrlUtil {
 			if (connection instanceof JarURLConnection) {
 				return asPath(((JarURLConnection) connection).getJarFileURL());
 			} else {
-				String path = url.getPath();
+				URI uri = url.toURI();
+				String path = uri.getPath(); // URI.getPath decodes percent-encoding etc unlike URL.getPath or URI.getRawPath
 
 				if (path.endsWith(localPath)) {
-					return asPath(new URL(url.getProtocol(), url.getHost(), url.getPort(), path.substring(0, path.length() - localPath.length())));
+					String basePath = path.substring(0, path.length() - localPath.length()); // keep trailing / in case it's standalone (root dir)
+					URI baseUri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), basePath, uri.getQuery(), uri.getFragment());
+
+					return Paths.get(baseUri);
 				} else {
 					throw new UrlConversionException("Could not figure out code source for file '" + localPath + "' in URL '" + url + "'!");
 				}
