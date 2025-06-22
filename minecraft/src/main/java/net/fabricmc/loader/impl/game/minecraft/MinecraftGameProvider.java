@@ -484,7 +484,7 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
-	public boolean isAccessWidenable(String className) {
+	public boolean canWidenAccess(String className) {
 		return className.startsWith("net.minecraft.") || className.startsWith("com.mojang.blaze3d.")
 				|| className.indexOf('.') < 0;
 	}

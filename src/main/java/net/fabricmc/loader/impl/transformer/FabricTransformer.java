@@ -30,7 +30,7 @@ public final class FabricTransformer {
 		boolean isMinecraftClass = name.startsWith("net.minecraft.") || name.startsWith("com.mojang.blaze3d.") || name.indexOf('.') < 0;
 		boolean transformAccess = isMinecraftClass && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = !isMinecraftClass || isDevelopment;
-		boolean applyAccessWidener = FabricLoaderImpl.INSTANCE.getGameProvider().isAccessWidenable(name)
+		boolean applyAccessWidener = FabricLoaderImpl.INSTANCE.getGameProvider().canWidenAccess(name)
 				&& FabricLoaderImpl.INSTANCE.getAccessWidener().getTargets().contains(name);
 
 		if (!transformAccess && !environmentStrip && !applyAccessWidener) {
