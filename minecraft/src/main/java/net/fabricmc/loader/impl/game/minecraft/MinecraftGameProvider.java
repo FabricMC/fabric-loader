@@ -163,8 +163,8 @@ public class MinecraftGameProvider implements GameProvider {
 	@Override
 	public Set<BuiltinTransform> getBuiltinTransforms(String className) {
 		boolean isMinecraftClass = className.startsWith("net.minecraft.") // unobf classes in indev and later
-				|| className.startsWith("com.mojang.minecraft") // unobf classes in classic
-				|| className.startsWith("com.mojang.rubydung") // unobf classes in pre-classic
+				|| className.startsWith("com.mojang.minecraft.") // unobf classes in classic
+				|| className.startsWith("com.mojang.rubydung.") // unobf classes in pre-classic
 				|| className.startsWith("com.mojang.blaze3d.") // unobf blaze3d classes
 				|| className.indexOf('.') < 0; // obf classes
 
