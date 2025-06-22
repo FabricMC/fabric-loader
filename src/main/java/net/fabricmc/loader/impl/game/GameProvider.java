@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
@@ -38,6 +39,13 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	Path getLaunchDirectory();
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
+	Set<BuiltinTransform> getBuiltinTransforms(String className);
+
+	enum BuiltinTransform {
+		STRIP_ENVIRONMENT,
+		WIDEN_ALL_ACCESS,
+		CLASS_TWEAKS,
+	}
 
 	boolean isEnabled();
 	boolean locateGame(FabricLauncher launcher, String[] args);
