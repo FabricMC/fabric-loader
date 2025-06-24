@@ -55,6 +55,8 @@ import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.tinyremapper.TinyUtils;
 
 public final class GameProviderHelper {
+	private static final boolean DEVELOPMENT_DEOBF_GAME_JAR = System.getProperty(SystemProperties.DEVELOPMENT_DEOBF_GAME_JAR) != null;
+
 	private GameProviderHelper() { }
 
 	public static Path getCommonGameJar() {
@@ -163,7 +165,7 @@ public final class GameProviderHelper {
 	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher, String sourceNamespace) {
 		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", inputFileMap);
 
-		if (launcher.isDevelopment()) { // in-dev is already deobfuscated
+		if (launcher.isDevelopment() && !DEVELOPMENT_DEOBF_GAME_JAR) { // in-dev is already deobfuscated
 			return inputFileMap;
 		}
 

@@ -19,6 +19,8 @@ package net.fabricmc.loader.impl.util;
 public final class SystemProperties {
 	// whether fabric loader is running in a development environment / mode, affects class path mod discovery, remapping, logging, ...
 	public static final String DEVELOPMENT = "fabric.development";
+	// runtime deobf game jar although it is in development
+	public static final String DEVELOPMENT_DEOBF_GAME_JAR = "fabric.development.deobfGameJar";
 	public static final String SIDE = "fabric.side";
 	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
 	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
@@ -42,6 +44,10 @@ public final class SystemProperties {
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
 	// class path groups to map multiple class path entries to a mod (paths separated by path separator, groups by double path separator)
 	public static final String PATH_GROUPS = "fabric.classPathGroups";
+	// direct use a tiny file as mappings for mapping configuration
+	public static final String MAPPINGS_PATH = "fabric.mappingsPath";
+	// define the target namespace for mapping configuration
+	public static final String TARGET_NAMESPACE = "fabric.targetNamespace";
 	// enable the fixing of package access errors in the game jar(s)
 	public static final String FIX_PACKAGE_ACCESS = "fabric.fixPackageAccess";
 	// system level libraries, matching code sources will not be assumed to be part of the game or mods and remain on the system class path (paths separated by path separator)

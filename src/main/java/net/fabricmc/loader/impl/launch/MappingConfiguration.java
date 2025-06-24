@@ -20,6 +20,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
@@ -42,6 +44,8 @@ import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public final class MappingConfiguration {
+	private static final String MAPPINGS_PATH = System.getProperty(SystemProperties.MAPPINGS_PATH, null);
+	private static final String TARGET_NAMESPACE = System.getProperty(SystemProperties.TARGET_NAMESPACE, null);
 	private static final boolean FIX_PACKAGE_ACCESS = System.getProperty(SystemProperties.FIX_PACKAGE_ACCESS) != null;
 
 	private boolean initializedMetadata;
@@ -91,6 +95,10 @@ public final class MappingConfiguration {
 	}
 
 	public String getTargetNamespace() {
+		if (TARGET_NAMESPACE != null) {
+			return TARGET_NAMESPACE;
+		}
+
 		return FabricLauncherBase.getLauncher().isDevelopment() ? "named" : "intermediary";
 	}
 
@@ -178,7 +186,17 @@ public final class MappingConfiguration {
 
 	@Nullable
 	private URLConnection openMappings() {
-		URL url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		URL url;
+
+		if (MAPPINGS_PATH != null) {
+			try {
+				url = new URL(MAPPINGS_PATH);
+			} catch (MalformedURLException ex) {
+				url = null;
+			}
+		} else {
+			url = MappingConfiguration.class.getClassLoader().getResource("mappings/mappings.tiny");
+		}
 
 		if (url != null) {
 			try {
