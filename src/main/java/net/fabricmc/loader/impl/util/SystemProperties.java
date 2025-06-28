@@ -34,6 +34,9 @@ public final class SystemProperties {
 	public static final String GAME_JAR_PATH = "fabric.gameJarPath";
 	public static final String GAME_JAR_PATH_CLIENT = "fabric.gameJarPath.client";
 	public static final String GAME_JAR_PATH_SERVER = "fabric.gameJarPath.server";
+	// game library paths, replaces lookup from class path if present
+	// paths separated by path separator, @ prefix for meta-file with each line referencing an actual file)
+	public static final String GAME_LIBRARIES = "fabric.gameLibraries";
 	// set the game version for the builtin game mod/dependencies, bypassing auto-detection
 	public static final String GAME_VERSION = "fabric.gameVersion";
 	// fallback log file for the builtin log handler (dumped on exit if not replaced with another handler)
@@ -52,7 +55,8 @@ public final class SystemProperties {
 	public static final String PATH_GROUPS = "fabric.classPathGroups";
 	// enable the fixing of package access errors in the game jar(s)
 	public static final String FIX_PACKAGE_ACCESS = "fabric.fixPackageAccess";
-	// system level libraries, matching code sources will not be assumed to be part of the game or mods and remain on the system class path (paths separated by path separator)
+	// system level libraries, matching code sources will not be assumed to be part of the game or mods and remain on the system class path
+	// paths separated by path separator, @ prefix for meta-file with each line referencing an actual file)
 	public static final String SYSTEM_LIBRARIES = "fabric.systemLibraries";
 	// throw exceptions from entrypoints, discovery etc. directly instead of gathering and attaching as suppressed
 	public static final String DEBUG_THROW_DIRECTLY = "fabric.debug.throwDirectly";
