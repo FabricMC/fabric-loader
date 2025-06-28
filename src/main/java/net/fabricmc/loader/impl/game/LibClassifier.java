@@ -16,12 +16,10 @@
 
 package net.fabricmc.loader.impl.game;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -74,21 +72,14 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		// system libs configured through system property
 
 		StringBuilder sb = DEBUG ? new StringBuilder() : null;
-		String systemLibProp = System.getProperty(SystemProperties.SYSTEM_LIBRARIES);
+		List<Path> systemLibs = GameProviderHelper.getLibraries(SystemProperties.SYSTEM_LIBRARIES);
 
-		if (systemLibProp != null) {
-			for (String lib : systemLibProp.split(File.pathSeparator)) {
-				Path path = Paths.get(lib);
+		if (systemLibs != null) {
+			for (Path lib : systemLibs) {
+				assert lib.equals(LoaderUtil.normalizeExistingPath(lib));
 
-				if (!Files.exists(path)) {
-					Log.info(LogCategory.LIB_CLASSIFICATION, "Skipping missing system library entry %s", path);
-					continue;
-				}
-
-				path = LoaderUtil.normalizeExistingPath(path);
-
-				if (systemLibraries.add(path)) {
-					if (DEBUG) sb.append(String.format("🇸 %s%n", path));
+				if (systemLibraries.add(lib)) {
+					if (DEBUG) sb.append(String.format("🇸 %s%n", lib));
 				}
 			}
 		}
@@ -125,6 +116,14 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		}
 
 		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader/system libraries:%n%s", sb);
+
+		// game libraries
+
+		List<Path> gameLibs = GameProviderHelper.getLibraries(SystemProperties.GAME_LIBRARIES);
+
+		if (gameLibs != null) {
+			process(gameLibs);
+		}
 
 		// process indirectly referenced libs
 
