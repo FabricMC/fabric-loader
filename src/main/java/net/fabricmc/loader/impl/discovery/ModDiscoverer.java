@@ -49,9 +49,9 @@ import java.util.zip.ZipInputStream;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder.ModCandidateConsumer;
+import net.fabricmc.loader.impl.game.GameDefinition;
 import net.fabricmc.loader.impl.game.GameProvider.BuiltinMod;
 import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.DependencyOverrides;
@@ -71,25 +71,31 @@ public final class ModDiscoverer {
 	private final VersionOverrides versionOverrides;
 	private final DependencyOverrides depOverrides;
 	private final List<ModCandidateFinder> candidateFinders = new ArrayList<>();
-	private final EnvType envType = FabricLoaderImpl.INSTANCE.getEnvironmentType();
+	private final EnvType envType;
 	private final Map<Long, ModScanTask> jijDedupMap = new ConcurrentHashMap<>(); // avoids reading the same jar twice
 	private final List<NestedModInitData> nestedModInitDatas = Collections.synchronizedList(new ArrayList<>()); // breaks potential cycles from deduplication
 	private final List<Path> nonFabricMods = Collections.synchronizedList(new ArrayList<>());
+	private final GameDefinition gameDefinition;
+	private final boolean isDevelopment;
 
-	public ModDiscoverer(VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
+	public ModDiscoverer(GameDefinition gameDefinition, boolean isDevelopment, EnvType environment, VersionOverrides versionOverrides, DependencyOverrides depOverrides) {
 		this.versionOverrides = versionOverrides;
 		this.depOverrides = depOverrides;
+		this.envType = environment;
+		this.gameDefinition = gameDefinition;
+		this.isDevelopment = isDevelopment;
 	}
 
 	public void addCandidateFinder(ModCandidateFinder f) {
 		candidateFinders.add(f);
 	}
 
-	public List<ModCandidateImpl> discoverMods(FabricLoaderImpl loader, Map<String, Set<ModCandidateImpl>> envDisabledModsOut) throws ModResolutionException {
+	public ModDiscoveryInfo discoverMods(Map<String, Set<ModCandidateImpl>> envDisabledModsOut) throws ModResolutionException {
 		long startTime = System.nanoTime();
 		ForkJoinPool pool = new ForkJoinPool();
 		Set<Path> processedPaths = new HashSet<>(); // suppresses duplicate paths
 		List<Future<ModCandidateImpl>> futures = new ArrayList<>();
+		List<Exception> exceptions = new ArrayList<>();
 
 		ModCandidateConsumer taskSubmitter = (paths, requiresRemap) -> {
 			List<Path> pendingPaths = new ArrayList<>(paths.size());
@@ -114,12 +120,12 @@ public final class ModDiscoverer {
 		List<ModCandidateImpl> candidates = new ArrayList<>();
 
 		// add builtin mods
-		for (BuiltinMod mod : loader.getGameProvider().getBuiltinMods()) {
+		for (BuiltinMod mod : gameDefinition.getBuiltinMods()) {
 			if (!(mod.metadata.getVersion() instanceof SemanticVersion)) {
 				String error = String.format("%s uses the non-semantic version %s, which doesn't support range comparisons and may cause mod dependencies against it to fail unexpectedly. Consider updating Fabric Loader or explicitly specifying the game version with the fabric.gameVersion system property.",
 						mod.metadata.getId(), mod.metadata.getVersion());
 
-				if (loader.isDevelopmentEnvironment()) { // fail hard in-dev
+				if (isDevelopment) { // fail hard in-dev
 					throw new FormattedException("Invalid game version", error);
 				} else {
 					Log.warn(LogCategory.GENERAL, error);
@@ -127,11 +133,11 @@ public final class ModDiscoverer {
 			}
 
 			ModCandidateImpl candidate = ModCandidateImpl.createBuiltin(mod, versionOverrides, depOverrides);
-			candidates.add(MetadataVerifier.verifyIndev(candidate, loader.isDevelopmentEnvironment()));
+			candidates.add(MetadataVerifier.verifyIndev(candidate, isDevelopment));
 		}
 
 		// Add the current Java version
-		candidates.add(MetadataVerifier.verifyIndev(createJavaMod(), loader.isDevelopmentEnvironment()));
+		candidates.add(MetadataVerifier.verifyIndev(createJavaMod(), isDevelopment));
 
 		ModResolutionException exception = null;
 
@@ -178,10 +184,6 @@ public final class ModDiscoverer {
 			throw new FormattedException("Mod discovery interrupted!", e);
 		}
 
-		if (exception != null) {
-			throw exception;
-		}
-
 		// get optional set of disabled mod ids
 		Set<String> disabledModIds = findDisabledModIds();
 
@@ -214,7 +216,7 @@ public final class ModDiscoverer {
 
 		Log.debug(LogCategory.DISCOVERY, "Mod discovery time: %.1f ms", (endTime - startTime) * 1e-6);
 
-		return new ArrayList<>(ret);
+		return new ModDiscoveryInfo(new ArrayList<>(ret), exception);
 	}
 
 	public List<Path> getNonFabricMods() {
@@ -372,7 +374,7 @@ public final class ModDiscoverer {
 						private ZipEntry currentEntry;
 					});
 
-					if (!nestedJarPaths.isEmpty() && FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) {
+					if (!nestedJarPaths.isEmpty() && isDevelopment) {
 						Log.warn(LogCategory.METADATA, "Mod %s %s references missing nested jars: %s", metadata.getId(), metadata.getVersion(), nestedJarPaths);
 					}
 				}
@@ -450,7 +452,7 @@ public final class ModDiscoverer {
 					});
 				}
 
-				if (!nestedJarPaths.isEmpty() && FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) {
+				if (!nestedJarPaths.isEmpty() && isDevelopment) {
 					Log.warn(LogCategory.METADATA, "Mod %s %s references missing nested jars: %s", metadata.getId(), metadata.getVersion(), nestedJarPaths);
 				}
 			}
@@ -507,7 +509,7 @@ public final class ModDiscoverer {
 		}
 
 		private LoaderModMetadata parseMetadata(InputStream is, String localPath) throws ParseMetadataException {
-			return ModMetadataParser.parseMetadata(is, localPath, parentPaths, versionOverrides, depOverrides, FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment());
+			return ModMetadataParser.parseMetadata(is, localPath, parentPaths, versionOverrides, depOverrides, isDevelopment);
 		}
 	}
 

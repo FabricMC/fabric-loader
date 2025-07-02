@@ -51,6 +51,7 @@ import net.fabricmc.loader.impl.discovery.ClasspathModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.DirectoryModCandidateFinder;
 import net.fabricmc.loader.impl.discovery.ModCandidateImpl;
 import net.fabricmc.loader.impl.discovery.ModDiscoverer;
+import net.fabricmc.loader.impl.discovery.ModDiscoveryInfo;
 import net.fabricmc.loader.impl.discovery.ModResolutionException;
 import net.fabricmc.loader.impl.discovery.ModResolver;
 import net.fabricmc.loader.impl.discovery.RuntimeModRemapper;
@@ -207,13 +208,19 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 		// discover mods
 
-		ModDiscoverer discoverer = new ModDiscoverer(versionOverrides, depOverrides);
+		ModDiscoverer discoverer = new ModDiscoverer(this.provider, this.isDevelopmentEnvironment(), this.getEnvironmentType(), versionOverrides, depOverrides);
 		discoverer.addCandidateFinder(new ClasspathModCandidateFinder());
 		discoverer.addCandidateFinder(new DirectoryModCandidateFinder(getModsDirectory0(), remapRegularMods));
 		discoverer.addCandidateFinder(new ArgumentModCandidateFinder(remapRegularMods));
 
 		Map<String, Set<ModCandidateImpl>> envDisabledMods = new HashMap<>();
-		modCandidates = discoverer.discoverMods(this, envDisabledMods);
+		final ModDiscoveryInfo discoveryInfo = discoverer.discoverMods(envDisabledMods);
+
+		if (!discoveryInfo.launchable()) {
+			throw discoveryInfo.getException();
+		}
+
+		modCandidates = discoveryInfo.getFoundMods();
 
 		// dump version and dependency overrides info
 
