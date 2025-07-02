@@ -20,12 +20,15 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
+import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 
 public interface GameProvider { // name directly referenced in net.fabricmc.loader.impl.launch.knot.Knot.findEmbedddedGameProvider() and service loader records
 	String getGameId();
@@ -38,6 +41,24 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	Path getLaunchDirectory();
 	boolean isObfuscated();
 	boolean requiresUrlClassLoader();
+	Set<BuiltinTransform> getBuiltinTransforms(String className);
+
+	enum BuiltinTransform {
+		/**
+		 * Removes classes, fields and methods annotated with a different {@literal @}{@link Environment} from the current runtime.
+		 */
+		STRIP_ENVIRONMENT,
+		/**
+		 * Widens all package-internal access modifiers to public (protected and package-private, but not private).
+		 *
+		 * <p>This only has an effect if the mappings or {@link SystemProperties#FIX_PACKAGE_ACCESS} require these access modifications.
+		 */
+		WIDEN_ALL_PACKAGE_ACCESS,
+		/**
+		 * Applies class tweakers, including access wideners, as supplied by mods.
+		 */
+		CLASS_TWEAKS,
+	}
 
 	boolean isEnabled();
 	boolean locateGame(FabricLauncher launcher, String[] args);

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -158,6 +159,29 @@ public class MinecraftGameProvider implements GameProvider {
 	public boolean requiresUrlClassLoader() {
 		return hasModLoader;
 	}
+
+	@Override
+	public Set<BuiltinTransform> getBuiltinTransforms(String className) {
+		boolean isMinecraftClass = className.startsWith("net.minecraft.") // unobf classes in indev and later
+				|| className.startsWith("com.mojang.minecraft.") // unobf classes in classic
+				|| className.startsWith("com.mojang.rubydung.") // unobf classes in pre-classic
+				|| className.startsWith("com.mojang.blaze3d.") // unobf blaze3d classes
+				|| className.indexOf('.') < 0; // obf classes
+
+		if (isMinecraftClass) {
+			if (FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) { // combined client+server jar, strip back down to production equivalent
+				return TRANSFORM_WIDENALL_STRIPENV_CLASSTWEAKS;
+			} else { // environment specific jar, inherently env stripped
+				return TRANSFORM_WIDENALL_CLASSTWEAKS;
+			}
+		} else { // mod class TODO: exclude game libs
+			return TRANSFORM_STRIPENV;
+		}
+	}
+
+	private static final Set<BuiltinTransform> TRANSFORM_WIDENALL_STRIPENV_CLASSTWEAKS = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.STRIP_ENVIRONMENT, BuiltinTransform.CLASS_TWEAKS);
+	private static final Set<BuiltinTransform> TRANSFORM_WIDENALL_CLASSTWEAKS = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.CLASS_TWEAKS);
+	private static final Set<BuiltinTransform> TRANSFORM_STRIPENV = EnumSet.of(BuiltinTransform.STRIP_ENVIRONMENT);
 
 	@Override
 	public boolean isEnabled() {
