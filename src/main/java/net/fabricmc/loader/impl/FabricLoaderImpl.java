@@ -139,6 +139,11 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	@Override
+	public String getRawGameVersion() {
+		return provider.getRawGameVersion();
+	}
+
+	@Override
 	public Object getGameInstance() {
 		return gameInstance;
 	}
