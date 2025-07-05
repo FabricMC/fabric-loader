@@ -60,7 +60,7 @@ public final class FabricMixinBootstrap {
 
 		MixinBootstrap.init();
 
-		if (FabricLauncherBase.getLauncher().isDevelopment()) {
+		if (FabricLauncherBase.getLauncher().isRemapMods()) {
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 			MappingTree mappings = mappingConfiguration.getMappings();
 			final String modNs = MappingConfiguration.INTERMEDIARY_NAMESPACE;
@@ -76,9 +76,9 @@ public final class FabricMixinBootstrap {
 					try {
 						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, modNs, runtimeNs);
 						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
-						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
+						Log.info(LogCategory.MIXIN, "Loaded Fabric refmap remapping mappings for mixin remapper!");
 					} catch (Exception e) {
-						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!", e);
+						Log.error(LogCategory.MIXIN, "Fabric refmap remapping setup error - the game will probably crash soon!", e);
 					}
 				}
 			}
