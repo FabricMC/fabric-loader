@@ -182,9 +182,7 @@ public final class GameProviderHelper {
 
 		List<String> namespaces = mappingConfig.getNamespaces();
 
-		if (namespaces == null
-				|| !namespaces.contains(sourceNamespace)
-				|| !namespaces.contains(targetNamespace)) {
+		if (namespaces == null) {
 			Log.debug(LogCategory.GAME_REMAP, "No mappings, using input files");
 			return inputFileMap;
 		}
