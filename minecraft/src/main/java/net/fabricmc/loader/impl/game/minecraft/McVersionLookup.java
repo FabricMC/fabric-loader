@@ -525,23 +525,30 @@ public final class McVersionLookup {
 
 	private static String normalizeSpecialVersion(String version) {
 		switch (version) {
+		case "b1.6-pre-trailer":
+			// Pre-release version used for the Beta 1.6 trailer
+			return "1.0.0-beta.6.0.0"; // sort it before the test builds
 		case "13w12~":
 			// A pair of debug snapshots immediately before 1.5.1-pre
 			return "1.5.1-alpha.13.12.a";
 
 		case "15w14a":
+		case "af-2015":
 			// The Love and Hugs Update, forked from 1.8.3
 			return "1.8.4-alpha.15.14.a+loveandhugs";
 
 		case "1.RV-Pre1":
+		case "af-2016":
 			// The Trendy Update, probably forked from 1.9.2 (although the protocol/data versions immediately follow 1.9.1-pre3)
 			return "1.9.2-rv+trendy";
 
 		case "3D Shareware v1.34":
+		case "af-2019":
 			// Minecraft 3D, forked from 19w13b
 			return "1.14-alpha.19.13.shareware";
 
 		case "20w14~":
+		case "af-2020":
 			// The Ultimate Content update, forked from 20w13b
 			return "1.16-alpha.20.13.inf"; // Not to be confused with the actual 20w14a
 
@@ -594,14 +601,17 @@ public final class McVersionLookup {
 			return "1.16.3-combat.8.c";
 
 		case "2point0_red":
+		case "af-2013-red":
 			// 2.0 update version red, forked from 1.5.1
 			return "1.5.2-red";
 
 		case "2point0_purple":
+		case "af-2013-purple":
 			// 2.0 update version purple, forked from 1.5.1
 			return "1.5.2-purple";
 
 		case "2point0_blue":
+		case "af-2013-blue":
 			// 2.0 update version blue, forked from 1.5.1
 			return "1.5.2-blue";
 
