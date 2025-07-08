@@ -661,9 +661,14 @@ public final class McVersionLookup {
 			// multiple releases could occur on the same day!
 			String time = matcher.group(2);
 
+			// if no time is given, use 0000 to ensure sorting still works
+			if (time == null) {
+				time = "0000";
+			}
+
 			prep.append("0.31.");
 			prep.append(date);
-			if (time != null) prep.append(time);
+			prep.append(time);
 		} else if ((matcher = EARLY_CLASSIC_PATTERN.matcher(version)).matches()
 				|| (matcher = LATE_CLASSIC_PATTERN.matcher(version)).matches()) {
 			boolean late = LATE_CLASSIC_PATTERN.matcher(version).matches();
