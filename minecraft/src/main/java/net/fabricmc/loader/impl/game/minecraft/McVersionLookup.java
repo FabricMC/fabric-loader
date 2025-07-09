@@ -52,7 +52,7 @@ public final class McVersionLookup {
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?");
 	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?");
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?");
-	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?: [Ee]xperimental [Ss]napshot )(\\d+)");
+	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp| [Ee]xperimental [Ss]napshot )(\\d+)");
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)(?:-(\\d+))?");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)(?:-(\\d+))?");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?");
@@ -285,6 +285,10 @@ public final class McVersionLookup {
 		// version ids as found in versions manifest
 		// ... as in 1.18_experimental-snapshot-1
 		int pos = version.indexOf("_experimental-snapshot-");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in 1.18-exp1
+		pos = version.indexOf("-exp");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in b1.6-tb3
