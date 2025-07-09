@@ -56,8 +56,8 @@ public final class McVersionLookup {
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)(?:-(\\d+))?");
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)(?:-(\\d+))?");
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?");
+	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?((?:\\-[a-z]+)+)?(?:-(\\d+))?");
 	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?");
-	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?(?:\\-[a-z]+)*(?:-(\\d+))?");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
 			EARLY_CLASSIC_PATTERN.pattern()
@@ -679,7 +679,8 @@ public final class McVersionLookup {
 
 			String minor = matcher.group(1);
 			String patch = matcher.group(2);
-			timestamp = matcher.group(late ? 4 : 3);
+			String suffix = late ? matcher.group(4) : null;
+			timestamp = matcher.group(late ? 5 : 3);
 
 			// in late classic, sometimes the patch number appears before
 			// the survival test identifier (_st), and sometimes after it
@@ -692,6 +693,7 @@ public final class McVersionLookup {
 			if (patch != null) prep.append('.').append(patch);
 		} else if (version.startsWith("rd-")) { // pre-classic
 			String build = version.substring("rd-".length());
+			if (suffix != null) prep.append('-').append(String.join(".", suffix.split("[-]")));
 			if ("20090515".equals(build)) build = "150000"; // account for a weird exception to the pre-classic versioning scheme
 
 			prep.append("0.0.0-rd.");
