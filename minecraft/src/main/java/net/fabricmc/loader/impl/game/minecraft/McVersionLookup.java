@@ -282,8 +282,6 @@ public final class McVersionLookup {
 			return matcher.group(1);
 		}
 
-		assert isProbableVersion(version);
-
 		// version ids as found in versions manifest
 		// ... as in 1.18_experimental-snapshot-1
 		int pos = version.indexOf("_experimental-snapshot-");
