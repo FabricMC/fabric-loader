@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -275,7 +276,8 @@ public final class McVersionLookup {
 		return null;
 	}
 
-	protected static String getRelease(String version) {
+	@VisibleForTesting
+	public static String getRelease(String version) {
 		Matcher matcher = RELEASE_PATTERN.matcher(version);
 
 		if (matcher.matches()) {
@@ -450,7 +452,8 @@ public final class McVersionLookup {
 	 *
 	 * <p>MC Snapshot -> alpha, MC Pre-Release -> rc.
 	 */
-	protected static String normalizeVersion(String name, String release) {
+	@VisibleForTesting
+	public static String normalizeVersion(String name, String release) {
 		if (release == null || name.equals(release)) {
 			String ret = normalizeSpecialVersion(name);
 			return ret != null ? ret : normalizeVersion(name);
