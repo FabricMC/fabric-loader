@@ -305,7 +305,7 @@ public final class McVersionLookup {
 
 		// version names as extracted from the jar
 		// ... as in 1.18 Experimental Snapshot 1
-		pos = version.indexOf(" Experimental Snapshot ");
+		pos = version.indexOf(" Experimental Snapshot");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in 1.18 experimental snapshot 2
@@ -313,19 +313,19 @@ public final class McVersionLookup {
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in Beta 1.6 Test Build 3
-		pos = version.indexOf(" Test Build ");
+		pos = version.indexOf(" Test Build");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in 1.21.6 Pre-Release 1
-		pos = version.indexOf(" Pre-Release ");
+		pos = version.indexOf(" Pre-Release");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in Beta 1.8 Pre-release 1
-		pos = version.indexOf(" Pre-release ");
+		pos = version.indexOf(" Pre-release");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in Beta 1.9 Prerelease 2
-		pos = version.indexOf(" Prerelease ");
+		pos = version.indexOf(" Prerelease");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in Minecraft RC1
@@ -333,7 +333,7 @@ public final class McVersionLookup {
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in 1.21.6 Release Candidate 1
-		pos = version.indexOf(" Release Candidate ");
+		pos = version.indexOf(" Release Candidate");
 		if (pos >= 0) return version.substring(0, pos);
 
 		matcher = SNAPSHOT_PATTERN.matcher(version);
