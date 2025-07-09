@@ -856,6 +856,12 @@ public final class McVersionLookup {
 			// 2.0 update version blue, forked from 1.5.1
 			return "1.5.2-2.0+blue";
 
+		case "22w13oneBlockAtATime":
+		case "22w13oneblockatatime":
+		case "af-2022":
+			// Minecraft 22w13oneblockatatime
+			return "1.19.1-alpha.22.13.oneblockatatime";
+
 		case "23w13a_or_b":
 			// Minecraft 23w13a_or_b, forked from 23w13a
 			return "1.20-alpha.23.13.ab";
