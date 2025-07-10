@@ -48,18 +48,18 @@ import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public final class McVersionLookup {
-	private static final Pattern RELEASE_PATTERN = Pattern.compile("(1\\.(\\d+)(?:\\.(\\d+))?)(?:-(\\d+))?");
-	private static final Pattern TEST_BUILD_PATTERN = Pattern.compile(".+(?:-tb| Test Build )(\\d+)?(?:-(\\d+))?");
-	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?");
-	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?");
-	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?");
-	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp| [Ee]xperimental [Ss]napshot )(\\d+)");
-	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)(?:-(\\d+))?");
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)(?:-(\\d+))?");
-	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?");
-	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?((?:\\-[a-z]+)+)?(?:-(\\d+))?");
-	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?");
-	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("rd-(\\d+)");
+	private static final Pattern RELEASE_PATTERN = Pattern.compile("(1\\.(\\d+)(?:\\.(\\d+))?)(?:-(\\d+))?"); // 1.6, 1.16.5, 1,16+231620
+	private static final Pattern TEST_BUILD_PATTERN = Pattern.compile(".+(?:-tb| Test Build )(\\d+)?(?:-(\\d+))?"); // ... Test Build 1, ...-tb2, ...-tb3-1234
+	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?"); // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234
+	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?"); // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
+	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?"); // Snapshot 16w02a, 20w13b, 22w18c-1234
+	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp| [Ee]xperimental [Ss]napshot )(\\d+)"); // 1.18 Experimental Snapshot 1, 1.18 experimental snapshot 2, 1.18-exp3
+	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)(?:-(\\d+))?"); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)(?:-(\\d+))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
+	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?"); // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
+	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?((?:\\-[a-z]+)+)?(?:-(\\d+))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew
+	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?"); // c0.0.11a, c0.0.17a-2014, 0.0.18a_02
+	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("rd-(\\d+)"); // rd-132211
 	private static final String STRING_DESC = "Ljava/lang/String;";
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
 			PRE_CLASSIC_PATTERN.pattern()
@@ -278,9 +278,11 @@ public final class McVersionLookup {
 
 	@VisibleForTesting
 	public static String getRelease(String version) {
+		// 1.6, 1.16.5, 1,16+231620
 		Matcher matcher = RELEASE_PATTERN.matcher(version);
 
 		if (matcher.matches()) {
+			// return name without timestamp
 			return matcher.group(1);
 		}
 
@@ -338,7 +340,7 @@ public final class McVersionLookup {
 		pos = version.indexOf(" Release Candidate");
 		if (pos >= 0) return version.substring(0, pos);
 
-		matcher = SNAPSHOT_PATTERN.matcher(version);
+		matcher = SNAPSHOT_PATTERN.matcher(version); // Snapshot 16w02a, 20w13b, 22w18c-1234
 
 		if (matcher.matches()) {
 			int year = Integer.parseInt(matcher.group(1));
@@ -469,16 +471,16 @@ public final class McVersionLookup {
 
 		Matcher matcher;
 
-		if ((matcher = RELEASE_PATTERN.matcher(name)).matches()) {
+		if ((matcher = RELEASE_PATTERN.matcher(name)).matches()) { // 1.6, 1.16.5, 1.16+131620
 			timestamp = matcher.group(4);
 
 			// remove - separator
 			ret.setLength(ret.length() - 1);
-		} else if ((matcher = EXPERIMENTAL_PATTERN.matcher(name)).matches()) {
+		} else if ((matcher = EXPERIMENTAL_PATTERN.matcher(name)).matches()) { // 1.18 Experimental Snapshot 1, 1.18 experimental snapshot 2, 1.18-exp3
 			ret.append("Experimental.");
 			ret.append(matcher.group(1)); // exp build nr
 		} else if (name.startsWith(release)) {
-			if ((matcher = RELEASE_CANDIDATE_PATTERN.matcher(name)).matches()) {
+			if ((matcher = RELEASE_CANDIDATE_PATTERN.matcher(name)).matches()) { // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
 				String rcBuild = matcher.group(1);
 				timestamp = matcher.group(2);
 
@@ -493,9 +495,9 @@ public final class McVersionLookup {
 
 				ret.append("rc.");
 				ret.append(rcBuild);
-			} else if ((matcher = PRE_RELEASE_PATTERN.matcher(name)).matches()) {
+			} else if ((matcher = PRE_RELEASE_PATTERN.matcher(name)).matches()) { // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234
 				// Pre-releases in Beta need special treatment
-				Matcher releaseMatcher = BETA_PATTERN.matcher(release);
+				Matcher releaseMatcher = BETA_PATTERN.matcher(release); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
 
 				if (releaseMatcher.matches()) {
 					// Beta versions with pre-releases end with .r after normalization
@@ -535,7 +537,7 @@ public final class McVersionLookup {
 						// we won't do that here because it would be inconsistent
 						// with the snapshot release targets
 
-						releaseMatcher = RELEASE_PATTERN.matcher(release);
+						releaseMatcher = RELEASE_PATTERN.matcher(release); // 1.6, 1.16.5, 1.16+131620
 
 						if (!releaseMatcher.matches()) {
 							throw new IllegalStateException("version " + name + " is a pre-release targeting neither a Beta version, nor a release version?!");
@@ -570,9 +572,9 @@ public final class McVersionLookup {
 						ret.append(prBuild);
 					}
 				}
-			} else if ((matcher = TEST_BUILD_PATTERN.matcher(name)).matches()) {
+			} else if ((matcher = TEST_BUILD_PATTERN.matcher(name)).matches()) { // ... Test Build 1, ...-tb2, ...-tb3-1234
 				// Test builds in Beta need special treatment
-				Matcher releaseMatcher = BETA_PATTERN.matcher(release);
+				Matcher releaseMatcher = BETA_PATTERN.matcher(release); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
 
 				if (releaseMatcher.matches()) {
 					// Beta versions with test builds end with .r after normalization
@@ -599,7 +601,7 @@ public final class McVersionLookup {
 				String normalized = normalizeSpecialVersion(name);
 				if (normalized != null) return normalized;
 			}
-		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {
+		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) { // Snapshot 16w02a, 20w13b, 22w18c-1234
 			timestamp = matcher.group(4);
 
 			ret.append("alpha.");
@@ -635,7 +637,7 @@ public final class McVersionLookup {
 		// do this before the main part of normalization as we can get crazy strings like "Indev 0.31 12345678-9"
 		Matcher matcher;
 
-		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // beta 1.2.3: 1.0.0-beta.2.3
+		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
 			timestamp = matcher.group(5);
 
 			prep.append("1.0.0-beta.");
@@ -658,12 +660,12 @@ public final class McVersionLookup {
 					prep.append(".0.r"); // 'r' for 'release'
 				}
 			}
-		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // alpha 1.2.3_04: 1.0.0-alpha.2.3.4
+		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
 			timestamp = matcher.group(2);
 
 			prep.append("1.0.0-alpha.");
 			prep.append(matcher.group(1));
-		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // indev/infdev 12345678: 0.31.12345678
+		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
 			String date = matcher.group(1);
 			// multiple releases could occur on the same day!
 			String time = matcher.group(2);
@@ -671,8 +673,8 @@ public final class McVersionLookup {
 			prep.append("0.31.");
 			prep.append(date);
 			if (time != null) prep.append('-').append(time);
-		} else if ((matcher = EARLY_CLASSIC_PATTERN.matcher(version)).matches()
-				|| (matcher = LATE_CLASSIC_PATTERN.matcher(version)).matches()) {
+		} else if ((matcher = EARLY_CLASSIC_PATTERN.matcher(version)).matches() // c0.0.11a, c0.0.17a-2014, 0.0.18a_02
+				|| (matcher = LATE_CLASSIC_PATTERN.matcher(version)).matches()) { // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew
 			boolean late = LATE_CLASSIC_PATTERN.matcher(version).matches();
 
 			String minor = matcher.group(1);
@@ -690,7 +692,7 @@ public final class McVersionLookup {
 			prep.append(minor);
 			if (patch != null) prep.append('.').append(patch);
 			if (suffix != null) prep.append('-').append(String.join(".", suffix.split("[-]")));
-		} else if ((matcher = PRE_CLASSIC_PATTERN.matcher(version)).matches()) { // pre-classic
+		} else if ((matcher = PRE_CLASSIC_PATTERN.matcher(version)).matches()) { // rd-132211
 			String build = matcher.group(1);
 			if ("20090515".equals(build)) build = "150000"; // account for a weird exception to the pre-classic versioning scheme
 
