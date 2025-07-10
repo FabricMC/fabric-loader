@@ -195,9 +195,9 @@ public class VersionNormalizationTest {
 			new MinecraftVersion("1.18-exp3", "1.18", "1.18-Experimental.3"),
 			// 2022 april fools
 			new MinecraftVersion()
-				.entry("22w13oneBlockAtATime", null, "1.19.1-alpha.22.13.oneblockatatime")
-				.entry("22w13oneblockatatime", null, "1.19.1-alpha.22.13.oneblockatatime")
-				.entry("af-2022", null, "1.19.1-alpha.22.13.oneblockatatime"),
+				.entry("22w13oneBlockAtATime", null, "1.18.3-alpha.22.13.oneblockatatime")
+				.entry("22w13oneblockatatime", null, "1.18.3-alpha.22.13.oneblockatatime")
+				.entry("af-2022", null, "1.18.3-alpha.22.13.oneblockatatime"),
 			// 2023 april fools
 			new MinecraftVersion("23w13a_or_b", null, "1.20-alpha.23.13.ab"),
 			// 2024 april fools
