@@ -855,8 +855,8 @@ public final class McVersionLookup {
 		case "22w13oneBlockAtATime":
 		case "22w13oneblockatatime":
 		case "af-2022":
-			// Minecraft 22w13oneblockatatime
-			return "1.19.1-alpha.22.13.oneblockatatime";
+			// Minecraft 22w13oneblockatatime - forked from 1.18.2
+			return "1.18.3-alpha.22.13.oneblockatatime";
 
 		case "23w13a_or_b":
 			// Minecraft 23w13a_or_b, forked from 23w13a
