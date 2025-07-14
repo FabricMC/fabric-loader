@@ -19,11 +19,9 @@ package net.fabricmc.loader.impl.launch;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.jetbrains.annotations.VisibleForTesting;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.FormattedException;
@@ -36,7 +34,6 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 public abstract class FabricLauncherBase implements FabricLauncher {
 	protected static final boolean IS_DEVELOPMENT = SystemProperties.isSet(SystemProperties.DEVELOPMENT);
 
-	private static boolean mixinReady;
 	private static Map<String, Object> properties;
 	private static FabricLauncher launcher;
 	private static MappingConfiguration mappingConfiguration = new MappingConfiguration();
@@ -139,26 +136,5 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 				}
 			}
 		});
-	}
-
-	protected static void finishMixinBootstrapping() {
-		if (mixinReady) {
-			throw new RuntimeException("Must not call FabricLauncherBase.finishMixinBootstrapping() twice!");
-		}
-
-		try {
-			Method m = MixinEnvironment.class.getDeclaredMethod("gotoPhase", MixinEnvironment.Phase.class);
-			m.setAccessible(true);
-			m.invoke(null, MixinEnvironment.Phase.INIT);
-			m.invoke(null, MixinEnvironment.Phase.DEFAULT);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		mixinReady = true;
-	}
-
-	public static boolean isMixinReady() {
-		return mixinReady;
 	}
 }

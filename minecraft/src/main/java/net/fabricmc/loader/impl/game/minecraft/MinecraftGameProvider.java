@@ -373,7 +373,7 @@ public class MinecraftGameProvider implements GameProvider {
 		if (!logJars.isEmpty() && !Boolean.getBoolean(SystemProperties.UNIT_TEST)) {
 			for (Path jar : logJars) {
 				if (gameJars.contains(jar)) {
-					launcher.addToClassPath(jar, ALLOWED_EARLY_CLASS_PREFIXES);
+					launcher.addToClassPathRestricted(jar, ALLOWED_EARLY_CLASS_PREFIXES);
 				} else {
 					launcher.addToClassPath(jar);
 				}
@@ -469,19 +469,30 @@ public class MinecraftGameProvider implements GameProvider {
 	}
 
 	@Override
-	public void unlockClassPath(FabricLauncher launcher) {
+	public void populateClassPath(FabricLauncher launcher) {
 		for (Path gameJar : gameJars) {
-			if (logJars.contains(gameJar)) {
-				launcher.setAllowedPrefixes(gameJar);
-			} else {
-				launcher.addToClassPath(gameJar);
+			if (!logJars.contains(gameJar)) {
+				launcher.addToClassPathRestricted(gameJar);
 			}
 		}
 
-		if (realmsJar != null) launcher.addToClassPath(realmsJar);
+		if (realmsJar != null) launcher.addToClassPathRestricted(realmsJar);
 
 		for (Path lib : miscGameLibraries) {
-			launcher.addToClassPath(lib);
+			launcher.addToClassPathRestricted(lib);
+		}
+	}
+
+	@Override
+	public void unlockClassPath(FabricLauncher launcher) {
+		for (Path gameJar : gameJars) {
+			launcher.setAllPrefixesAllowed(gameJar);
+		}
+
+		if (realmsJar != null) launcher.setAllPrefixesAllowed(realmsJar);
+
+		for (Path lib : miscGameLibraries) {
+			launcher.setAllPrefixesAllowed(lib);
 		}
 	}
 

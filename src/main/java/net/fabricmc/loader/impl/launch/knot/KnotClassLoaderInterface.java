@@ -40,6 +40,7 @@ interface KnotClassLoaderInterface {
 
 	void addCodeSource(Path path);
 	void setAllowedPrefixes(Path codeSource, String... prefixes);
+	void setAllPrefixesAllowed(Path codeSource);
 	void setValidParentClassPath(Collection<Path> codeSources);
 
 	Manifest getManifest(Path codeSource);

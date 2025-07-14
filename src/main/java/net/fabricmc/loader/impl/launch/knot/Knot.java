@@ -56,7 +56,7 @@ public final class Knot extends FabricLauncherBase {
 	private EnvType envType;
 	private final List<Path> classPath = new ArrayList<>();
 	private GameProvider provider;
-	private boolean unlocked;
+	private boolean populated;
 
 	public static void launch(String[] args, EnvType type) {
 		setupUncaughtExceptionHandler();
@@ -145,12 +145,15 @@ public final class Knot extends FabricLauncherBase {
 		FabricLoaderImpl.INSTANCE.loadAccessWideners();
 
 		FabricMixinBootstrap.init(getEnvironmentType(), loader);
-		FabricLauncherBase.finishMixinBootstrapping();
 
 		classLoader.initializeTransformers();
 
+		provider.populateClassPath(this);
+		populated = true;
+
+		FabricMixinBootstrap.configure(MixinServiceKnot.getTransformer());
+
 		provider.unlockClassPath(this);
-		unlocked = true;
 
 		try {
 			loader.invokeEntrypoints("preLaunch", PreLaunchEntrypoint.class, PreLaunchEntrypoint::onPreLaunch);
@@ -256,16 +259,20 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
-	public void addToClassPath(Path path, String... allowedPrefixes) {
+	public void addToClassPath(Path path) {
 		Log.debug(LogCategory.KNOT, "Adding " + path + " to classpath.");
 
-		classLoader.setAllowedPrefixes(path, allowedPrefixes);
 		classLoader.addCodeSource(path);
 	}
 
 	@Override
 	public void setAllowedPrefixes(Path path, String... prefixes) {
 		classLoader.setAllowedPrefixes(path, prefixes);
+	}
+
+	@Override
+	public void setAllPrefixesAllowed(Path path) {
+		classLoader.setAllPrefixesAllowed(path);
 	}
 
 	@Override
@@ -302,7 +309,7 @@ public final class Knot extends FabricLauncherBase {
 
 	@Override
 	public byte[] getClassByteArray(String name, boolean runTransformers) throws IOException {
-		if (!unlocked) throw new IllegalStateException("early getClassByteArray access");
+		if (!populated) throw new IllegalStateException("early getClassByteArray access");
 
 		if (runTransformers) {
 			return classLoader.getPreMixinClassBytes(name);

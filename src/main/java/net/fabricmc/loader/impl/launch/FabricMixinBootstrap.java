@@ -16,6 +16,9 @@
 
 package net.fabricmc.loader.impl.launch;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +31,9 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
 import org.spongepowered.asm.mixin.transformer.Config;
+import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
+import org.spongepowered.asm.service.IMixinService;
+import org.spongepowered.asm.util.ReEntranceLock;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -37,6 +43,7 @@ import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.impl.launch.knot.MixinServiceKnot;
 import net.fabricmc.loader.impl.launch.knot.MixinServiceKnotBootstrap;
@@ -111,7 +118,44 @@ public final class FabricMixinBootstrap {
 			Log.info(LogCategory.MIXIN, "Detected old Mixin version without config decoration support");
 		}
 
+		try {
+			Method m = MixinEnvironment.class.getDeclaredMethod("gotoPhase", MixinEnvironment.Phase.class);
+			m.setAccessible(true);
+			m.invoke(null, MixinEnvironment.Phase.INIT);
+			m.invoke(null, MixinEnvironment.Phase.DEFAULT);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
 		initialized = true;
+	}
+
+	public static void configure(IMixinTransformer mixinTransformer) {
+		// run mixin configuration as normally done by the first invocation of org.spongepowered.asm.mixin.transformer.MixinProcessor.applyMixins
+
+		MixinEnvironment mixinEnv = MixinEnvironment.getDefaultEnvironment();
+		ReEntranceLock lock = null;
+
+		try {
+			Field serviceField = mixinEnv.getClass().getDeclaredField("service");
+			serviceField.setAccessible(true);
+			IMixinService service = (IMixinService) serviceField.get(mixinEnv);
+			lock = service.getReEntranceLock();
+			lock.push();
+
+			Field processorField = mixinTransformer.getClass().getDeclaredField("processor");
+			processorField.setAccessible(true);
+			Object processor = processorField.get(mixinTransformer);
+			Method checkSelectMethod = processor.getClass().getDeclaredMethod("checkSelect", MixinEnvironment.class);
+			checkSelectMethod.setAccessible(true);
+			checkSelectMethod.invoke(processor, mixinEnv);
+		} catch (InvocationTargetException e) {
+			throw new FormattedException("Mixin initialization failed", e.getCause());
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (lock != null) lock.pop();
+		}
 	}
 
 	private static final class MixinConfigDecorator {
