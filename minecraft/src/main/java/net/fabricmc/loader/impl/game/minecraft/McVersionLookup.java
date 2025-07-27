@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -47,27 +48,38 @@ import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public final class McVersionLookup {
-	private static final Pattern VERSION_PATTERN = Pattern.compile(
-			"0\\.\\d+(\\.\\d+)?a?(_\\d+)?|" // match classic versions first: 0.1.2a_34
-			+ "\\d+\\.\\d+(\\.\\d+)?(-pre\\d+| Pre-[Rr]elease \\d+)?|" // modern non-snapshot: 1.2, 1.2.3, optional -preN or " Pre-Release N" suffix
-			+ "\\d+\\.\\d+(\\.\\d+)?(-rc\\d+| [Rr]elease Candidate \\d+)?|" // 1.16+ Release Candidate
-			+ "\\d+w\\d+[a-z]|" // modern snapshot: 12w34a
-			+ "[a-c]\\d\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // alpha/beta a1.2.3_45
-			+ "(Alpha|Beta) v?\\d+\\.\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?|" // long alpha/beta names: Alpha v1.2.3_45
-			+ "Inf?dev (0\\.31 )?\\d+(-\\d+)?|" // long indev/infdev names: Infdev 12345678-9
-			+ "(rd|inf?)-\\d+|" // early rd-123, in-20100223, inf-123
-			+ "1\\.RV-Pre1|3D Shareware v1\\.34|23w13a_or_b|24w14potato|25w14craftmine|" // odd exceptions
-			+ "(.*[Ee]xperimental [Ss]napshot )(\\d+)" // Experimental versions.
-			);
-	private static final Pattern RELEASE_PATTERN = Pattern.compile("\\d+\\.\\d+(\\.\\d+)?");
-	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-[Rr]elease )(\\d+)");
-	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| [Rr]elease Candidate )(\\d+)");
-	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])");
-	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile("(?:.*[Ee]xperimental [Ss]napshot )(\\d+)");
-	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+(\\.\\d+)?[a-z]?(_\\d+)?[a-z]?)");
-	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+(-\\d+)?)");
+	private static final Pattern RELEASE_PATTERN = Pattern.compile("(1\\.(\\d+)(?:\\.(\\d+))?)(?:-(\\d+))?"); // 1.6, 1.16.5, 1,16+231620
+	private static final Pattern TEST_BUILD_PATTERN = Pattern.compile(".+(?:-tb| Test Build )(\\d+)?(?:-(\\d+))?"); // ... Test Build 1, ...-tb2, ...-tb3-1234
+	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?"); // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234
+	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?"); // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
+	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?"); // Snapshot 16w02a, 20w13b, 22w18c-1234
+	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp| [Ee]xperimental [Ss]napshot )(\\d+)"); // 1.18 Experimental Snapshot 1, 1.18 experimental snapshot 2, 1.18-exp3
+	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)(?:-(\\d+))?"); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)(?:-(\\d+))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
+	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?"); // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
+	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?((?:\\-[a-z]+)+)?(?:-(\\d+))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew
+	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?"); // c0.0.11a, c0.0.17a-2014, 0.0.18a_02
+	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("rd-(\\d+)"); // rd-132211
 	private static final String STRING_DESC = "Ljava/lang/String;";
+	private static final Pattern VERSION_PATTERN = Pattern.compile(
+			PRE_CLASSIC_PATTERN.pattern()
+			+ "|" + EARLY_CLASSIC_PATTERN.pattern()
+			+ "|" + LATE_CLASSIC_PATTERN.pattern()
+			+ "|" + INDEV_PATTERN.pattern()
+			+ "|" + ALPHA_PATTERN.pattern()
+			+ "|" + BETA_PATTERN.pattern()
+				+ "(" + TEST_BUILD_PATTERN.pattern().substring(2) + ")?"
+				+ "(" + PRE_RELEASE_PATTERN.pattern().substring(2) + ")?"
+				+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
+			+ "|" + RELEASE_PATTERN.pattern()
+				+ "(" + TEST_BUILD_PATTERN.pattern().substring(2) + ")?"
+				+ "(" + PRE_RELEASE_PATTERN.pattern().substring(2) + ")?"
+				+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
+				+ "(" + EXPERIMENTAL_PATTERN.pattern().substring(2) + ")?"
+			+ "|" + SNAPSHOT_PATTERN.pattern()
+			+ "|" + "Minecraft RC\\d" // special case for 1.0.0 release candidates
+			+ "|" + "1\\.RV-Pre1|3D Shareware v1\\.34|23w13a_or_b|24w14potato|25w14craftmine" // odd exceptions
+	);
 
 	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
 		McVersion.Builder builder = new McVersion.Builder();
@@ -264,24 +276,71 @@ public final class McVersionLookup {
 		return null;
 	}
 
-	protected static String getRelease(String version) {
-		if (RELEASE_PATTERN.matcher(version).matches()) return version;
+	@VisibleForTesting
+	public static String getRelease(String version) {
+		// 1.6, 1.16.5, 1,16+231620
+		Matcher matcher = RELEASE_PATTERN.matcher(version);
 
-		assert isProbableVersion(version);
+		if (matcher.matches()) {
+			// return name without timestamp
+			return matcher.group(1);
+		}
 
-		int pos = version.indexOf("-pre");
+		// version ids as found in versions manifest
+		// ... as in 1.18_experimental-snapshot-1
+		int pos = version.indexOf("_experimental-snapshot-");
 		if (pos >= 0) return version.substring(0, pos);
 
-		pos = version.indexOf(" Pre-Release ");
+		// ... as in 1.18-exp1
+		pos = version.indexOf("-exp");
 		if (pos >= 0) return version.substring(0, pos);
 
-		pos = version.indexOf(" Pre-release ");
+		// ... as in b1.6-tb3
+		pos = version.indexOf("-tb");
 		if (pos >= 0) return version.substring(0, pos);
 
-		pos = version.indexOf(" Release Candidate ");
+		// ... as in 1.21.6-pre1
+		pos = version.indexOf("-pre");
 		if (pos >= 0) return version.substring(0, pos);
 
-		Matcher matcher = SNAPSHOT_PATTERN.matcher(version);
+		// ... as in 1.21.6-rc1
+		pos = version.indexOf("-rc");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// version names as extracted from the jar
+		// ... as in 1.18 Experimental Snapshot 1
+		pos = version.indexOf(" Experimental Snapshot");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in 1.18 experimental snapshot 2
+		pos = version.indexOf(" experimental snapshot ");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in Beta 1.6 Test Build 3
+		pos = version.indexOf(" Test Build");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in 1.21.6 Pre-Release 1
+		pos = version.indexOf(" Pre-Release");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in Beta 1.8 Pre-release 1
+		pos = version.indexOf(" Pre-release");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in Beta 1.9 Prerelease 2
+		pos = version.indexOf(" Prerelease");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in Minecraft RC1
+		pos = version.indexOf(" RC");
+		if (pos >= 0) return version.substring(0, pos);
+
+		// ... as in 1.21.6 Release Candidate 1
+		pos = version.indexOf(" Release Candidate");
+		if (pos >= 0) return version.substring(0, pos);
+
+		matcher = SNAPSHOT_PATTERN.matcher(version); // Snapshot 16w02a, 20w13b, 22w18c-1234
 
 		if (matcher.matches()) {
 			int year = Integer.parseInt(matcher.group(1));
@@ -395,33 +454,71 @@ public final class McVersionLookup {
 	 *
 	 * <p>MC Snapshot -> alpha, MC Pre-Release -> rc.
 	 */
-	protected static String normalizeVersion(String name, String release) {
+	@VisibleForTesting
+	public static String normalizeVersion(String name, String release) {
 		if (release == null || name.equals(release)) {
 			String ret = normalizeSpecialVersion(name);
 			return ret != null ? ret : normalizeVersion(name);
 		}
 
+		String normalizedRelease = normalizeVersion(release);
+		// timestamps distinguish between re-uploads of the same version
+		String timestamp = null;
+
+		StringBuilder ret = new StringBuilder();
+		ret.append(normalizedRelease);
+		ret.append('-');
+
 		Matcher matcher;
 
-		if ((matcher = EXPERIMENTAL_PATTERN.matcher(name)).matches()) {
-			return String.format("%s-Experimental.%s", release, matcher.group(1));
+		if ((matcher = RELEASE_PATTERN.matcher(name)).matches()) { // 1.6, 1.16.5, 1.16+131620
+			timestamp = matcher.group(4);
+
+			// remove - separator
+			ret.setLength(ret.length() - 1);
+		} else if ((matcher = EXPERIMENTAL_PATTERN.matcher(name)).matches()) { // 1.18 Experimental Snapshot 1, 1.18 experimental snapshot 2, 1.18-exp3
+			ret.append("Experimental.");
+			ret.append(matcher.group(1)); // exp build nr
 		} else if (name.startsWith(release)) {
-			matcher = RELEASE_CANDIDATE_PATTERN.matcher(name);
-
-			if (matcher.matches()) {
+			if ((matcher = RELEASE_CANDIDATE_PATTERN.matcher(name)).matches()) { // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
 				String rcBuild = matcher.group(1);
+				timestamp = matcher.group(2);
 
+				// 1.0.0 release candidates are simply known as eg. 'Minecraft RC1' in the jar
+				if (release.equals("Minecraft")) {
+					ret.replace(0, "Minecraft".length(), "1.0.0");
 				// This is a hack to fake 1.16's new release candidates to follow on from the 8 pre releases.
-				if (release.equals("1.16")) {
+				} else if (release.equals("1.16")) {
 					int build = Integer.parseInt(rcBuild);
 					rcBuild = Integer.toString(8 + build);
 				}
 
-				name = String.format("rc.%s", rcBuild);
-			} else {
-				matcher = PRE_RELEASE_PATTERN.matcher(name);
+				ret.append("rc.");
+				ret.append(rcBuild);
+			} else if ((matcher = PRE_RELEASE_PATTERN.matcher(name)).matches()) { // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234
+				// Pre-releases in Beta need special treatment
+				Matcher releaseMatcher = BETA_PATTERN.matcher(release); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
 
-				if (matcher.matches()) {
+				if (releaseMatcher.matches()) {
+					// Beta versions with pre-releases end with .r after normalization
+					// for pre-releases, the pre-release nr is put in that place instead
+					if (normalizedRelease.charAt(normalizedRelease.length() - 1) != 'r') {
+						throw new IllegalStateException("improperly normalized release " + release + " to " + normalizedRelease + " for pre-release " + name);
+					}
+
+					String prBuild = matcher.group(1);
+					timestamp = matcher.group(2);
+
+					// pre-release 1 is sometimes just called 'Prerelease'
+					if (prBuild == null) {
+						prBuild = "1";
+					}
+
+					// remove the - separator and replace the final r
+					// of the normalized release version
+					ret.setLength(ret.length() - 2);
+					ret.append(prBuild);
+				} else {
 					boolean legacyVersion;
 
 					try {
@@ -430,56 +527,188 @@ public final class McVersionLookup {
 						throw new RuntimeException("Failed to parse version: " + release);
 					}
 
-					// Mark pre-releases as 'beta' versions, except for version 1.16 and before, where they are 'rc'
-					if (legacyVersion) {
-						name = String.format("rc.%s", matcher.group(1));
+					String prBuild = matcher.group(1);
+					timestamp = matcher.group(2);
+
+					if (prBuild == null) {
+						// between 1.2 and 1.7, regular release ids were used for
+						// pre-releases, yet omniarchive marks these versions with
+						// a 'pre' identifier
+						// we won't do that here because it would be inconsistent
+						// with the snapshot release targets
+
+						releaseMatcher = RELEASE_PATTERN.matcher(release); // 1.6, 1.16.5, 1.16+131620
+
+						if (!releaseMatcher.matches()) {
+							throw new IllegalStateException("version " + name + " is a pre-release targeting neither a Beta version, nor a release version?!");
+						}
+
+						int minor = Integer.parseInt(releaseMatcher.group(2));
+						int patch = (releaseMatcher.group(3) == null)
+											? 0 // use 0 if no patch version is given (1.7 -> 1.7.0)
+											: Integer.parseInt(releaseMatcher.group(3));
+
+						boolean showAsRelease = (minor == 2 && patch == 0) // 1.2
+											|| (minor == 3 && patch == 0) // 1.3
+											|| (minor == 4 && (patch == 0 || patch == 1 || patch == 3)) // 1.4, 1.4.1, 1.4.3
+											|| (minor == 6 && (patch == 0 || patch == 3)) // 1.6, 1.6.3
+											|| (minor == 7 && (patch == 0 || patch == 1 || patch == 3)); // 1.7, 1.7.1, 1.7.3
+
+						if (showAsRelease) {
+							// remove the - separator
+							ret.setLength(ret.length() - 1);
+						} else {
+							// then there are also actual pre-releases that use regular
+							// release ids that were later re-used for the actual release
+							// e.g. 1.6.3-pre and 1.7.4-pre
+
+							// use 'rc' to be consistent with other pre-releases
+							// for versions older than 1.16
+							ret.append("rc");
+						}
 					} else {
-						name = String.format("beta.%s", matcher.group(1));
+						// Mark pre-releases as 'beta' versions, except for version 1.16 and before, where they are 'rc'
+						ret.append(legacyVersion ? "rc." : "beta.");
+						ret.append(prBuild);
 					}
-				} else {
-					String ret = normalizeSpecialVersion(name);
-					if (ret != null) return ret;
 				}
+			} else if ((matcher = TEST_BUILD_PATTERN.matcher(name)).matches()) { // ... Test Build 1, ...-tb2, ...-tb3-1234
+				// Test builds in Beta need special treatment
+				Matcher releaseMatcher = BETA_PATTERN.matcher(release); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
+
+				if (releaseMatcher.matches()) {
+					// Beta versions with test builds end with .r after normalization
+					// for test builds, the build nr is put in that place instead
+					if (normalizedRelease.charAt(normalizedRelease.length() - 1) != 'r') {
+						throw new IllegalStateException("improperly normalized release " + release + " to " + normalizedRelease + " for test build " + name);
+					}
+
+					String tbBuild = matcher.group(1);
+					timestamp = matcher.group(2);
+
+					// remove the - separator and replace the final r
+					// of the normalized release version
+					ret.setLength(ret.length() - 2);
+					ret.append(tbBuild);
+				} else {
+					String tbBuild = matcher.group(1);
+					timestamp = matcher.group(2);
+
+					ret.append("test.");
+					ret.append(tbBuild);
+				}
+			} else {
+				String normalized = normalizeSpecialVersion(name);
+				if (normalized != null) return normalized;
 			}
-		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) {
-			name = String.format("alpha.%s.%s.%s", matcher.group(1), matcher.group(2), matcher.group(3));
+		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) { // Snapshot 16w02a, 20w13b, 22w18c-1234
+			timestamp = matcher.group(4);
+
+			ret.append("alpha.");
+			ret.append(matcher.group(1)); // year
+			ret.append('.');
+			ret.append(matcher.group(2)); // week
+			ret.append('.');
+			ret.append(matcher.group(3)); // patch
 		} else {
 			// Try short-circuiting special versions which are complete on their own
-			String ret = normalizeSpecialVersion(name);
-			if (ret != null) return ret;
+			String normalized = normalizeSpecialVersion(name);
+			if (normalized != null) return normalized;
 
-			name = normalizeVersion(name);
+			ret.append(normalizeVersion(name));
 		}
 
-		return String.format("%s-%s", release, name);
+		// add timestamp as extra build information
+		if (timestamp != null) {
+			ret.append('+');
+			ret.append(timestamp);
+		}
+
+		return ret.toString();
 	}
 
 	private static String normalizeVersion(String version) {
+		// timestamps distinguish between re-uploads of the same version
+		String timestamp = null;
+
+		StringBuilder prep = new StringBuilder();
+
 		// old version normalization scheme
 		// do this before the main part of normalization as we can get crazy strings like "Indev 0.31 12345678-9"
 		Matcher matcher;
 
-		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // beta 1.2.3: 1.0.0-beta.2.3
-			version = "1.0.0-beta." + matcher.group(1);
-		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // alpha 1.2.3: 1.0.0-alpha.2.3
-			version = "1.0.0-alpha." + matcher.group(1);
-		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // indev/infdev 12345678: 0.31.12345678
-			version = "0.31." + matcher.group(1);
-		} else if (version.startsWith("c0.")) { // classic: unchanged, except remove prefix
-			version = version.substring(1);
-		} else if (version.startsWith("rd-")) { // pre-classic
-			version = version.substring("rd-".length());
-			if ("20090515".equals(version)) version = "150000"; // account for a weird exception to the pre-classic versioning scheme
-			version = "0.0.0-rd." + version;
+		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
+			timestamp = matcher.group(5);
+
+			prep.append("1.0.0-beta.");
+			prep.append(matcher.group(1));
+
+			// there are pre-releases in Beta too, and they
+			// are annoying to normalize
+			// the solution we use is to use the pre-release
+			// numbers as patch numbers, then for the 'release'
+			// version, use some text - the letter 'r' - instead
+			// to ensure it is sorted after the pre-releases
+			// for this to work, a minor number must be present
+			// but it is only necessary for b1.6, b1.8 and b1.9
+			// the minor version is also set to 0 to ensure
+			// following minor versions are sorted after
+			if (matcher.group(3) == null && matcher.group(4) == null) {
+				int maj = Integer.parseInt(matcher.group(2));
+
+				if (maj == 6 || maj == 8 || maj == 9) {
+					prep.append(".0.r"); // 'r' for 'release'
+				}
+			}
+		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
+			timestamp = matcher.group(2);
+
+			prep.append("1.0.0-alpha.");
+			prep.append(matcher.group(1));
+		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
+			String date = matcher.group(1);
+			// multiple releases could occur on the same day!
+			String time = matcher.group(2);
+
+			prep.append("0.31.");
+			prep.append(date);
+			if (time != null) prep.append('-').append(time);
+		} else if ((matcher = EARLY_CLASSIC_PATTERN.matcher(version)).matches() // c0.0.11a, c0.0.17a-2014, 0.0.18a_02
+				|| (matcher = LATE_CLASSIC_PATTERN.matcher(version)).matches()) { // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew
+			boolean late = LATE_CLASSIC_PATTERN.matcher(version).matches();
+
+			String minor = matcher.group(1);
+			String patch = matcher.group(2);
+			String suffix = late ? matcher.group(4) : null;
+			timestamp = matcher.group(late ? 5 : 3);
+
+			// in late classic, sometimes the patch number appears before
+			// the survival test identifier (_st), and sometimes after it
+			if (late && patch == null) {
+				patch = matcher.group(3);
+			}
+
+			prep.append("0.");
+			prep.append(minor);
+			if (patch != null) prep.append('.').append(patch);
+			if (suffix != null) prep.append('-').append(String.join(".", suffix.split("[-]")));
+		} else if ((matcher = PRE_CLASSIC_PATTERN.matcher(version)).matches()) { // rd-132211
+			String build = matcher.group(1);
+			if ("20090515".equals(build)) build = "150000"; // account for a weird exception to the pre-classic versioning scheme
+
+			prep.append("0.0.0-rd.");
+			prep.append(build);
+		} else {
+			prep.append(version);
 		}
 
-		StringBuilder ret = new StringBuilder(version.length() + 5);
+		StringBuilder ret = new StringBuilder(prep.length() + 5);
 		boolean lastIsDigit = false;
 		boolean lastIsLeadingZero = false;
 		boolean lastIsSeparator = false;
 
-		for (int i = 0, max = version.length(); i < max; i++) {
-			char c = version.charAt(i);
+		for (int i = 0, max = prep.length(); i < max; i++) {
+			char c = prep.charAt(i);
 
 			if (c >= '0' && c <= '9') {
 				if (i > 0 && !lastIsDigit && !lastIsSeparator) { // no separator between non-number and number, add one
@@ -520,28 +749,43 @@ public final class McVersionLookup {
 		int end = ret.length();
 		while (end > start && ret.charAt(end - 1) == '.') end--;
 
-		return ret.substring(start, end);
+		ret.setLength(end);
+
+		// add timestamp as extra build information
+		if (timestamp != null) {
+			ret.append('+');
+			ret.append(timestamp);
+		}
+
+		return ret.substring(start);
 	}
 
 	private static String normalizeSpecialVersion(String version) {
 		switch (version) {
+		case "b1.6-pre-trailer":
+			// Pre-release version used for the Beta 1.6 trailer
+			return "1.0.0-beta.6.0.0"; // sort it before the test builds
 		case "13w12~":
 			// A pair of debug snapshots immediately before 1.5.1-pre
 			return "1.5.1-alpha.13.12.a";
 
 		case "15w14a":
+		case "af-2015":
 			// The Love and Hugs Update, forked from 1.8.3
 			return "1.8.4-alpha.15.14.a+loveandhugs";
 
 		case "1.RV-Pre1":
+		case "af-2016":
 			// The Trendy Update, probably forked from 1.9.2 (although the protocol/data versions immediately follow 1.9.1-pre3)
 			return "1.9.2-rv+trendy";
 
 		case "3D Shareware v1.34":
+		case "af-2019":
 			// Minecraft 3D, forked from 19w13b
 			return "1.14-alpha.19.13.shareware";
 
 		case "20w14~":
+		case "af-2020":
 			// The Ultimate Content update, forked from 20w13b
 			return "1.16-alpha.20.13.inf"; // Not to be confused with the actual 20w14a
 
@@ -592,18 +836,29 @@ public final class McVersionLookup {
 		case "1.16_combat-6":
 			// The ninth Combat Test 8c, forked from 1.16.2
 			return "1.16.3-combat.8.c";
-
+		case "2.0":
+			// 2.0 update version as known in the jar, forked from 1.5.1
+			return "1.5.2-2.0";
 		case "2point0_red":
+		case "af-2013-red":
 			// 2.0 update version red, forked from 1.5.1
-			return "1.5.2-red";
+			return "1.5.2-2.0+red";
 
 		case "2point0_purple":
+		case "af-2013-purple":
 			// 2.0 update version purple, forked from 1.5.1
-			return "1.5.2-purple";
+			return "1.5.2-2.0+purple";
 
 		case "2point0_blue":
+		case "af-2013-blue":
 			// 2.0 update version blue, forked from 1.5.1
-			return "1.5.2-blue";
+			return "1.5.2-2.0+blue";
+
+		case "22w13oneBlockAtATime":
+		case "22w13oneblockatatime":
+		case "af-2022":
+			// Minecraft 22w13oneblockatatime - forked from 1.18.2
+			return "1.18.3-alpha.22.13.oneblockatatime";
 
 		case "23w13a_or_b":
 			// Minecraft 23w13a_or_b, forked from 23w13a

@@ -18,6 +18,11 @@ dependencies {
 		transitive = false
 	}
 	//implementation 'net.sf.jopt-simple:jopt-simple:5.0.3'
+
+	// Unit testing for semver
+	implementation project(":").sourceSets.main.output
+	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
+	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 sourceSets {
@@ -39,7 +44,7 @@ jar {
 }
 
 test {
-	enabled = false
+	useJUnitPlatform()
 }
 
 java {
