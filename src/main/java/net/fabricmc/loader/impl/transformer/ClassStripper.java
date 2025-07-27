@@ -24,6 +24,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
  * Strips the specified interfaces, fields and methods from a class.
@@ -77,26 +78,38 @@ public class ClassStripper extends ClassVisitor {
 
 		MethodVisitor ret = super.visitMethod(access, name, descriptor, signature, exceptions);
 
-		// strip field writes from static init and constructor
-		if (!stripFields.isEmpty() && (name.equals("<clinit>") || name.equals("<init>"))) {
-			ret = new MethodVisitor(api, ret) {
-				@Override
-				public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
-					if (opcode != Opcodes.PUTFIELD && opcode != Opcodes.PUTSTATIC // ignore non-writes
-							|| !owner.equals(className) // ignore writes to other classes
-							|| !stripFields.contains(name+descriptor)) { // ignore non-stripped fields
-						super.visitFieldInsn(opcode, owner, name, descriptor);
-					} else {
-						super.visitInsn(descriptor.equals("J") || descriptor.equals("D") ? Opcodes.POP2 : Opcodes.POP); // pop field value
-
-						if (opcode == Opcodes.PUTFIELD) {
-							super.visitInsn(Opcodes.POP); // pop this
-						}
-					}
-				}
-			};
+		if (stripFields.isEmpty()) {
+			return ret;
 		}
 
-		return ret;
+		// strip matching field writes from static init and constructor
+		int opcodeToStrip;
+		switch (name) {
+		case "<clinit>":
+			opcodeToStrip = Opcodes.PUTSTATIC;
+			break;
+		case "<init>":
+			opcodeToStrip = Opcodes.PUTFIELD;
+			break;
+		default:
+			return ret;
+		}
+
+		return new MethodVisitor(api, ret) {
+			@Override
+			public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+				if (opcode != opcodeToStrip // ignore irrelevant insns
+						|| !owner.equals(className) // ignore writes to other classes
+						|| !stripFields.contains(name + descriptor)) { // ignore non-stripped fields
+					super.visitFieldInsn(opcode, owner, name, descriptor);
+				} else {
+					super.visitInsn(Type.getType(descriptor).getSize() == 2 ? Opcodes.POP2 : Opcodes.POP); // pop field value
+
+					if (opcode == Opcodes.PUTFIELD) {
+						super.visitInsn(Opcodes.POP); // pop this
+					}
+				}
+			}
+		};
 	}
 }
