@@ -47,6 +47,11 @@ class KnotCompatibilityClassLoader extends URLClassLoader implements ClassLoader
 	}
 
 	@Override
+	protected String findLibrary(String libname) {
+		return delegate.findLibrary(libname);
+	}
+
+	@Override
 	public void addUrlFwd(URL url) {
 		super.addURL(url);
 	}
