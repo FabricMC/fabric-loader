@@ -125,6 +125,11 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	}
 
 	@Override
+	protected String findLibrary(String libname) {
+		return delegate.findLibrary(libname);
+	}
+
+	@Override
 	public void addUrlFwd(URL url) {
 		urlLoader.addURL(url);
 	}
