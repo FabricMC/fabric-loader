@@ -291,7 +291,7 @@ public final class McVersionLookup {
 		int pos = version.indexOf("_deep_dark_experimental_snapshot-");
 		if (pos >= 0) return version.substring(0, pos);
 
-		// ... as in 1.18_experimental-snapshot-1
+		// ... as in 1.18_experimental_snapshot-1
 		pos = version.indexOf("_experimental_snapshot-");
 		if (pos >= 0) return version.substring(0, pos);
 
