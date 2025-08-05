@@ -275,6 +275,21 @@
     "releaseTime": "2009-06-07T00:00:00Z"
   },
   {
+    "id": "c1.0",
+    "normalized": "0.0",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c1.1",
+    "normalized": "0.1",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c1.2",
+    "normalized": "0.2",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
     "id": "c0.0.16a_02-081026",
     "normalized": "0.16.2+081026",
     "releaseTime": "2009-06-08T00:00:00Z"
@@ -310,6 +325,11 @@
     "releaseTime": "2009-06-08T00:00:00Z"
   },
   {
+    "id": "c1.3",
+    "normalized": "0.3",
+    "releaseTime": "2009-06-10T00:00:00Z"
+  },
+  {
     "id": "c0.0.17a-1945",
     "normalized": "0.17+1945",
     "releaseTime": "2009-06-10T00:00:00Z"
@@ -318,6 +338,16 @@
     "id": "c0.0.17a-2014",
     "normalized": "0.17+2014",
     "releaseTime": "2009-06-10T00:00:00Z"
+  },
+  {
+    "id": "c1.4-1327",
+    "normalized": "0.4+1327",
+    "releaseTime": "2009-06-13T00:00:00Z"
+  },
+  {
+    "id": "c1.4-1422",
+    "normalized": "0.4+1422",
+    "releaseTime": "2009-06-13T00:00:00Z"
   },
   {
     "id": "c0.0.18a",
@@ -330,9 +360,34 @@
     "releaseTime": "2009-06-13T00:00:00Z"
   },
   {
+    "id": "c1.4.1",
+    "normalized": "0.4.1",
+    "releaseTime": "2009-06-14T00:00:00Z"
+  },
+  {
     "id": "c0.0.18a_02",
     "normalized": "0.18.2",
     "releaseTime": "2009-06-14T00:00:00Z"
+  },
+  {
+    "id": "c1.5-1248",
+    "normalized": "0.5+1248",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.5-1301",
+    "normalized": "0.5+1301",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.5-2235",
+    "normalized": "0.5+2235",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.6",
+    "normalized": "0.6",
+    "releaseTime": "2009-06-19T00:00:00Z"
   },
   {
     "id": "c0.0.19a",
@@ -353,6 +408,21 @@
     "id": "c0.0.19a_03",
     "normalized": "0.19.3",
     "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.8",
+    "normalized": "0.8",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c1.8.1",
+    "normalized": "0.8.1",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c1.8.2",
+    "normalized": "0.8.2",
+    "releaseTime": "2009-06-20T00:00:00Z"
   },
   {
     "id": "c0.0.19a_04",
@@ -510,6 +580,11 @@
     "releaseTime": "2009-10-24T00:00:00Z"
   },
   {
+    "id": "c1.8.3",
+    "normalized": "0.8.3",
+    "releaseTime": "2009-10-27T00:00:00Z"
+  },
+  {
     "id": "c0.28",
     "normalized": "0.28",
     "releaseTime": "2009-10-27T00:00:00Z"
@@ -518,6 +593,11 @@
     "id": "c0.28_01",
     "normalized": "0.28.1",
     "releaseTime": "2009-10-27T00:00:00Z"
+  },
+  {
+    "id": "c1.9.1",
+    "normalized": "0.9.1",
+    "releaseTime": "2009-10-29T00:00:00Z"
   },
   {
     "id": "c0.29",
@@ -553,6 +633,16 @@
     "id": "c0.30-s-1858",
     "normalized": "0.30-s+1858",
     "releaseTime": "2009-11-10T00:00:00Z"
+  },
+  {
+    "id": "c1.10",
+    "normalized": "0.10",
+    "releaseTime": "2009-12-11T00:00:00Z"
+  },
+  {
+    "id": "c1.10.1",
+    "normalized": "0.10.1",
+    "releaseTime": "2009-12-11T00:00:00Z"
   },
   {
     "id": "c0.30_01c",
@@ -1100,11 +1190,6 @@
     "releaseTime": "2010-06-17T00:00:00Z"
   },
   {
-    "id": "inf-20100618",
-    "normalized": "0.31.20100618",
-    "releaseTime": "2010-06-18T00:00:00Z"
-  },
-  {
     "id": "inf-20100624",
     "normalized": "0.31.20100624",
     "releaseTime": "2010-06-24T00:00:00Z"
@@ -1188,11 +1273,6 @@
     "id": "a1.0.5-2149",
     "normalized": "1.0.0-alpha.0.5+2149",
     "releaseTime": "2010-07-13T00:00:00Z"
-  },
-  {
-    "id": "a1.0.5_01",
-    "normalized": "1.0.0-alpha.0.5.1",
-    "releaseTime": "2010-07-14T00:00:00Z"
   },
   {
     "id": "a1.0.6",
@@ -1285,6 +1365,11 @@
     "releaseTime": "2010-08-03T22:00:00Z"
   },
   {
+    "id": "a0.1.0",
+    "normalized": "1.0.0-alpha.1.0",
+    "releaseTime": "2010-08-04T00:00:00Z"
+  },
+  {
     "id": "a1.0.16",
     "normalized": "1.0.0-alpha.0.16",
     "releaseTime": "2010-08-11T22:00:00Z"
@@ -1295,9 +1380,39 @@
     "releaseTime": "2010-08-12T00:00:00Z"
   },
   {
+    "id": "a0.1.1-1641",
+    "normalized": "1.0.0-alpha.1.1+1641",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.1-1707",
+    "normalized": "1.0.0-alpha.1.1+1707",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.2-1805",
+    "normalized": "1.0.0-alpha.1.2+1805",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.2-1818",
+    "normalized": "1.0.0-alpha.1.2+1818",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.2_01",
+    "normalized": "1.0.0-alpha.1.2.1",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
     "id": "a1.0.16_02",
     "normalized": "1.0.0-alpha.0.16.2",
     "releaseTime": "2010-08-13T00:00:00Z"
+  },
+  {
+    "id": "a0.1.3",
+    "normalized": "1.0.0-alpha.1.3",
+    "releaseTime": "2010-08-17T00:00:00Z"
   },
   {
     "id": "a1.0.17_02",
@@ -1335,6 +1450,16 @@
     "releaseTime": "2010-09-10T00:00:00Z"
   },
   {
+    "id": "a0.2.0",
+    "normalized": "1.0.0-alpha.2.0",
+    "releaseTime": "2010-09-10T00:00:00Z"
+  },
+  {
+    "id": "a0.2.0_01",
+    "normalized": "1.0.0-alpha.2.0.1",
+    "releaseTime": "2010-09-10T00:00:00Z"
+  },
+  {
     "id": "a1.1.0",
     "normalized": "1.0.0-alpha.1.0",
     "releaseTime": "2010-09-12T22:00:00Z"
@@ -1348,6 +1473,11 @@
     "id": "a1.1.1",
     "normalized": "1.0.0-alpha.1.1",
     "releaseTime": "2010-09-18T00:00:00Z"
+  },
+  {
+    "id": "a0.2.1",
+    "normalized": "1.0.0-alpha.2.1",
+    "releaseTime": "2010-09-19T00:00:00Z"
   },
   {
     "id": "a1.1.2",
@@ -1395,6 +1525,11 @@
     "releaseTime": "2010-11-04T22:00:01Z"
   },
   {
+    "id": "a0.2.3",
+    "normalized": "1.0.0-alpha.2.3",
+    "releaseTime": "2010-11-05T00:00:00Z"
+  },
+  {
     "id": "a1.2.2a",
     "normalized": "1.0.0-alpha.2.2.a",
     "releaseTime": "2010-11-09T22:00:00Z"
@@ -1420,6 +1555,11 @@
     "releaseTime": "2010-11-10T00:00:00Z"
   },
   {
+    "id": "a0.2.4",
+    "normalized": "1.0.0-alpha.2.4",
+    "releaseTime": "2010-11-10T00:00:00Z"
+  },
+  {
     "id": "a1.2.3",
     "normalized": "1.0.0-alpha.2.3",
     "releaseTime": "2010-11-23T22:00:00Z"
@@ -1440,9 +1580,24 @@
     "releaseTime": "2010-11-24T00:00:00Z"
   },
   {
+    "id": "a0.2.5-0923",
+    "normalized": "1.0.0-alpha.2.5+0923",
+    "releaseTime": "2010-11-24T00:00:00Z"
+  },
+  {
+    "id": "a0.2.5-1004",
+    "normalized": "1.0.0-alpha.2.5+1004",
+    "releaseTime": "2010-11-24T00:00:00Z"
+  },
+  {
     "id": "a1.2.3_02",
     "normalized": "1.0.0-alpha.2.3.2",
     "releaseTime": "2010-11-24T22:00:00Z"
+  },
+  {
+    "id": "a0.2.5_01",
+    "normalized": "1.0.0-alpha.2.5.1",
+    "releaseTime": "2010-11-25T00:00:00Z"
   },
   {
     "id": "a1.2.3_04",
@@ -1452,6 +1607,11 @@
   {
     "id": "a1.2.3_03",
     "normalized": "1.0.0-alpha.2.3.3",
+    "releaseTime": "2010-11-26T00:00:00Z"
+  },
+  {
+    "id": "a0.2.5_02",
+    "normalized": "1.0.0-alpha.2.5.2",
     "releaseTime": "2010-11-26T00:00:00Z"
   },
   {
@@ -1465,14 +1625,29 @@
     "releaseTime": "2010-11-30T00:00:00Z"
   },
   {
+    "id": "a0.2.6",
+    "normalized": "1.0.0-alpha.2.6",
+    "releaseTime": "2010-11-30T00:00:00Z"
+  },
+  {
     "id": "a1.2.5",
     "normalized": "1.0.0-alpha.2.5",
     "releaseTime": "2010-11-30T22:00:00Z"
   },
   {
+    "id": "a0.2.7",
+    "normalized": "1.0.0-alpha.2.7",
+    "releaseTime": "2010-12-01T00:00:00Z"
+  },
+  {
     "id": "a1.2.6",
     "normalized": "1.0.0-alpha.2.6",
     "releaseTime": "2010-12-02T22:00:00Z"
+  },
+  {
+    "id": "a0.2.8",
+    "normalized": "1.0.0-alpha.2.8",
+    "releaseTime": "2010-12-03T00:00:00Z"
   },
   {
     "id": "b1.0",
@@ -1483,11 +1658,6 @@
     "id": "b1.0_01",
     "normalized": "1.0.0-beta.0.1",
     "releaseTime": "2010-12-19T22:00:01Z"
-  },
-  {
-    "id": "b1.0",
-    "normalized": "1.0.0-beta.0",
-    "releaseTime": "2010-12-20T00:00:00Z"
   },
   {
     "id": "b1.0.2",
@@ -1510,6 +1680,11 @@
     "releaseTime": "2010-12-21T22:00:01Z"
   },
   {
+    "id": "b1.1",
+    "normalized": "1.0.0-beta.1",
+    "releaseTime": "2010-12-22T00:00:00Z"
+  },
+  {
     "id": "b1.1-1245",
     "normalized": "1.0.0-beta.1+1245",
     "releaseTime": "2010-12-22T00:00:00Z"
@@ -1517,11 +1692,6 @@
   {
     "id": "b1.1-1255",
     "normalized": "1.0.0-beta.1+1255",
-    "releaseTime": "2010-12-22T00:00:00Z"
-  },
-  {
-    "id": "b1.1_02",
-    "normalized": "1.0.0-beta.1.2",
     "releaseTime": "2010-12-22T00:00:00Z"
   },
   {
@@ -1600,6 +1770,11 @@
     "releaseTime": "2011-04-19T22:00:00Z"
   },
   {
+    "id": "b1.5_02",
+    "normalized": "1.0.0-beta.5.2",
+    "releaseTime": "2011-04-20T00:00:00Z"
+  },
+  {
     "id": "b1.6",
     "normalized": "1.0.0-beta.6.0.r",
     "releaseTime": "2011-05-25T22:00:00Z"
@@ -1623,26 +1798,6 @@
     "id": "b1.6.4",
     "normalized": "1.0.0-beta.6.4",
     "releaseTime": "2011-05-25T22:00:04Z"
-  },
-  {
-    "id": "b1.6",
-    "normalized": "1.0.0-beta.6.0.r",
-    "releaseTime": "2011-05-26T00:00:00Z"
-  },
-  {
-    "id": "b1.6.1",
-    "normalized": "1.0.0-beta.6.1",
-    "releaseTime": "2011-05-26T00:00:00Z"
-  },
-  {
-    "id": "b1.6.2",
-    "normalized": "1.0.0-beta.6.2",
-    "releaseTime": "2011-05-26T00:00:00Z"
-  },
-  {
-    "id": "b1.6.4",
-    "normalized": "1.0.0-beta.6.4",
-    "releaseTime": "2011-05-26T00:00:00Z"
   },
   {
     "id": "b1.6.5",
@@ -1680,6 +1835,21 @@
     "releaseTime": "2011-08-01T00:00:00Z"
   },
   {
+    "id": "b1.8-pre1-091358",
+    "normalized": "1.0.0-beta.8.0.1+091358",
+    "releaseTime": "2011-09-09T00:00:00Z"
+  },
+  {
+    "id": "b1.8-pre2-131225",
+    "normalized": "1.0.0-beta.8.0.2+131225",
+    "releaseTime": "2011-09-13T00:00:00Z"
+  },
+  {
+    "id": "b1.8-pre2-131240",
+    "normalized": "1.0.0-beta.8.0.2+131240",
+    "releaseTime": "2011-09-13T00:00:00Z"
+  },
+  {
     "id": "b1.8",
     "normalized": "1.0.0-beta.8.0.r",
     "releaseTime": "2011-09-14T22:00:00Z"
@@ -1688,6 +1858,106 @@
     "id": "b1.8.1",
     "normalized": "1.0.0-beta.8.1",
     "releaseTime": "2011-09-18T22:00:00Z"
+  },
+  {
+    "id": "b1.9-pre1",
+    "normalized": "1.0.0-beta.9.0.1",
+    "releaseTime": "2011-09-22T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre2",
+    "normalized": "1.0.0-beta.9.0.2",
+    "releaseTime": "2011-09-29T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3",
+    "normalized": "1.0.0-beta.9.0.3",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3-1350",
+    "normalized": "1.0.0-beta.9.0.3+1350",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3-1358",
+    "normalized": "1.0.0-beta.9.0.3+1358",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3-1402",
+    "normalized": "1.0.0-beta.9.0.3+1402",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1415",
+    "normalized": "1.0.0-beta.9.0.4+1415",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1425",
+    "normalized": "1.0.0-beta.9.0.4+1425",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1434",
+    "normalized": "1.0.0-beta.9.0.4+1434",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1435",
+    "normalized": "1.0.0-beta.9.0.4+1435",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1441",
+    "normalized": "1.0.0-beta.9.0.4+1441",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-14xx",
+    "normalized": "1.0.0-beta.9.0.r-",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre5",
+    "normalized": "1.0.0-beta.9.0.5",
+    "releaseTime": "2011-10-27T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre6",
+    "normalized": "1.0.0-beta.9.0.6",
+    "releaseTime": "2011-11-11T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-16xx-1",
+    "normalized": "1.0.0-",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-16xx-2",
+    "normalized": "1.0.0-",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc1",
+    "normalized": "1.0.0-rc.1",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-1633",
+    "normalized": "1.0.0-rc.2+1633",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-1649",
+    "normalized": "1.0.0-rc.2+1649",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-1656",
+    "normalized": "1.0.0-rc.2+1656",
+    "releaseTime": "2011-11-13T00:00:00Z"
   },
   {
     "id": "1.0",
@@ -1700,9 +1970,94 @@
     "releaseTime": "2011-11-18T00:00:00Z"
   },
   {
+    "id": "1.0.1",
+    "normalized": "1.0.1",
+    "releaseTime": "2011-11-24T00:00:00Z"
+  },
+  {
+    "id": "11w47a",
+    "normalized": "1.1-alpha.11.47.a",
+    "releaseTime": "2011-11-24T00:00:00Z"
+  },
+  {
+    "id": "11w48a",
+    "normalized": "1.1-alpha.11.48.a",
+    "releaseTime": "2011-12-01T00:00:00Z"
+  },
+  {
+    "id": "11w49a",
+    "normalized": "1.1-alpha.11.49.a",
+    "releaseTime": "2011-12-08T00:00:00Z"
+  },
+  {
+    "id": "11w50a",
+    "normalized": "1.1-alpha.11.50.a",
+    "releaseTime": "2011-12-15T00:00:00Z"
+  },
+  {
+    "id": "12w01a",
+    "normalized": "1.1-alpha.12.1.a",
+    "releaseTime": "2012-01-05T00:00:00Z"
+  },
+  {
     "id": "1.1",
     "normalized": "1.1",
     "releaseTime": "2012-01-11T22:00:00Z"
+  },
+  {
+    "id": "12w03a",
+    "normalized": "1.2-alpha.12.3.a",
+    "releaseTime": "2012-01-19T00:00:00Z"
+  },
+  {
+    "id": "12w04a",
+    "normalized": "1.2-alpha.12.4.a",
+    "releaseTime": "2012-01-26T00:00:00Z"
+  },
+  {
+    "id": "12w05a-1354",
+    "normalized": "1.2-alpha.12.5.a+1354",
+    "releaseTime": "2012-02-02T00:00:00Z"
+  },
+  {
+    "id": "12w05a-13xx",
+    "normalized": "12.w.5.a-13.xx",
+    "releaseTime": "2012-02-02T00:00:00Z"
+  },
+  {
+    "id": "12w05a-1442",
+    "normalized": "1.2-alpha.12.5.a+1442",
+    "releaseTime": "2012-02-02T00:00:00Z"
+  },
+  {
+    "id": "12w05b",
+    "normalized": "1.2-alpha.12.5.b",
+    "releaseTime": "2012-02-03T00:00:00Z"
+  },
+  {
+    "id": "12w06a",
+    "normalized": "1.2-alpha.12.6.a",
+    "releaseTime": "2012-02-09T00:00:00Z"
+  },
+  {
+    "id": "12w07a",
+    "normalized": "1.2-alpha.12.7.a",
+    "releaseTime": "2012-02-15T00:00:00Z"
+  },
+  {
+    "id": "12w07b",
+    "normalized": "1.2-alpha.12.7.b",
+    "releaseTime": "2012-02-15T00:00:00Z"
+  },
+  {
+    "id": "12w08a",
+    "normalized": "1.2-alpha.12.8.a",
+    "releaseTime": "2012-02-23T00:00:00Z"
+  },
+  {
+    "id": "1.2-pre",
+    "normalized": "1.2",
+    "releaseTime": "2012-02-29T00:00:00Z"
   },
   {
     "id": "1.2.1",
@@ -1713,11 +2068,6 @@
     "id": "1.2.2",
     "normalized": "1.2.2",
     "releaseTime": "2012-02-29T22:00:01Z"
-  },
-  {
-    "id": "1.2.1",
-    "normalized": "1.2.1",
-    "releaseTime": "2012-03-01T00:00:00Z"
   },
   {
     "id": "1.2.3",
@@ -1735,9 +2085,149 @@
     "releaseTime": "2012-03-29T22:00:00Z"
   },
   {
+    "id": "1.2.5-pre",
+    "normalized": "1.2.5-rc",
+    "releaseTime": "2012-03-30T00:00:00Z"
+  },
+  {
+    "id": "12w15a",
+    "normalized": "1.3-alpha.12.15.a",
+    "releaseTime": "2012-04-12T00:00:00Z"
+  },
+  {
+    "id": "12w16a",
+    "normalized": "1.3-alpha.12.16.a",
+    "releaseTime": "2012-04-19T00:00:00Z"
+  },
+  {
+    "id": "12w17a-04261424",
+    "normalized": "1.3-alpha.12.17.a+04261424",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w17a-0426xxxx",
+    "normalized": "12.w.17.a-426.xxxx",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w17a-1424",
+    "normalized": "1.3-alpha.12.17.a+1424",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w17a-14xx",
+    "normalized": "12.w.17.a-14.xx",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w18a",
+    "normalized": "1.3-alpha.12.18.a",
+    "releaseTime": "2012-05-03T00:00:00Z"
+  },
+  {
+    "id": "12w19a",
+    "normalized": "1.3-alpha.12.19.a",
+    "releaseTime": "2012-05-10T00:00:00Z"
+  },
+  {
+    "id": "12w21a",
+    "normalized": "1.3-alpha.12.21.a",
+    "releaseTime": "2012-05-24T00:00:00Z"
+  },
+  {
+    "id": "12w21b",
+    "normalized": "1.3-alpha.12.21.b",
+    "releaseTime": "2012-05-25T00:00:00Z"
+  },
+  {
+    "id": "12w22a",
+    "normalized": "1.3-alpha.12.22.a",
+    "releaseTime": "2012-05-31T00:00:00Z"
+  },
+  {
+    "id": "12w22a-1",
+    "normalized": "1.3-alpha.12.22.a+1",
+    "releaseTime": "2012-05-31T00:00:00Z"
+  },
+  {
+    "id": "12w23a",
+    "normalized": "1.3-alpha.12.23.a",
+    "releaseTime": "2012-06-07T00:00:00Z"
+  },
+  {
+    "id": "12w23b",
+    "normalized": "1.3-alpha.12.23.b",
+    "releaseTime": "2012-06-07T00:00:00Z"
+  },
+  {
+    "id": "12w23b-1",
+    "normalized": "1.3-alpha.12.23.b+1",
+    "releaseTime": "2012-06-07T00:00:00Z"
+  },
+  {
+    "id": "12w24a",
+    "normalized": "1.3-alpha.12.24.a",
+    "releaseTime": "2012-06-14T00:00:00Z"
+  },
+  {
+    "id": "12w25a",
+    "normalized": "1.3-alpha.12.25.a",
+    "releaseTime": "2012-06-21T00:00:00Z"
+  },
+  {
+    "id": "12w26a",
+    "normalized": "1.3-alpha.12.26.a",
+    "releaseTime": "2012-06-27T00:00:00Z"
+  },
+  {
+    "id": "12w27a",
+    "normalized": "1.3-alpha.12.27.a",
+    "releaseTime": "2012-07-05T00:00:00Z"
+  },
+  {
+    "id": "12w30a",
+    "normalized": "1.3-alpha.12.30.a",
+    "releaseTime": "2012-07-23T00:00:00Z"
+  },
+  {
+    "id": "12w30b",
+    "normalized": "1.3-alpha.12.30.b",
+    "releaseTime": "2012-07-23T00:00:00Z"
+  },
+  {
+    "id": "12w30c",
+    "normalized": "1.3-alpha.12.30.c",
+    "releaseTime": "2012-07-24T00:00:00Z"
+  },
+  {
+    "id": "12w30d",
+    "normalized": "1.3-alpha.12.30.d",
+    "releaseTime": "2012-07-25T00:00:00Z"
+  },
+  {
+    "id": "12w30e",
+    "normalized": "1.3-alpha.12.30.e",
+    "releaseTime": "2012-07-25T00:00:00Z"
+  },
+  {
     "id": "1.3",
     "normalized": "1.3",
     "releaseTime": "2012-07-25T22:00:00Z"
+  },
+  {
+    "id": "1.3-pre-1144",
+    "normalized": "1.3+1144",
+    "releaseTime": "2012-07-26T00:00:00Z"
+  },
+  {
+    "id": "1.3-pre-1249",
+    "normalized": "1.3+1249",
+    "releaseTime": "2012-07-26T00:00:00Z"
+  },
+  {
+    "id": "1.3.1-pre",
+    "normalized": "1.3.1-rc",
+    "releaseTime": "2012-07-30T00:00:00Z"
   },
   {
     "id": "1.3.1",
@@ -1745,24 +2235,159 @@
     "releaseTime": "2012-07-31T22:00:00Z"
   },
   {
+    "id": "12w32a-1450",
+    "normalized": "1.4-alpha.12.32.a+1450",
+    "releaseTime": "2012-08-09T00:00:00Z"
+  },
+  {
+    "id": "12w32a-1532",
+    "normalized": "1.4-alpha.12.32.a+1532",
+    "releaseTime": "2012-08-09T00:00:00Z"
+  },
+  {
+    "id": "1.3.2-pre",
+    "normalized": "1.3.2-rc",
+    "releaseTime": "2012-08-14T00:00:00Z"
+  },
+  {
     "id": "1.3.2",
     "normalized": "1.3.2",
     "releaseTime": "2012-08-15T22:00:00Z"
   },
   {
-    "id": "1.4.2",
-    "normalized": "1.4.2",
-    "releaseTime": "2012-10-25T00:00:00Z"
+    "id": "12w34a",
+    "normalized": "1.4-alpha.12.34.a",
+    "releaseTime": "2012-08-23T00:00:00Z"
   },
   {
-    "id": "1.4.4",
-    "normalized": "1.4.4",
-    "releaseTime": "2012-11-14T00:00:00Z"
+    "id": "12w34b",
+    "normalized": "1.4-alpha.12.34.b",
+    "releaseTime": "2012-08-24T00:00:00Z"
+  },
+  {
+    "id": "12w36a",
+    "normalized": "1.4-alpha.12.36.a",
+    "releaseTime": "2012-09-06T00:00:00Z"
+  },
+  {
+    "id": "12w37a",
+    "normalized": "1.4-alpha.12.37.a",
+    "releaseTime": "2012-09-13T00:00:00Z"
+  },
+  {
+    "id": "12w38a",
+    "normalized": "1.4-alpha.12.38.a",
+    "releaseTime": "2012-09-20T00:00:00Z"
+  },
+  {
+    "id": "12w38b",
+    "normalized": "1.4-alpha.12.38.b",
+    "releaseTime": "2012-09-21T00:00:00Z"
+  },
+  {
+    "id": "12w39a-1231",
+    "normalized": "1.4-alpha.12.39.a+1231",
+    "releaseTime": "2012-09-27T00:00:00Z"
+  },
+  {
+    "id": "12w39a-1243",
+    "normalized": "1.4-alpha.12.39.a+1243",
+    "releaseTime": "2012-09-27T00:00:00Z"
+  },
+  {
+    "id": "12w39a-12xx",
+    "normalized": "12.w.39.a-12.xx",
+    "releaseTime": "2012-09-27T00:00:00Z"
+  },
+  {
+    "id": "12w39b",
+    "normalized": "1.4-alpha.12.39.b",
+    "releaseTime": "2012-09-28T00:00:00Z"
+  },
+  {
+    "id": "12w40a",
+    "normalized": "1.4-alpha.12.40.a",
+    "releaseTime": "2012-10-04T00:00:00Z"
+  },
+  {
+    "id": "12w40b",
+    "normalized": "1.4-alpha.12.40.b",
+    "releaseTime": "2012-10-05T00:00:00Z"
+  },
+  {
+    "id": "12w41a",
+    "normalized": "1.4-alpha.12.41.a",
+    "releaseTime": "2012-10-11T00:00:00Z"
+  },
+  {
+    "id": "12w41b",
+    "normalized": "1.4-alpha.12.41.b",
+    "releaseTime": "2012-10-12T00:00:00Z"
+  },
+  {
+    "id": "12w42a",
+    "normalized": "1.4-alpha.12.42.a",
+    "releaseTime": "2012-10-17T00:00:00Z"
+  },
+  {
+    "id": "12w42b",
+    "normalized": "1.4-alpha.12.42.b",
+    "releaseTime": "2012-10-18T00:00:00Z"
+  },
+  {
+    "id": "1.4-pre",
+    "normalized": "1.4",
+    "releaseTime": "2012-10-19T00:00:00Z"
+  },
+  {
+    "id": "1.4.1-pre-xxxx",
+    "normalized": "1.4.1-",
+    "releaseTime": "2012-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.4.1-pre-1247",
+    "normalized": "1.4.1+1247",
+    "releaseTime": "2012-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.4.1-pre-1338",
+    "normalized": "1.4.1+1338",
+    "releaseTime": "2012-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.4.2-pre",
+    "normalized": "1.4.2-rc",
+    "releaseTime": "2012-10-24T00:00:00Z"
+  },
+  {
+    "id": "1.4.3-pre",
+    "normalized": "1.4.3",
+    "releaseTime": "2012-11-01T00:00:00Z"
+  },
+  {
+    "id": "1.4.4-pre",
+    "normalized": "1.4.4-rc",
+    "releaseTime": "2012-11-08T00:00:00Z"
+  },
+  {
+    "id": "1.4.5-pre-160924",
+    "normalized": "1.4.5-rc+160924",
+    "releaseTime": "2012-11-16T00:00:00Z"
   },
   {
     "id": "1.4",
     "normalized": "1.4",
     "releaseTime": "2012-11-18T22:00:00Z"
+  },
+  {
+    "id": "1.4.5-pre-172127",
+    "normalized": "1.4.5-rc+172127",
+    "releaseTime": "2012-11-19T00:00:00Z"
+  },
+  {
+    "id": "1.4.5-pre-172128",
+    "normalized": "1.4.5-rc+172128",
+    "releaseTime": "2012-11-19T00:00:00Z"
   },
   {
     "id": "1.4.1",
@@ -1780,9 +2405,44 @@
     "releaseTime": "2012-11-30T22:00:00Z"
   },
   {
+    "id": "12w49a",
+    "normalized": "1.4.6-alpha.12.49.a",
+    "releaseTime": "2012-12-07T00:00:00Z"
+  },
+  {
+    "id": "12w50a",
+    "normalized": "1.4.6-alpha.12.50.a",
+    "releaseTime": "2012-12-13T00:00:00Z"
+  },
+  {
     "id": "1.4.4",
     "normalized": "1.4.4",
     "releaseTime": "2012-12-13T22:00:00Z"
+  },
+  {
+    "id": "12w50b",
+    "normalized": "1.4.6-alpha.12.50.b",
+    "releaseTime": "2012-12-14T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-14xx",
+    "normalized": "1.4.6-",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-1428",
+    "normalized": "1.4.6-rc+1428",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-1521",
+    "normalized": "1.4.6-rc+1521",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-1605",
+    "normalized": "1.4.6-rc+1605",
+    "releaseTime": "2012-12-17T00:00:00Z"
   },
   {
     "id": "1.4.5",
@@ -1800,9 +2460,179 @@
     "releaseTime": "2012-12-27T22:00:00Z"
   },
   {
+    "id": "1.4.7-pre",
+    "normalized": "1.4.7-rc",
+    "releaseTime": "2012-12-28T00:00:00Z"
+  },
+  {
+    "id": "13w01a",
+    "normalized": "1.5-alpha.13.1.a",
+    "releaseTime": "2013-01-03T00:00:00Z"
+  },
+  {
+    "id": "13w01b",
+    "normalized": "1.5-alpha.13.1.b",
+    "releaseTime": "2013-01-04T00:00:00Z"
+  },
+  {
+    "id": "13w02a",
+    "normalized": "1.5-alpha.13.2.a",
+    "releaseTime": "2013-01-10T00:00:00Z"
+  },
+  {
+    "id": "13w02a-whitetexturefix",
+    "normalized": "1.5-alpha.13.2.a.whitetexturefix",
+    "releaseTime": "2013-01-11T00:00:00Z"
+  },
+  {
+    "id": "13w02b",
+    "normalized": "1.5-alpha.13.2.b",
+    "releaseTime": "2013-01-11T00:00:00Z"
+  },
+  {
+    "id": "13w03a-1538",
+    "normalized": "1.5-alpha.13.3.a+1538",
+    "releaseTime": "2013-01-17T00:00:00Z"
+  },
+  {
+    "id": "13w03a-1613",
+    "normalized": "1.5-alpha.13.3.a+1613",
+    "releaseTime": "2013-01-17T00:00:00Z"
+  },
+  {
+    "id": "13w03a-1647",
+    "normalized": "1.5-alpha.13.3.a+1647",
+    "releaseTime": "2013-01-17T00:00:00Z"
+  },
+  {
+    "id": "13w04a",
+    "normalized": "1.5-alpha.13.4.a",
+    "releaseTime": "2013-01-24T00:00:00Z"
+  },
+  {
+    "id": "13w04a-whitelinefix",
+    "normalized": "1.5-alpha.13.4.a.whitelinefix",
+    "releaseTime": "2013-01-28T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1503",
+    "normalized": "1.5-alpha.13.5.a+1503",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1504",
+    "normalized": "1.5-alpha.13.5.a+1504",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1537",
+    "normalized": "1.5-alpha.13.5.a+1537",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1538",
+    "normalized": "1.5-alpha.13.5.a+1538",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05b",
+    "normalized": "1.5-alpha.13.5.b",
+    "releaseTime": "2013-02-01T00:00:00Z"
+  },
+  {
+    "id": "13w06a-1558",
+    "normalized": "1.5-alpha.13.6.a+1558",
+    "releaseTime": "2013-02-07T00:00:00Z"
+  },
+  {
+    "id": "13w06a-1559",
+    "normalized": "1.5-alpha.13.6.a+1559",
+    "releaseTime": "2013-02-07T00:00:00Z"
+  },
+  {
+    "id": "13w06a-1636",
+    "normalized": "1.5-alpha.13.6.a+1636",
+    "releaseTime": "2013-02-07T00:00:00Z"
+  },
+  {
+    "id": "13w07a",
+    "normalized": "1.5-alpha.13.7.a",
+    "releaseTime": "2013-02-14T00:00:00Z"
+  },
+  {
+    "id": "13w09a",
+    "normalized": "1.5-alpha.13.9.a",
+    "releaseTime": "2013-02-26T00:00:00Z"
+  },
+  {
+    "id": "13w09b",
+    "normalized": "1.5-alpha.13.9.b",
+    "releaseTime": "2013-02-27T00:00:00Z"
+  },
+  {
+    "id": "13w09c",
+    "normalized": "1.5-alpha.13.9.c",
+    "releaseTime": "2013-03-01T00:00:00Z"
+  },
+  {
+    "id": "13w10a",
+    "normalized": "1.5-alpha.13.10.a",
+    "releaseTime": "2013-03-04T00:00:00Z"
+  },
+  {
+    "id": "13w10b",
+    "normalized": "1.5-alpha.13.10.b",
+    "releaseTime": "2013-03-06T00:00:00Z"
+  },
+  {
     "id": "1.5",
     "normalized": "1.5",
     "releaseTime": "2013-03-06T22:00:00Z"
+  },
+  {
+    "id": "1.5-pre-071309",
+    "normalized": "1.5-rc+071309",
+    "releaseTime": "2013-03-07T00:00:00Z"
+  },
+  {
+    "id": "1.5-pre-121221",
+    "normalized": "1.5-rc+121221",
+    "releaseTime": "2013-03-12T00:00:00Z"
+  },
+  {
+    "id": "1.5-pre-whitelinefix",
+    "normalized": "1.5-rc.whitelinefix",
+    "releaseTime": "2013-03-12T00:00:00Z"
+  },
+  {
+    "id": "13w11a",
+    "normalized": "1.5.1-alpha.13.11.a",
+    "releaseTime": "2013-03-14T00:00:00Z"
+  },
+  {
+    "id": "1.5.1-pre",
+    "normalized": "1.5.1-rc",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "1.5.1-pre-191519",
+    "normalized": "1.5.1-rc+191519",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "13w12~-105x",
+    "normalized": "13.w.12.105.x",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "13w12~-1439",
+    "normalized": "1.5.1-alpha.13.12.a+1439",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "1.5.1-pre-200838",
+    "normalized": "1.5.1-rc+200838",
+    "releaseTime": "2013-03-20T00:00:00Z"
   },
   {
     "id": "1.5.1",
@@ -1810,14 +2640,64 @@
     "releaseTime": "2013-03-20T10:00:00Z"
   },
   {
+    "id": "13w16a-181759",
+    "normalized": "1.6-alpha.13.16.a+181759",
+    "releaseTime": "2013-04-18T00:00:00Z"
+  },
+  {
+    "id": "13w16a-181800",
+    "normalized": "1.6-alpha.13.16.a+181800",
+    "releaseTime": "2013-04-18T00:00:00Z"
+  },
+  {
+    "id": "13w16a-181812",
+    "normalized": "1.6-alpha.13.16.a+181812",
+    "releaseTime": "2013-04-18T00:00:00Z"
+  },
+  {
+    "id": "13w16a-191517",
+    "normalized": "1.6-alpha.13.16.a+191517",
+    "releaseTime": "2013-04-19T00:00:00Z"
+  },
+  {
+    "id": "13w16a-192037",
+    "normalized": "1.6-alpha.13.16.a+192037",
+    "releaseTime": "2013-04-19T00:00:00Z"
+  },
+  {
     "id": "13w16a",
     "normalized": "1.6-alpha.13.16.a",
     "releaseTime": "2013-04-21T12:49:30Z"
   },
   {
+    "id": "13w16b-2118",
+    "normalized": "1.6-alpha.13.16.b+2118",
+    "releaseTime": "2013-04-23T00:00:00Z"
+  },
+  {
+    "id": "13w16b-2151",
+    "normalized": "1.6-alpha.13.16.b+2151",
+    "releaseTime": "2013-04-23T00:00:00Z"
+  },
+  {
+    "id": "13w16b-2151 ",
+    "normalized": "13.w.16.b-2151",
+    "releaseTime": "2013-04-23T00:00:00Z"
+  },
+  {
     "id": "13w16b",
     "normalized": "1.6-alpha.13.16.b",
     "releaseTime": "2013-04-23T21:51:22Z"
+  },
+  {
+    "id": "1.5.2-pre-250703",
+    "normalized": "1.5.2-rc+250703",
+    "releaseTime": "2013-04-25T00:00:00Z"
+  },
+  {
+    "id": "1.5.2-pre-250903",
+    "normalized": "1.5.2-rc+250903",
+    "releaseTime": "2013-04-25T00:00:00Z"
   },
   {
     "id": "1.5.2",
@@ -1830,9 +2710,14 @@
     "releaseTime": "2013-04-25T15:50:00Z"
   },
   {
-    "id": "1.5.2",
-    "normalized": "1.5.2",
-    "releaseTime": "2013-05-02T00:00:00Z"
+    "id": "1.5.2-pre-260738",
+    "normalized": "1.5.2-rc+260738",
+    "releaseTime": "2013-04-26T00:00:00Z"
+  },
+  {
+    "id": "1.5.2-pre-260937",
+    "normalized": "1.5.2-rc+260937",
+    "releaseTime": "2013-04-26T00:00:00Z"
   },
   {
     "id": "13w18a",
@@ -1865,6 +2750,11 @@
     "releaseTime": "2013-05-27T08:50:42Z"
   },
   {
+    "id": "13w22a-1434",
+    "normalized": "1.6-alpha.13.22.a+1434",
+    "releaseTime": "2013-05-30T00:00:00Z"
+  },
+  {
     "id": "13w22a",
     "normalized": "1.6-alpha.13.22.a",
     "releaseTime": "2013-05-30T14:38:40Z"
@@ -1873,6 +2763,21 @@
     "id": "13w23a",
     "normalized": "1.6-alpha.13.23.a",
     "releaseTime": "2013-06-07T16:04:20Z"
+  },
+  {
+    "id": "13w23b-0033",
+    "normalized": "1.6-alpha.13.23.b+0033",
+    "releaseTime": "2013-06-08T00:00:00Z"
+  },
+  {
+    "id": "13w23b-00xx",
+    "normalized": "13.w.23.b-0.xx",
+    "releaseTime": "2013-06-08T00:00:00Z"
+  },
+  {
+    "id": "13w23b-0101",
+    "normalized": "1.6-alpha.13.23.b+0101",
+    "releaseTime": "2013-06-08T00:00:00Z"
   },
   {
     "id": "13w23b",
@@ -1910,14 +2815,59 @@
     "releaseTime": "2013-06-24T16:06:06Z"
   },
   {
+    "id": "1.6-pre-1304",
+    "normalized": "1.6+1304",
+    "releaseTime": "2013-06-25T00:00:00Z"
+  },
+  {
+    "id": "1.6-pre-1517",
+    "normalized": "1.6+1517",
+    "releaseTime": "2013-06-25T00:00:00Z"
+  },
+  {
     "id": "1.6",
     "normalized": "1.6",
     "releaseTime": "2013-06-25T13:08:56Z"
   },
   {
+    "id": "1.6.1-pre",
+    "normalized": "1.6.1-rc",
+    "releaseTime": "2013-06-28T00:00:00Z"
+  },
+  {
     "id": "1.6.1",
     "normalized": "1.6.1",
     "releaseTime": "2013-06-28T14:48:41Z"
+  },
+  {
+    "id": "1.6.2-pre-131x",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-135x",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-13xx-1",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-13xx-2",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-1426",
+    "normalized": "1.6.2-rc+1426",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-1427",
+    "normalized": "1.6.2-rc+1427",
+    "releaseTime": "2013-07-05T00:00:00Z"
   },
   {
     "id": "1.6.2",
@@ -1995,14 +2945,59 @@
     "releaseTime": "2013-08-06T00:00:00Z"
   },
   {
+    "id": "13w36a-1234",
+    "normalized": "1.7-alpha.13.36.a+1234",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1235",
+    "normalized": "1.7-alpha.13.36.a+1235",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1330",
+    "normalized": "1.7-alpha.13.36.a+1330",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1428",
+    "normalized": "1.7-alpha.13.36.a+1428",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1446",
+    "normalized": "1.7-alpha.13.36.a+1446",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
     "id": "13w36a",
     "normalized": "1.7-alpha.13.36.a",
     "releaseTime": "2013-09-05T13:05:40Z"
   },
   {
+    "id": "13w36b-1233",
+    "normalized": "1.7-alpha.13.36.b+1233",
+    "releaseTime": "2013-09-06T00:00:00Z"
+  },
+  {
+    "id": "13w36b-1256",
+    "normalized": "1.7-alpha.13.36.b+1256",
+    "releaseTime": "2013-09-06T00:00:00Z"
+  },
+  {
+    "id": "13w36b-1307",
+    "normalized": "1.7-alpha.13.36.b+1307",
+    "releaseTime": "2013-09-06T00:00:00Z"
+  },
+  {
     "id": "13w36b",
     "normalized": "1.7-alpha.13.36.b",
     "releaseTime": "2013-09-06T12:31:58Z"
+  },
+  {
+    "id": "1.6.3-pre-131100",
+    "normalized": "1.6.3+131100",
+    "releaseTime": "2013-09-12T00:00:00Z"
   },
   {
     "id": "13w37a",
@@ -2020,6 +3015,11 @@
     "releaseTime": "2013-09-13T10:54:41Z"
   },
   {
+    "id": "1.6.3-pre-171231",
+    "normalized": "1.6.3+171231",
+    "releaseTime": "2013-09-17T00:00:00Z"
+  },
+  {
     "id": "1.6.4",
     "normalized": "1.6.4",
     "releaseTime": "2013-09-19T15:52:37Z"
@@ -2030,6 +3030,16 @@
     "releaseTime": "2013-09-19T16:34:21Z"
   },
   {
+    "id": "13w38c-1511",
+    "normalized": "1.7-alpha.13.38.c+1511",
+    "releaseTime": "2013-09-20T00:00:00Z"
+  },
+  {
+    "id": "13w38c-1516",
+    "normalized": "1.7-alpha.13.38.c+1516",
+    "releaseTime": "2013-09-20T00:00:00Z"
+  },
+  {
     "id": "13w38b",
     "normalized": "1.7-alpha.13.38.b",
     "releaseTime": "2013-09-20T13:45:40Z"
@@ -2038,6 +3048,16 @@
     "id": "13w38c",
     "normalized": "1.7-alpha.13.38.c",
     "releaseTime": "2013-09-20T15:11:34Z"
+  },
+  {
+    "id": "13w39a-1511",
+    "normalized": "1.7-alpha.13.39.a+1511",
+    "releaseTime": "2013-09-26T00:00:00Z"
+  },
+  {
+    "id": "13w39a-1627",
+    "normalized": "1.7-alpha.13.39.a+1627",
+    "releaseTime": "2013-09-26T00:00:00Z"
   },
   {
     "id": "13w39a",
@@ -2053,6 +3073,16 @@
     "id": "13w41a",
     "normalized": "1.7-alpha.13.41.a",
     "releaseTime": "2013-10-10T14:21:43Z"
+  },
+  {
+    "id": "13w41b-1507",
+    "normalized": "1.7-alpha.13.41.b+1507",
+    "releaseTime": "2013-10-11T00:00:00Z"
+  },
+  {
+    "id": "13w41b-1523",
+    "normalized": "1.7-alpha.13.41.b+1523",
+    "releaseTime": "2013-10-11T00:00:00Z"
   },
   {
     "id": "13w41b",
@@ -2075,9 +3105,24 @@
     "releaseTime": "2013-10-21T16:34:47Z"
   },
   {
+    "id": "1.7-pre-1500",
+    "normalized": "1.7+1500",
+    "releaseTime": "2013-10-22T00:00:00Z"
+  },
+  {
+    "id": "1.7-pre-1602",
+    "normalized": "1.7+1602",
+    "releaseTime": "2013-10-22T00:00:00Z"
+  },
+  {
     "id": "1.7",
     "normalized": "1.7",
     "releaseTime": "2013-10-22T15:04:05Z"
+  },
+  {
+    "id": "1.7.1-pre",
+    "normalized": "1.7.1",
+    "releaseTime": "2013-10-23T00:00:00Z"
   },
   {
     "id": "1.7.1",
@@ -2130,9 +3175,19 @@
     "releaseTime": "2013-12-05T14:34:41Z"
   },
   {
+    "id": "1.7.3-pre",
+    "normalized": "1.7.3",
+    "releaseTime": "2013-12-06T00:00:00Z"
+  },
+  {
     "id": "1.7.3",
     "normalized": "1.7.3",
     "releaseTime": "2013-12-06T13:55:34Z"
+  },
+  {
+    "id": "1.7.4-pre",
+    "normalized": "1.7.4-rc",
+    "releaseTime": "2013-12-09T00:00:00Z"
   },
   {
     "id": "1.7.4",
@@ -2165,9 +3220,39 @@
     "releaseTime": "2014-01-16T16:36:19Z"
   },
   {
+    "id": "14w04a-1526",
+    "normalized": "1.8-alpha.14.4.a+1526",
+    "releaseTime": "2014-01-23T00:00:00Z"
+  },
+  {
+    "id": "14w04a-1740",
+    "normalized": "1.8-alpha.14.4.a+1740",
+    "releaseTime": "2014-01-23T00:00:00Z"
+  },
+  {
     "id": "14w04a",
     "normalized": "1.8-alpha.14.4.a",
     "releaseTime": "2014-01-23T15:26:13Z"
+  },
+  {
+    "id": "14w04b-1548",
+    "normalized": "1.8-alpha.14.4.b+1548",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b-1554",
+    "normalized": "1.8-alpha.14.4.b+1554",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b-1555",
+    "normalized": "1.8-alpha.14.4.b+1555",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b-15xx",
+    "normalized": "14.w.4.b-15.xx",
+    "releaseTime": "2014-01-24T00:00:00Z"
   },
   {
     "id": "14w04b",
@@ -2220,6 +3305,16 @@
     "releaseTime": "2014-03-06T16:25:39Z"
   },
   {
+    "id": "14w10c-1351",
+    "normalized": "1.8-alpha.14.10.c+1351",
+    "releaseTime": "2014-03-07T00:00:00Z"
+  },
+  {
+    "id": "14w10c-1518",
+    "normalized": "1.8-alpha.14.10.c+1518",
+    "releaseTime": "2014-03-07T00:00:00Z"
+  },
+  {
     "id": "14w10c",
     "normalized": "1.8-alpha.14.10.c",
     "releaseTime": "2014-03-07T13:49:55Z"
@@ -2233,6 +3328,16 @@
     "id": "1.7.6-pre2",
     "normalized": "1.7.6-rc.2",
     "releaseTime": "2014-03-08T11:00:01Z"
+  },
+  {
+    "id": "14w11b-1640",
+    "normalized": "1.8-alpha.14.11.b+1640",
+    "releaseTime": "2014-03-13T00:00:00Z"
+  },
+  {
+    "id": "14w11b-1650",
+    "normalized": "1.8-alpha.14.11.b+1650",
+    "releaseTime": "2014-03-13T00:00:00Z"
   },
   {
     "id": "14w11a",
@@ -2340,6 +3445,16 @@
     "releaseTime": "2014-05-22T15:17:55Z"
   },
   {
+    "id": "1.7.10-pre2-1000",
+    "normalized": "1.7.10-rc.2+1000",
+    "releaseTime": "2014-06-04T00:00:00Z"
+  },
+  {
+    "id": "1.7.10-pre2-1045",
+    "normalized": "1.7.10-rc.2+1045",
+    "releaseTime": "2014-06-04T00:00:00Z"
+  },
+  {
     "id": "14w25a",
     "normalized": "1.8-alpha.14.25.a",
     "releaseTime": "2014-06-18T15:52:28Z"
@@ -2360,14 +3475,19 @@
     "releaseTime": "2014-06-25T15:08:39Z"
   },
   {
-    "id": "1.7.10",
-    "normalized": "1.7.10",
-    "releaseTime": "2014-06-26T00:00:00Z"
-  },
-  {
     "id": "14w26c",
     "normalized": "1.8-alpha.14.26.c",
     "releaseTime": "2014-06-26T15:05:03Z"
+  },
+  {
+    "id": "14w27b-1634",
+    "normalized": "1.8-alpha.14.27.b+1634",
+    "releaseTime": "2014-07-02T00:00:00Z"
+  },
+  {
+    "id": "14w27b-1646",
+    "normalized": "1.8-alpha.14.27.b+1646",
+    "releaseTime": "2014-07-02T00:00:00Z"
   },
   {
     "id": "14w27a",
@@ -2463,6 +3583,16 @@
     "id": "14w34b",
     "normalized": "1.8-alpha.14.34.b",
     "releaseTime": "2014-08-18T15:14:28Z"
+  },
+  {
+    "id": "14w34c-1531",
+    "normalized": "1.8-alpha.14.34.c+1531",
+    "releaseTime": "2014-08-19T00:00:00Z"
+  },
+  {
+    "id": "14w34c-1549",
+    "normalized": "1.8-alpha.14.34.c+1549",
+    "releaseTime": "2014-08-19T00:00:00Z"
   },
   {
     "id": "14w34c",
@@ -2593,6 +3723,11 @@
     "id": "1.8.7",
     "normalized": "1.8.7",
     "releaseTime": "2015-06-05T10:10:44Z"
+  },
+  {
+    "id": "1.8.8-pre",
+    "normalized": "1.8.8-rc",
+    "releaseTime": "2015-07-27T00:00:00Z"
   },
   {
     "id": "1.8.8",
@@ -2830,11 +3965,6 @@
     "releaseTime": "2015-12-03T15:23:22Z"
   },
   {
-    "id": "1.8.9",
-    "normalized": "1.8.9",
-    "releaseTime": "2015-12-09T00:00:00Z"
-  },
-  {
     "id": "15w50a",
     "normalized": "1.9-alpha.15.50.a",
     "releaseTime": "2015-12-09T15:35:57Z"
@@ -2928,11 +4058,6 @@
     "id": "1.9.1-pre3",
     "normalized": "1.9.1-rc.3",
     "releaseTime": "2016-03-11T09:20:36Z"
-  },
-  {
-    "id": "1.9.2",
-    "normalized": "1.9.2",
-    "releaseTime": "2016-03-30T00:00:00Z"
   },
   {
     "id": "1.9.1",
@@ -3110,6 +4235,11 @@
     "releaseTime": "2016-11-14T14:34:40Z"
   },
   {
+    "id": "1.11.1-pre",
+    "normalized": "1.11.1-rc",
+    "releaseTime": "2016-12-15T00:00:00Z"
+  },
+  {
     "id": "16w50a",
     "normalized": "1.11.1-alpha.16.50.a",
     "releaseTime": "2016-12-15T14:38:52Z"
@@ -3128,6 +4258,16 @@
     "id": "17w06a",
     "normalized": "1.12-alpha.17.6.a",
     "releaseTime": "2017-02-08T13:16:29Z"
+  },
+  {
+    "id": "17w13a-0805",
+    "normalized": "1.12-alpha.17.13.a+0805",
+    "releaseTime": "2017-03-30T00:00:00Z"
+  },
+  {
+    "id": "17w13a-0932",
+    "normalized": "1.12-alpha.17.13.a+0932",
+    "releaseTime": "2017-03-30T00:00:00Z"
   },
   {
     "id": "17w13a",
@@ -3170,6 +4310,16 @@
     "releaseTime": "2017-04-27T13:24:23Z"
   },
   {
+    "id": "17w18a-1331",
+    "normalized": "1.12-alpha.17.18.a+1331",
+    "releaseTime": "2017-05-03T00:00:00Z"
+  },
+  {
+    "id": "17w18a-1450",
+    "normalized": "1.12-alpha.17.18.a+1450",
+    "releaseTime": "2017-05-03T00:00:00Z"
+  },
+  {
     "id": "17w18a",
     "normalized": "1.12-alpha.17.18.a",
     "releaseTime": "2017-05-03T14:50:23Z"
@@ -3188,6 +4338,21 @@
     "id": "1.12-pre2",
     "normalized": "1.12-rc.2",
     "releaseTime": "2017-05-11T12:11:12Z"
+  },
+  {
+    "id": "1.12-pre3-1316",
+    "normalized": "1.12-rc.3+1316",
+    "releaseTime": "2017-05-17T00:00:00Z"
+  },
+  {
+    "id": "1.12-pre3-1317",
+    "normalized": "1.12-rc.3+1317",
+    "releaseTime": "2017-05-17T00:00:00Z"
+  },
+  {
+    "id": "1.12-pre3-1409",
+    "normalized": "1.12-rc.3+1409",
+    "releaseTime": "2017-05-17T00:00:00Z"
   },
   {
     "id": "1.12-pre3",
@@ -3715,6 +4880,21 @@
     "releaseTime": "2019-03-27T15:15:31Z"
   },
   {
+    "id": "19w13b-1316",
+    "normalized": "1.14-alpha.19.13.b+1316",
+    "releaseTime": "2019-03-29T00:00:00Z"
+  },
+  {
+    "id": "19w13b-1317",
+    "normalized": "1.14-alpha.19.13.b+1317",
+    "releaseTime": "2019-03-29T00:00:00Z"
+  },
+  {
+    "id": "19w13b-1653",
+    "normalized": "1.14-alpha.19.13.b+1653",
+    "releaseTime": "2019-03-29T00:00:00Z"
+  },
+  {
     "id": "19w13b",
     "normalized": "1.14-alpha.19.13.b",
     "releaseTime": "2019-03-29T16:53:22Z"
@@ -3735,9 +4915,19 @@
     "releaseTime": "2019-04-05T10:33:58Z"
   },
   {
+    "id": "1.14-pre1",
+    "normalized": "1.14-rc.1",
+    "releaseTime": "2019-04-10T00:00:00Z"
+  },
+  {
     "id": "1.14 Pre-Release 1",
     "normalized": "1.14-rc.1",
     "releaseTime": "2019-04-10T14:24:16Z"
+  },
+  {
+    "id": "1.14-pre2",
+    "normalized": "1.14-rc.2",
+    "releaseTime": "2019-04-12T00:00:00Z"
   },
   {
     "id": "1.14 Pre-Release 2",
@@ -3745,14 +4935,29 @@
     "releaseTime": "2019-04-12T11:38:53Z"
   },
   {
+    "id": "1.14-pre3",
+    "normalized": "1.14-rc.3",
+    "releaseTime": "2019-04-16T00:00:00Z"
+  },
+  {
     "id": "1.14 Pre-Release 3",
     "normalized": "1.14-rc.3",
     "releaseTime": "2019-04-16T13:57:10Z"
   },
   {
+    "id": "1.14-pre4",
+    "normalized": "1.14-rc.4",
+    "releaseTime": "2019-04-17T00:00:00Z"
+  },
+  {
     "id": "1.14 Pre-Release 4",
     "normalized": "1.14-rc.4",
     "releaseTime": "2019-04-17T15:31:12Z"
+  },
+  {
+    "id": "1.14-pre5",
+    "normalized": "1.14-rc.5",
+    "releaseTime": "2019-04-18T00:00:00Z"
   },
   {
     "id": "1.14 Pre-Release 5",
@@ -3765,9 +4970,19 @@
     "releaseTime": "2019-04-23T14:52:44Z"
   },
   {
+    "id": "1.14.1-pre1",
+    "normalized": "1.14.1-rc.1",
+    "releaseTime": "2019-05-07T00:00:00Z"
+  },
+  {
     "id": "1.14.1 Pre-Release 1",
     "normalized": "1.14.1-rc.1",
     "releaseTime": "2019-05-07T14:44:42Z"
+  },
+  {
+    "id": "1.14.1-pre2",
+    "normalized": "1.14.1-rc.2",
+    "releaseTime": "2019-05-09T00:00:00Z"
   },
   {
     "id": "1.14.1 Pre-Release 2",
@@ -3780,9 +4995,19 @@
     "releaseTime": "2019-05-13T11:10:12Z"
   },
   {
+    "id": "1.14.2-pre1",
+    "normalized": "1.14.2-rc.1",
+    "releaseTime": "2019-05-16T00:00:00Z"
+  },
+  {
     "id": "1.14.2 Pre-Release 1",
     "normalized": "1.14.2-rc.1",
     "releaseTime": "2019-05-16T15:40:25Z"
+  },
+  {
+    "id": "1.14.2-pre2",
+    "normalized": "1.14.2-rc.2",
+    "releaseTime": "2019-05-17T00:00:00Z"
   },
   {
     "id": "1.14.2 Pre-Release 2",
@@ -3790,13 +5015,28 @@
     "releaseTime": "2019-05-17T12:21:03Z"
   },
   {
+    "id": "1.14.2-pre3",
+    "normalized": "1.14.2-rc.3",
+    "releaseTime": "2019-05-22T00:00:00Z"
+  },
+  {
     "id": "1.14.2 Pre-Release 3",
     "normalized": "1.14.2-rc.3",
     "releaseTime": "2019-05-22T13:12:51Z"
   },
   {
-    "id": "1.14.2",
-    "normalized": "1.14.2",
+    "id": "1.14.2-pre4-241548",
+    "normalized": "1.14.2-rc.4+241548",
+    "releaseTime": "2019-05-24T00:00:00Z"
+  },
+  {
+    "id": "1.14.2-pre4-270720",
+    "normalized": "1.14.2-rc.4+270720",
+    "releaseTime": "2019-05-27T00:00:00Z"
+  },
+  {
+    "id": "1.14.2-pre4-270721",
+    "normalized": "1.14.2-rc.4+270721",
     "releaseTime": "2019-05-27T00:00:00Z"
   },
   {
@@ -4340,6 +5580,16 @@
     "releaseTime": "2020-12-16T16:27:57Z"
   },
   {
+    "id": "1.16.5-rc1-1005",
+    "normalized": "1.16.5-rc.1+1005",
+    "releaseTime": "2021-01-13T00:00:00Z"
+  },
+  {
+    "id": "1.16.5-rc1-1558",
+    "normalized": "1.16.5-rc.1+1558",
+    "releaseTime": "2021-01-13T00:00:00Z"
+  },
+  {
     "id": "1.16.5-rc1",
     "normalized": "1.16.5-rc.1",
     "releaseTime": "2021-01-13T15:58:55Z"
@@ -4505,9 +5755,19 @@
     "releaseTime": "2021-07-06T12:01:34Z"
   },
   {
+    "id": "1.18-exp1",
+    "normalized": "1.18-Experimental.1",
+    "releaseTime": "2021-07-13T00:00:00Z"
+  },
+  {
     "id": "1.18_experimental-snapshot-1",
     "normalized": "1.18-Experimental.1",
     "releaseTime": "2021-07-13T12:54:19Z"
+  },
+  {
+    "id": "1.18-exp2",
+    "normalized": "1.18-Experimental.2",
+    "releaseTime": "2021-07-20T00:00:00Z"
   },
   {
     "id": "1.18_experimental-snapshot-2",
@@ -4515,9 +5775,19 @@
     "releaseTime": "2021-07-20T13:35:08Z"
   },
   {
+    "id": "1.18-exp3",
+    "normalized": "1.18-Experimental.3",
+    "releaseTime": "2021-08-10T00:00:00Z"
+  },
+  {
     "id": "1.18_experimental-snapshot-3",
     "normalized": "1.18-Experimental.3",
     "releaseTime": "2021-08-10T12:42:45Z"
+  },
+  {
+    "id": "1.18-exp4",
+    "normalized": "1.18-Experimental.4",
+    "releaseTime": "2021-08-17T00:00:00Z"
   },
   {
     "id": "1.18_experimental-snapshot-4",
@@ -4525,14 +5795,29 @@
     "releaseTime": "2021-08-17T16:10:25Z"
   },
   {
+    "id": "1.18-exp5",
+    "normalized": "1.18-Experimental.5",
+    "releaseTime": "2021-08-25T00:00:00Z"
+  },
+  {
     "id": "1.18_experimental-snapshot-5",
     "normalized": "1.18-Experimental.5",
     "releaseTime": "2021-08-25T14:41:57Z"
   },
   {
+    "id": "1.18-exp6",
+    "normalized": "1.18-Experimental.6",
+    "releaseTime": "2021-09-01T00:00:00Z"
+  },
+  {
     "id": "1.18_experimental-snapshot-6",
     "normalized": "1.18-Experimental.6",
     "releaseTime": "2021-09-01T12:53:14Z"
+  },
+  {
+    "id": "1.18-exp7",
+    "normalized": "1.18-Experimental.7",
+    "releaseTime": "2021-09-08T00:00:00Z"
   },
   {
     "id": "1.18_experimental-snapshot-7",
@@ -4660,11 +5945,6 @@
     "releaseTime": "2021-12-08T12:29:36Z"
   },
   {
-    "id": "1.18.1",
-    "normalized": "1.18.1",
-    "releaseTime": "2021-12-10T00:00:00Z"
-  },
-  {
     "id": "1.18.1-rc3",
     "normalized": "1.18.1-rc.3",
     "releaseTime": "2021-12-10T03:36:38Z"
@@ -4693,6 +5973,11 @@
     "id": "22w07a",
     "normalized": "1.18.2-alpha.22.7.a",
     "releaseTime": "2022-02-16T16:13:58Z"
+  },
+  {
+    "id": "1.19-exp1",
+    "normalized": "1.19-Experimental.1",
+    "releaseTime": "2022-02-17T00:00:00Z"
   },
   {
     "id": "1.19_deep_dark_experimental_snapshot-1",

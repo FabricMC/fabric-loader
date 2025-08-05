@@ -43,7 +43,10 @@ import java.util.TreeSet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
@@ -171,44 +174,23 @@ public class VersionNormalizationAntiRegressionTest {
 	private Set<Set<String>> getRereleasedVersions() {
 		Set<Set<String>> vs = new HashSet<>();
 
-		vs.add(new HashSet<>(Arrays.asList("1.16", "1.16-231620", "1.16-221349")));
-		vs.add(new HashSet<>(Arrays.asList("1.7.7", "1.7.7-091529", "1.7.7-101331")));
-		vs.add(new HashSet<>(Arrays.asList("1.6.2", "1.6.2-080933", "1.6.2-091847")));
-		vs.add(new HashSet<>(Arrays.asList("1.0", "1.0.0")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.11a", "c0.0.11a-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.12a_03-192349", "c0.0.12a_03-200018")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.13a_03", "c0.0.13a_03-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.14a_04-1735", "c0.0.14a_04-1743")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.14a_05-1748", "c0.0.14a_05-1752")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.13a", "c0.0.13a-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.15a-05311904", "c0.0.15a-06031816", "c0.0.15a-06031828",
-				"c0.0.15a-06031900", "c0.0.15a-06031950", "c0.0.15a-06041651", "c0.0.15a-06041658", "c0.0.15a-06041703")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.16a_02-071841", "c0.0.16a_02-081026", "c0.0.16a_02-081036",
-				"c0.0.16a_02-081047", "c0.0.16a_02-081722", "c0.0.16a_02-081736", "c0.0.16a_02-081855")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.17a-1945", "c0.0.17a-2014")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.19a_06-0132", "c0.0.19a_06-0137")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.21a-1951", "c0.0.21a-2008")));
-		vs.add(new HashSet<>(Arrays.asList("c0.0.22a-2154", "c0.0.22a-2158")));
-		vs.add(new HashSet<>(Arrays.asList("c0.24_st_02-1734", "c0.24_st_02-1742")));
-		vs.add(new HashSet<>(Arrays.asList("c0.25_st-1613", "c0.25_st-1615", "c0.25_st-1626", "c0.25_st-1658")));
-		vs.add(new HashSet<>(Arrays.asList("c0.30-c-1821", "c0.30-c-1900", "c0.30-c-1900-renew")));
-		vs.add(new HashSet<>(Arrays.asList("c0.30-s-1849", "c0.30-s-1858")));
-		vs.add(new HashSet<>(Arrays.asList("a1.0.4", "a1.0.4-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("a1.0.5-2133", "a1.0.5-2149")));
-		vs.add(new HashSet<>(Arrays.asList("a1.0.13_01-1038", "a1.0.13_01-1444")));
-		vs.add(new HashSet<>(Arrays.asList("a1.0.14", "a1.0.14-1603", "a1.0.14-1659", "a1.0.14-1659-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("a1.1.0", "a1.1.0-101840", "a1.1.0-101847", "a1.1.0-101847-launcher", "a1.1.0-131933")));
-		vs.add(new HashSet<>(Arrays.asList("a1.2.0", "a1.2.0-2051", "a1.2.0-2057")));
-		vs.add(new HashSet<>(Arrays.asList("a1.2.0_02", "a1.2.0_02-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("a1.2.2-1613", "a1.2.2-1624", "a1.2.2-1938")));
-		vs.add(new HashSet<>(Arrays.asList("a1.2.3_01", "a1.2.3_01-0956", "a1.2.3_01-0958")));
-		vs.add(new HashSet<>(Arrays.asList("b1.0.2", "b1.0.2-0836")));
-		vs.add(new HashSet<>(Arrays.asList("b1.1-1245", "b1.1-1255")));
-		vs.add(new HashSet<>(Arrays.asList("b1.2_02", "b1.2_02-launcher")));
-		vs.add(new HashSet<>(Arrays.asList("b1.3-1647", "b1.3-1713", "b1.3-1733", "b1.3-1750")));
-		vs.add(new HashSet<>(Arrays.asList("b1.4", "b1.4-1507", "b1.4-1634")));
-		vs.add(new HashSet<>(Arrays.asList("23w13a_or_b_original", "23w13a_or_b")));
-		vs.add(new HashSet<>(Arrays.asList("24w14potato_original", "24w14potato")));
+		try (Reader reader = new InputStreamReader(VersionNormalizationAntiRegressionTest.class.getClassLoader()
+				.getResourceAsStream("duplicate_versions.json"))) {
+			JsonParser parser = new JsonParser();
+
+			for (JsonElement grpElem : parser.parse(reader).getAsJsonObject().getAsJsonArray("duplicates")) {
+				JsonArray grpArr = grpElem.getAsJsonArray();
+				Set<String> group = new HashSet<>();
+
+				for (JsonElement idElem : grpArr) {
+					group.add(idElem.getAsString());
+				}
+
+				vs.add(group);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to read in duplicate versions from json", e);
+		}
 
 		return vs;
 	}
@@ -313,7 +295,20 @@ public class VersionNormalizationAntiRegressionTest {
 	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=872531987&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E">Direct CSV download for "Java Clients (Full)" sheet, just columns B and E, ignoring headers</a>.
 	 */
 	private static List<MinecraftVersion> getOmniArchiveData() throws MalformedURLException {
-		URL url = new URL("https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=872531987&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E");
+		List<MinecraftVersion> versions = new ArrayList<>();
+		// Java Clients (Full)
+		versions.addAll(getVersionsFromOmniArchive("https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=872531987&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E"));
+		// Java Servers (Full)
+		versions.addAll(getVersionsFromOmniArchive("https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=2126693093&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E"));
+		// Java Clients (Pre)
+		versions.addAll(getVersionsFromOmniArchive("https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=804883379&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E"));
+		// Java Servers (Pre)
+		versions.addAll(getVersionsFromOmniArchive("https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=59329510&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E"));
+		return versions;
+	}
+
+	private static List<MinecraftVersion> getVersionsFromOmniArchive(String urlS) throws MalformedURLException {
+		URL url = new URL(urlS);
 
 		List<MinecraftVersion> versions = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(
@@ -321,6 +316,10 @@ public class VersionNormalizationAntiRegressionTest {
 			String line;
 
 			while ((line = reader.readLine()) != null) {
+				if (line.equals("\"")) {
+					continue;
+				}
+
 				List<String> fields = parseCsvLine(line);
 
 				if (fields.size() != 2) {
@@ -337,7 +336,7 @@ public class VersionNormalizationAntiRegressionTest {
 				// Clean data for parsing
 				date = date.replaceAll("([1-9])x", "$10").replaceAll("0x", "01");
 
-				if (id.isEmpty() || id.equals("ID") || date.equals("Released")) {
+				if (id.isEmpty() || date.isEmpty() || id.equals("ID") || date.equals("Released")) {
 					// OmniArchive for some reason duplicates the headers into the data
 					continue;
 				}
