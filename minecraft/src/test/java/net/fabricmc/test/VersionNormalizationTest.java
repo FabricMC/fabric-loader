@@ -56,9 +56,11 @@ public class VersionNormalizationTest {
 			new MinecraftVersion("c0.25_05_st", null, "0.25.5"),
 			new MinecraftVersion("0.28", null, "0.28"),
 			new MinecraftVersion("0.29_02", null, "0.29.2"),
-			new MinecraftVersion("0.30-c", null, "0.30-c"),
-			new MinecraftVersion("0.30-c-renew", null, "0.30-c.renew"),
+			new MinecraftVersion()
+				.entry("0.30-c", null, "0.30-c")
+				.entry("0.30-c-renew", null, "0.30-c+renew"),
 			new MinecraftVersion("0.30-s-1858", null, "0.30-s+1858"),
+			new MinecraftVersion("c0.30_01c", null, "0.30.1-c"),
 			// Indev (date+time vs date-only)
 			new MinecraftVersion("in-20091223-1459", null, "0.31.20091223-1459"),
 			new MinecraftVersion("Indev 0.31 20091231-2255", null, "0.31.20091231-2255"),
@@ -78,11 +80,13 @@ public class VersionNormalizationTest {
 			new MinecraftVersion("Alpha v1.0.16_01", null, "1.0.0-alpha.0.16.1"),
 			new MinecraftVersion("a0.1.0", null, "1.0.0-alpha.1.0"),
 			new MinecraftVersion("Alpha 0.1.1-1707", null, "1.0.0-alpha.1.1+1707"),
+			new MinecraftVersion("a1.2.2a", null, "1.0.0-alpha.2.2.a"),
 			new MinecraftVersion("Alpha v0.2.8", null, "1.0.0-alpha.2.8"),
 			// Beta (test builds, pre-releases, +timestamps)
 			new MinecraftVersion("b1.0", null, "1.0.0-beta.0"),
 			new MinecraftVersion("b1.0_01", null, "1.0.0-beta.0.1"),
 			new MinecraftVersion("b1.3-1647", null, "1.0.0-beta.3+1647"),
+			new MinecraftVersion("b1.3b", null, "1.0.0-beta.3.0.b"),
 			new MinecraftVersion("b1.6-pre-trailer", "b1.6", "1.0.0-beta.6.0.0"),
 			new MinecraftVersion("b1.6-tb3", "b1.6", "1.0.0-beta.6.0.3"),
 			new MinecraftVersion("b1.6", null, "1.0.0-beta.6.0.r"),
@@ -162,16 +166,27 @@ public class VersionNormalizationTest {
 				.entry("3D Shareware v1.34", null, "1.14-alpha.19.13.shareware")
 				.entry("af-2019", null, "1.14-alpha.19.13.shareware"),
 			// 1.14.3 combat test
-			new MinecraftVersion("1.14.3 - Combat Test", null, "1.14.3-rc.4.combat.1"),
+			new MinecraftVersion()
+				.entry("1.14_combat-212796", null, "1.14.3-rc.4.combat.1")
+				.entry("1.14.3 - Combat Test", null, "1.14.3-rc.4.combat.1"),
 			// 1.14.4 combat test
-			new MinecraftVersion("Combat Test 2", null, "1.14.5-combat.2"),
-			new MinecraftVersion("Combat Test 3", null, "1.14.5-combat.3"),
+			new MinecraftVersion()
+				.entry("1.14_combat-0", null, "1.14.5-combat.2")
+				.entry("Combat Test 2", null, "1.14.5-combat.2"),
+			new MinecraftVersion()
+				.entry("1.14_combat-3", null, "1.14.5-combat.3")
+				.entry("Combat Test 3", null, "1.14.5-combat.3"),
 			// 1.15 combat test
-			new MinecraftVersion("Combat Test 4", null, "1.15-rc.3.combat.4"),
+			new MinecraftVersion()
+				.entry("1.15_combat-1", null, "1.15-rc.3.combat.4")
+				.entry("Combat Test 4", null, "1.15-rc.3.combat.4"),
 			// 1.15.2 combat test
-			new MinecraftVersion("Combat Test 5", null, "1.15.2-rc.2.combat.5"),
+			new MinecraftVersion()
+				.entry("1.15_combat-6", null, "1.15.2-rc.2.combat.5")
+				.entry("Combat Test 5", null, "1.15.2-rc.2.combat.5"),
 			// 2020 april fools
 			new MinecraftVersion()
+				.entry("20w14infinite", null, "1.16-alpha.20.13.inf")
 				.entry("20w14~", null, "1.16-alpha.20.13.inf")
 				.entry("af-2020", null, "1.16-alpha.20.13.inf"),
 			// 1.16 (special release candidate)
@@ -179,11 +194,15 @@ public class VersionNormalizationTest {
 			// from this point on pre-releases are marked 'beta' instead of 'rc'
 			new MinecraftVersion("1.16.2-pre1", "1.16.2", "1.16.2-beta.1"),
 			// 1.16.2 combat test
-			new MinecraftVersion("Combat Test 6", null, "1.16.2-beta.3.combat.6"),
+			new MinecraftVersion()
+				.entry("1.16_combat-0", null, "1.16.2-beta.3.combat.6")
+				.entry("Combat Test 6", null, "1.16.2-beta.3.combat.6"),
 			// release candidates since 1.16 are marked 'rc'
 			new MinecraftVersion("1.16.2-rc1", "1.16.2", "1.16.2-rc.1"),
 			// 1.16.3 combat tests
-			new MinecraftVersion("Combat Test 7", null, "1.16.3-combat.7"),
+			new MinecraftVersion()
+				.entry("1.16_combat-1", null, "1.16.3-combat.7")
+				.entry("Combat Test 7", null, "1.16.3-combat.7"),
 			new MinecraftVersion("1.16_combat-2", null, "1.16.3-combat.7.b"),
 			new MinecraftVersion("1.16_combat-3", null, "1.16.3-combat.7.c"),
 			new MinecraftVersion("1.16_combat-4", null, "1.16.3-combat.8"),
@@ -191,13 +210,19 @@ public class VersionNormalizationTest {
 			new MinecraftVersion("1.16_combat-6", null, "1.16.3-combat.8.c"),
 			// 1.18 (experimental snapshots)
 			new MinecraftVersion("1.18 Experimental Snapshot 1", "1.18", "1.18-Experimental.1"),
-			new MinecraftVersion("1.18 experimental snapshot 2", "1.18", "1.18-Experimental.2"),
+			new MinecraftVersion()
+				.entry("1.18 experimental snapshot 2", "1.18", "1.18-Experimental.2")
+				.entry("1.18_experimental-snapshot-2", "1.18", "1.18-Experimental.2"),
 			new MinecraftVersion("1.18-exp3", "1.18", "1.18-Experimental.3"),
 			// 2022 april fools
 			new MinecraftVersion()
 				.entry("22w13oneBlockAtATime", null, "1.18.3-alpha.22.13.oneblockatatime")
 				.entry("22w13oneblockatatime", null, "1.18.3-alpha.22.13.oneblockatatime")
 				.entry("af-2022", null, "1.18.3-alpha.22.13.oneblockatatime"),
+			// 1.19 (experimental snapshots)
+			new MinecraftVersion()
+				.entry("1.19 Deep Dark Experimental Snapshot 1", "1.19", "1.19-Experimental.1")
+				.entry("1.19_deep_dark_experimental_snapshot-1", "1.19", "1.19-Experimental.1"),
 			// 2023 april fools
 			new MinecraftVersion("23w13a_or_b", null, "1.20-alpha.23.13.ab"),
 			// 2024 april fools

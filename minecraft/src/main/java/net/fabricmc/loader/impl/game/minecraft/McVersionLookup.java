@@ -53,18 +53,21 @@ public final class McVersionLookup {
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?"); // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234
 	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?"); // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?"); // Snapshot 16w02a, 20w13b, 22w18c-1234
-	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp| [Ee]xperimental [Ss]napshot )(\\d+)"); // 1.18 Experimental Snapshot 1, 1.18 experimental snapshot 2, 1.18-exp3
-	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)(?:-(\\d+))?"); // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)(?:-(\\d+))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
+	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp|(?:_deep_dark)?_experimental[_-]snapshot-|(?: Deep Dark)? [Ee]xperimental [Ss]napshot )(\\d+)"); // 1.18 Experimental Snapshot 1, 1.18_experimental-snapshot-2, 1.18-exp3, 1.19 Deep Dark Experimental Snapshot 1
+	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Beta 1.2, b1.2_02-launcher, b1.3b, b1.3-1731, Beta v1.5_02, b1.8.1
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:(?:server-)?a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.0.4-launcher, a1.1.0-131933, a1.2.2a, a1.2.3_05, Alpha 0.1.0, server-a0.2.8
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?"); // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
-	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?((?:\\-[a-z]+)+)?(?:-(\\d+))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew
-	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?"); // c0.0.11a, c0.0.17a-2014, 0.0.18a_02
-	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("rd-(\\d+)"); // rd-132211
+	private static final Pattern CLASSIC_SERVER_PATTERN = Pattern.compile("(?:(?:server-)?c)1\\.(\\d\\d?(?:\\.\\d)?)(?:-(\\d+))?"); // c1.0, server-c1.3, server-c1.5-1301, c1.8.1, c1.10.1
+	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?([a-z])?(?:-([cs]))?(?:-(\\d+))?(?:-(renew))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew, c0.30_01c
+	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?(?:-(launcher))?"); // c0.0.11a, c0.0.13a_03-launcher, c0.0.17a-2014, 0.0.18a_02
+	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("(?:rd|pc)-(\\d+)(?:-(launcher))?"); // rd-132211, pc-132011-launcher
+	private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)(?:-(\\d+))");
 	private static final String STRING_DESC = "Ljava/lang/String;";
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
 			PRE_CLASSIC_PATTERN.pattern()
 			+ "|" + EARLY_CLASSIC_PATTERN.pattern()
 			+ "|" + LATE_CLASSIC_PATTERN.pattern()
+			+ "|" + CLASSIC_SERVER_PATTERN.pattern()
 			+ "|" + INDEV_PATTERN.pattern()
 			+ "|" + ALPHA_PATTERN.pattern()
 			+ "|" + BETA_PATTERN.pattern()
@@ -77,8 +80,10 @@ public final class McVersionLookup {
 				+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
 				+ "(" + EXPERIMENTAL_PATTERN.pattern().substring(2) + ")?"
 			+ "|" + SNAPSHOT_PATTERN.pattern()
+			+ "|" + "[Cc]ombat(?: Test )?\\d[a-z]?" // combat snapshots
 			+ "|" + "Minecraft RC\\d" // special case for 1.0.0 release candidates
-			+ "|" + "1\\.RV-Pre1|3D Shareware v1\\.34|23w13a_or_b|24w14potato|25w14craftmine" // odd exceptions
+			+ "|" + "2.0|1\\.RV-Pre1|3D Shareware v1\\.34|20w14~|22w13oneBlockAtATime|23w13a_or_b|24w14potato|25w14craftmine" // odd exceptions
+				+ "(" + TIMESTAMP_PATTERN.pattern() + ")?"
 	);
 
 	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
@@ -287,8 +292,12 @@ public final class McVersionLookup {
 		}
 
 		// version ids as found in versions manifest
+		// ... as in 1.19_deep_dark_experimental_snapshot-1
+		int pos = version.indexOf("_deep_dark_experimental_snapshot-");
+		if (pos >= 0) return version.substring(0, pos);
+
 		// ... as in 1.18_experimental-snapshot-1
-		int pos = version.indexOf("_experimental-snapshot-");
+		pos = version.indexOf("_experimental-snapshot-");
 		if (pos >= 0) return version.substring(0, pos);
 
 		// ... as in 1.18-exp1
@@ -308,6 +317,10 @@ public final class McVersionLookup {
 		if (pos >= 0) return version.substring(0, pos);
 
 		// version names as extracted from the jar
+		// ... as in 1.19 Deep Dark Experimental Snapshot 1
+		pos = version.indexOf(" Deep Dark Experimental Snapshot");
+		if (pos >= 0) return version.substring(0, pos);
+
 		// ... as in 1.18 Experimental Snapshot 1
 		pos = version.indexOf(" Experimental Snapshot");
 		if (pos >= 0) return version.substring(0, pos);
@@ -632,6 +645,9 @@ public final class McVersionLookup {
 	private static String normalizeVersion(String version) {
 		// timestamps distinguish between re-uploads of the same version
 		String timestamp = null;
+		// omniarchive marks some versions with a -launcher suffix
+		// and there is one classic version marked -renew
+		String suffix = null;
 
 		StringBuilder prep = new StringBuilder();
 
@@ -640,7 +656,9 @@ public final class McVersionLookup {
 		Matcher matcher;
 
 		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
-			timestamp = matcher.group(5);
+			String trail = matcher.group(5);
+			timestamp = matcher.group(6);
+			suffix = matcher.group(7);
 
 			prep.append("1.0.0-beta.");
 			prep.append(matcher.group(1));
@@ -662,11 +680,32 @@ public final class McVersionLookup {
 					prep.append(".0.r"); // 'r' for 'release'
 				}
 			}
+
+			// in the launcher manifest, some Beta versions have
+			// trailing alphabetic chars
+			if (trail != null) {
+				// if no minor version is given, set it to 0 to
+				// ensure this version is sorted before subsequent
+				// minor updates
+				if (matcher.group(3) == null && matcher.group(4) == null) {
+					prep.append(".0");
+				}
+
+				prep.append('.').append(trail);
+			}
 		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
-			timestamp = matcher.group(2);
+			String trail = matcher.group(2);
+			timestamp = matcher.group(3);
+			suffix = matcher.group(4);
 
 			prep.append("1.0.0-alpha.");
 			prep.append(matcher.group(1));
+
+			// in the launcher manifest, some Alpha versions have
+			// trailing alphabetic chars
+			if (trail != null) {
+				prep.append('.').append(trail);
+			}
 		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
 			String date = matcher.group(1);
 			// multiple releases could occur on the same day!
@@ -681,8 +720,10 @@ public final class McVersionLookup {
 
 			String minor = matcher.group(1);
 			String patch = matcher.group(2);
-			String suffix = late ? matcher.group(4) : null;
-			timestamp = matcher.group(late ? 5 : 3);
+			String trail = late ? matcher.group(4) : null;
+			String type = late ? matcher.group(5) : null;
+			timestamp = matcher.group(late ? 6 : 3);
+			suffix = matcher.group(late ? 7 : 4);
 
 			// in late classic, sometimes the patch number appears before
 			// the survival test identifier (_st), and sometimes after it
@@ -693,10 +734,24 @@ public final class McVersionLookup {
 			prep.append("0.");
 			prep.append(minor);
 			if (patch != null) prep.append('.').append(patch);
-			if (suffix != null) prep.append('-').append(String.join(".", suffix.split("[-]")));
+			// in the launcher manifest, some Classic versions have trailing alphabetic chars
+			if (trail != null) prep.append('-').append(trail);
+			// in the Omniarchive manifest, some classic versions releases for creative and survival
+			if (type != null) prep.append('-').append(type);
+		} else if ((matcher = CLASSIC_SERVER_PATTERN.matcher(version)).matches()) {
+			String release = matcher.group(1);
+			timestamp = matcher.group(2);
+
+			prep.append("0.");
+			prep.append(release);
 		} else if ((matcher = PRE_CLASSIC_PATTERN.matcher(version)).matches()) { // rd-132211
 			String build = matcher.group(1);
-			if ("20090515".equals(build)) build = "150000"; // account for a weird exception to the pre-classic versioning scheme
+			suffix = matcher.group(2);
+
+			// account for a weird exception to the pre-classic versioning scheme
+			if ("20090515".equals(build)) {
+				build = "150000";
+			}
 
 			prep.append("0.0.0-rd.");
 			prep.append(build);
@@ -753,23 +808,95 @@ public final class McVersionLookup {
 
 		ret.setLength(end);
 
-		// add timestamp as extra build information
-		if (timestamp != null) {
+		// add timestamp and suffix as extra build information
+		if (timestamp != null || suffix != null) {
 			ret.append('+');
-			ret.append(timestamp);
+
+			if (timestamp != null) {
+				ret.append(timestamp);
+				if (suffix != null) ret.append('.');
+			}
+
+			if (suffix != null) {
+				ret.append(suffix);
+			}
 		}
 
 		return ret.substring(start);
 	}
 
 	private static String normalizeSpecialVersion(String version) {
+		// first attempt to normalize the version as-is
+		String normalized = normalizeSpecialVersionBase(version);
+
+		// only if that yields no result, check if it's a re-upload from Omniarchive
+		if (normalized == null) {
+			// timestamps distinguish between re-uploads of the same version
+			String timestamp = null;
+
+			Matcher matcher = TIMESTAMP_PATTERN.matcher(version);
+
+			if (matcher.matches()) {
+				version = matcher.group(1);
+				timestamp = matcher.group(2);
+			}
+
+			normalized = normalizeSpecialVersionBase(version);
+
+			// add timestamp as extra build information
+			if (normalized != null && timestamp != null) {
+				normalized += "+" + timestamp;
+			}
+		}
+
+		return normalized;
+	}
+
+	private static String normalizeSpecialVersionBase(String version) {
 		switch (version) {
+		case "b1.2_02-dev":
+			// a dev version of b1.2
+			return "1.0.0-beta.2.dev";
+		case "b1.3-demo":
+			// a demo version of b1.3 given to PC Gamer magazine
+			return "1.0.0-beta.3.demo";
+		case "b1.6-trailer":
 		case "b1.6-pre-trailer":
-			// Pre-release version used for the Beta 1.6 trailer
+			// pre-release version used for the Beta 1.6 trailer
 			return "1.0.0-beta.6.0.0"; // sort it before the test builds
+
+		case "13w02a-whitetexturefix":
+			// a fork from 13w02a to attempt to fix a white texture glitch
+			return "1.5-alpha.13.2.a.whitetexturefix";
+		case "13w04a-whitelinefix":
+			// a fork from 13w04a to attempt to fix a white line glitch
+			return "1.5-alpha.13.4.a.whitelinefix";
+		case "1.5-whitelinefix":
+		case "1.5-pre-whitelinefix":
+			// a pre-release for 1.5 to attempt to fix a white line glitch
+			return "1.5-rc.whitelinefix";
 		case "13w12~":
 			// A pair of debug snapshots immediately before 1.5.1-pre
 			return "1.5.1-alpha.13.12.a";
+
+		case "2.0":
+			// 2.0 update version as known in the jar, forked from 1.5.1
+			return "1.5.2-2.0";
+
+		case "2point0_red":
+		case "af-2013-red":
+			// 2.0 update version red, forked from 1.5.1
+			return "1.5.2-2.0+red";
+
+		case "2point0_purple":
+		case "af-2013-purple":
+			// 2.0 update version purple, forked from 1.5.1
+			return "1.5.2-2.0+purple";
+
+		case "2point0_blue":
+		case "af-2013-blue":
+			// 2.0 update version blue, forked from 1.5.1
+			return "1.5.2-2.0+blue";
 
 		case "15w14a":
 		case "af-2015":
@@ -786,93 +913,110 @@ public final class McVersionLookup {
 			// Minecraft 3D, forked from 19w13b
 			return "1.14-alpha.19.13.shareware";
 
+		case "20w14infinite":
 		case "20w14~":
 		case "af-2020":
 			// The Ultimate Content update, forked from 20w13b
 			return "1.16-alpha.20.13.inf"; // Not to be confused with the actual 20w14a
 
-		case "1.14.3 - Combat Test":
-			// The first Combat Test, forked from 1.14.3 Pre-Release 4
-			return "1.14.3-rc.4.combat.1";
-
-		case "Combat Test 2":
-			// The second Combat Test, forked from 1.14.4
-			return "1.14.5-combat.2";
-
-		case "Combat Test 3":
-			// The third Combat Test, forked from 1.14.4
-			return "1.14.5-combat.3";
-
-		case "Combat Test 4":
-			// The fourth Combat Test, forked from 1.15 Pre-release 3
-			return "1.15-rc.3.combat.4";
-
-		case "Combat Test 5":
-			// The fifth Combat Test, forked from 1.15.2 Pre-release 2
-			return "1.15.2-rc.2.combat.5";
-
-		case "Combat Test 6":
-			// The sixth Combat Test, forked from 1.16.2 Pre-release 3
-			return "1.16.2-beta.3.combat.6";
-
-		case "Combat Test 7":
-			// Private testing Combat Test 7, forked from 1.16.2
-			return "1.16.3-combat.7";
-
-		case "1.16_combat-2":
-			// Private testing Combat Test 7b, forked from 1.16.2
-			return "1.16.3-combat.7.b";
-
-		case "1.16_combat-3":
-			// The seventh Combat Test 7c, forked from 1.16.2
-			return "1.16.3-combat.7.c";
-
-		case "1.16_combat-4":
-			// Private testing Combat Test 8(a?), forked from 1.16.2
-			return "1.16.3-combat.8";
-
-		case "1.16_combat-5":
-			// The eighth Combat Test 8b, forked from 1.16.2
-			return "1.16.3-combat.8.b";
-
-		case "1.16_combat-6":
-			// The ninth Combat Test 8c, forked from 1.16.2
-			return "1.16.3-combat.8.c";
-		case "2.0":
-			// 2.0 update version as known in the jar, forked from 1.5.1
-			return "1.5.2-2.0";
-		case "2point0_red":
-		case "af-2013-red":
-			// 2.0 update version red, forked from 1.5.1
-			return "1.5.2-2.0+red";
-
-		case "2point0_purple":
-		case "af-2013-purple":
-			// 2.0 update version purple, forked from 1.5.1
-			return "1.5.2-2.0+purple";
-
-		case "2point0_blue":
-		case "af-2013-blue":
-			// 2.0 update version blue, forked from 1.5.1
-			return "1.5.2-2.0+blue";
-
-		case "22w13oneBlockAtATime":
 		case "22w13oneblockatatime":
+		case "22w13oneBlockAtATime":
 		case "af-2022":
 			// Minecraft 22w13oneblockatatime - forked from 1.18.2
 			return "1.18.3-alpha.22.13.oneblockatatime";
 
 		case "23w13a_or_b":
+		case "af-2023":
 			// Minecraft 23w13a_or_b, forked from 23w13a
 			return "1.20-alpha.23.13.ab";
+		case "23w13a_or_b_original":
+			// the pre-reupload version of 23w13a_or_b
+			return "1.20-alpha.23.13.ab+original";
 
 		case "24w14potato":
+		case "af-2024":
 			// Minecraft 24w14potato, forked from 24w12a
 			return "1.20.5-alpha.24.12.potato";
+		case "24w14potato_original":
+			// the pre-reupload version of 24w14potato
+			return "1.20.5-alpha.24.12.potato+original";
 
 		case "25w14craftmine":
+		case "af-2025":
 			// Minecraft 25w14craftmine, forked from 1.21.5
 			return "1.21.6-alpha.25.14.craftmine";
+
+		case "1.14_combat-212796":
+		case "1.14.3 - Combat Test":
+		case "combat1":
+			// The first Combat Test, forked from 1.14.3 Pre-Release 4
+			return "1.14.3-rc.4.combat.1";
+
+		case "1.14_combat-0":
+		case "Combat Test 2":
+		case "combat2":
+			// The second Combat Test, forked from 1.14.4
+			return "1.14.5-combat.2";
+
+		case "1.14_combat-3":
+		case "Combat Test 3":
+		case "combat3":
+			// The third Combat Test, forked from 1.14.4
+			return "1.14.5-combat.3";
+
+		case "1.15_combat-1":
+		case "Combat Test 4":
+		case "combat4":
+			// The fourth Combat Test, forked from 1.15 Pre-release 3
+			return "1.15-rc.3.combat.4";
+
+		case "1.15_combat-6":
+		case "Combat Test 5":
+		case "combat5":
+			// The fifth Combat Test, forked from 1.15.2 Pre-release 2
+			return "1.15.2-rc.2.combat.5";
+
+		case "1.16_combat-0":
+		case "Combat Test 6":
+		case "combat6":
+			// The sixth Combat Test, forked from 1.16.2 Pre-release 3
+			return "1.16.2-beta.3.combat.6";
+
+		case "1.16_combat-1":
+		case "Combat Test 7":
+		case "combat7":
+			// Private testing Combat Test 7, forked from 1.16.2
+			return "1.16.3-combat.7";
+
+		case "1.16_combat-2":
+		case "Combat Test 7b":
+		case "combat7b":
+			// Private testing Combat Test 7b, forked from 1.16.2
+			return "1.16.3-combat.7.b";
+
+		case "combat7c":
+		case "Combat Test 7c":
+		case "1.16_combat-3":
+			// The seventh Combat Test 7c, forked from 1.16.2
+			return "1.16.3-combat.7.c";
+
+		case "combat8":
+		case "Combat Test 8":
+		case "1.16_combat-4":
+			// Private testing Combat Test 8(a?), forked from 1.16.2
+			return "1.16.3-combat.8";
+
+		case "combat8b":
+		case "Combat Test 8b":
+		case "1.16_combat-5":
+			// The eighth Combat Test 8b, forked from 1.16.2
+			return "1.16.3-combat.8.b";
+
+		case "combat8c":
+		case "Combat Test 8c":
+		case "1.16_combat-6":
+			// The ninth Combat Test 8c, forked from 1.16.2
+			return "1.16.3-combat.8.c";
 
 		default:
 			return null; //Don't recognise the version
