@@ -222,7 +222,19 @@ public class VersionNormalizationAntiRegressionTest {
 	}
 
 	private static void generateInitialJson() throws IOException {
-		Set<MinecraftVersion> minecraftVersions = new TreeSet<>();
+		Set<MinecraftVersion> minecraftVersions = new TreeSet<MinecraftVersion>() {
+			final Set<String> ids = new HashSet<>();
+
+			@Override
+			public boolean add(MinecraftVersion minecraftVersion) {
+				if (ids.contains(minecraftVersion.id)) {
+					return false;
+				}
+
+				ids.add(minecraftVersion.id);
+				return super.add(minecraftVersion);
+			}
+		};
 		minecraftVersions.addAll(getMojangData());
 		minecraftVersions.addAll(getFabricMirror());
 		minecraftVersions.addAll(getOmniArchiveData());
