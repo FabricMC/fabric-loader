@@ -844,57 +844,69 @@ public final class McVersionLookup {
 			// The Ultimate Content update, forked from 20w13b
 			return "1.16-alpha.20.13.inf"; // Not to be confused with the actual 20w14a
 
+		case "combat1":
 		case "1.14_combat-212796":
 		case "1.14.3 - Combat Test":
 			// The first Combat Test, forked from 1.14.3 Pre-Release 4
 			return "1.14.3-rc.4.combat.1";
 
+		case "combat2":
 		case "1.14_combat-0":
 		case "Combat Test 2":
 			// The second Combat Test, forked from 1.14.4
 			return "1.14.5-combat.2";
 
+		case "combat3":
 		case "1.14_combat-3":
 		case "Combat Test 3":
 			// The third Combat Test, forked from 1.14.4
 			return "1.14.5-combat.3";
 
+		case "combat4":
 		case "1.15_combat-1":
 		case "Combat Test 4":
 			// The fourth Combat Test, forked from 1.15 Pre-release 3
 			return "1.15-rc.3.combat.4";
 
+		case "combat5":
 		case "1.15_combat-6":
 		case "Combat Test 5":
 			// The fifth Combat Test, forked from 1.15.2 Pre-release 2
 			return "1.15.2-rc.2.combat.5";
 
+		case "combat6":
 		case "1.16_combat-0":
 		case "Combat Test 6":
 			// The sixth Combat Test, forked from 1.16.2 Pre-release 3
 			return "1.16.2-beta.3.combat.6";
 
+		case "combat7":
 		case "1.16_combat-1":
 		case "Combat Test 7":
 			// Private testing Combat Test 7, forked from 1.16.2
 			return "1.16.3-combat.7";
 
+		case "combat7b":
 		case "1.16_combat-2":
 			// Private testing Combat Test 7b, forked from 1.16.2
 			return "1.16.3-combat.7.b";
 
+		case "combat7c":
 		case "1.16_combat-3":
 			// The seventh Combat Test 7c, forked from 1.16.2
 			return "1.16.3-combat.7.c";
 
+		case "combat8":
 		case "1.16_combat-4":
 			// Private testing Combat Test 8(a?), forked from 1.16.2
 			return "1.16.3-combat.8";
 
+		case "combat8b":
 		case "1.16_combat-5":
 			// The eighth Combat Test 8b, forked from 1.16.2
 			return "1.16.3-combat.8.b";
 
+		case "combat8c":
 		case "1.16_combat-6":
 			// The ninth Combat Test 8c, forked from 1.16.2
 			return "1.16.3-combat.8.c";
