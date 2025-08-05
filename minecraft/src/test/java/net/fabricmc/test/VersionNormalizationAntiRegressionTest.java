@@ -16,21 +16,7 @@
 
 package net.fabricmc.test;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializer;
-
-import com.google.gson.reflect.TypeToken;
-
-import net.fabricmc.loader.api.SemanticVersion;
-import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.impl.game.minecraft.McVersionLookup;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -54,7 +40,19 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
+import com.google.gson.reflect.TypeToken;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import net.fabricmc.loader.api.SemanticVersion;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.impl.game.minecraft.McVersionLookup;
 
 public class VersionNormalizationAntiRegressionTest {
 	private static final String MINECRAFT_VERSIONS_RESOURCE = "minecraft_versions.json";
@@ -63,7 +61,6 @@ public class VersionNormalizationAntiRegressionTest {
 
 	@BeforeEach
 	public void setup() {
-
 		JsonDeserializer<Instant> instantDeserializer = (json, type, ctx) ->
 				Instant.parse(json.getAsString());
 
@@ -71,7 +68,8 @@ public class VersionNormalizationAntiRegressionTest {
 				.registerTypeAdapter(Instant.class, instantDeserializer)
 				.create();
 
-		Type listType = new TypeToken<List<MinecraftVersion>>(){}.getType();
+		Type listType = new TypeToken<List<MinecraftVersion>>() {
+		}.getType();
 
 		try (Reader reader = new InputStreamReader(VersionNormalizationAntiRegressionTest.class.getClassLoader()
 				.getResourceAsStream(MINECRAFT_VERSIONS_RESOURCE))) {
@@ -88,9 +86,10 @@ public class VersionNormalizationAntiRegressionTest {
 
 		for (MinecraftVersion expectedResult : expectedResults) {
 			String nNormal = McVersionLookup.normalizeVersion(expectedResult.id, McVersionLookup.getRelease(expectedResult.id));
+
 			if (!Objects.equals(nNormal, expectedResult.normalized)) {
 				hasFailure = true;
-				failures.add(new String[]{expectedResult.id, expectedResult.normalized, nNormal});
+				failures.add(new String[] {expectedResult.id, expectedResult.normalized, nNormal});
 			}
 		}
 
@@ -122,7 +121,6 @@ public class VersionNormalizationAntiRegressionTest {
 		minecraftVersions.addAll(getMojangData());
 		minecraftVersions.addAll(getOmniArchiveData());
 
-
 		JsonSerializer<Instant> instantSerializer = (src, typeOfSrc, context) ->
 				new JsonPrimitive(src.toString());
 
@@ -131,7 +129,8 @@ public class VersionNormalizationAntiRegressionTest {
 				.registerTypeAdapter(Instant.class, instantSerializer)
 				.create();
 
-		Type listType = new TypeToken<List<MinecraftVersion>>(){}.getType();
+		Type listType = new TypeToken<List<MinecraftVersion>>() {
+		}.getType();
 		String json = gson.toJson(minecraftVersions, listType);
 
 		System.out.println(json);
@@ -152,6 +151,7 @@ public class VersionNormalizationAntiRegressionTest {
 				.create();
 
 		List<MinecraftVersion> minecraftVersions = new ArrayList<>();
+
 		try (Reader in = new InputStreamReader(url.openStream())) {
 			PistonMetaV2 pistonMetaV2 = gson.fromJson(in, PistonMetaV2.class);
 			pistonMetaV2.versions.forEach(v -> {
@@ -165,9 +165,9 @@ public class VersionNormalizationAntiRegressionTest {
 	}
 
 	/**
-	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/htmlview#gid=872531987">Google Sheet</a>
-	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/export?gid=872531987&format=csv">Direct CSV download for "Java Clients (Full)" sheet</a>
-	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=872531987&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E">Direct CSV download for "Java Clients (Full)" sheet, just columns B and E, ignoring headers</a>
+	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/htmlview#gid=872531987">Google Sheet</a>.
+	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/export?gid=872531987&format=csv">Direct CSV download for "Java Clients (Full)" sheet</a>.
+	 * <a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=872531987&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E">Direct CSV download for "Java Clients (Full)" sheet, just columns B and E, ignoring headers</a>.
 	 */
 	private static List<MinecraftVersion> getOmniArchiveData() throws MalformedURLException {
 		URL url = new URL("https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ/gviz/tq?gid=872531987&tqx=out:csv&headers=0&tq=SELECT%20B%2C%20E");
@@ -176,6 +176,7 @@ public class VersionNormalizationAntiRegressionTest {
 		try (BufferedReader reader = new BufferedReader(
 				new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
 			String line;
+
 			while ((line = reader.readLine()) != null) {
 				List<String> fields = parseCsvLine(line);
 
@@ -212,9 +213,8 @@ public class VersionNormalizationAntiRegressionTest {
 		return Arrays.asList(line.split(","));
 	}
 
-
 	/**
-	 * <a href="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json">Metadata</a>
+	 * <a href="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json">Metadata</a>.
 	 */
 	private static class PistonMetaV2 {
 		List<Version> versions;
@@ -230,11 +230,11 @@ public class VersionNormalizationAntiRegressionTest {
 		String normalized;
 		Instant releaseTime;
 
-		public MinecraftVersion(String id, Instant releaseTime) {
+		MinecraftVersion(String id, Instant releaseTime) {
 			this(id, McVersionLookup.normalizeVersion(id, McVersionLookup.getRelease(id)), releaseTime);
 		}
 
-		public MinecraftVersion(String id, String normalized, Instant releaseTime) {
+		MinecraftVersion(String id, String normalized, Instant releaseTime) {
 			Objects.requireNonNull(id);
 			Objects.requireNonNull(releaseTime);
 			this.id = id;
@@ -245,20 +245,22 @@ public class VersionNormalizationAntiRegressionTest {
 		@Override
 		public int compareTo(MinecraftVersion o) {
 			int c = id.compareTo(o.id);
+
 			if (c == 0) {
 				return 0;
 			}
 
 			c = releaseTime.compareTo(o.releaseTime);
+
 			if (c != 0) {
 				return c;
 			}
 
 			if (normalized != null && o.normalized != null) {
 				try {
-					c = SemanticVersion.parse(normalized).compareTo(SemanticVersion.parse(o.normalized));
-				} catch (VersionParsingException e) {
-
+					c = SemanticVersion.parse(normalized).compareTo((Version) SemanticVersion.parse(o.normalized));
+				} catch (VersionParsingException ignored) {
+					// NO-OP
 				}
 
 				if (c != 0) {
