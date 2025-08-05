@@ -194,7 +194,7 @@ public class VersionNormalizationAntiRegressionTest {
 				// Clean data for parsing
 				date = date.replaceAll("([1-9])x", "$10").replaceAll("0x", "01");
 
-				if (id.equals("ID") || date.equals("Released")) {
+				if (id.isEmpty() || id.equals("ID") || date.equals("Released")) {
 					// OmniArchive for some reason duplicates the headers into the data
 					continue;
 				}

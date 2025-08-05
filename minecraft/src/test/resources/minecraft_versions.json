@@ -1600,11 +1600,6 @@
     "releaseTime": "2011-04-18T22:00:00Z"
   },
   {
-    "id": "",
-    "normalized": "",
-    "releaseTime": "2011-04-19T00:00:00Z"
-  },
-  {
     "id": "b1.5_01",
     "normalized": "1.0.0-beta.5.1",
     "releaseTime": "2011-04-19T22:00:00Z"
