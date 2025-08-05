@@ -140,11 +140,6 @@
     "releaseTime": "2009-05-22T00:00:00Z"
   },
   {
-    "id": "c0.0.13a_03",
-    "normalized": "0.13.3",
-    "releaseTime": "2009-05-22T00:00:00Z"
-  },
-  {
     "id": "c0.0.14a",
     "normalized": "0.14",
     "releaseTime": "2009-05-27T00:00:00Z"
@@ -1105,6 +1100,11 @@
     "releaseTime": "2010-06-17T00:00:00Z"
   },
   {
+    "id": "inf-20100618",
+    "normalized": "0.31.20100618",
+    "releaseTime": "2010-06-18T00:00:00Z"
+  },
+  {
     "id": "inf-20100624",
     "normalized": "0.31.20100624",
     "releaseTime": "2010-06-24T00:00:00Z"
@@ -1188,6 +1188,11 @@
     "id": "a1.0.5-2149",
     "normalized": "1.0.0-alpha.0.5+2149",
     "releaseTime": "2010-07-13T00:00:00Z"
+  },
+  {
+    "id": "a1.0.5_01",
+    "normalized": "1.0.0-alpha.0.5.1",
+    "releaseTime": "2010-07-14T00:00:00Z"
   },
   {
     "id": "a1.0.6",
@@ -1310,11 +1315,6 @@
     "releaseTime": "2010-08-20T00:00:00Z"
   },
   {
-    "id": "a1.0.17_02",
-    "normalized": "1.0.0-alpha.0.17.2",
-    "releaseTime": "2010-08-20T00:00:00Z"
-  },
-  {
     "id": "a1.0.17_04",
     "normalized": "1.0.0-alpha.0.17.4",
     "releaseTime": "2010-08-22T22:00:00Z"
@@ -1395,11 +1395,6 @@
     "releaseTime": "2010-11-04T22:00:01Z"
   },
   {
-    "id": "a1.2.1",
-    "normalized": "1.0.0-alpha.2.1",
-    "releaseTime": "2010-11-05T00:00:00Z"
-  },
-  {
     "id": "a1.2.2a",
     "normalized": "1.0.0-alpha.2.2.a",
     "releaseTime": "2010-11-09T22:00:00Z"
@@ -1433,11 +1428,6 @@
     "id": "a1.2.3_01",
     "normalized": "1.0.0-alpha.2.3.1",
     "releaseTime": "2010-11-23T22:00:01Z"
-  },
-  {
-    "id": "a1.2.3",
-    "normalized": "1.0.0-alpha.2.3",
-    "releaseTime": "2010-11-24T00:00:00Z"
   },
   {
     "id": "a1.2.3_01-0956",
@@ -1495,6 +1485,11 @@
     "releaseTime": "2010-12-19T22:00:01Z"
   },
   {
+    "id": "b1.0",
+    "normalized": "1.0.0-beta.0",
+    "releaseTime": "2010-12-20T00:00:00Z"
+  },
+  {
     "id": "b1.0.2",
     "normalized": "1.0.0-beta.0.2",
     "releaseTime": "2010-12-20T22:00:00Z"
@@ -1525,8 +1520,8 @@
     "releaseTime": "2010-12-22T00:00:00Z"
   },
   {
-    "id": "b1.1_01",
-    "normalized": "1.0.0-beta.1.1",
+    "id": "b1.1_02",
+    "normalized": "1.0.0-beta.1.2",
     "releaseTime": "2010-12-22T00:00:00Z"
   },
   {
@@ -1640,8 +1635,13 @@
     "releaseTime": "2011-05-26T00:00:00Z"
   },
   {
-    "id": "b1.6.3",
-    "normalized": "1.0.0-beta.6.3",
+    "id": "b1.6.2",
+    "normalized": "1.0.0-beta.6.2",
+    "releaseTime": "2011-05-26T00:00:00Z"
+  },
+  {
+    "id": "b1.6.4",
+    "normalized": "1.0.0-beta.6.4",
     "releaseTime": "2011-05-26T00:00:00Z"
   },
   {
@@ -1676,7 +1676,7 @@
   },
   {
     "id": "c0.30-c-1900-renew",
-    "normalized": "c.0.30-c-1900-renew",
+    "normalized": "0.30-c+1900.renew",
     "releaseTime": "2011-08-01T00:00:00Z"
   },
   {
@@ -1715,6 +1715,11 @@
     "releaseTime": "2012-02-29T22:00:01Z"
   },
   {
+    "id": "1.2.1",
+    "normalized": "1.2.1",
+    "releaseTime": "2012-03-01T00:00:00Z"
+  },
+  {
     "id": "1.2.3",
     "normalized": "1.2.3",
     "releaseTime": "2012-03-01T22:00:00Z"
@@ -1750,14 +1755,14 @@
     "releaseTime": "2012-10-25T00:00:00Z"
   },
   {
+    "id": "1.4.4",
+    "normalized": "1.4.4",
+    "releaseTime": "2012-11-14T00:00:00Z"
+  },
+  {
     "id": "1.4",
     "normalized": "1.4",
     "releaseTime": "2012-11-18T22:00:00Z"
-  },
-  {
-    "id": "1.4.5",
-    "normalized": "1.4.5",
-    "releaseTime": "2012-11-20T00:00:00Z"
   },
   {
     "id": "1.4.1",
@@ -1823,6 +1828,11 @@
     "id": "13w17a",
     "normalized": "1.6-alpha.13.17.a",
     "releaseTime": "2013-04-25T15:50:00Z"
+  },
+  {
+    "id": "1.5.2",
+    "normalized": "1.5.2",
+    "releaseTime": "2013-05-02T00:00:00Z"
   },
   {
     "id": "13w18a",
@@ -1926,62 +1936,62 @@
   },
   {
     "id": "b1.2_02-launcher",
-    "normalized": "b.1.2.2-launcher",
+    "normalized": "1.0.0-beta.2.2+launcher",
     "releaseTime": "2013-08-01T00:00:00Z"
   },
   {
-    "id": "a1.0.14-1659-launcher",
-    "normalized": "a.1.0.14-1659-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
-    "id": "a1.0.4-launcher",
-    "normalized": "a.1.0.4-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
-    "id": "a1.1.0-101847-launcher",
-    "normalized": "a.1.1.0-101847-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
-    "id": "a1.2.0_02-launcher",
-    "normalized": "a.1.2.0.2-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
-    "id": "c0.0.11a-launcher",
-    "normalized": "c.0.0.11.a-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
-    "id": "c0.0.13a-launcher",
-    "normalized": "c.0.0.13.a-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
-    "id": "c0.0.13a_03-launcher",
-    "normalized": "c.0.0.13.a.3-launcher",
-    "releaseTime": "2013-08-06T00:00:00Z"
-  },
-  {
     "id": "pc-132011-launcher",
-    "normalized": "pc-132011-launcher",
+    "normalized": "0.0.0-rd.132011+launcher",
     "releaseTime": "2013-08-06T00:00:00Z"
   },
   {
     "id": "pc-132128-launcher",
-    "normalized": "pc-132128-launcher",
+    "normalized": "0.0.0-rd.132128+launcher",
     "releaseTime": "2013-08-06T00:00:00Z"
   },
   {
     "id": "pc-152252-launcher",
-    "normalized": "pc-152252-launcher",
+    "normalized": "0.0.0-rd.152252+launcher",
     "releaseTime": "2013-08-06T00:00:00Z"
   },
   {
     "id": "pc-161148-launcher",
-    "normalized": "pc-161148-launcher",
+    "normalized": "0.0.0-rd.161148+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "c0.0.11a-launcher",
+    "normalized": "0.11+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a-launcher",
+    "normalized": "0.13+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a_03-launcher",
+    "normalized": "0.13.3+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.4-launcher",
+    "normalized": "1.0.0-alpha.0.4+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.14-1659-launcher",
+    "normalized": "1.0.0-alpha.0.14+1659.launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.1.0-101847-launcher",
+    "normalized": "1.0.0-alpha.1.0+101847.launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.2.0_02-launcher",
+    "normalized": "1.0.0-alpha.2.0.2+launcher",
     "releaseTime": "2013-08-06T00:00:00Z"
   },
   {
@@ -2820,6 +2830,11 @@
     "releaseTime": "2015-12-03T15:23:22Z"
   },
   {
+    "id": "1.8.9",
+    "normalized": "1.8.9",
+    "releaseTime": "2015-12-09T00:00:00Z"
+  },
+  {
     "id": "15w50a",
     "normalized": "1.9-alpha.15.50.a",
     "releaseTime": "2015-12-09T15:35:57Z"
@@ -2915,6 +2930,11 @@
     "releaseTime": "2016-03-11T09:20:36Z"
   },
   {
+    "id": "1.9.2",
+    "normalized": "1.9.2",
+    "releaseTime": "2016-03-30T00:00:00Z"
+  },
+  {
     "id": "1.9.1",
     "normalized": "1.9.1",
     "releaseTime": "2016-03-30T13:43:07Z"
@@ -2958,11 +2978,6 @@
     "id": "1.9.3-pre3",
     "normalized": "1.9.3-rc.3",
     "releaseTime": "2016-05-03T09:28:11Z"
-  },
-  {
-    "id": "1.9.4",
-    "normalized": "1.9.4",
-    "releaseTime": "2016-05-10T00:00:00Z"
   },
   {
     "id": "1.9.3",
@@ -3780,6 +3795,11 @@
     "releaseTime": "2019-05-22T13:12:51Z"
   },
   {
+    "id": "1.14.2",
+    "normalized": "1.14.2",
+    "releaseTime": "2019-05-27T00:00:00Z"
+  },
+  {
     "id": "1.14.2 Pre-Release 4",
     "normalized": "1.14.2-rc.4",
     "releaseTime": "2019-05-27T07:21:11Z"
@@ -4548,6 +4568,11 @@
     "id": "1.18.1-rc2",
     "normalized": "1.18.1-rc.2",
     "releaseTime": "2021-12-08T12:29:36Z"
+  },
+  {
+    "id": "1.18.1",
+    "normalized": "1.18.1",
+    "releaseTime": "2021-12-10T00:00:00Z"
   },
   {
     "id": "1.18.1-rc3",
@@ -5633,5 +5658,10 @@
     "id": "25w31a",
     "normalized": "1.21.9-alpha.25.31.a",
     "releaseTime": "2025-07-29T11:29:33Z"
+  },
+  {
+    "id": "25w32a",
+    "normalized": "1.21.9-alpha.25.32.a",
+    "releaseTime": "2025-08-05T12:21:45Z"
   }
 ]
