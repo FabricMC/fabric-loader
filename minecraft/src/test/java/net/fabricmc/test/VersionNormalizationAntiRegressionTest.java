@@ -207,6 +207,8 @@ public class VersionNormalizationAntiRegressionTest {
 		vs.add(new HashSet<>(Arrays.asList("b1.2_02", "b1.2_02-launcher")));
 		vs.add(new HashSet<>(Arrays.asList("b1.3-1647", "b1.3-1713", "b1.3-1733", "b1.3-1750")));
 		vs.add(new HashSet<>(Arrays.asList("b1.4", "b1.4-1507", "b1.4-1634")));
+		vs.add(new HashSet<>(Arrays.asList("23w13a_or_b_original", "23w13a_or_b")));
+		vs.add(new HashSet<>(Arrays.asList("24w14potato_original", "24w14potato")));
 
 		return vs;
 	}
@@ -222,6 +224,7 @@ public class VersionNormalizationAntiRegressionTest {
 	private static void generateInitialJson() throws IOException {
 		Set<MinecraftVersion> minecraftVersions = new TreeSet<>();
 		minecraftVersions.addAll(getMojangData());
+		minecraftVersions.addAll(getFabricMirror());
 		minecraftVersions.addAll(getOmniArchiveData());
 
 		JsonSerializer<Instant> instantSerializer = (src, typeOfSrc, context) ->
@@ -258,6 +261,31 @@ public class VersionNormalizationAntiRegressionTest {
 		try (Reader in = new InputStreamReader(url.openStream())) {
 			PistonMetaV2 pistonMetaV2 = gson.fromJson(in, PistonMetaV2.class);
 			pistonMetaV2.versions.forEach(v -> {
+				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant()));
+			});
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to read PistonV2 meta", e);
+		}
+
+		return minecraftVersions;
+	}
+
+	private static List<MinecraftVersion> getFabricMirror() throws MalformedURLException {
+		String manifestUrl = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
+		URL url = new URL(manifestUrl);
+
+		JsonDeserializer<OffsetDateTime> deserializer = (json, typeOfT, context) ->
+				OffsetDateTime.parse(json.getAsString());
+
+		Gson gson = new GsonBuilder()
+				.registerTypeAdapter(OffsetDateTime.class, deserializer)
+				.create();
+
+		List<MinecraftVersion> minecraftVersions = new ArrayList<>();
+
+		try (Reader in = new InputStreamReader(url.openStream())) {
+			FabricMeta fabricMeta = gson.fromJson(in, FabricMeta.class);
+			fabricMeta.versions.forEach(v -> {
 				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant()));
 			});
 		} catch (IOException e) {
@@ -320,6 +348,19 @@ public class VersionNormalizationAntiRegressionTest {
 	 * <a href="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json">Metadata</a>.
 	 */
 	private static class PistonMetaV2 {
+		List<Version> versions;
+
+		static class Version {
+			String id;
+			OffsetDateTime releaseTime;
+		}
+	}
+
+	/**
+	 * Versions not in Mojang's data that fabric mirrors
+	 * <a href="https://maven.fabricmc.net/net/minecraft/experimental_versions.json">Metadata</a>.
+	 */
+	private static class FabricMeta {
 		List<Version> versions;
 
 		static class Version {

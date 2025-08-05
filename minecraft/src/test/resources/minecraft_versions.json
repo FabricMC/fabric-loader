@@ -3830,6 +3830,11 @@
     "releaseTime": "2019-06-19T11:44:29Z"
   },
   {
+    "id": "1.14_combat-212796",
+    "normalized": "1.14.3-rc.4.combat.1",
+    "releaseTime": "2019-06-20T13:23:44Z"
+  },
+  {
     "id": "1.14.3",
     "normalized": "1.14.3",
     "releaseTime": "2019-06-24T12:52:52Z"
@@ -3873,6 +3878,11 @@
     "id": "1.14.4",
     "normalized": "1.14.4",
     "releaseTime": "2019-07-19T09:25:47Z"
+  },
+  {
+    "id": "1.14_combat-0",
+    "normalized": "1.14.5-combat.2",
+    "releaseTime": "2019-08-13T07:33:42Z"
   },
   {
     "id": "19w34a",
@@ -3930,6 +3940,11 @@
     "releaseTime": "2019-10-30T15:31:44Z"
   },
   {
+    "id": "1.14_combat-3",
+    "normalized": "1.14.5-combat.3",
+    "releaseTime": "2019-10-31T14:31:38Z"
+  },
+  {
     "id": "19w45a",
     "normalized": "1.15-alpha.19.45.a",
     "releaseTime": "2019-11-07T16:19:20Z"
@@ -3963,6 +3978,11 @@
     "id": "1.15-pre3",
     "normalized": "1.15-rc.3",
     "releaseTime": "2019-11-28T17:17:50Z"
+  },
+  {
+    "id": "1.15_combat-1",
+    "normalized": "1.15-rc.3.combat.4",
+    "releaseTime": "2019-11-29T15:41:39Z"
   },
   {
     "id": "1.15-pre4",
@@ -4003,6 +4023,11 @@
     "id": "1.15.2-pre1",
     "normalized": "1.15.2-rc.1",
     "releaseTime": "2020-01-14T16:19:31Z"
+  },
+  {
+    "id": "1.15_combat-6",
+    "normalized": "1.15.2-rc.2.combat.5",
+    "releaseTime": "2020-01-15T09:46:35Z"
   },
   {
     "id": "1.15.2-pre2",
@@ -4215,6 +4240,11 @@
     "releaseTime": "2020-08-06T16:44:52Z"
   },
   {
+    "id": "1.16_combat-0",
+    "normalized": "1.16.2-beta.3.combat.6",
+    "releaseTime": "2020-08-07T10:44:47Z"
+  },
+  {
     "id": "1.16.2-rc1",
     "normalized": "1.16.2-rc.1",
     "releaseTime": "2020-08-07T14:35:39Z"
@@ -4228,6 +4258,31 @@
     "id": "1.16.2",
     "normalized": "1.16.2",
     "releaseTime": "2020-08-11T10:13:46Z"
+  },
+  {
+    "id": "1.16_combat-1",
+    "normalized": "1.16.3-combat.7",
+    "releaseTime": "2020-08-12T14:07:25Z"
+  },
+  {
+    "id": "1.16_combat-2",
+    "normalized": "1.16.3-combat.7.b",
+    "releaseTime": "2020-08-13T11:56:30Z"
+  },
+  {
+    "id": "1.16_combat-3",
+    "normalized": "1.16.3-combat.7.c",
+    "releaseTime": "2020-08-14T09:02:15Z"
+  },
+  {
+    "id": "1.16_combat-5",
+    "normalized": "1.16.3-combat.8.b",
+    "releaseTime": "2020-08-21T09:23:13Z"
+  },
+  {
+    "id": "1.16_combat-6",
+    "normalized": "1.16.3-combat.8.c",
+    "releaseTime": "2020-08-26T06:24:28Z"
   },
   {
     "id": "1.16.3-rc1",
@@ -4450,6 +4505,41 @@
     "releaseTime": "2021-07-06T12:01:34Z"
   },
   {
+    "id": "1.18_experimental-snapshot-1",
+    "normalized": "1.18-Experimental.1",
+    "releaseTime": "2021-07-13T12:54:19Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-2",
+    "normalized": "1.18-Experimental.2",
+    "releaseTime": "2021-07-20T13:35:08Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-3",
+    "normalized": "1.18-Experimental.3",
+    "releaseTime": "2021-08-10T12:42:45Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-4",
+    "normalized": "1.18-Experimental.4",
+    "releaseTime": "2021-08-17T16:10:25Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-5",
+    "normalized": "1.18-Experimental.5",
+    "releaseTime": "2021-08-25T14:41:57Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-6",
+    "normalized": "1.18-Experimental.6",
+    "releaseTime": "2021-09-01T12:53:14Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-7",
+    "normalized": "1.18-Experimental.7",
+    "releaseTime": "2021-09-08T12:33:23Z"
+  },
+  {
     "id": "21w37a",
     "normalized": "1.18-alpha.21.37.a",
     "releaseTime": "2021-09-15T16:04:30Z"
@@ -4603,6 +4693,11 @@
     "id": "22w07a",
     "normalized": "1.18.2-alpha.22.7.a",
     "releaseTime": "2022-02-16T16:13:58Z"
+  },
+  {
+    "id": "1.19_deep_dark_experimental_snapshot-1",
+    "normalized": "1.19-Experimental.1",
+    "releaseTime": "2022-02-17T13:55:59Z"
   },
   {
     "id": "1.18.2-pre1",
@@ -4930,6 +5025,11 @@
     "releaseTime": "2023-03-29T13:54:16Z"
   },
   {
+    "id": "23w13a_or_b_original",
+    "normalized": "1.20-alpha.23.13.ab+original",
+    "releaseTime": "2023-04-01T07:24:50Z"
+  },
+  {
     "id": "23w13a_or_b",
     "normalized": "1.20-alpha.23.13.ab",
     "releaseTime": "2023-04-01T12:52:18Z"
@@ -5213,6 +5313,11 @@
     "id": "24w13a",
     "normalized": "1.20.5-alpha.24.13.a",
     "releaseTime": "2024-03-27T14:30:20Z"
+  },
+  {
+    "id": "24w14potato_original",
+    "normalized": "1.20.5-alpha.24.12.potato+original",
+    "releaseTime": "2024-04-01T08:41:32Z"
   },
   {
     "id": "24w14potato",
