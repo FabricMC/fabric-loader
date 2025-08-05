@@ -35,6 +35,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -47,6 +48,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.loader.api.SemanticVersion;
@@ -106,6 +108,76 @@ public class VersionNormalizationAntiRegressionTest {
 
 			return sb.toString();
 		});
+	}
+
+	/**
+	 * Confirms that no two versions are considered equal.
+	 */
+	@Test
+	@Disabled("Some versions currently clash, and it isn't clear if that is acceptable or if it is because they were rereleased")
+	public void confirmAllUnique() throws VersionParsingException {
+		boolean hasFailure = false;
+		List<String[]> failures = new ArrayList<>();
+		List<String> failedIds = new ArrayList<>();
+		Set<Set<String>> duplicated = getRereleasedVersions();
+
+		for (MinecraftVersion expectedResult : expectedResults) {
+			Version v1 = Version.parse(expectedResult.normalized);
+
+			inner: for (MinecraftVersion expectedResult2 : expectedResults) {
+				if (expectedResult2.equals(expectedResult)) {
+					continue;
+				}
+
+				Version v2 = Version.parse(expectedResult2.normalized);
+
+				if (v1.compareTo(v2) == 0) {
+					// OmniArchive gives re-released versions different ids,
+					// but they should normalize to the same version
+					for (Set<String> dupes : duplicated) {
+						if (dupes.contains(expectedResult.id) && dupes.contains(expectedResult2.id)) {
+							continue inner;
+						}
+					}
+
+					hasFailure = true;
+
+					if (!failedIds.contains(expectedResult.id) && !failedIds.contains(expectedResult2.id)) {
+						failures.add(new String[] {expectedResult.id, expectedResult.normalized, expectedResult2.id, expectedResult2.normalized});
+						failedIds.add(expectedResult.id);
+						failedIds.add(expectedResult2.id);
+					}
+				}
+			}
+		}
+
+		assertFalse(hasFailure, () -> {
+			StringBuilder sb = new StringBuilder("The following versions compare as equivalent:");
+
+			for (String[] failure : failures) {
+				sb.append('\n');
+				sb.append('\t');
+				sb.append("id1: ").append(failure[0]).append('\t');
+				sb.append("normalized1: ").append(failure[1]).append('\t');
+				sb.append("id2: ").append(failure[2]).append('\t');
+				sb.append("normalized2: ").append(failure[3]).append('\t');
+			}
+
+			return sb.toString();
+		});
+	}
+
+	/**
+	 * Manually handle rereleased versions.
+	 */
+	private Set<Set<String>> getRereleasedVersions() {
+		Set<Set<String>> vs = new HashSet<>();
+
+		vs.add(new HashSet<>(Arrays.asList("1.16", "1.16-231620", "1.16-221349")));
+		vs.add(new HashSet<>(Arrays.asList("1.7.7", "1.7.7-091529", "1.7.7-101331")));
+		vs.add(new HashSet<>(Arrays.asList("1.6.2", "1.6.2-080933", "1.6.2-091847")));
+
+		return vs;
 	}
 
 	public static void main(String[] args) {
