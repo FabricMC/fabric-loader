@@ -48,7 +48,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.loader.api.SemanticVersion;
@@ -114,7 +113,6 @@ public class VersionNormalizationAntiRegressionTest {
 	 * Confirms that no two versions are considered equal.
 	 */
 	@Test
-	@Disabled("Some versions currently clash, and it isn't clear if that is acceptable or if it is because they were rereleased")
 	public void confirmAllUnique() throws VersionParsingException {
 		boolean hasFailure = false;
 		List<String[]> failures = new ArrayList<>();
@@ -176,6 +174,39 @@ public class VersionNormalizationAntiRegressionTest {
 		vs.add(new HashSet<>(Arrays.asList("1.16", "1.16-231620", "1.16-221349")));
 		vs.add(new HashSet<>(Arrays.asList("1.7.7", "1.7.7-091529", "1.7.7-101331")));
 		vs.add(new HashSet<>(Arrays.asList("1.6.2", "1.6.2-080933", "1.6.2-091847")));
+		vs.add(new HashSet<>(Arrays.asList("1.0", "1.0.0")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.11a", "c0.0.11a-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.12a_03-192349", "c0.0.12a_03-200018")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.13a_03", "c0.0.13a_03-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.14a_04-1735", "c0.0.14a_04-1743")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.14a_05-1748", "c0.0.14a_05-1752")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.13a", "c0.0.13a-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.15a-05311904", "c0.0.15a-06031816", "c0.0.15a-06031828",
+				"c0.0.15a-06031900", "c0.0.15a-06031950", "c0.0.15a-06041651", "c0.0.15a-06041658", "c0.0.15a-06041703")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.16a_02-071841", "c0.0.16a_02-081026", "c0.0.16a_02-081036",
+				"c0.0.16a_02-081047", "c0.0.16a_02-081722", "c0.0.16a_02-081736", "c0.0.16a_02-081855")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.17a-1945", "c0.0.17a-2014")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.19a_06-0132", "c0.0.19a_06-0137")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.21a-1951", "c0.0.21a-2008")));
+		vs.add(new HashSet<>(Arrays.asList("c0.0.22a-2154", "c0.0.22a-2158")));
+		vs.add(new HashSet<>(Arrays.asList("c0.24_st_02-1734", "c0.24_st_02-1742")));
+		vs.add(new HashSet<>(Arrays.asList("c0.25_st-1613", "c0.25_st-1615", "c0.25_st-1626", "c0.25_st-1658")));
+		vs.add(new HashSet<>(Arrays.asList("c0.30-c-1821", "c0.30-c-1900", "c0.30-c-1900-renew")));
+		vs.add(new HashSet<>(Arrays.asList("c0.30-s-1849", "c0.30-s-1858")));
+		vs.add(new HashSet<>(Arrays.asList("a1.0.4", "a1.0.4-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("a1.0.5-2133", "a1.0.5-2149")));
+		vs.add(new HashSet<>(Arrays.asList("a1.0.13_01-1038", "a1.0.13_01-1444")));
+		vs.add(new HashSet<>(Arrays.asList("a1.0.14", "a1.0.14-1603", "a1.0.14-1659", "a1.0.14-1659-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("a1.1.0", "a1.1.0-101840", "a1.1.0-101847", "a1.1.0-101847-launcher", "a1.1.0-131933")));
+		vs.add(new HashSet<>(Arrays.asList("a1.2.0", "a1.2.0-2051", "a1.2.0-2057")));
+		vs.add(new HashSet<>(Arrays.asList("a1.2.0_02", "a1.2.0_02-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("a1.2.2-1613", "a1.2.2-1624", "a1.2.2-1938")));
+		vs.add(new HashSet<>(Arrays.asList("a1.2.3_01", "a1.2.3_01-0956", "a1.2.3_01-0958")));
+		vs.add(new HashSet<>(Arrays.asList("b1.0.2", "b1.0.2-0836")));
+		vs.add(new HashSet<>(Arrays.asList("b1.1-1245", "b1.1-1255")));
+		vs.add(new HashSet<>(Arrays.asList("b1.2_02", "b1.2_02-launcher")));
+		vs.add(new HashSet<>(Arrays.asList("b1.3-1647", "b1.3-1713", "b1.3-1733", "b1.3-1750")));
+		vs.add(new HashSet<>(Arrays.asList("b1.4", "b1.4-1507", "b1.4-1634")));
 
 		return vs;
 	}
