@@ -56,8 +56,9 @@ public class VersionNormalizationTest {
 			new MinecraftVersion("c0.25_05_st", null, "0.25.5"),
 			new MinecraftVersion("0.28", null, "0.28"),
 			new MinecraftVersion("0.29_02", null, "0.29.2"),
-			new MinecraftVersion("0.30-c", null, "0.30-c"),
-			new MinecraftVersion("0.30-c-renew", null, "0.30-c.renew"),
+			new MinecraftVersion()
+				.entry("0.30-c", null, "0.30-c")
+				.entry("0.30-c-renew", null, "0.30-c+renew"),
 			new MinecraftVersion("0.30-s-1858", null, "0.30-s+1858"),
 			new MinecraftVersion("c0.30_01c", null, "0.30.1-c"),
 			// Indev (date+time vs date-only)

@@ -54,12 +54,12 @@ public final class McVersionLookup {
 	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?"); // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
 	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?"); // Snapshot 16w02a, 20w13b, 22w18c-1234
 	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp|(?:_deep_dark)?_experimental_snapshot-|(?: Deep Dark)? [Ee]xperimental [Ss]napshot )(\\d+)"); // 1.18 Experimental Snapshot 1, 1.18 experimental snapshot 2, 1.18-exp3, 1.19 Deep Dark Experimental Snapshot 1
-	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)([a-z])?(?:-(\\d+))?"); // Beta 1.2, b1.3b, b1.3-1731, Beta v1.5_02, b1.8.1
-	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)([a-z])?(?:-(\\d+))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.2a, a1.2.3_05, Alpha 0.1.0, a0.2.8
+	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Beta 1.2, b1.2_02-launcher, b1.3b, b1.3-1731, Beta v1.5_02, b1.8.1
+	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.0.4-launcher, a1.1.0-131933, a1.2.2a, a1.2.3_05, Alpha 0.1.0, a0.2.8
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?"); // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
-	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?([a-z])?((?:\\-[a-z]+)+)?(?:-(\\d+))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew, c0.30_01c
-	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?"); // c0.0.11a, c0.0.17a-2014, 0.0.18a_02
-	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("rd-(\\d+)"); // rd-132211
+	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?([a-z])?(?:-([cs]))?(?:-(\\d+))?(?:-(renew))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew, c0.30_01c
+	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?(?:-(launcher))?"); // c0.0.11a, c0.0.13a_03-launcher, c0.0.17a-2014, 0.0.18a_02
+	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("(?:rd|pc)-(\\d+)(?:-(launcher))?"); // rd-132211, pc-132011-launcher
 	private static final String STRING_DESC = "Ljava/lang/String;";
 	private static final Pattern VERSION_PATTERN = Pattern.compile(
 			PRE_CLASSIC_PATTERN.pattern()
@@ -640,6 +640,9 @@ public final class McVersionLookup {
 	private static String normalizeVersion(String version) {
 		// timestamps distinguish between re-uploads of the same version
 		String timestamp = null;
+		// omniarchive marks some versions with a -launcher suffix
+		// and there is one classic version marked -renew
+		String suffix = null;
 
 		StringBuilder prep = new StringBuilder();
 
@@ -650,6 +653,7 @@ public final class McVersionLookup {
 		if ((matcher = BETA_PATTERN.matcher(version)).matches()) { // Beta 1.2, b1.3-1731, Beta v1.5_02, b1.8.1
 			String trail = matcher.group(5);
 			timestamp = matcher.group(6);
+			suffix = matcher.group(7);
 
 			prep.append("1.0.0-beta.");
 			prep.append(matcher.group(1));
@@ -685,16 +689,17 @@ public final class McVersionLookup {
 				prep.append('.').append(trail);
 			}
 		} else if ((matcher = ALPHA_PATTERN.matcher(version)).matches()) { // Alpha v1.0.1, Alpha 1.0.1_01, a1.1.0-131933, a1.2.3_05, Alpha 0.1.0, a0.2.8
-			String trailingLetter = matcher.group(2);
+			String trail = matcher.group(2);
 			timestamp = matcher.group(3);
+			suffix = matcher.group(4);
 
 			prep.append("1.0.0-alpha.");
 			prep.append(matcher.group(1));
 
 			// in the launcher manifest, some Alpha versions have
 			// trailing alphabetic chars
-			if (trailingLetter != null) {
-				prep.append('.').append(trailingLetter);
+			if (trail != null) {
+				prep.append('.').append(trail);
 			}
 		} else if ((matcher = INDEV_PATTERN.matcher(version)).matches()) { // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
 			String date = matcher.group(1);
@@ -711,8 +716,9 @@ public final class McVersionLookup {
 			String minor = matcher.group(1);
 			String patch = matcher.group(2);
 			String trail = late ? matcher.group(4) : null;
-			String suffix = late ? matcher.group(5) : null;
+			String type = late ? matcher.group(5) : null;
 			timestamp = matcher.group(late ? 6 : 3);
+			suffix = matcher.group(late ? 7 : 4);
 
 			// in late classic, sometimes the patch number appears before
 			// the survival test identifier (_st), and sometimes after it
@@ -725,11 +731,16 @@ public final class McVersionLookup {
 			if (patch != null) prep.append('.').append(patch);
 			// in the launcher manifest, some Classic versions have trailing alphabetic chars
 			if (trail != null) prep.append('-').append(trail);
-			// in the Omniarchive manifest, some classic versions have dash separated suffixes
-			if (suffix != null) prep.append('-').append(String.join(".", suffix.split("[-]")));
+			// in the Omniarchive manifest, some classic versions releases for creative and survival
+			if (type != null) prep.append('-').append(type);
 		} else if ((matcher = PRE_CLASSIC_PATTERN.matcher(version)).matches()) { // rd-132211
 			String build = matcher.group(1);
-			if ("20090515".equals(build)) build = "150000"; // account for a weird exception to the pre-classic versioning scheme
+			suffix = matcher.group(2);
+
+			// account for a weird exception to the pre-classic versioning scheme
+			if ("20090515".equals(build)) {
+				build = "150000";
+			}
 
 			prep.append("0.0.0-rd.");
 			prep.append(build);
@@ -786,10 +797,18 @@ public final class McVersionLookup {
 
 		ret.setLength(end);
 
-		// add timestamp as extra build information
-		if (timestamp != null) {
+		// add timestamp and suffix as extra build information
+		if (timestamp != null || suffix != null) {
 			ret.append('+');
-			ret.append(timestamp);
+
+			if (timestamp != null) {
+				ret.append(timestamp);
+				if (suffix != null) ret.append('.');
+			}
+
+			if (suffix != null) {
+				ret.append(suffix);
+			}
 		}
 
 		return ret.substring(start);
