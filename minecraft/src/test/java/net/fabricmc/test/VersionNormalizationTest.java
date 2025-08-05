@@ -212,7 +212,7 @@ public class VersionNormalizationTest {
 			new MinecraftVersion("1.18 Experimental Snapshot 1", "1.18", "1.18-Experimental.1"),
 			new MinecraftVersion()
 				.entry("1.18 experimental snapshot 2", "1.18", "1.18-Experimental.2")
-				.entry("1.18_experimental_snapshot-2", "1.18", "1.18-Experimental.2"),
+				.entry("1.18_experimental-snapshot-2", "1.18", "1.18-Experimental.2"),
 			new MinecraftVersion("1.18-exp3", "1.18", "1.18-Experimental.3"),
 			// 2022 april fools
 			new MinecraftVersion()
