@@ -57,7 +57,7 @@ public final class McVersionLookup {
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Beta 1.2, b1.2_02-launcher, b1.3b, b1.3-1731, Beta v1.5_02, b1.8.1
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:(?:server-)?a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.0.4-launcher, a1.1.0-131933, a1.2.2a, a1.2.3_05, Alpha 0.1.0, server-a0.2.8
 	private static final Pattern INDEV_PATTERN = Pattern.compile("(?:inf?-|Inf?dev )(?:0\\.31 )?(\\d+)(?:-(\\d+))?"); // Indev 0.31 200100110, in-20100124-2310, Infdev 0.31 20100227-1433, inf-20100611
-	private static final Pattern CLASSIC_SERVER_PATTERN = Pattern.compile("(?:(?:server-)?c)(1\\.\\d\\d?(?:\\.\\d)?)(?:-(\\d+))?"); // c1.0, server-c1.3, server-c1.5-1301, c1.8.1, c1.10.1
+	private static final Pattern CLASSIC_SERVER_PATTERN = Pattern.compile("(?:(?:server-)?c)1\\.(\\d\\d?(?:\\.\\d)?)(?:-(\\d+))?"); // c1.0, server-c1.3, server-c1.5-1301, c1.8.1, c1.10.1
 	private static final Pattern LATE_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.)(\\d\\d?)(?:_0(\\d))?(?:_st)?(?:_0(\\d))?([a-z])?(?:-([cs]))?(?:-(\\d+))?(?:-(renew))?"); // c0.24_st, 0.24_st_03, 0.25_st-1658, c0.25_05_st, 0.29, c0.30-s, 0.30-c-renew, c0.30_01c
 	private static final Pattern EARLY_CLASSIC_PATTERN = Pattern.compile("(?:c?0\\.0\\.)(\\d\\d?)a(?:_0(\\d))?(?:-(\\d+))?(?:-(launcher))?"); // c0.0.11a, c0.0.13a_03-launcher, c0.0.17a-2014, 0.0.18a_02
 	private static final Pattern PRE_CLASSIC_PATTERN = Pattern.compile("(?:rd|pc)-(\\d+)(?:-(launcher))?"); // rd-132211, pc-132011-launcher
@@ -742,6 +742,7 @@ public final class McVersionLookup {
 			String release = matcher.group(1);
 			timestamp = matcher.group(2);
 
+			prep.append("0.");
 			prep.append(release);
 		} else if ((matcher = PRE_CLASSIC_PATTERN.matcher(version)).matches()) { // rd-132211
 			String build = matcher.group(1);
