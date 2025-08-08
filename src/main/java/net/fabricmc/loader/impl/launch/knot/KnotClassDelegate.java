@@ -28,6 +28,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -562,10 +563,14 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			if (value == null || value.isEmpty()) continue;
 
 			for (String pathStr : value.split(File.pathSeparator)) {
-				Path path = Paths.get(pathStr);
+				try {
+					Path path = Paths.get(pathStr);
 
-				if (Files.exists(path)) {
-					ret.add(path);
+					if (Files.exists(path)) {
+						ret.add(path);
+					}
+				} catch (InvalidPathException e) {
+					Log.warn(LogCategory.KNOT, "Ignoring invalid library path %s", pathStr);
 				}
 			}
 		}
