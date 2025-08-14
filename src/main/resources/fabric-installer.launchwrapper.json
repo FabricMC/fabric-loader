@@ -62,7 +62,6 @@
             },
             {
                 "name": "net.minecraft:launchwrapper:1.12",
-                "url": "https://maven.fabricmc.net/",
                 "md5": "111e7bea9c968cdb3d06ef4632bf7ff0824d0f36",
                 "size": 32999
             }

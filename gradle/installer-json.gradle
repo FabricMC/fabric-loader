@@ -69,6 +69,11 @@ abstract class GenerateInstallerJsonTask extends DefaultTask {
 				def library = [name: artifact.moduleVersion.toString(), url: "https://maven.fabricmc.net/"]
 				library.putAll(resolveHashes(artifact.moduleVersion.toString()))
 
+				// LaunchWrapper should not specify a maven url, as its hosted on Mojang's maven.
+				if (library.name.startsWith("net.minecraft")) {
+					library.remove("url")
+				}
+
 				json.libraries[side].add(library)
 			}
 		}
