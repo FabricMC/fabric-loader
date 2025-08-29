@@ -499,7 +499,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			url = parentClassLoader.getResource(name);
 
 			if (!isValidParentUrl(url, name)) {
-				if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "refusing to load class %s at %s from parent class loader", name, getCodeSource(url, name));
+				if (LOG_CLASS_LOAD) Log.info(LogCategory.KNOT, "refusing to load class %s at %s from parent class loader", name, url != null ? getCodeSource(url, name) : "null");
 
 				return null;
 			}
