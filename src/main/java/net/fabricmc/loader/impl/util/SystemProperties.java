@@ -49,6 +49,8 @@ public final class SystemProperties {
 	public static final String ADD_MODS = "fabric.addMods";
 	// a comma-separated list of mod ids to disable, even if they're discovered. mostly useful for unit testing.
 	public static final String DISABLE_MOD_IDS = "fabric.debug.disableModIds";
+	// a path to a directory to replace the default mod config directory
+	public static final String CONFIG_FOLDER = "fabric.configFolder";
 	// file containing the class path for in-dev runtime mod remapping
 	public static final String REMAP_CLASSPATH_FILE = "fabric.remapClasspathFile";
 	// class path groups to map multiple class path entries to a mod (paths separated by path separator, groups by double path separator)
