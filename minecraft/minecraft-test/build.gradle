@@ -56,27 +56,21 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
 
-import net.fabricmc.loom.util.Platform
 import groovy.json.JsonSlurper
 
 configurations {
-	productionRuntime {
-		extendsFrom configurations.minecraftLibraries
-		extendsFrom configurations.loaderLibraries
-		extendsFrom configurations.minecraftRuntimeLibraries
-	}
 	productionRuntimeMods {
 		transitive = false
 	}
 }
 
 dependencies {
-	productionRuntime "net.fabricmc:intermediary:${minecraft_version}"
+	minecraftTestClientRuntimeLibraries "net.fabricmc:intermediary:${minecraft_version}"
 
 	// Include the external libraries on the classpath
 	def installerJson = new JsonSlurper().parse(rootProject.file("src/main/resources/fabric-installer.json"))
 	installerJson.libraries.common.each {
-		productionRuntime it.name
+		minecraftTestClientRuntimeLibraries it.name
 	}
 
 	// Use Fabric's auto client test
@@ -86,41 +80,14 @@ dependencies {
 
 def loaderJarTask = project(":").tasks.finalJar
 
-// This is very far beyond loom's API if you copy this, you're on your own.
-task runProductionAutoTestClient(type: JavaExec, dependsOn: [loaderJarTask, remapJar]) {
-	classpath.from configurations.productionRuntime
-	classpath.from loaderJarTask
-	mainClass = "net.fabricmc.loader.impl.launch.knot.KnotClient"
-	workingDir = file("run")
+tasks.register('runProductionAutoTestClient', net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+	mods.from configurations.productionRuntimeMods
+	mods.from remapJar
 
-	afterEvaluate {
-		dependsOn downloadAssets
-	}
+	classpath.setFrom loaderJarTask
+	classpath.from configurations.minecraftTestClientRuntimeLibraries
+	classpath.from loom.minecraftProvider.minecraftClientJar
 
-	doFirst {
-		classpath.from loom.minecraftProvider.minecraftClientJar
-		workingDir.mkdirs()
-
-		args(
-			"--assetIndex", loom.minecraftProvider.versionInfo.assetIndex().fabricId(loom.minecraftProvider.minecraftVersion()),
-			"--assetsDir", new File(loom.files.userCache, "assets").absolutePath,
-			"--gameDir", workingDir.absolutePath
-		)
-
-		if (Platform.CURRENT.operatingSystem.isMacOS()) {
-			jvmArgs(
-				"-XstartOnFirstThread"
-			)
-		}
-
-		def modFiles = []
-		modFiles.addAll configurations.productionRuntimeMods.files
-		modFiles.add remapJar.archiveFile.get().asFile
-		def mods = modFiles.join(File.pathSeparator)
-
-		jvmArgs(
-			"-Dfabric.addMods=${mods}",
-			"-Dfabric.autoTest"
-		)
-	}
+	jvmArgs.add("-Dfabric.autoTest")
+	programArgs.add("nogui")
 }

@@ -16,12 +16,10 @@
 
 package net.fabricmc.loader.impl.game;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,7 +46,7 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 public final class LibClassifier<L extends Enum<L> & LibraryType> {
-	private static final boolean DEBUG = System.getProperty(SystemProperties.DEBUG_LOG_LIB_CLASSIFICATION) != null;
+	private static final boolean DEBUG = SystemProperties.isSet(SystemProperties.DEBUG_LOG_LIB_CLASSIFICATION);
 
 	private final List<L> libs;
 	private final Map<L, Path> origins;
@@ -74,28 +72,21 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		// system libs configured through system property
 
 		StringBuilder sb = DEBUG ? new StringBuilder() : null;
-		String systemLibProp = System.getProperty(SystemProperties.SYSTEM_LIBRARIES);
+		List<Path> systemLibs = GameProviderHelper.getLibraries(SystemProperties.SYSTEM_LIBRARIES);
 
-		if (systemLibProp != null) {
-			for (String lib : systemLibProp.split(File.pathSeparator)) {
-				Path path = Paths.get(lib);
+		if (systemLibs != null) {
+			for (Path lib : systemLibs) {
+				assert lib.equals(LoaderUtil.normalizeExistingPath(lib));
 
-				if (!Files.exists(path)) {
-					Log.info(LogCategory.LIB_CLASSIFICATION, "Skipping missing system library entry %s", path);
-					continue;
-				}
-
-				path = LoaderUtil.normalizeExistingPath(path);
-
-				if (systemLibraries.add(path)) {
-					if (DEBUG) sb.append(String.format("🇸 %s%n", path));
+				if (systemLibraries.add(lib)) {
+					if (DEBUG) sb.append(String.format("🇸 %s%n", lib));
 				}
 			}
 		}
 
 		// loader libs
 
-		boolean junitRun = System.getProperty(SystemProperties.UNIT_TEST) != null;
+		boolean junitRun = SystemProperties.isSet(SystemProperties.UNIT_TEST);
 
 		for (LoaderLibrary lib : LoaderLibrary.values()) {
 			if (!lib.isApplicable(env, junitRun)) continue;
@@ -125,6 +116,14 @@ public final class LibClassifier<L extends Enum<L> & LibraryType> {
 		}
 
 		if (DEBUG) Log.info(LogCategory.LIB_CLASSIFICATION, "Loader/system libraries:%n%s", sb);
+
+		// game libraries
+
+		List<Path> gameLibs = GameProviderHelper.getLibraries(SystemProperties.GAME_LIBRARIES);
+
+		if (gameLibs != null) {
+			process(gameLibs);
+		}
 
 		// process indirectly referenced libs
 

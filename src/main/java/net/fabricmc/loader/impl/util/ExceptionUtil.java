@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 public final class ExceptionUtil {
-	private static final boolean THROW_DIRECTLY = System.getProperty(SystemProperties.DEBUG_THROW_DIRECTLY) != null;
+	private static final boolean THROW_DIRECTLY = SystemProperties.isSet(SystemProperties.DEBUG_THROW_DIRECTLY);
 
 	public static <T extends Throwable> T gatherExceptions(Throwable exc, T prev, Function<Throwable, T> mainExcFactory) throws T {
 		exc = unwrap(exc);

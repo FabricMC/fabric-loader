@@ -63,21 +63,22 @@ public final class FabricMixinBootstrap {
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
 			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
 			MappingTree mappings = mappingConfiguration.getMappings();
+			final String modNs = MappingConfiguration.INTERMEDIARY_NAMESPACE;
+			String runtimeNs = mappingConfiguration.getRuntimeNamespace();
 
-			if (mappings != null) {
+			if (mappings != null && !modNs.equals(runtimeNs)) {
 				List<String> namespaces = new ArrayList<>(mappings.getDstNamespaces());
 				namespaces.add(mappings.getSrcNamespace());
 
-				if (namespaces.contains("intermediary") && namespaces.contains(mappingConfiguration.getTargetNamespace())) {
+				if (namespaces.contains(modNs) && namespaces.contains(runtimeNs)) {
 					System.setProperty("mixin.env.remapRefMap", "true");
 
 					try {
-						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, "intermediary", mappingConfiguration.getTargetNamespace());
+						MixinIntermediaryDevRemapper remapper = new MixinIntermediaryDevRemapper(mappings, modNs, runtimeNs);
 						MixinEnvironment.getDefaultEnvironment().getRemappers().add(remapper);
 						Log.info(LogCategory.MIXIN, "Loaded Fabric development mappings for mixin remapper!");
 					} catch (Exception e) {
-						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!");
-						e.printStackTrace();
+						Log.error(LogCategory.MIXIN, "Fabric development environment setup error - the game will probably crash soon!", e);
 					}
 				}
 			}

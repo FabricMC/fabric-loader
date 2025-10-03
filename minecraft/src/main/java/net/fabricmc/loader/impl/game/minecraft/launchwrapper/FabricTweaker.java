@@ -64,7 +64,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	protected Arguments arguments;
 	private LaunchClassLoader launchClassLoader;
 	private final List<Path> classPath = new ArrayList<>();
-	private boolean isDevelopment;
 
 	@SuppressWarnings("unchecked")
 	private final boolean isPrimaryTweaker = ((List<ITweaker>) Launch.blackboard.get("Tweaks")).isEmpty();
@@ -72,12 +71,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	@Override
 	public String getEntrypoint() {
 		return getLaunchTarget();
-	}
-
-	@Override
-	public String getTargetNamespace() {
-		// TODO: Won't work outside of Yarn
-		return isDevelopment ? "named" : "intermediary";
 	}
 
 	@Override
@@ -96,8 +89,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public void injectIntoClassLoader(LaunchClassLoader launchClassLoader) {
-		isDevelopment = Boolean.parseBoolean(System.getProperty(SystemProperties.DEVELOPMENT, "false"));
-		Launch.blackboard.put(SystemProperties.DEVELOPMENT, isDevelopment);
+		Launch.blackboard.put(SystemProperties.DEVELOPMENT, IS_DEVELOPMENT);
 		setProperties(Launch.blackboard);
 
 		this.launchClassLoader = launchClassLoader;
@@ -141,10 +133,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 		arguments = null;
 
-		provider.initialize(this);
-
 		FabricLoaderImpl loader = FabricLoaderImpl.INSTANCE;
 		loader.setGameProvider(provider);
+		provider.initialize(this);
 		loader.load();
 		loader.freeze();
 
@@ -294,10 +285,5 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		}
 
 		return outputStream.toByteArray();
-	}
-
-	@Override
-	public boolean isDevelopment() {
-		return isDevelopment;
 	}
 }

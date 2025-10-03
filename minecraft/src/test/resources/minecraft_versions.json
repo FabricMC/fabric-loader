@@ -1,0 +1,7057 @@
+[
+  {
+    "id": "rd-132211",
+    "normalized": "0.0.0-rd.132211",
+    "releaseTime": "2009-05-13T20:11:00Z"
+  },
+  {
+    "id": "rd-132328",
+    "normalized": "0.0.0-rd.132328",
+    "releaseTime": "2009-05-13T21:28:00Z"
+  },
+  {
+    "id": "rd-20090515",
+    "normalized": "0.0.0-rd.150000",
+    "releaseTime": "2009-05-14T22:00:00Z"
+  },
+  {
+    "id": "rd-160052",
+    "normalized": "0.0.0-rd.160052",
+    "releaseTime": "2009-05-15T22:52:00Z"
+  },
+  {
+    "id": "c-20090516-1607",
+    "normalized": "c-20090516-1607",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c-20090516-1616",
+    "normalized": "c-20090516-1616",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c-20090516-1625",
+    "normalized": "c-20090516-1625",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c-20090516-1648",
+    "normalized": "c-20090516-1648",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.1a",
+    "normalized": "0.1",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.2a",
+    "normalized": "0.2",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.3a",
+    "normalized": "0.3",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.4a",
+    "normalized": "0.4",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.5a",
+    "normalized": "0.5",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.6a",
+    "normalized": "0.6",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.7a",
+    "normalized": "0.7",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.8a",
+    "normalized": "0.8",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "c0.0.9a",
+    "normalized": "0.9",
+    "releaseTime": "2009-05-16T00:00:00Z"
+  },
+  {
+    "id": "rd-161348",
+    "normalized": "0.0.0-rd.161348",
+    "releaseTime": "2009-05-16T11:48:00Z"
+  },
+  {
+    "id": "c0.0.11a",
+    "normalized": "0.11",
+    "releaseTime": "2009-05-16T22:00:00Z"
+  },
+  {
+    "id": "c0.0.10a",
+    "normalized": "0.10",
+    "releaseTime": "2009-05-17T00:00:00Z"
+  },
+  {
+    "id": "c0.0.12a",
+    "normalized": "0.12",
+    "releaseTime": "2009-05-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.12a_01",
+    "normalized": "0.12.1",
+    "releaseTime": "2009-05-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.12a_02",
+    "normalized": "0.12.2",
+    "releaseTime": "2009-05-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.12a_03-192349",
+    "normalized": "0.12.3+192349",
+    "releaseTime": "2009-05-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.12a_03-200018",
+    "normalized": "0.12.3+200018",
+    "releaseTime": "2009-05-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a_03",
+    "normalized": "0.13.3",
+    "releaseTime": "2009-05-21T22:00:00Z"
+  },
+  {
+    "id": "c0.0.13a_01",
+    "normalized": "0.13.1",
+    "releaseTime": "2009-05-22T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a_02",
+    "normalized": "0.13.2",
+    "releaseTime": "2009-05-22T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a",
+    "normalized": "0.14",
+    "releaseTime": "2009-05-27T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_01",
+    "normalized": "0.14.1",
+    "releaseTime": "2009-05-27T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_02",
+    "normalized": "0.14.2",
+    "releaseTime": "2009-05-27T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_03",
+    "normalized": "0.14.3",
+    "releaseTime": "2009-05-27T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_04-1735",
+    "normalized": "0.14.4+1735",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_04-1743",
+    "normalized": "0.14.4+1743",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_05-1748",
+    "normalized": "0.14.5+1748",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_05-1752",
+    "normalized": "0.14.5+1752",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_06",
+    "normalized": "0.14.6",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_07",
+    "normalized": "0.14.7",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.14a_08",
+    "normalized": "0.14.8",
+    "releaseTime": "2009-05-28T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a",
+    "normalized": "0.13",
+    "releaseTime": "2009-05-30T22:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-05311904",
+    "normalized": "0.15+05311904",
+    "releaseTime": "2009-05-31T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06031816",
+    "normalized": "0.15+06031816",
+    "releaseTime": "2009-06-03T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06031828",
+    "normalized": "0.15+06031828",
+    "releaseTime": "2009-06-03T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06031900",
+    "normalized": "0.15+06031900",
+    "releaseTime": "2009-06-03T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06031950",
+    "normalized": "0.15+06031950",
+    "releaseTime": "2009-06-03T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06041651",
+    "normalized": "0.15+06041651",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06041658",
+    "normalized": "0.15+06041658",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a-06041703",
+    "normalized": "0.15+06041703",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a_01",
+    "normalized": "0.15.1",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a_02",
+    "normalized": "0.15.2",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a_0x-2045",
+    "normalized": "c.0.0.15.a.0.x-2045",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.15a_0x-2049",
+    "normalized": "c.0.0.15.a.0.x-2049",
+    "releaseTime": "2009-06-04T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a",
+    "normalized": "0.16",
+    "releaseTime": "2009-06-07T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_01",
+    "normalized": "0.16.1",
+    "releaseTime": "2009-06-07T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-071841",
+    "normalized": "0.16.2+071841",
+    "releaseTime": "2009-06-07T00:00:00Z"
+  },
+  {
+    "id": "c1.0",
+    "normalized": "0.0",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c1.1",
+    "normalized": "0.1",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c1.2",
+    "normalized": "0.2",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-081026",
+    "normalized": "0.16.2+081026",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-081036",
+    "normalized": "0.16.2+081036",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-081047",
+    "normalized": "0.16.2+081047",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-081722",
+    "normalized": "0.16.2+081722",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-081736",
+    "normalized": "0.16.2+081736",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-08181x",
+    "normalized": "c.0.0.16.a.2-8181.x",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c0.0.16a_02-081855",
+    "normalized": "0.16.2+081855",
+    "releaseTime": "2009-06-08T00:00:00Z"
+  },
+  {
+    "id": "c1.3",
+    "normalized": "0.3",
+    "releaseTime": "2009-06-10T00:00:00Z"
+  },
+  {
+    "id": "c0.0.17a-1945",
+    "normalized": "0.17+1945",
+    "releaseTime": "2009-06-10T00:00:00Z"
+  },
+  {
+    "id": "c0.0.17a-2014",
+    "normalized": "0.17+2014",
+    "releaseTime": "2009-06-10T00:00:00Z"
+  },
+  {
+    "id": "c1.4-1327",
+    "normalized": "0.4+1327",
+    "releaseTime": "2009-06-13T00:00:00Z"
+  },
+  {
+    "id": "c1.4-1422",
+    "normalized": "0.4+1422",
+    "releaseTime": "2009-06-13T00:00:00Z"
+  },
+  {
+    "id": "c0.0.18a",
+    "normalized": "0.18",
+    "releaseTime": "2009-06-13T00:00:00Z"
+  },
+  {
+    "id": "c0.0.18a_01",
+    "normalized": "0.18.1",
+    "releaseTime": "2009-06-13T00:00:00Z"
+  },
+  {
+    "id": "c1.4.1",
+    "normalized": "0.4.1",
+    "releaseTime": "2009-06-14T00:00:00Z"
+  },
+  {
+    "id": "c0.0.18a_02",
+    "normalized": "0.18.2",
+    "releaseTime": "2009-06-14T00:00:00Z"
+  },
+  {
+    "id": "c1.5-1248",
+    "normalized": "0.5+1248",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.5-1301",
+    "normalized": "0.5+1301",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.5-2235",
+    "normalized": "0.5+2235",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.6",
+    "normalized": "0.6",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a",
+    "normalized": "0.19",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_01",
+    "normalized": "0.19.1",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_02",
+    "normalized": "0.19.2",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_03",
+    "normalized": "0.19.3",
+    "releaseTime": "2009-06-19T00:00:00Z"
+  },
+  {
+    "id": "c1.8",
+    "normalized": "0.8",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c1.8.1",
+    "normalized": "0.8.1",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c1.8.2",
+    "normalized": "0.8.2",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_04",
+    "normalized": "0.19.4",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_05",
+    "normalized": "0.19.5",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_06-0132",
+    "normalized": "0.19.6+0132",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.19a_06-0137",
+    "normalized": "0.19.6+0137",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.20a",
+    "normalized": "0.20",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.20a_01",
+    "normalized": "0.20.1",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.20a_02",
+    "normalized": "0.20.2",
+    "releaseTime": "2009-06-20T00:00:00Z"
+  },
+  {
+    "id": "c0.0.21a-1951",
+    "normalized": "0.21+1951",
+    "releaseTime": "2009-06-22T00:00:00Z"
+  },
+  {
+    "id": "c0.0.21a-2008",
+    "normalized": "0.21+2008",
+    "releaseTime": "2009-06-22T00:00:00Z"
+  },
+  {
+    "id": "c0.0.21a_01",
+    "normalized": "0.21.1",
+    "releaseTime": "2009-06-23T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a-2154",
+    "normalized": "0.22+2154",
+    "releaseTime": "2009-06-29T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a-2158",
+    "normalized": "0.22+2158",
+    "releaseTime": "2009-06-29T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a_01",
+    "normalized": "0.22.1",
+    "releaseTime": "2009-06-29T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a_02",
+    "normalized": "0.22.2",
+    "releaseTime": "2009-06-29T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a_03",
+    "normalized": "0.22.3",
+    "releaseTime": "2009-06-29T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a_04",
+    "normalized": "0.22.4",
+    "releaseTime": "2009-06-29T00:00:00Z"
+  },
+  {
+    "id": "c0.0.22a_05",
+    "normalized": "0.22.5",
+    "releaseTime": "2009-06-30T00:00:00Z"
+  },
+  {
+    "id": "c0.0.23a",
+    "normalized": "0.23",
+    "releaseTime": "2009-07-11T00:00:00Z"
+  },
+  {
+    "id": "c0.0.23a_01",
+    "normalized": "0.23.1",
+    "releaseTime": "2009-07-11T00:00:00Z"
+  },
+  {
+    "id": "c0.24_st",
+    "normalized": "0.24",
+    "releaseTime": "2009-09-01T00:00:00Z"
+  },
+  {
+    "id": "c0.24_st_01",
+    "normalized": "0.24.1",
+    "releaseTime": "2009-09-01T00:00:00Z"
+  },
+  {
+    "id": "c0.24_st_02-1734",
+    "normalized": "0.24.2+1734",
+    "releaseTime": "2009-09-01T00:00:00Z"
+  },
+  {
+    "id": "c0.24_st_02-1742",
+    "normalized": "0.24.2+1742",
+    "releaseTime": "2009-09-01T00:00:00Z"
+  },
+  {
+    "id": "c0.24_st_03",
+    "normalized": "0.24.3",
+    "releaseTime": "2009-09-01T00:00:00Z"
+  },
+  {
+    "id": "c0.25_st-1613",
+    "normalized": "0.25+1613",
+    "releaseTime": "2009-09-03T00:00:00Z"
+  },
+  {
+    "id": "c0.25_st-1615",
+    "normalized": "0.25+1615",
+    "releaseTime": "2009-09-03T00:00:00Z"
+  },
+  {
+    "id": "c0.25_st-1626",
+    "normalized": "0.25+1626",
+    "releaseTime": "2009-09-03T00:00:00Z"
+  },
+  {
+    "id": "c0.25_st-1658",
+    "normalized": "0.25+1658",
+    "releaseTime": "2009-09-03T00:00:00Z"
+  },
+  {
+    "id": "c0.25_05_st",
+    "normalized": "0.25.5",
+    "releaseTime": "2009-09-03T00:00:00Z"
+  },
+  {
+    "id": "c0.26_st",
+    "normalized": "0.26",
+    "releaseTime": "2009-10-24T00:00:00Z"
+  },
+  {
+    "id": "c0.27_st",
+    "normalized": "0.27",
+    "releaseTime": "2009-10-24T00:00:00Z"
+  },
+  {
+    "id": "c1.8.3",
+    "normalized": "0.8.3",
+    "releaseTime": "2009-10-27T00:00:00Z"
+  },
+  {
+    "id": "c0.28",
+    "normalized": "0.28",
+    "releaseTime": "2009-10-27T00:00:00Z"
+  },
+  {
+    "id": "c0.28_01",
+    "normalized": "0.28.1",
+    "releaseTime": "2009-10-27T00:00:00Z"
+  },
+  {
+    "id": "c1.9.1",
+    "normalized": "0.9.1",
+    "releaseTime": "2009-10-29T00:00:00Z"
+  },
+  {
+    "id": "c0.29",
+    "normalized": "0.29",
+    "releaseTime": "2009-10-29T00:00:00Z"
+  },
+  {
+    "id": "c0.29_01",
+    "normalized": "0.29.1",
+    "releaseTime": "2009-10-29T00:00:00Z"
+  },
+  {
+    "id": "c0.29_02",
+    "normalized": "0.29.2",
+    "releaseTime": "2009-10-30T00:00:00Z"
+  },
+  {
+    "id": "c0.30-c-1821",
+    "normalized": "0.30-c+1821",
+    "releaseTime": "2009-11-10T00:00:00Z"
+  },
+  {
+    "id": "c0.30-c-1900",
+    "normalized": "0.30-c+1900",
+    "releaseTime": "2009-11-10T00:00:00Z"
+  },
+  {
+    "id": "c0.30-s-1849",
+    "normalized": "0.30-s+1849",
+    "releaseTime": "2009-11-10T00:00:00Z"
+  },
+  {
+    "id": "c0.30-s-1858",
+    "normalized": "0.30-s+1858",
+    "releaseTime": "2009-11-10T00:00:00Z"
+  },
+  {
+    "id": "c1.10",
+    "normalized": "0.10",
+    "releaseTime": "2009-12-11T00:00:00Z"
+  },
+  {
+    "id": "c1.10.1",
+    "normalized": "0.10.1",
+    "releaseTime": "2009-12-11T00:00:00Z"
+  },
+  {
+    "id": "c0.30_01c",
+    "normalized": "0.30.1-c",
+    "releaseTime": "2009-12-21T22:00:00Z"
+  },
+  {
+    "id": "in-20091223-0040",
+    "normalized": "0.31.20091223-40",
+    "releaseTime": "2009-12-23T00:00:00Z"
+  },
+  {
+    "id": "in-20091223-1457",
+    "normalized": "0.31.20091223-1457",
+    "releaseTime": "2009-12-23T00:00:00Z"
+  },
+  {
+    "id": "in-20091223-1459",
+    "normalized": "0.31.20091223-1459",
+    "releaseTime": "2009-12-23T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-1856",
+    "normalized": "0.31.20091231-1856",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-2004",
+    "normalized": "0.31.20091231-2004",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-2013",
+    "normalized": "0.31.20091231-2013",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-2033",
+    "normalized": "0.31.20091231-2033",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-2036",
+    "normalized": "0.31.20091231-2036",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-2147",
+    "normalized": "0.31.20091231-2147",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20091231-2255",
+    "normalized": "0.31.20091231-2255",
+    "releaseTime": "2009-12-31T00:00:00Z"
+  },
+  {
+    "id": "in-20100104-2154",
+    "normalized": "0.31.20100104-2154",
+    "releaseTime": "2010-01-04T00:00:00Z"
+  },
+  {
+    "id": "in-20100104-2258",
+    "normalized": "0.31.20100104-2258",
+    "releaseTime": "2010-01-04T00:00:00Z"
+  },
+  {
+    "id": "in-20100106-1655",
+    "normalized": "0.31.20100106-1655",
+    "releaseTime": "2010-01-06T00:00:00Z"
+  },
+  {
+    "id": "in-20100106-2159",
+    "normalized": "0.31.20100106-2159",
+    "releaseTime": "2010-01-06T00:00:00Z"
+  },
+  {
+    "id": "in-20100106-2220",
+    "normalized": "0.31.20100106-2220",
+    "releaseTime": "2010-01-06T00:00:00Z"
+  },
+  {
+    "id": "in-20100107-1851",
+    "normalized": "0.31.20100107-1851",
+    "releaseTime": "2010-01-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100107-1947",
+    "normalized": "0.31.20100107-1947",
+    "releaseTime": "2010-01-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100107-2010",
+    "normalized": "0.31.20100107-2010",
+    "releaseTime": "2010-01-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100109-1939",
+    "normalized": "0.31.20100109-1939",
+    "releaseTime": "2010-01-09T00:00:00Z"
+  },
+  {
+    "id": "in-20100109-2003",
+    "normalized": "0.31.20100109-2003",
+    "releaseTime": "2010-01-09T00:00:00Z"
+  },
+  {
+    "id": "in-20100110",
+    "normalized": "0.31.20100110",
+    "releaseTime": "2010-01-10T00:00:00Z"
+  },
+  {
+    "id": "in-2010011x-xxxx",
+    "normalized": "in-2010011.x-xxxx",
+    "releaseTime": "2010-01-10T00:00:00Z"
+  },
+  {
+    "id": "in-20100111-0024",
+    "normalized": "0.31.20100111-24",
+    "releaseTime": "2010-01-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100111-2207",
+    "normalized": "0.31.20100111-2207",
+    "releaseTime": "2010-01-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100111-2210",
+    "normalized": "0.31.20100111-2210",
+    "releaseTime": "2010-01-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100113-2015",
+    "normalized": "0.31.20100113-2015",
+    "releaseTime": "2010-01-13T00:00:00Z"
+  },
+  {
+    "id": "in-20100113-2243",
+    "normalized": "0.31.20100113-2243",
+    "releaseTime": "2010-01-13T00:00:00Z"
+  },
+  {
+    "id": "in-20100114",
+    "normalized": "0.31.20100114",
+    "releaseTime": "2010-01-14T00:00:00Z"
+  },
+  {
+    "id": "in-20100122-1708",
+    "normalized": "0.31.20100122-1708",
+    "releaseTime": "2010-01-22T00:00:00Z"
+  },
+  {
+    "id": "in-20100122-2251",
+    "normalized": "0.31.20100122-2251",
+    "releaseTime": "2010-01-22T00:00:00Z"
+  },
+  {
+    "id": "in-20100124-2119",
+    "normalized": "0.31.20100124-2119",
+    "releaseTime": "2010-01-24T00:00:00Z"
+  },
+  {
+    "id": "in-20100124-2134",
+    "normalized": "0.31.20100124-2134",
+    "releaseTime": "2010-01-24T00:00:00Z"
+  },
+  {
+    "id": "in-20100124-2310",
+    "normalized": "0.31.20100124-2310",
+    "releaseTime": "2010-01-24T00:00:00Z"
+  },
+  {
+    "id": "in-20100125",
+    "normalized": "0.31.20100125",
+    "releaseTime": "2010-01-25T00:00:00Z"
+  },
+  {
+    "id": "in-20100128-2203",
+    "normalized": "0.31.20100128-2203",
+    "releaseTime": "2010-01-28T00:00:00Z"
+  },
+  {
+    "id": "in-20100128-2304",
+    "normalized": "0.31.20100128-2304",
+    "releaseTime": "2010-01-28T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-1447",
+    "normalized": "0.31.20100129-1447",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-1452",
+    "normalized": "0.31.20100129-1452",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2129",
+    "normalized": "0.31.20100129-2129",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2134",
+    "normalized": "0.31.20100129-2134",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2136",
+    "normalized": "0.31.20100129-2136",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2138",
+    "normalized": "0.31.20100129-2138",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2158",
+    "normalized": "0.31.20100129-2158",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2209",
+    "normalized": "0.31.20100129-2209",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100129-2333",
+    "normalized": "0.31.20100129-2333",
+    "releaseTime": "2010-01-29T00:00:00Z"
+  },
+  {
+    "id": "in-20100130",
+    "normalized": "0.31.20100130",
+    "releaseTime": "2010-01-30T00:00:00Z"
+  },
+  {
+    "id": "in-20100131-2157",
+    "normalized": "0.31.20100131-2157",
+    "releaseTime": "2010-01-31T00:00:00Z"
+  },
+  {
+    "id": "in-20100131-2229",
+    "normalized": "0.31.20100131-2229",
+    "releaseTime": "2010-01-31T00:00:00Z"
+  },
+  {
+    "id": "in-20100131-2236",
+    "normalized": "0.31.20100131-2236",
+    "releaseTime": "2010-01-31T00:00:00Z"
+  },
+  {
+    "id": "in-20100131-2241",
+    "normalized": "0.31.20100131-2241",
+    "releaseTime": "2010-01-31T00:00:00Z"
+  },
+  {
+    "id": "in-20100131-2244",
+    "normalized": "0.31.20100131-2244",
+    "releaseTime": "2010-01-31T00:00:00Z"
+  },
+  {
+    "id": "in-20100201-0025",
+    "normalized": "0.31.20100201-25",
+    "releaseTime": "2010-02-01T00:00:00Z"
+  },
+  {
+    "id": "in-20100201-2227",
+    "normalized": "0.31.20100201-2227",
+    "releaseTime": "2010-02-01T00:00:00Z"
+  },
+  {
+    "id": "in-20100202-2157",
+    "normalized": "0.31.20100202-2157",
+    "releaseTime": "2010-02-02T00:00:00Z"
+  },
+  {
+    "id": "in-20100202-2218",
+    "normalized": "0.31.20100202-2218",
+    "releaseTime": "2010-02-02T00:00:00Z"
+  },
+  {
+    "id": "in-20100202-2311",
+    "normalized": "0.31.20100202-2311",
+    "releaseTime": "2010-02-02T00:00:00Z"
+  },
+  {
+    "id": "in-20100202-2327",
+    "normalized": "0.31.20100202-2327",
+    "releaseTime": "2010-02-02T00:00:00Z"
+  },
+  {
+    "id": "in-20100202-2330",
+    "normalized": "0.31.20100202-2330",
+    "releaseTime": "2010-02-02T00:00:00Z"
+  },
+  {
+    "id": "in-20100204-1541",
+    "normalized": "0.31.20100204-1541",
+    "releaseTime": "2010-02-04T00:00:00Z"
+  },
+  {
+    "id": "in-20100204-2027",
+    "normalized": "0.31.20100204-2027",
+    "releaseTime": "2010-02-04T00:00:00Z"
+  },
+  {
+    "id": "in-20100204-2153",
+    "normalized": "0.31.20100204-2153",
+    "releaseTime": "2010-02-04T00:00:00Z"
+  },
+  {
+    "id": "in-20100205-1558",
+    "normalized": "0.31.20100205-1558",
+    "releaseTime": "2010-02-05T00:00:00Z"
+  },
+  {
+    "id": "in-20100205-2241",
+    "normalized": "0.31.20100205-2241",
+    "releaseTime": "2010-02-05T00:00:00Z"
+  },
+  {
+    "id": "in-20100206-1437",
+    "normalized": "0.31.20100206-1437",
+    "releaseTime": "2010-02-06T00:00:00Z"
+  },
+  {
+    "id": "in-20100206-2034",
+    "normalized": "0.31.20100206-2034",
+    "releaseTime": "2010-02-06T00:00:00Z"
+  },
+  {
+    "id": "in-20100206-2103",
+    "normalized": "0.31.20100206-2103",
+    "releaseTime": "2010-02-06T00:00:00Z"
+  },
+  {
+    "id": "in-20100207-1058",
+    "normalized": "0.31.20100207-1058",
+    "releaseTime": "2010-02-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100207-1101",
+    "normalized": "0.31.20100207-1101",
+    "releaseTime": "2010-02-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100207-1647",
+    "normalized": "0.31.20100207-1647",
+    "releaseTime": "2010-02-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100207-1703",
+    "normalized": "0.31.20100207-1703",
+    "releaseTime": "2010-02-07T00:00:00Z"
+  },
+  {
+    "id": "in-20100211-1424",
+    "normalized": "0.31.20100211-1424",
+    "releaseTime": "2010-02-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100211-2328",
+    "normalized": "0.31.20100211-2328",
+    "releaseTime": "2010-02-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100211-2333",
+    "normalized": "0.31.20100211-2333",
+    "releaseTime": "2010-02-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100211-2340",
+    "normalized": "0.31.20100211-2340",
+    "releaseTime": "2010-02-11T00:00:00Z"
+  },
+  {
+    "id": "in-20100212-1210",
+    "normalized": "0.31.20100212-1210",
+    "releaseTime": "2010-02-12T00:00:00Z"
+  },
+  {
+    "id": "in-20100212-1622",
+    "normalized": "0.31.20100212-1622",
+    "releaseTime": "2010-02-12T00:00:00Z"
+  },
+  {
+    "id": "in-20100213",
+    "normalized": "0.31.20100213",
+    "releaseTime": "2010-02-13T00:00:00Z"
+  },
+  {
+    "id": "in-20100214",
+    "normalized": "0.31.20100214",
+    "releaseTime": "2010-02-14T00:00:00Z"
+  },
+  {
+    "id": "in-20100218-0012 ",
+    "normalized": "in-20100218-12",
+    "releaseTime": "2010-02-18T00:00:00Z"
+  },
+  {
+    "id": "in-20100218-0016",
+    "normalized": "0.31.20100218-16",
+    "releaseTime": "2010-02-18T00:00:00Z"
+  },
+  {
+    "id": "in-20100219",
+    "normalized": "0.31.20100219",
+    "releaseTime": "2010-02-19T00:00:00Z"
+  },
+  {
+    "id": "in-20100223",
+    "normalized": "0.31.20100223",
+    "releaseTime": "2010-02-23T00:00:00Z"
+  },
+  {
+    "id": "inf-20100227-1414",
+    "normalized": "0.31.20100227-1414",
+    "releaseTime": "2010-02-27T00:00:00Z"
+  },
+  {
+    "id": "inf-20100227-1433",
+    "normalized": "0.31.20100227-1433",
+    "releaseTime": "2010-02-27T00:00:00Z"
+  },
+  {
+    "id": "inf-20100313",
+    "normalized": "0.31.20100313",
+    "releaseTime": "2010-03-13T00:00:00Z"
+  },
+  {
+    "id": "inf-20100316",
+    "normalized": "0.31.20100316",
+    "releaseTime": "2010-03-16T00:00:00Z"
+  },
+  {
+    "id": "inf-20100320",
+    "normalized": "0.31.20100320",
+    "releaseTime": "2010-03-20T00:00:00Z"
+  },
+  {
+    "id": "inf-2010032x",
+    "normalized": "inf-2010032.x",
+    "releaseTime": "2010-03-20T00:00:00Z"
+  },
+  {
+    "id": "inf-20100321-1817",
+    "normalized": "0.31.20100321-1817",
+    "releaseTime": "2010-03-21T00:00:00Z"
+  },
+  {
+    "id": "inf-20100325-1545",
+    "normalized": "0.31.20100325-1545",
+    "releaseTime": "2010-03-25T00:00:00Z"
+  },
+  {
+    "id": "inf-20100325-1640",
+    "normalized": "0.31.20100325-1640",
+    "releaseTime": "2010-03-25T00:00:00Z"
+  },
+  {
+    "id": "inf-20100327",
+    "normalized": "0.31.20100327",
+    "releaseTime": "2010-03-27T00:00:00Z"
+  },
+  {
+    "id": "inf-20100330-1203",
+    "normalized": "0.31.20100330-1203",
+    "releaseTime": "2010-03-30T00:00:00Z"
+  },
+  {
+    "id": "inf-20100330-1611",
+    "normalized": "0.31.20100330-1611",
+    "releaseTime": "2010-03-30T00:00:00Z"
+  },
+  {
+    "id": "inf-20100413-1950",
+    "normalized": "0.31.20100413-1950",
+    "releaseTime": "2010-04-13T00:00:00Z"
+  },
+  {
+    "id": "inf-20100413-1953",
+    "normalized": "0.31.20100413-1953",
+    "releaseTime": "2010-04-13T00:00:00Z"
+  },
+  {
+    "id": "inf-20100414",
+    "normalized": "0.31.20100414",
+    "releaseTime": "2010-04-14T00:00:00Z"
+  },
+  {
+    "id": "inf-20100415",
+    "normalized": "0.31.20100415",
+    "releaseTime": "2010-04-15T00:00:00Z"
+  },
+  {
+    "id": "inf-20100420",
+    "normalized": "0.31.20100420",
+    "releaseTime": "2010-04-20T00:00:00Z"
+  },
+  {
+    "id": "inf-20100607",
+    "normalized": "0.31.20100607",
+    "releaseTime": "2010-06-07T00:00:00Z"
+  },
+  {
+    "id": "inf-20100608",
+    "normalized": "0.31.20100608",
+    "releaseTime": "2010-06-08T00:00:00Z"
+  },
+  {
+    "id": "inf-20100611",
+    "normalized": "0.31.20100611",
+    "releaseTime": "2010-06-11T00:00:00Z"
+  },
+  {
+    "id": "inf-20100615",
+    "normalized": "0.31.20100615",
+    "releaseTime": "2010-06-15T00:00:00Z"
+  },
+  {
+    "id": "inf-20100618",
+    "normalized": "0.31.20100618",
+    "releaseTime": "2010-06-15T22:00:00Z"
+  },
+  {
+    "id": "inf-20100616-1808",
+    "normalized": "0.31.20100616-1808",
+    "releaseTime": "2010-06-16T00:00:00Z"
+  },
+  {
+    "id": "inf-20100616-2210",
+    "normalized": "0.31.20100616-2210",
+    "releaseTime": "2010-06-16T00:00:00Z"
+  },
+  {
+    "id": "inf-20100617-1205",
+    "normalized": "0.31.20100617-1205",
+    "releaseTime": "2010-06-17T00:00:00Z"
+  },
+  {
+    "id": "inf-20100617-1531",
+    "normalized": "0.31.20100617-1531",
+    "releaseTime": "2010-06-17T00:00:00Z"
+  },
+  {
+    "id": "inf-20100624",
+    "normalized": "0.31.20100624",
+    "releaseTime": "2010-06-24T00:00:00Z"
+  },
+  {
+    "id": "inf-20100625-0922",
+    "normalized": "0.31.20100625-922",
+    "releaseTime": "2010-06-25T00:00:00Z"
+  },
+  {
+    "id": "inf-20100625-1917",
+    "normalized": "0.31.20100625-1917",
+    "releaseTime": "2010-06-25T00:00:00Z"
+  },
+  {
+    "id": "inf-20100627",
+    "normalized": "0.31.20100627",
+    "releaseTime": "2010-06-27T00:00:00Z"
+  },
+  {
+    "id": "inf-20100629",
+    "normalized": "0.31.20100629",
+    "releaseTime": "2010-06-29T00:00:00Z"
+  },
+  {
+    "id": "inf-20100630-1340",
+    "normalized": "0.31.20100630-1340",
+    "releaseTime": "2010-06-30T00:00:00Z"
+  },
+  {
+    "id": "inf-20100630-1835",
+    "normalized": "0.31.20100630-1835",
+    "releaseTime": "2010-06-30T00:00:00Z"
+  },
+  {
+    "id": "a1.0.1",
+    "normalized": "1.0.0-alpha.0.1",
+    "releaseTime": "2010-07-02T00:00:00Z"
+  },
+  {
+    "id": "a1.0.1_01",
+    "normalized": "1.0.0-alpha.0.1.1",
+    "releaseTime": "2010-07-02T00:00:00Z"
+  },
+  {
+    "id": "a1.0.2",
+    "normalized": "1.0.0-alpha.0.2",
+    "releaseTime": "2010-07-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.2_01",
+    "normalized": "1.0.0-alpha.0.2.1",
+    "releaseTime": "2010-07-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.2_02",
+    "normalized": "1.0.0-alpha.0.2.2",
+    "releaseTime": "2010-07-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.3",
+    "normalized": "1.0.0-alpha.0.3",
+    "releaseTime": "2010-07-07T00:00:00Z"
+  },
+  {
+    "id": "a1.0.4",
+    "normalized": "1.0.0-alpha.0.4",
+    "releaseTime": "2010-07-08T22:00:00Z"
+  },
+  {
+    "id": "a1.0.5_01",
+    "normalized": "1.0.0-alpha.0.5.1",
+    "releaseTime": "2010-07-12T22:00:00Z"
+  },
+  {
+    "id": "a1.0.5-2133",
+    "normalized": "1.0.0-alpha.0.5+2133",
+    "releaseTime": "2010-07-13T00:00:00Z"
+  },
+  {
+    "id": "a1.0.5-2149",
+    "normalized": "1.0.0-alpha.0.5+2149",
+    "releaseTime": "2010-07-13T00:00:00Z"
+  },
+  {
+    "id": "a1.0.6",
+    "normalized": "1.0.0-alpha.0.6",
+    "releaseTime": "2010-07-16T00:00:00Z"
+  },
+  {
+    "id": "a1.0.6_01",
+    "normalized": "1.0.0-alpha.0.6.1",
+    "releaseTime": "2010-07-17T00:00:00Z"
+  },
+  {
+    "id": "a1.0.6_02",
+    "normalized": "1.0.0-alpha.0.6.2",
+    "releaseTime": "2010-07-17T00:00:00Z"
+  },
+  {
+    "id": "a1.0.6_03",
+    "normalized": "1.0.0-alpha.0.6.3",
+    "releaseTime": "2010-07-17T00:00:00Z"
+  },
+  {
+    "id": "a1.0.7",
+    "normalized": "1.0.0-alpha.0.7",
+    "releaseTime": "2010-07-19T00:00:00Z"
+  },
+  {
+    "id": "a1.0.8",
+    "normalized": "1.0.0-alpha.0.8",
+    "releaseTime": "2010-07-19T00:00:00Z"
+  },
+  {
+    "id": "a1.0.8_01",
+    "normalized": "1.0.0-alpha.0.8.1",
+    "releaseTime": "2010-07-19T00:00:00Z"
+  },
+  {
+    "id": "a1.0.9",
+    "normalized": "1.0.0-alpha.0.9",
+    "releaseTime": "2010-07-21T00:00:00Z"
+  },
+  {
+    "id": "a1.0.10",
+    "normalized": "1.0.0-alpha.0.10",
+    "releaseTime": "2010-07-22T00:00:00Z"
+  },
+  {
+    "id": "a1.0.11",
+    "normalized": "1.0.0-alpha.0.11",
+    "releaseTime": "2010-07-22T22:00:00Z"
+  },
+  {
+    "id": "a1.0.12",
+    "normalized": "1.0.0-alpha.0.12",
+    "releaseTime": "2010-07-26T00:00:00Z"
+  },
+  {
+    "id": "a1.0.13",
+    "normalized": "1.0.0-alpha.0.13",
+    "releaseTime": "2010-07-28T00:00:00Z"
+  },
+  {
+    "id": "a1.0.13_01-1038",
+    "normalized": "1.0.0-alpha.0.13.1+1038",
+    "releaseTime": "2010-07-29T00:00:00Z"
+  },
+  {
+    "id": "a1.0.13_01-1444",
+    "normalized": "1.0.0-alpha.0.13.1+1444",
+    "releaseTime": "2010-07-29T00:00:00Z"
+  },
+  {
+    "id": "a1.0.14",
+    "normalized": "1.0.0-alpha.0.14",
+    "releaseTime": "2010-07-29T22:00:00Z"
+  },
+  {
+    "id": "a1.0.14-1603",
+    "normalized": "1.0.0-alpha.0.14+1603",
+    "releaseTime": "2010-07-30T00:00:00Z"
+  },
+  {
+    "id": "a1.0.14-1659",
+    "normalized": "1.0.0-alpha.0.14+1659",
+    "releaseTime": "2010-07-30T00:00:00Z"
+  },
+  {
+    "id": "a1.0.15",
+    "normalized": "1.0.0-alpha.0.15",
+    "releaseTime": "2010-08-03T22:00:00Z"
+  },
+  {
+    "id": "a0.1.0",
+    "normalized": "1.0.0-alpha.1.0",
+    "releaseTime": "2010-08-04T00:00:00Z"
+  },
+  {
+    "id": "a1.0.16",
+    "normalized": "1.0.0-alpha.0.16",
+    "releaseTime": "2010-08-11T22:00:00Z"
+  },
+  {
+    "id": "a1.0.16_01",
+    "normalized": "1.0.0-alpha.0.16.1",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.1-1641",
+    "normalized": "1.0.0-alpha.1.1+1641",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.1-1707",
+    "normalized": "1.0.0-alpha.1.1+1707",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.2-1805",
+    "normalized": "1.0.0-alpha.1.2+1805",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.2-1818",
+    "normalized": "1.0.0-alpha.1.2+1818",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a0.1.2_01",
+    "normalized": "1.0.0-alpha.1.2.1",
+    "releaseTime": "2010-08-12T00:00:00Z"
+  },
+  {
+    "id": "a1.0.16_02",
+    "normalized": "1.0.0-alpha.0.16.2",
+    "releaseTime": "2010-08-13T00:00:00Z"
+  },
+  {
+    "id": "a0.1.3",
+    "normalized": "1.0.0-alpha.1.3",
+    "releaseTime": "2010-08-17T00:00:00Z"
+  },
+  {
+    "id": "a1.0.17_02",
+    "normalized": "1.0.0-alpha.0.17.2",
+    "releaseTime": "2010-08-19T22:00:00Z"
+  },
+  {
+    "id": "a1.0.17",
+    "normalized": "1.0.0-alpha.0.17",
+    "releaseTime": "2010-08-20T00:00:00Z"
+  },
+  {
+    "id": "a1.0.17_01",
+    "normalized": "1.0.0-alpha.0.17.1",
+    "releaseTime": "2010-08-20T00:00:00Z"
+  },
+  {
+    "id": "a1.0.17_04",
+    "normalized": "1.0.0-alpha.0.17.4",
+    "releaseTime": "2010-08-22T22:00:00Z"
+  },
+  {
+    "id": "a1.0.17_03",
+    "normalized": "1.0.0-alpha.0.17.3",
+    "releaseTime": "2010-08-23T00:00:00Z"
+  },
+  {
+    "id": "a1.1.0-101840",
+    "normalized": "1.0.0-alpha.1.0+101840",
+    "releaseTime": "2010-09-10T00:00:00Z"
+  },
+  {
+    "id": "a1.1.0-101847",
+    "normalized": "1.0.0-alpha.1.0+101847",
+    "releaseTime": "2010-09-10T00:00:00Z"
+  },
+  {
+    "id": "a0.2.0",
+    "normalized": "1.0.0-alpha.2.0",
+    "releaseTime": "2010-09-10T00:00:00Z"
+  },
+  {
+    "id": "a0.2.0_01",
+    "normalized": "1.0.0-alpha.2.0.1",
+    "releaseTime": "2010-09-10T00:00:00Z"
+  },
+  {
+    "id": "a1.1.0",
+    "normalized": "1.0.0-alpha.1.0",
+    "releaseTime": "2010-09-12T22:00:00Z"
+  },
+  {
+    "id": "a1.1.0-131933",
+    "normalized": "1.0.0-alpha.1.0+131933",
+    "releaseTime": "2010-09-13T00:00:00Z"
+  },
+  {
+    "id": "a1.1.1",
+    "normalized": "1.0.0-alpha.1.1",
+    "releaseTime": "2010-09-18T00:00:00Z"
+  },
+  {
+    "id": "a0.2.1",
+    "normalized": "1.0.0-alpha.2.1",
+    "releaseTime": "2010-09-19T00:00:00Z"
+  },
+  {
+    "id": "a1.1.2",
+    "normalized": "1.0.0-alpha.1.2",
+    "releaseTime": "2010-09-19T22:00:00Z"
+  },
+  {
+    "id": "a1.1.2_01",
+    "normalized": "1.0.0-alpha.1.2.1",
+    "releaseTime": "2010-09-22T22:00:00Z"
+  },
+  {
+    "id": "a1.2.0",
+    "normalized": "1.0.0-alpha.2.0",
+    "releaseTime": "2010-10-29T22:00:00Z"
+  },
+  {
+    "id": "a1.2.0-2051",
+    "normalized": "1.0.0-alpha.2.0+2051",
+    "releaseTime": "2010-10-30T00:00:00Z"
+  },
+  {
+    "id": "a1.2.0-2057",
+    "normalized": "1.0.0-alpha.2.0+2057",
+    "releaseTime": "2010-10-30T00:00:00Z"
+  },
+  {
+    "id": "a1.2.0_01",
+    "normalized": "1.0.0-alpha.2.0.1",
+    "releaseTime": "2010-10-30T22:00:00Z"
+  },
+  {
+    "id": "a1.2.0_02",
+    "normalized": "1.0.0-alpha.2.0.2",
+    "releaseTime": "2010-11-03T22:00:00Z"
+  },
+  {
+    "id": "a1.2.1",
+    "normalized": "1.0.0-alpha.2.1",
+    "releaseTime": "2010-11-04T22:00:00Z"
+  },
+  {
+    "id": "a1.2.1_01",
+    "normalized": "1.0.0-alpha.2.1.1",
+    "releaseTime": "2010-11-04T22:00:01Z"
+  },
+  {
+    "id": "a0.2.3",
+    "normalized": "1.0.0-alpha.2.3",
+    "releaseTime": "2010-11-05T00:00:00Z"
+  },
+  {
+    "id": "a1.2.2a",
+    "normalized": "1.0.0-alpha.2.2.a",
+    "releaseTime": "2010-11-09T22:00:00Z"
+  },
+  {
+    "id": "a1.2.2b",
+    "normalized": "1.0.0-alpha.2.2.b",
+    "releaseTime": "2010-11-09T22:00:01Z"
+  },
+  {
+    "id": "a1.2.2-1613",
+    "normalized": "1.0.0-alpha.2.2+1613",
+    "releaseTime": "2010-11-10T00:00:00Z"
+  },
+  {
+    "id": "a1.2.2-1624",
+    "normalized": "1.0.0-alpha.2.2+1624",
+    "releaseTime": "2010-11-10T00:00:00Z"
+  },
+  {
+    "id": "a1.2.2-1938",
+    "normalized": "1.0.0-alpha.2.2+1938",
+    "releaseTime": "2010-11-10T00:00:00Z"
+  },
+  {
+    "id": "a0.2.4",
+    "normalized": "1.0.0-alpha.2.4",
+    "releaseTime": "2010-11-10T00:00:00Z"
+  },
+  {
+    "id": "a1.2.3",
+    "normalized": "1.0.0-alpha.2.3",
+    "releaseTime": "2010-11-23T22:00:00Z"
+  },
+  {
+    "id": "a1.2.3_01",
+    "normalized": "1.0.0-alpha.2.3.1",
+    "releaseTime": "2010-11-23T22:00:01Z"
+  },
+  {
+    "id": "a1.2.3_01-0956",
+    "normalized": "1.0.0-alpha.2.3.1+0956",
+    "releaseTime": "2010-11-24T00:00:00Z"
+  },
+  {
+    "id": "a1.2.3_01-0958",
+    "normalized": "1.0.0-alpha.2.3.1+0958",
+    "releaseTime": "2010-11-24T00:00:00Z"
+  },
+  {
+    "id": "a0.2.5-0923",
+    "normalized": "1.0.0-alpha.2.5+0923",
+    "releaseTime": "2010-11-24T00:00:00Z"
+  },
+  {
+    "id": "a0.2.5-1004",
+    "normalized": "1.0.0-alpha.2.5+1004",
+    "releaseTime": "2010-11-24T00:00:00Z"
+  },
+  {
+    "id": "a1.2.3_02",
+    "normalized": "1.0.0-alpha.2.3.2",
+    "releaseTime": "2010-11-24T22:00:00Z"
+  },
+  {
+    "id": "a0.2.5_01",
+    "normalized": "1.0.0-alpha.2.5.1",
+    "releaseTime": "2010-11-25T00:00:00Z"
+  },
+  {
+    "id": "a1.2.3_04",
+    "normalized": "1.0.0-alpha.2.3.4",
+    "releaseTime": "2010-11-25T22:00:00Z"
+  },
+  {
+    "id": "a1.2.3_03",
+    "normalized": "1.0.0-alpha.2.3.3",
+    "releaseTime": "2010-11-26T00:00:00Z"
+  },
+  {
+    "id": "a0.2.5_02",
+    "normalized": "1.0.0-alpha.2.5.2",
+    "releaseTime": "2010-11-26T00:00:00Z"
+  },
+  {
+    "id": "a1.2.4_01",
+    "normalized": "1.0.0-alpha.2.4.1",
+    "releaseTime": "2010-11-29T22:00:00Z"
+  },
+  {
+    "id": "a1.2.3_05",
+    "normalized": "1.0.0-alpha.2.3.5",
+    "releaseTime": "2010-11-30T00:00:00Z"
+  },
+  {
+    "id": "a0.2.6",
+    "normalized": "1.0.0-alpha.2.6",
+    "releaseTime": "2010-11-30T00:00:00Z"
+  },
+  {
+    "id": "a1.2.5",
+    "normalized": "1.0.0-alpha.2.5",
+    "releaseTime": "2010-11-30T22:00:00Z"
+  },
+  {
+    "id": "a0.2.7",
+    "normalized": "1.0.0-alpha.2.7",
+    "releaseTime": "2010-12-01T00:00:00Z"
+  },
+  {
+    "id": "a1.2.6",
+    "normalized": "1.0.0-alpha.2.6",
+    "releaseTime": "2010-12-02T22:00:00Z"
+  },
+  {
+    "id": "a0.2.8",
+    "normalized": "1.0.0-alpha.2.8",
+    "releaseTime": "2010-12-03T00:00:00Z"
+  },
+  {
+    "id": "b1.0",
+    "normalized": "1.0.0-beta.0",
+    "releaseTime": "2010-12-19T22:00:00Z"
+  },
+  {
+    "id": "b1.0_01",
+    "normalized": "1.0.0-beta.0.1",
+    "releaseTime": "2010-12-19T22:00:01Z"
+  },
+  {
+    "id": "b1.0.2",
+    "normalized": "1.0.0-beta.0.2",
+    "releaseTime": "2010-12-20T22:00:00Z"
+  },
+  {
+    "id": "b1.0.2-0836",
+    "normalized": "1.0.0-beta.0.2+0836",
+    "releaseTime": "2010-12-21T00:00:00Z"
+  },
+  {
+    "id": "b1.1_01",
+    "normalized": "1.0.0-beta.1.1",
+    "releaseTime": "2010-12-21T22:00:00Z"
+  },
+  {
+    "id": "b1.1_02",
+    "normalized": "1.0.0-beta.1.2",
+    "releaseTime": "2010-12-21T22:00:01Z"
+  },
+  {
+    "id": "b1.1",
+    "normalized": "1.0.0-beta.1",
+    "releaseTime": "2010-12-22T00:00:00Z"
+  },
+  {
+    "id": "b1.1-1245",
+    "normalized": "1.0.0-beta.1+1245",
+    "releaseTime": "2010-12-22T00:00:00Z"
+  },
+  {
+    "id": "b1.1-1255",
+    "normalized": "1.0.0-beta.1+1255",
+    "releaseTime": "2010-12-22T00:00:00Z"
+  },
+  {
+    "id": "b1.2",
+    "normalized": "1.0.0-beta.2",
+    "releaseTime": "2011-01-12T22:00:00Z"
+  },
+  {
+    "id": "b1.2_01",
+    "normalized": "1.0.0-beta.2.1",
+    "releaseTime": "2011-01-13T22:00:00Z"
+  },
+  {
+    "id": "b1.2_02",
+    "normalized": "1.0.0-beta.2.2",
+    "releaseTime": "2011-01-20T22:00:00Z"
+  },
+  {
+    "id": "b1.3b",
+    "normalized": "1.0.0-beta.3.0.b",
+    "releaseTime": "2011-02-21T22:00:00Z"
+  },
+  {
+    "id": "b1.3-1647",
+    "normalized": "1.0.0-beta.3+1647",
+    "releaseTime": "2011-02-22T00:00:00Z"
+  },
+  {
+    "id": "b1.3-1713",
+    "normalized": "1.0.0-beta.3+1713",
+    "releaseTime": "2011-02-22T00:00:00Z"
+  },
+  {
+    "id": "b1.3-1733",
+    "normalized": "1.0.0-beta.3+1733",
+    "releaseTime": "2011-02-22T00:00:00Z"
+  },
+  {
+    "id": "b1.3-1750",
+    "normalized": "1.0.0-beta.3+1750",
+    "releaseTime": "2011-02-22T00:00:00Z"
+  },
+  {
+    "id": "b1.3_01",
+    "normalized": "1.0.0-beta.3.1",
+    "releaseTime": "2011-02-22T22:00:00Z"
+  },
+  {
+    "id": "b1.4",
+    "normalized": "1.0.0-beta.4",
+    "releaseTime": "2011-03-30T22:00:00Z"
+  },
+  {
+    "id": "b1.4-1507",
+    "normalized": "1.0.0-beta.4+1507",
+    "releaseTime": "2011-03-31T00:00:00Z"
+  },
+  {
+    "id": "b1.4-1634",
+    "normalized": "1.0.0-beta.4+1634",
+    "releaseTime": "2011-03-31T00:00:00Z"
+  },
+  {
+    "id": "b1.4_01",
+    "normalized": "1.0.0-beta.4.1",
+    "releaseTime": "2011-04-04T22:00:00Z"
+  },
+  {
+    "id": "b1.5",
+    "normalized": "1.0.0-beta.5",
+    "releaseTime": "2011-04-18T22:00:00Z"
+  },
+  {
+    "id": "b1.5_01",
+    "normalized": "1.0.0-beta.5.1",
+    "releaseTime": "2011-04-19T22:00:00Z"
+  },
+  {
+    "id": "b1.5_02",
+    "normalized": "1.0.0-beta.5.2",
+    "releaseTime": "2011-04-20T00:00:00Z"
+  },
+  {
+    "id": "b1.6",
+    "normalized": "1.0.0-beta.6.0.r",
+    "releaseTime": "2011-05-25T22:00:00Z"
+  },
+  {
+    "id": "b1.6.1",
+    "normalized": "1.0.0-beta.6.1",
+    "releaseTime": "2011-05-25T22:00:01Z"
+  },
+  {
+    "id": "b1.6.2",
+    "normalized": "1.0.0-beta.6.2",
+    "releaseTime": "2011-05-25T22:00:02Z"
+  },
+  {
+    "id": "b1.6.3",
+    "normalized": "1.0.0-beta.6.3",
+    "releaseTime": "2011-05-25T22:00:03Z"
+  },
+  {
+    "id": "b1.6.4",
+    "normalized": "1.0.0-beta.6.4",
+    "releaseTime": "2011-05-25T22:00:04Z"
+  },
+  {
+    "id": "b1.6.5",
+    "normalized": "1.0.0-beta.6.5",
+    "releaseTime": "2011-05-27T22:00:00Z"
+  },
+  {
+    "id": "b1.6.6",
+    "normalized": "1.0.0-beta.6.6",
+    "releaseTime": "2011-05-30T22:00:00Z"
+  },
+  {
+    "id": "b1.7",
+    "normalized": "1.0.0-beta.7",
+    "releaseTime": "2011-06-29T22:00:00Z"
+  },
+  {
+    "id": "b1.7_01",
+    "normalized": "1.0.0-beta.7.1",
+    "releaseTime": "2011-06-30T00:00:00Z"
+  },
+  {
+    "id": "b1.7.2",
+    "normalized": "1.0.0-beta.7.2",
+    "releaseTime": "2011-06-30T22:00:00Z"
+  },
+  {
+    "id": "b1.7.3",
+    "normalized": "1.0.0-beta.7.3",
+    "releaseTime": "2011-07-07T22:00:00Z"
+  },
+  {
+    "id": "c0.30-c-1900-renew",
+    "normalized": "0.30-c+1900.renew",
+    "releaseTime": "2011-08-01T00:00:00Z"
+  },
+  {
+    "id": "b1.8-pre1-091358",
+    "normalized": "1.0.0-beta.8.0.1+091358",
+    "releaseTime": "2011-09-09T00:00:00Z"
+  },
+  {
+    "id": "b1.8-pre2-131225",
+    "normalized": "1.0.0-beta.8.0.2+131225",
+    "releaseTime": "2011-09-13T00:00:00Z"
+  },
+  {
+    "id": "b1.8-pre2-131240",
+    "normalized": "1.0.0-beta.8.0.2+131240",
+    "releaseTime": "2011-09-13T00:00:00Z"
+  },
+  {
+    "id": "b1.8",
+    "normalized": "1.0.0-beta.8.0.r",
+    "releaseTime": "2011-09-14T22:00:00Z"
+  },
+  {
+    "id": "b1.8.1",
+    "normalized": "1.0.0-beta.8.1",
+    "releaseTime": "2011-09-18T22:00:00Z"
+  },
+  {
+    "id": "b1.9-pre1",
+    "normalized": "1.0.0-beta.9.0.1",
+    "releaseTime": "2011-09-22T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre2",
+    "normalized": "1.0.0-beta.9.0.2",
+    "releaseTime": "2011-09-29T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3",
+    "normalized": "1.0.0-beta.9.0.3",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3-1350",
+    "normalized": "1.0.0-beta.9.0.3+1350",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3-1358",
+    "normalized": "1.0.0-beta.9.0.3+1358",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre3-1402",
+    "normalized": "1.0.0-beta.9.0.3+1402",
+    "releaseTime": "2011-10-06T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1415",
+    "normalized": "1.0.0-beta.9.0.4+1415",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1425",
+    "normalized": "1.0.0-beta.9.0.4+1425",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1434",
+    "normalized": "1.0.0-beta.9.0.4+1434",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1435",
+    "normalized": "1.0.0-beta.9.0.4+1435",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-1441",
+    "normalized": "1.0.0-beta.9.0.4+1441",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre4-14xx",
+    "normalized": "1.0.0-beta.9.0.r-",
+    "releaseTime": "2011-10-13T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre5",
+    "normalized": "1.0.0-beta.9.0.5",
+    "releaseTime": "2011-10-27T00:00:00Z"
+  },
+  {
+    "id": "b1.9-pre6",
+    "normalized": "1.0.0-beta.9.0.6",
+    "releaseTime": "2011-11-11T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-16xx-1",
+    "normalized": "1.0.0-",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-16xx-2",
+    "normalized": "1.0.0-",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc1",
+    "normalized": "1.0.0-rc.1",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-1633",
+    "normalized": "1.0.0-rc.2+1633",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-1649",
+    "normalized": "1.0.0-rc.2+1649",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0.0-rc2-1656",
+    "normalized": "1.0.0-rc.2+1656",
+    "releaseTime": "2011-11-13T00:00:00Z"
+  },
+  {
+    "id": "1.0",
+    "normalized": "1.0",
+    "releaseTime": "2011-11-17T22:00:00Z"
+  },
+  {
+    "id": "1.0.0",
+    "normalized": "1.0.0",
+    "releaseTime": "2011-11-18T00:00:00Z"
+  },
+  {
+    "id": "1.0.1",
+    "normalized": "1.0.1",
+    "releaseTime": "2011-11-24T00:00:00Z"
+  },
+  {
+    "id": "11w47a",
+    "normalized": "1.1-alpha.11.47.a",
+    "releaseTime": "2011-11-24T00:00:00Z"
+  },
+  {
+    "id": "11w48a",
+    "normalized": "1.1-alpha.11.48.a",
+    "releaseTime": "2011-12-01T00:00:00Z"
+  },
+  {
+    "id": "11w49a",
+    "normalized": "1.1-alpha.11.49.a",
+    "releaseTime": "2011-12-08T00:00:00Z"
+  },
+  {
+    "id": "11w50a",
+    "normalized": "1.1-alpha.11.50.a",
+    "releaseTime": "2011-12-15T00:00:00Z"
+  },
+  {
+    "id": "12w01a",
+    "normalized": "1.1-alpha.12.1.a",
+    "releaseTime": "2012-01-05T00:00:00Z"
+  },
+  {
+    "id": "1.1",
+    "normalized": "1.1",
+    "releaseTime": "2012-01-11T22:00:00Z"
+  },
+  {
+    "id": "12w03a",
+    "normalized": "1.2-alpha.12.3.a",
+    "releaseTime": "2012-01-19T00:00:00Z"
+  },
+  {
+    "id": "12w04a",
+    "normalized": "1.2-alpha.12.4.a",
+    "releaseTime": "2012-01-26T00:00:00Z"
+  },
+  {
+    "id": "12w05a-1354",
+    "normalized": "1.2-alpha.12.5.a+1354",
+    "releaseTime": "2012-02-02T00:00:00Z"
+  },
+  {
+    "id": "12w05a-13xx",
+    "normalized": "12.w.5.a-13.xx",
+    "releaseTime": "2012-02-02T00:00:00Z"
+  },
+  {
+    "id": "12w05a-1442",
+    "normalized": "1.2-alpha.12.5.a+1442",
+    "releaseTime": "2012-02-02T00:00:00Z"
+  },
+  {
+    "id": "12w05b",
+    "normalized": "1.2-alpha.12.5.b",
+    "releaseTime": "2012-02-03T00:00:00Z"
+  },
+  {
+    "id": "12w06a",
+    "normalized": "1.2-alpha.12.6.a",
+    "releaseTime": "2012-02-09T00:00:00Z"
+  },
+  {
+    "id": "12w07a",
+    "normalized": "1.2-alpha.12.7.a",
+    "releaseTime": "2012-02-15T00:00:00Z"
+  },
+  {
+    "id": "12w07b",
+    "normalized": "1.2-alpha.12.7.b",
+    "releaseTime": "2012-02-15T00:00:00Z"
+  },
+  {
+    "id": "12w08a",
+    "normalized": "1.2-alpha.12.8.a",
+    "releaseTime": "2012-02-23T00:00:00Z"
+  },
+  {
+    "id": "1.2-pre",
+    "normalized": "1.2",
+    "releaseTime": "2012-02-29T00:00:00Z"
+  },
+  {
+    "id": "1.2.1",
+    "normalized": "1.2.1",
+    "releaseTime": "2012-02-29T22:00:00Z"
+  },
+  {
+    "id": "1.2.2",
+    "normalized": "1.2.2",
+    "releaseTime": "2012-02-29T22:00:01Z"
+  },
+  {
+    "id": "1.2.3",
+    "normalized": "1.2.3",
+    "releaseTime": "2012-03-01T22:00:00Z"
+  },
+  {
+    "id": "1.2.4",
+    "normalized": "1.2.4",
+    "releaseTime": "2012-03-21T22:00:00Z"
+  },
+  {
+    "id": "1.2.5",
+    "normalized": "1.2.5",
+    "releaseTime": "2012-03-29T22:00:00Z"
+  },
+  {
+    "id": "1.2.5-pre",
+    "normalized": "1.2.5-rc",
+    "releaseTime": "2012-03-30T00:00:00Z"
+  },
+  {
+    "id": "12w15a",
+    "normalized": "1.3-alpha.12.15.a",
+    "releaseTime": "2012-04-12T00:00:00Z"
+  },
+  {
+    "id": "12w16a",
+    "normalized": "1.3-alpha.12.16.a",
+    "releaseTime": "2012-04-19T00:00:00Z"
+  },
+  {
+    "id": "12w17a-04261424",
+    "normalized": "1.3-alpha.12.17.a+04261424",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w17a-0426xxxx",
+    "normalized": "12.w.17.a-426.xxxx",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w17a-1424",
+    "normalized": "1.3-alpha.12.17.a+1424",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w17a-14xx",
+    "normalized": "12.w.17.a-14.xx",
+    "releaseTime": "2012-04-26T00:00:00Z"
+  },
+  {
+    "id": "12w18a",
+    "normalized": "1.3-alpha.12.18.a",
+    "releaseTime": "2012-05-03T00:00:00Z"
+  },
+  {
+    "id": "12w19a",
+    "normalized": "1.3-alpha.12.19.a",
+    "releaseTime": "2012-05-10T00:00:00Z"
+  },
+  {
+    "id": "12w21a",
+    "normalized": "1.3-alpha.12.21.a",
+    "releaseTime": "2012-05-24T00:00:00Z"
+  },
+  {
+    "id": "12w21b",
+    "normalized": "1.3-alpha.12.21.b",
+    "releaseTime": "2012-05-25T00:00:00Z"
+  },
+  {
+    "id": "12w22a",
+    "normalized": "1.3-alpha.12.22.a",
+    "releaseTime": "2012-05-31T00:00:00Z"
+  },
+  {
+    "id": "12w22a-1",
+    "normalized": "1.3-alpha.12.22.a+1",
+    "releaseTime": "2012-05-31T00:00:00Z"
+  },
+  {
+    "id": "12w23a",
+    "normalized": "1.3-alpha.12.23.a",
+    "releaseTime": "2012-06-07T00:00:00Z"
+  },
+  {
+    "id": "12w23b",
+    "normalized": "1.3-alpha.12.23.b",
+    "releaseTime": "2012-06-07T00:00:00Z"
+  },
+  {
+    "id": "12w23b-1",
+    "normalized": "1.3-alpha.12.23.b+1",
+    "releaseTime": "2012-06-07T00:00:00Z"
+  },
+  {
+    "id": "12w24a",
+    "normalized": "1.3-alpha.12.24.a",
+    "releaseTime": "2012-06-14T00:00:00Z"
+  },
+  {
+    "id": "12w25a",
+    "normalized": "1.3-alpha.12.25.a",
+    "releaseTime": "2012-06-21T00:00:00Z"
+  },
+  {
+    "id": "12w26a",
+    "normalized": "1.3-alpha.12.26.a",
+    "releaseTime": "2012-06-27T00:00:00Z"
+  },
+  {
+    "id": "12w27a",
+    "normalized": "1.3-alpha.12.27.a",
+    "releaseTime": "2012-07-05T00:00:00Z"
+  },
+  {
+    "id": "12w30a",
+    "normalized": "1.3-alpha.12.30.a",
+    "releaseTime": "2012-07-23T00:00:00Z"
+  },
+  {
+    "id": "12w30b",
+    "normalized": "1.3-alpha.12.30.b",
+    "releaseTime": "2012-07-23T00:00:00Z"
+  },
+  {
+    "id": "12w30c",
+    "normalized": "1.3-alpha.12.30.c",
+    "releaseTime": "2012-07-24T00:00:00Z"
+  },
+  {
+    "id": "12w30d",
+    "normalized": "1.3-alpha.12.30.d",
+    "releaseTime": "2012-07-25T00:00:00Z"
+  },
+  {
+    "id": "12w30e",
+    "normalized": "1.3-alpha.12.30.e",
+    "releaseTime": "2012-07-25T00:00:00Z"
+  },
+  {
+    "id": "1.3",
+    "normalized": "1.3",
+    "releaseTime": "2012-07-25T22:00:00Z"
+  },
+  {
+    "id": "1.3-pre-1144",
+    "normalized": "1.3+1144",
+    "releaseTime": "2012-07-26T00:00:00Z"
+  },
+  {
+    "id": "1.3-pre-1249",
+    "normalized": "1.3+1249",
+    "releaseTime": "2012-07-26T00:00:00Z"
+  },
+  {
+    "id": "1.3.1-pre",
+    "normalized": "1.3.1-rc",
+    "releaseTime": "2012-07-30T00:00:00Z"
+  },
+  {
+    "id": "1.3.1",
+    "normalized": "1.3.1",
+    "releaseTime": "2012-07-31T22:00:00Z"
+  },
+  {
+    "id": "12w32a-1450",
+    "normalized": "1.4-alpha.12.32.a+1450",
+    "releaseTime": "2012-08-09T00:00:00Z"
+  },
+  {
+    "id": "12w32a-1532",
+    "normalized": "1.4-alpha.12.32.a+1532",
+    "releaseTime": "2012-08-09T00:00:00Z"
+  },
+  {
+    "id": "1.3.2-pre",
+    "normalized": "1.3.2-rc",
+    "releaseTime": "2012-08-14T00:00:00Z"
+  },
+  {
+    "id": "1.3.2",
+    "normalized": "1.3.2",
+    "releaseTime": "2012-08-15T22:00:00Z"
+  },
+  {
+    "id": "12w34a",
+    "normalized": "1.4-alpha.12.34.a",
+    "releaseTime": "2012-08-23T00:00:00Z"
+  },
+  {
+    "id": "12w34b",
+    "normalized": "1.4-alpha.12.34.b",
+    "releaseTime": "2012-08-24T00:00:00Z"
+  },
+  {
+    "id": "12w36a",
+    "normalized": "1.4-alpha.12.36.a",
+    "releaseTime": "2012-09-06T00:00:00Z"
+  },
+  {
+    "id": "12w37a",
+    "normalized": "1.4-alpha.12.37.a",
+    "releaseTime": "2012-09-13T00:00:00Z"
+  },
+  {
+    "id": "12w38a",
+    "normalized": "1.4-alpha.12.38.a",
+    "releaseTime": "2012-09-20T00:00:00Z"
+  },
+  {
+    "id": "12w38b",
+    "normalized": "1.4-alpha.12.38.b",
+    "releaseTime": "2012-09-21T00:00:00Z"
+  },
+  {
+    "id": "12w39a-1231",
+    "normalized": "1.4-alpha.12.39.a+1231",
+    "releaseTime": "2012-09-27T00:00:00Z"
+  },
+  {
+    "id": "12w39a-1243",
+    "normalized": "1.4-alpha.12.39.a+1243",
+    "releaseTime": "2012-09-27T00:00:00Z"
+  },
+  {
+    "id": "12w39a-12xx",
+    "normalized": "12.w.39.a-12.xx",
+    "releaseTime": "2012-09-27T00:00:00Z"
+  },
+  {
+    "id": "12w39b",
+    "normalized": "1.4-alpha.12.39.b",
+    "releaseTime": "2012-09-28T00:00:00Z"
+  },
+  {
+    "id": "12w40a",
+    "normalized": "1.4-alpha.12.40.a",
+    "releaseTime": "2012-10-04T00:00:00Z"
+  },
+  {
+    "id": "12w40b",
+    "normalized": "1.4-alpha.12.40.b",
+    "releaseTime": "2012-10-05T00:00:00Z"
+  },
+  {
+    "id": "12w41a",
+    "normalized": "1.4-alpha.12.41.a",
+    "releaseTime": "2012-10-11T00:00:00Z"
+  },
+  {
+    "id": "12w41b",
+    "normalized": "1.4-alpha.12.41.b",
+    "releaseTime": "2012-10-12T00:00:00Z"
+  },
+  {
+    "id": "12w42a",
+    "normalized": "1.4-alpha.12.42.a",
+    "releaseTime": "2012-10-17T00:00:00Z"
+  },
+  {
+    "id": "12w42b",
+    "normalized": "1.4-alpha.12.42.b",
+    "releaseTime": "2012-10-18T00:00:00Z"
+  },
+  {
+    "id": "1.4-pre",
+    "normalized": "1.4",
+    "releaseTime": "2012-10-19T00:00:00Z"
+  },
+  {
+    "id": "1.4.1-pre-xxxx",
+    "normalized": "1.4.1-",
+    "releaseTime": "2012-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.4.1-pre-1247",
+    "normalized": "1.4.1+1247",
+    "releaseTime": "2012-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.4.1-pre-1338",
+    "normalized": "1.4.1+1338",
+    "releaseTime": "2012-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.4.2-pre",
+    "normalized": "1.4.2-rc",
+    "releaseTime": "2012-10-24T00:00:00Z"
+  },
+  {
+    "id": "1.4.3-pre",
+    "normalized": "1.4.3",
+    "releaseTime": "2012-11-01T00:00:00Z"
+  },
+  {
+    "id": "1.4.4-pre",
+    "normalized": "1.4.4-rc",
+    "releaseTime": "2012-11-08T00:00:00Z"
+  },
+  {
+    "id": "1.4.5-pre-160924",
+    "normalized": "1.4.5-rc+160924",
+    "releaseTime": "2012-11-16T00:00:00Z"
+  },
+  {
+    "id": "1.4",
+    "normalized": "1.4",
+    "releaseTime": "2012-11-18T22:00:00Z"
+  },
+  {
+    "id": "1.4.5-pre-172127",
+    "normalized": "1.4.5-rc+172127",
+    "releaseTime": "2012-11-19T00:00:00Z"
+  },
+  {
+    "id": "1.4.5-pre-172128",
+    "normalized": "1.4.5-rc+172128",
+    "releaseTime": "2012-11-19T00:00:00Z"
+  },
+  {
+    "id": "1.4.1",
+    "normalized": "1.4.1",
+    "releaseTime": "2012-11-22T22:00:00Z"
+  },
+  {
+    "id": "1.4.2",
+    "normalized": "1.4.2",
+    "releaseTime": "2012-11-24T22:00:00Z"
+  },
+  {
+    "id": "1.4.3",
+    "normalized": "1.4.3",
+    "releaseTime": "2012-11-30T22:00:00Z"
+  },
+  {
+    "id": "12w49a",
+    "normalized": "1.4.6-alpha.12.49.a",
+    "releaseTime": "2012-12-07T00:00:00Z"
+  },
+  {
+    "id": "12w50a",
+    "normalized": "1.4.6-alpha.12.50.a",
+    "releaseTime": "2012-12-13T00:00:00Z"
+  },
+  {
+    "id": "1.4.4",
+    "normalized": "1.4.4",
+    "releaseTime": "2012-12-13T22:00:00Z"
+  },
+  {
+    "id": "12w50b",
+    "normalized": "1.4.6-alpha.12.50.b",
+    "releaseTime": "2012-12-14T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-14xx",
+    "normalized": "1.4.6-",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-1428",
+    "normalized": "1.4.6-rc+1428",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-1521",
+    "normalized": "1.4.6-rc+1521",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.6-pre-1605",
+    "normalized": "1.4.6-rc+1605",
+    "releaseTime": "2012-12-17T00:00:00Z"
+  },
+  {
+    "id": "1.4.5",
+    "normalized": "1.4.5",
+    "releaseTime": "2012-12-19T22:00:00Z"
+  },
+  {
+    "id": "1.4.6",
+    "normalized": "1.4.6",
+    "releaseTime": "2012-12-19T22:00:00Z"
+  },
+  {
+    "id": "1.4.7",
+    "normalized": "1.4.7",
+    "releaseTime": "2012-12-27T22:00:00Z"
+  },
+  {
+    "id": "1.4.7-pre",
+    "normalized": "1.4.7-rc",
+    "releaseTime": "2012-12-28T00:00:00Z"
+  },
+  {
+    "id": "13w01a",
+    "normalized": "1.5-alpha.13.1.a",
+    "releaseTime": "2013-01-03T00:00:00Z"
+  },
+  {
+    "id": "13w01b",
+    "normalized": "1.5-alpha.13.1.b",
+    "releaseTime": "2013-01-04T00:00:00Z"
+  },
+  {
+    "id": "13w02a",
+    "normalized": "1.5-alpha.13.2.a",
+    "releaseTime": "2013-01-10T00:00:00Z"
+  },
+  {
+    "id": "13w02a-whitetexturefix",
+    "normalized": "1.5-alpha.13.2.a.whitetexturefix",
+    "releaseTime": "2013-01-11T00:00:00Z"
+  },
+  {
+    "id": "13w02b",
+    "normalized": "1.5-alpha.13.2.b",
+    "releaseTime": "2013-01-11T00:00:00Z"
+  },
+  {
+    "id": "13w03a-1538",
+    "normalized": "1.5-alpha.13.3.a+1538",
+    "releaseTime": "2013-01-17T00:00:00Z"
+  },
+  {
+    "id": "13w03a-1613",
+    "normalized": "1.5-alpha.13.3.a+1613",
+    "releaseTime": "2013-01-17T00:00:00Z"
+  },
+  {
+    "id": "13w03a-1647",
+    "normalized": "1.5-alpha.13.3.a+1647",
+    "releaseTime": "2013-01-17T00:00:00Z"
+  },
+  {
+    "id": "13w04a",
+    "normalized": "1.5-alpha.13.4.a",
+    "releaseTime": "2013-01-24T00:00:00Z"
+  },
+  {
+    "id": "13w04a-whitelinefix",
+    "normalized": "1.5-alpha.13.4.a.whitelinefix",
+    "releaseTime": "2013-01-28T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1503",
+    "normalized": "1.5-alpha.13.5.a+1503",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1504",
+    "normalized": "1.5-alpha.13.5.a+1504",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1537",
+    "normalized": "1.5-alpha.13.5.a+1537",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05a-1538",
+    "normalized": "1.5-alpha.13.5.a+1538",
+    "releaseTime": "2013-01-31T00:00:00Z"
+  },
+  {
+    "id": "13w05b",
+    "normalized": "1.5-alpha.13.5.b",
+    "releaseTime": "2013-02-01T00:00:00Z"
+  },
+  {
+    "id": "13w06a-1558",
+    "normalized": "1.5-alpha.13.6.a+1558",
+    "releaseTime": "2013-02-07T00:00:00Z"
+  },
+  {
+    "id": "13w06a-1559",
+    "normalized": "1.5-alpha.13.6.a+1559",
+    "releaseTime": "2013-02-07T00:00:00Z"
+  },
+  {
+    "id": "13w06a-1636",
+    "normalized": "1.5-alpha.13.6.a+1636",
+    "releaseTime": "2013-02-07T00:00:00Z"
+  },
+  {
+    "id": "13w07a",
+    "normalized": "1.5-alpha.13.7.a",
+    "releaseTime": "2013-02-14T00:00:00Z"
+  },
+  {
+    "id": "13w09a",
+    "normalized": "1.5-alpha.13.9.a",
+    "releaseTime": "2013-02-26T00:00:00Z"
+  },
+  {
+    "id": "13w09b",
+    "normalized": "1.5-alpha.13.9.b",
+    "releaseTime": "2013-02-27T00:00:00Z"
+  },
+  {
+    "id": "13w09c",
+    "normalized": "1.5-alpha.13.9.c",
+    "releaseTime": "2013-03-01T00:00:00Z"
+  },
+  {
+    "id": "13w10a",
+    "normalized": "1.5-alpha.13.10.a",
+    "releaseTime": "2013-03-04T00:00:00Z"
+  },
+  {
+    "id": "13w10b",
+    "normalized": "1.5-alpha.13.10.b",
+    "releaseTime": "2013-03-06T00:00:00Z"
+  },
+  {
+    "id": "1.5",
+    "normalized": "1.5",
+    "releaseTime": "2013-03-06T22:00:00Z"
+  },
+  {
+    "id": "1.5-pre-071309",
+    "normalized": "1.5-rc+071309",
+    "releaseTime": "2013-03-07T00:00:00Z"
+  },
+  {
+    "id": "1.5-pre-121221",
+    "normalized": "1.5-rc+121221",
+    "releaseTime": "2013-03-12T00:00:00Z"
+  },
+  {
+    "id": "1.5-pre-whitelinefix",
+    "normalized": "1.5-rc.whitelinefix",
+    "releaseTime": "2013-03-12T00:00:00Z"
+  },
+  {
+    "id": "13w11a",
+    "normalized": "1.5.1-alpha.13.11.a",
+    "releaseTime": "2013-03-14T00:00:00Z"
+  },
+  {
+    "id": "1.5.1-pre",
+    "normalized": "1.5.1-rc",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "1.5.1-pre-191519",
+    "normalized": "1.5.1-rc+191519",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "13w12~-105x",
+    "normalized": "13.w.12.105.x",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "13w12~-1439",
+    "normalized": "1.5.1-alpha.13.12.a+1439",
+    "releaseTime": "2013-03-19T00:00:00Z"
+  },
+  {
+    "id": "1.5.1-pre-200838",
+    "normalized": "1.5.1-rc+200838",
+    "releaseTime": "2013-03-20T00:00:00Z"
+  },
+  {
+    "id": "1.5.1",
+    "normalized": "1.5.1",
+    "releaseTime": "2013-03-20T10:00:00Z"
+  },
+  {
+    "id": "13w16a-181759",
+    "normalized": "1.6-alpha.13.16.a+181759",
+    "releaseTime": "2013-04-18T00:00:00Z"
+  },
+  {
+    "id": "13w16a-181800",
+    "normalized": "1.6-alpha.13.16.a+181800",
+    "releaseTime": "2013-04-18T00:00:00Z"
+  },
+  {
+    "id": "13w16a-181812",
+    "normalized": "1.6-alpha.13.16.a+181812",
+    "releaseTime": "2013-04-18T00:00:00Z"
+  },
+  {
+    "id": "13w16a-191517",
+    "normalized": "1.6-alpha.13.16.a+191517",
+    "releaseTime": "2013-04-19T00:00:00Z"
+  },
+  {
+    "id": "13w16a-192037",
+    "normalized": "1.6-alpha.13.16.a+192037",
+    "releaseTime": "2013-04-19T00:00:00Z"
+  },
+  {
+    "id": "13w16a",
+    "normalized": "1.6-alpha.13.16.a",
+    "releaseTime": "2013-04-21T12:49:30Z"
+  },
+  {
+    "id": "13w16b-2118",
+    "normalized": "1.6-alpha.13.16.b+2118",
+    "releaseTime": "2013-04-23T00:00:00Z"
+  },
+  {
+    "id": "13w16b-2151",
+    "normalized": "1.6-alpha.13.16.b+2151",
+    "releaseTime": "2013-04-23T00:00:00Z"
+  },
+  {
+    "id": "13w16b-2151 ",
+    "normalized": "13.w.16.b-2151",
+    "releaseTime": "2013-04-23T00:00:00Z"
+  },
+  {
+    "id": "13w16b",
+    "normalized": "1.6-alpha.13.16.b",
+    "releaseTime": "2013-04-23T21:51:22Z"
+  },
+  {
+    "id": "1.5.2-pre-250703",
+    "normalized": "1.5.2-rc+250703",
+    "releaseTime": "2013-04-25T00:00:00Z"
+  },
+  {
+    "id": "1.5.2-pre-250903",
+    "normalized": "1.5.2-rc+250903",
+    "releaseTime": "2013-04-25T00:00:00Z"
+  },
+  {
+    "id": "1.5.2",
+    "normalized": "1.5.2",
+    "releaseTime": "2013-04-25T15:45:00Z"
+  },
+  {
+    "id": "13w17a",
+    "normalized": "1.6-alpha.13.17.a",
+    "releaseTime": "2013-04-25T15:50:00Z"
+  },
+  {
+    "id": "1.5.2-pre-260738",
+    "normalized": "1.5.2-rc+260738",
+    "releaseTime": "2013-04-26T00:00:00Z"
+  },
+  {
+    "id": "1.5.2-pre-260937",
+    "normalized": "1.5.2-rc+260937",
+    "releaseTime": "2013-04-26T00:00:00Z"
+  },
+  {
+    "id": "13w18a",
+    "normalized": "1.6-alpha.13.18.a",
+    "releaseTime": "2013-05-02T15:45:59Z"
+  },
+  {
+    "id": "13w18b",
+    "normalized": "1.6-alpha.13.18.b",
+    "releaseTime": "2013-05-02T17:12:25Z"
+  },
+  {
+    "id": "13w18c",
+    "normalized": "1.6-alpha.13.18.c",
+    "releaseTime": "2013-05-03T09:19:35Z"
+  },
+  {
+    "id": "13w19a",
+    "normalized": "1.6-alpha.13.19.a",
+    "releaseTime": "2013-05-10T14:48:02Z"
+  },
+  {
+    "id": "13w21a",
+    "normalized": "1.6-alpha.13.21.a",
+    "releaseTime": "2013-05-23T15:38:28Z"
+  },
+  {
+    "id": "13w21b",
+    "normalized": "1.6-alpha.13.21.b",
+    "releaseTime": "2013-05-27T08:50:42Z"
+  },
+  {
+    "id": "13w22a-1434",
+    "normalized": "1.6-alpha.13.22.a+1434",
+    "releaseTime": "2013-05-30T00:00:00Z"
+  },
+  {
+    "id": "13w22a",
+    "normalized": "1.6-alpha.13.22.a",
+    "releaseTime": "2013-05-30T14:38:40Z"
+  },
+  {
+    "id": "13w23a",
+    "normalized": "1.6-alpha.13.23.a",
+    "releaseTime": "2013-06-07T16:04:20Z"
+  },
+  {
+    "id": "13w23b-0033",
+    "normalized": "1.6-alpha.13.23.b+0033",
+    "releaseTime": "2013-06-08T00:00:00Z"
+  },
+  {
+    "id": "13w23b-00xx",
+    "normalized": "13.w.23.b-0.xx",
+    "releaseTime": "2013-06-08T00:00:00Z"
+  },
+  {
+    "id": "13w23b-0101",
+    "normalized": "1.6-alpha.13.23.b+0101",
+    "releaseTime": "2013-06-08T00:00:00Z"
+  },
+  {
+    "id": "13w23b",
+    "normalized": "1.6-alpha.13.23.b",
+    "releaseTime": "2013-06-08T00:32:01Z"
+  },
+  {
+    "id": "13w24a",
+    "normalized": "1.6-alpha.13.24.a",
+    "releaseTime": "2013-06-13T15:32:23Z"
+  },
+  {
+    "id": "13w24b",
+    "normalized": "1.6-alpha.13.24.b",
+    "releaseTime": "2013-06-14T12:19:13Z"
+  },
+  {
+    "id": "13w25a",
+    "normalized": "1.6-alpha.13.25.a",
+    "releaseTime": "2013-06-17T14:08:06Z"
+  },
+  {
+    "id": "13w25b",
+    "normalized": "1.6-alpha.13.25.b",
+    "releaseTime": "2013-06-18T15:13:27Z"
+  },
+  {
+    "id": "13w25c",
+    "normalized": "1.6-alpha.13.25.c",
+    "releaseTime": "2013-06-20T15:23:37Z"
+  },
+  {
+    "id": "13w26a",
+    "normalized": "1.6-alpha.13.26.a",
+    "releaseTime": "2013-06-24T16:06:06Z"
+  },
+  {
+    "id": "1.6-pre-1304",
+    "normalized": "1.6+1304",
+    "releaseTime": "2013-06-25T00:00:00Z"
+  },
+  {
+    "id": "1.6-pre-1517",
+    "normalized": "1.6+1517",
+    "releaseTime": "2013-06-25T00:00:00Z"
+  },
+  {
+    "id": "1.6",
+    "normalized": "1.6",
+    "releaseTime": "2013-06-25T13:08:56Z"
+  },
+  {
+    "id": "1.6.1-pre",
+    "normalized": "1.6.1-rc",
+    "releaseTime": "2013-06-28T00:00:00Z"
+  },
+  {
+    "id": "1.6.1",
+    "normalized": "1.6.1",
+    "releaseTime": "2013-06-28T14:48:41Z"
+  },
+  {
+    "id": "1.6.2-pre-131x",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-135x",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-13xx-1",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-13xx-2",
+    "normalized": "1.6.2-",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-1426",
+    "normalized": "1.6.2-rc+1426",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-pre-1427",
+    "normalized": "1.6.2-rc+1427",
+    "releaseTime": "2013-07-05T00:00:00Z"
+  },
+  {
+    "id": "1.6.2",
+    "normalized": "1.6.2",
+    "releaseTime": "2013-07-05T13:09:02Z"
+  },
+  {
+    "id": "1.6.2-080933",
+    "normalized": "1.6.2+080933",
+    "releaseTime": "2013-07-08T00:00:00Z"
+  },
+  {
+    "id": "1.6.2-091847",
+    "normalized": "1.6.2+091847",
+    "releaseTime": "2013-07-09T00:00:00Z"
+  },
+  {
+    "id": "b1.2_02-launcher",
+    "normalized": "1.0.0-beta.2.2+launcher",
+    "releaseTime": "2013-08-01T00:00:00Z"
+  },
+  {
+    "id": "pc-132011-launcher",
+    "normalized": "0.0.0-rd.132011+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "pc-132128-launcher",
+    "normalized": "0.0.0-rd.132128+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "pc-152252-launcher",
+    "normalized": "0.0.0-rd.152252+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "pc-161148-launcher",
+    "normalized": "0.0.0-rd.161148+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "c0.0.11a-launcher",
+    "normalized": "0.11+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a-launcher",
+    "normalized": "0.13+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "c0.0.13a_03-launcher",
+    "normalized": "0.13.3+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.4-launcher",
+    "normalized": "1.0.0-alpha.0.4+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.0.14-1659-launcher",
+    "normalized": "1.0.0-alpha.0.14+1659.launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.1.0-101847-launcher",
+    "normalized": "1.0.0-alpha.1.0+101847.launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "a1.2.0_02-launcher",
+    "normalized": "1.0.0-alpha.2.0.2+launcher",
+    "releaseTime": "2013-08-06T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1234",
+    "normalized": "1.7-alpha.13.36.a+1234",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1235",
+    "normalized": "1.7-alpha.13.36.a+1235",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1330",
+    "normalized": "1.7-alpha.13.36.a+1330",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1428",
+    "normalized": "1.7-alpha.13.36.a+1428",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a-1446",
+    "normalized": "1.7-alpha.13.36.a+1446",
+    "releaseTime": "2013-09-05T00:00:00Z"
+  },
+  {
+    "id": "13w36a",
+    "normalized": "1.7-alpha.13.36.a",
+    "releaseTime": "2013-09-05T13:05:40Z"
+  },
+  {
+    "id": "13w36b-1233",
+    "normalized": "1.7-alpha.13.36.b+1233",
+    "releaseTime": "2013-09-06T00:00:00Z"
+  },
+  {
+    "id": "13w36b-1256",
+    "normalized": "1.7-alpha.13.36.b+1256",
+    "releaseTime": "2013-09-06T00:00:00Z"
+  },
+  {
+    "id": "13w36b-1307",
+    "normalized": "1.7-alpha.13.36.b+1307",
+    "releaseTime": "2013-09-06T00:00:00Z"
+  },
+  {
+    "id": "13w36b",
+    "normalized": "1.7-alpha.13.36.b",
+    "releaseTime": "2013-09-06T12:31:58Z"
+  },
+  {
+    "id": "1.6.3-pre-131100",
+    "normalized": "1.6.3+131100",
+    "releaseTime": "2013-09-12T00:00:00Z"
+  },
+  {
+    "id": "13w37a",
+    "normalized": "1.7-alpha.13.37.a",
+    "releaseTime": "2013-09-12T14:23:14Z"
+  },
+  {
+    "id": "1.6.3",
+    "normalized": "1.6.3",
+    "releaseTime": "2013-09-13T10:54:41Z"
+  },
+  {
+    "id": "13w37b",
+    "normalized": "1.7-alpha.13.37.b",
+    "releaseTime": "2013-09-13T10:54:41Z"
+  },
+  {
+    "id": "1.6.3-pre-171231",
+    "normalized": "1.6.3+171231",
+    "releaseTime": "2013-09-17T00:00:00Z"
+  },
+  {
+    "id": "1.6.4",
+    "normalized": "1.6.4",
+    "releaseTime": "2013-09-19T15:52:37Z"
+  },
+  {
+    "id": "13w38a",
+    "normalized": "1.7-alpha.13.38.a",
+    "releaseTime": "2013-09-19T16:34:21Z"
+  },
+  {
+    "id": "13w38c-1511",
+    "normalized": "1.7-alpha.13.38.c+1511",
+    "releaseTime": "2013-09-20T00:00:00Z"
+  },
+  {
+    "id": "13w38c-1516",
+    "normalized": "1.7-alpha.13.38.c+1516",
+    "releaseTime": "2013-09-20T00:00:00Z"
+  },
+  {
+    "id": "13w38b",
+    "normalized": "1.7-alpha.13.38.b",
+    "releaseTime": "2013-09-20T13:45:40Z"
+  },
+  {
+    "id": "13w38c",
+    "normalized": "1.7-alpha.13.38.c",
+    "releaseTime": "2013-09-20T15:11:34Z"
+  },
+  {
+    "id": "13w39a-1511",
+    "normalized": "1.7-alpha.13.39.a+1511",
+    "releaseTime": "2013-09-26T00:00:00Z"
+  },
+  {
+    "id": "13w39a-1627",
+    "normalized": "1.7-alpha.13.39.a+1627",
+    "releaseTime": "2013-09-26T00:00:00Z"
+  },
+  {
+    "id": "13w39a",
+    "normalized": "1.7-alpha.13.39.a",
+    "releaseTime": "2013-09-26T15:11:19Z"
+  },
+  {
+    "id": "13w39b",
+    "normalized": "1.7-alpha.13.39.b",
+    "releaseTime": "2013-09-27T12:15:58Z"
+  },
+  {
+    "id": "13w41a",
+    "normalized": "1.7-alpha.13.41.a",
+    "releaseTime": "2013-10-10T14:21:43Z"
+  },
+  {
+    "id": "13w41b-1507",
+    "normalized": "1.7-alpha.13.41.b+1507",
+    "releaseTime": "2013-10-11T00:00:00Z"
+  },
+  {
+    "id": "13w41b-1523",
+    "normalized": "1.7-alpha.13.41.b+1523",
+    "releaseTime": "2013-10-11T00:00:00Z"
+  },
+  {
+    "id": "13w41b",
+    "normalized": "1.7-alpha.13.41.b",
+    "releaseTime": "2013-10-11T15:09:17Z"
+  },
+  {
+    "id": "13w42a",
+    "normalized": "1.7-alpha.13.42.a",
+    "releaseTime": "2013-10-17T18:33:05Z"
+  },
+  {
+    "id": "13w42b",
+    "normalized": "1.7-alpha.13.42.b",
+    "releaseTime": "2013-10-18T16:34:08Z"
+  },
+  {
+    "id": "13w43a",
+    "normalized": "1.7-alpha.13.43.a",
+    "releaseTime": "2013-10-21T16:34:47Z"
+  },
+  {
+    "id": "1.7-pre-1500",
+    "normalized": "1.7+1500",
+    "releaseTime": "2013-10-22T00:00:00Z"
+  },
+  {
+    "id": "1.7-pre-1602",
+    "normalized": "1.7+1602",
+    "releaseTime": "2013-10-22T00:00:00Z"
+  },
+  {
+    "id": "1.7",
+    "normalized": "1.7",
+    "releaseTime": "2013-10-22T15:04:05Z"
+  },
+  {
+    "id": "1.7.1-pre",
+    "normalized": "1.7.1",
+    "releaseTime": "2013-10-23T00:00:00Z"
+  },
+  {
+    "id": "1.7.1",
+    "normalized": "1.7.1",
+    "releaseTime": "2013-10-23T12:01:07Z"
+  },
+  {
+    "id": "1.7.2",
+    "normalized": "1.7.2",
+    "releaseTime": "2013-10-25T13:00:00Z"
+  },
+  {
+    "id": "13w47a",
+    "normalized": "1.7.3-alpha.13.47.a",
+    "releaseTime": "2013-11-21T15:59:58Z"
+  },
+  {
+    "id": "13w47b",
+    "normalized": "1.7.3-alpha.13.47.b",
+    "releaseTime": "2013-11-21T16:57:41Z"
+  },
+  {
+    "id": "13w47c",
+    "normalized": "1.7.3-alpha.13.47.c",
+    "releaseTime": "2013-11-21T17:10:33Z"
+  },
+  {
+    "id": "13w47d",
+    "normalized": "1.7.3-alpha.13.47.d",
+    "releaseTime": "2013-11-22T13:51:15Z"
+  },
+  {
+    "id": "13w47e",
+    "normalized": "1.7.3-alpha.13.47.e",
+    "releaseTime": "2013-11-22T15:16:38Z"
+  },
+  {
+    "id": "13w48a",
+    "normalized": "1.7.3-alpha.13.48.a",
+    "releaseTime": "2013-11-25T16:53:39Z"
+  },
+  {
+    "id": "13w48b",
+    "normalized": "1.7.3-alpha.13.48.b",
+    "releaseTime": "2013-11-26T18:36:08Z"
+  },
+  {
+    "id": "13w49a",
+    "normalized": "1.7.3-alpha.13.49.a",
+    "releaseTime": "2013-12-05T14:34:41Z"
+  },
+  {
+    "id": "1.7.3-pre",
+    "normalized": "1.7.3",
+    "releaseTime": "2013-12-06T00:00:00Z"
+  },
+  {
+    "id": "1.7.3",
+    "normalized": "1.7.3",
+    "releaseTime": "2013-12-06T13:55:34Z"
+  },
+  {
+    "id": "1.7.4-pre",
+    "normalized": "1.7.4-rc",
+    "releaseTime": "2013-12-09T00:00:00Z"
+  },
+  {
+    "id": "1.7.4",
+    "normalized": "1.7.4",
+    "releaseTime": "2013-12-09T12:28:10Z"
+  },
+  {
+    "id": "14w02a",
+    "normalized": "1.8-alpha.14.2.a",
+    "releaseTime": "2014-01-09T14:44:41Z"
+  },
+  {
+    "id": "14w02b",
+    "normalized": "1.8-alpha.14.2.b",
+    "releaseTime": "2014-01-09T15:45:55Z"
+  },
+  {
+    "id": "14w02c",
+    "normalized": "1.8-alpha.14.2.c",
+    "releaseTime": "2014-01-10T15:42:36Z"
+  },
+  {
+    "id": "14w03a",
+    "normalized": "1.8-alpha.14.3.a",
+    "releaseTime": "2014-01-16T14:45:13Z"
+  },
+  {
+    "id": "14w03b",
+    "normalized": "1.8-alpha.14.3.b",
+    "releaseTime": "2014-01-16T16:36:19Z"
+  },
+  {
+    "id": "14w04a-1526",
+    "normalized": "1.8-alpha.14.4.a+1526",
+    "releaseTime": "2014-01-23T00:00:00Z"
+  },
+  {
+    "id": "14w04a-1740",
+    "normalized": "1.8-alpha.14.4.a+1740",
+    "releaseTime": "2014-01-23T00:00:00Z"
+  },
+  {
+    "id": "14w04a",
+    "normalized": "1.8-alpha.14.4.a",
+    "releaseTime": "2014-01-23T15:26:13Z"
+  },
+  {
+    "id": "14w04b-1548",
+    "normalized": "1.8-alpha.14.4.b+1548",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b-1554",
+    "normalized": "1.8-alpha.14.4.b+1554",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b-1555",
+    "normalized": "1.8-alpha.14.4.b+1555",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b-15xx",
+    "normalized": "14.w.4.b-15.xx",
+    "releaseTime": "2014-01-24T00:00:00Z"
+  },
+  {
+    "id": "14w04b",
+    "normalized": "1.8-alpha.14.4.b",
+    "releaseTime": "2014-01-24T15:48:46Z"
+  },
+  {
+    "id": "14w05a",
+    "normalized": "1.8-alpha.14.5.a",
+    "releaseTime": "2014-01-30T15:32:41Z"
+  },
+  {
+    "id": "14w05b",
+    "normalized": "1.8-alpha.14.5.b",
+    "releaseTime": "2014-01-31T14:05:50Z"
+  },
+  {
+    "id": "14w06a",
+    "normalized": "1.8-alpha.14.6.a",
+    "releaseTime": "2014-02-06T14:30:17Z"
+  },
+  {
+    "id": "14w06b",
+    "normalized": "1.8-alpha.14.6.b",
+    "releaseTime": "2014-02-06T17:30:42Z"
+  },
+  {
+    "id": "14w07a",
+    "normalized": "1.8-alpha.14.7.a",
+    "releaseTime": "2014-02-14T11:05:07Z"
+  },
+  {
+    "id": "1.7.5",
+    "normalized": "1.7.5",
+    "releaseTime": "2014-02-26T09:22:17Z"
+  },
+  {
+    "id": "14w08a",
+    "normalized": "1.8-alpha.14.8.a",
+    "releaseTime": "2014-02-26T17:00:00Z"
+  },
+  {
+    "id": "14w10a",
+    "normalized": "1.8-alpha.14.10.a",
+    "releaseTime": "2014-03-06T14:23:04Z"
+  },
+  {
+    "id": "14w10b",
+    "normalized": "1.8-alpha.14.10.b",
+    "releaseTime": "2014-03-06T16:25:39Z"
+  },
+  {
+    "id": "14w10c-1351",
+    "normalized": "1.8-alpha.14.10.c+1351",
+    "releaseTime": "2014-03-07T00:00:00Z"
+  },
+  {
+    "id": "14w10c-1518",
+    "normalized": "1.8-alpha.14.10.c+1518",
+    "releaseTime": "2014-03-07T00:00:00Z"
+  },
+  {
+    "id": "14w10c",
+    "normalized": "1.8-alpha.14.10.c",
+    "releaseTime": "2014-03-07T13:49:55Z"
+  },
+  {
+    "id": "1.7.6-pre1",
+    "normalized": "1.7.6-rc.1",
+    "releaseTime": "2014-03-08T11:00:00Z"
+  },
+  {
+    "id": "1.7.6-pre2",
+    "normalized": "1.7.6-rc.2",
+    "releaseTime": "2014-03-08T11:00:01Z"
+  },
+  {
+    "id": "14w11b-1640",
+    "normalized": "1.8-alpha.14.11.b+1640",
+    "releaseTime": "2014-03-13T00:00:00Z"
+  },
+  {
+    "id": "14w11b-1650",
+    "normalized": "1.8-alpha.14.11.b+1650",
+    "releaseTime": "2014-03-13T00:00:00Z"
+  },
+  {
+    "id": "14w11a",
+    "normalized": "1.8-alpha.14.11.a",
+    "releaseTime": "2014-03-13T14:02:50Z"
+  },
+  {
+    "id": "1.7.7-091529",
+    "normalized": "1.7.7+091529",
+    "releaseTime": "2014-04-09T00:00:00Z"
+  },
+  {
+    "id": "1.7.6",
+    "normalized": "1.7.6",
+    "releaseTime": "2014-04-09T07:52:06Z"
+  },
+  {
+    "id": "1.7.7",
+    "normalized": "1.7.7",
+    "releaseTime": "2014-04-09T07:52:16Z"
+  },
+  {
+    "id": "1.7.8",
+    "normalized": "1.7.8",
+    "releaseTime": "2014-04-09T07:58:16Z"
+  },
+  {
+    "id": "1.7.7-101331",
+    "normalized": "1.7.7+101331",
+    "releaseTime": "2014-04-10T00:00:00Z"
+  },
+  {
+    "id": "1.7.9",
+    "normalized": "1.7.9",
+    "releaseTime": "2014-04-14T13:29:23Z"
+  },
+  {
+    "id": "14w11b",
+    "normalized": "1.8-alpha.14.11.b",
+    "releaseTime": "2014-04-14T14:36:19Z"
+  },
+  {
+    "id": "14w17a",
+    "normalized": "1.8-alpha.14.17.a",
+    "releaseTime": "2014-04-24T15:44:49Z"
+  },
+  {
+    "id": "14w18a",
+    "normalized": "1.8-alpha.14.18.a",
+    "releaseTime": "2014-04-30T10:25:35Z"
+  },
+  {
+    "id": "14w18b",
+    "normalized": "1.8-alpha.14.18.b",
+    "releaseTime": "2014-05-02T11:38:17Z"
+  },
+  {
+    "id": "14w19a",
+    "normalized": "1.8-alpha.14.19.a",
+    "releaseTime": "2014-05-08T14:24:19Z"
+  },
+  {
+    "id": "1.7.10-pre1",
+    "normalized": "1.7.10-rc.1",
+    "releaseTime": "2014-05-14T13:29:23Z"
+  },
+  {
+    "id": "1.7.10-pre2",
+    "normalized": "1.7.10-rc.2",
+    "releaseTime": "2014-05-14T14:29:23Z"
+  },
+  {
+    "id": "1.7.10-pre3",
+    "normalized": "1.7.10-rc.3",
+    "releaseTime": "2014-05-14T15:29:23Z"
+  },
+  {
+    "id": "1.7.10-pre4",
+    "normalized": "1.7.10-rc.4",
+    "releaseTime": "2014-05-14T16:29:23Z"
+  },
+  {
+    "id": "1.7.10",
+    "normalized": "1.7.10",
+    "releaseTime": "2014-05-14T17:29:23Z"
+  },
+  {
+    "id": "14w20a",
+    "normalized": "1.8-alpha.14.20.a",
+    "releaseTime": "2014-05-15T14:01:20Z"
+  },
+  {
+    "id": "14w20b",
+    "normalized": "1.8-alpha.14.20.b",
+    "releaseTime": "2014-05-15T16:47:21Z"
+  },
+  {
+    "id": "14w21a",
+    "normalized": "1.8-alpha.14.21.a",
+    "releaseTime": "2014-05-22T14:44:33Z"
+  },
+  {
+    "id": "14w21b",
+    "normalized": "1.8-alpha.14.21.b",
+    "releaseTime": "2014-05-22T15:17:55Z"
+  },
+  {
+    "id": "1.7.10-pre2-1000",
+    "normalized": "1.7.10-rc.2+1000",
+    "releaseTime": "2014-06-04T00:00:00Z"
+  },
+  {
+    "id": "1.7.10-pre2-1045",
+    "normalized": "1.7.10-rc.2+1045",
+    "releaseTime": "2014-06-04T00:00:00Z"
+  },
+  {
+    "id": "14w25a",
+    "normalized": "1.8-alpha.14.25.a",
+    "releaseTime": "2014-06-18T15:52:28Z"
+  },
+  {
+    "id": "14w25b",
+    "normalized": "1.8-alpha.14.25.b",
+    "releaseTime": "2014-06-19T12:29:48Z"
+  },
+  {
+    "id": "14w26a",
+    "normalized": "1.8-alpha.14.26.a",
+    "releaseTime": "2014-06-25T13:59:27Z"
+  },
+  {
+    "id": "14w26b",
+    "normalized": "1.8-alpha.14.26.b",
+    "releaseTime": "2014-06-25T15:08:39Z"
+  },
+  {
+    "id": "14w26c",
+    "normalized": "1.8-alpha.14.26.c",
+    "releaseTime": "2014-06-26T15:05:03Z"
+  },
+  {
+    "id": "14w27b-1634",
+    "normalized": "1.8-alpha.14.27.b+1634",
+    "releaseTime": "2014-07-02T00:00:00Z"
+  },
+  {
+    "id": "14w27b-1646",
+    "normalized": "1.8-alpha.14.27.b+1646",
+    "releaseTime": "2014-07-02T00:00:00Z"
+  },
+  {
+    "id": "14w27a",
+    "normalized": "1.8-alpha.14.27.a",
+    "releaseTime": "2014-07-02T16:07:20Z"
+  },
+  {
+    "id": "14w27b",
+    "normalized": "1.8-alpha.14.27.b",
+    "releaseTime": "2014-07-02T18:34:56Z"
+  },
+  {
+    "id": "14w28a",
+    "normalized": "1.8-alpha.14.28.a",
+    "releaseTime": "2014-07-09T15:42:36Z"
+  },
+  {
+    "id": "14w28b",
+    "normalized": "1.8-alpha.14.28.b",
+    "releaseTime": "2014-07-10T14:28:48Z"
+  },
+  {
+    "id": "14w29a",
+    "normalized": "1.8-alpha.14.29.a",
+    "releaseTime": "2014-07-16T15:18:17Z"
+  },
+  {
+    "id": "14w29b",
+    "normalized": "1.8-alpha.14.29.b",
+    "releaseTime": "2014-07-16T17:27:40Z"
+  },
+  {
+    "id": "14w30a",
+    "normalized": "1.8-alpha.14.30.a",
+    "releaseTime": "2014-07-23T13:15:42Z"
+  },
+  {
+    "id": "14w30b",
+    "normalized": "1.8-alpha.14.30.b",
+    "releaseTime": "2014-07-23T15:03:03Z"
+  },
+  {
+    "id": "14w30c",
+    "normalized": "1.8-alpha.14.30.c",
+    "releaseTime": "2014-07-24T14:39:09Z"
+  },
+  {
+    "id": "14w31a",
+    "normalized": "1.8-alpha.14.31.a",
+    "releaseTime": "2014-07-30T15:38:05Z"
+  },
+  {
+    "id": "14w32a",
+    "normalized": "1.8-alpha.14.32.a",
+    "releaseTime": "2014-08-06T14:01:16Z"
+  },
+  {
+    "id": "14w32b",
+    "normalized": "1.8-alpha.14.32.b",
+    "releaseTime": "2014-08-07T14:45:17Z"
+  },
+  {
+    "id": "14w32c",
+    "normalized": "1.8-alpha.14.32.c",
+    "releaseTime": "2014-08-08T14:11:20Z"
+  },
+  {
+    "id": "14w32d",
+    "normalized": "1.8-alpha.14.32.d",
+    "releaseTime": "2014-08-08T15:13:41Z"
+  },
+  {
+    "id": "14w33a",
+    "normalized": "1.8-alpha.14.33.a",
+    "releaseTime": "2014-08-13T15:08:14Z"
+  },
+  {
+    "id": "14w33b",
+    "normalized": "1.8-alpha.14.33.b",
+    "releaseTime": "2014-08-15T16:23:51Z"
+  },
+  {
+    "id": "14w33c",
+    "normalized": "1.8-alpha.14.33.c",
+    "releaseTime": "2014-08-15T18:00:26Z"
+  },
+  {
+    "id": "14w34a",
+    "normalized": "1.8-alpha.14.34.a",
+    "releaseTime": "2014-08-18T14:14:11Z"
+  },
+  {
+    "id": "14w34b",
+    "normalized": "1.8-alpha.14.34.b",
+    "releaseTime": "2014-08-18T15:14:28Z"
+  },
+  {
+    "id": "14w34c-1531",
+    "normalized": "1.8-alpha.14.34.c+1531",
+    "releaseTime": "2014-08-19T00:00:00Z"
+  },
+  {
+    "id": "14w34c-1549",
+    "normalized": "1.8-alpha.14.34.c+1549",
+    "releaseTime": "2014-08-19T00:00:00Z"
+  },
+  {
+    "id": "14w34c",
+    "normalized": "1.8-alpha.14.34.c",
+    "releaseTime": "2014-08-19T15:31:24Z"
+  },
+  {
+    "id": "14w34d",
+    "normalized": "1.8-alpha.14.34.d",
+    "releaseTime": "2014-08-20T12:46:59Z"
+  },
+  {
+    "id": "1.8-pre1",
+    "normalized": "1.8-rc.1",
+    "releaseTime": "2014-08-21T13:56:26Z"
+  },
+  {
+    "id": "1.8-pre2",
+    "normalized": "1.8-rc.2",
+    "releaseTime": "2014-08-25T14:52:18Z"
+  },
+  {
+    "id": "1.8-pre3",
+    "normalized": "1.8-rc.3",
+    "releaseTime": "2014-08-28T09:40:54Z"
+  },
+  {
+    "id": "1.8",
+    "normalized": "1.8",
+    "releaseTime": "2014-09-02T08:24:35Z"
+  },
+  {
+    "id": "1.8.1-pre1",
+    "normalized": "1.8.1-rc.1",
+    "releaseTime": "2014-10-15T13:25:11Z"
+  },
+  {
+    "id": "1.8.1-pre2",
+    "normalized": "1.8.1-rc.2",
+    "releaseTime": "2014-10-16T14:19:27Z"
+  },
+  {
+    "id": "1.8.1-pre3",
+    "normalized": "1.8.1-rc.3",
+    "releaseTime": "2014-10-23T12:59:42Z"
+  },
+  {
+    "id": "1.8.1-pre4",
+    "normalized": "1.8.1-rc.4",
+    "releaseTime": "2014-11-06T14:10:50Z"
+  },
+  {
+    "id": "1.8.1-pre5",
+    "normalized": "1.8.1-rc.5",
+    "releaseTime": "2014-11-19T14:30:48Z"
+  },
+  {
+    "id": "1.8.1",
+    "normalized": "1.8.1",
+    "releaseTime": "2014-11-24T14:13:31Z"
+  },
+  {
+    "id": "1.8.2-pre1",
+    "normalized": "1.8.2-rc.1",
+    "releaseTime": "2014-12-18T11:29:41Z"
+  },
+  {
+    "id": "1.8.2-pre2",
+    "normalized": "1.8.2-rc.2",
+    "releaseTime": "2015-01-15T15:07:31Z"
+  },
+  {
+    "id": "1.8.2-pre3",
+    "normalized": "1.8.2-rc.3",
+    "releaseTime": "2015-01-15T16:44:33Z"
+  },
+  {
+    "id": "1.8.2-pre4",
+    "normalized": "1.8.2-rc.4",
+    "releaseTime": "2015-01-16T14:19:59Z"
+  },
+  {
+    "id": "1.8.2-pre5",
+    "normalized": "1.8.2-rc.5",
+    "releaseTime": "2015-01-26T15:03:24Z"
+  },
+  {
+    "id": "1.8.2-pre6",
+    "normalized": "1.8.2-rc.6",
+    "releaseTime": "2015-01-30T11:58:24Z"
+  },
+  {
+    "id": "1.8.2-pre7",
+    "normalized": "1.8.2-rc.7",
+    "releaseTime": "2015-02-16T13:01:35Z"
+  },
+  {
+    "id": "1.8.2",
+    "normalized": "1.8.2",
+    "releaseTime": "2015-02-19T15:47:29Z"
+  },
+  {
+    "id": "1.8.3",
+    "normalized": "1.8.3",
+    "releaseTime": "2015-02-20T14:00:09Z"
+  },
+  {
+    "id": "15w14a",
+    "normalized": "1.8.4-alpha.15.14.a+loveandhugs",
+    "releaseTime": "2015-04-01T07:08:00Z"
+  },
+  {
+    "id": "1.8.4",
+    "normalized": "1.8.4",
+    "releaseTime": "2015-04-17T11:37:50Z"
+  },
+  {
+    "id": "1.8.5",
+    "normalized": "1.8.5",
+    "releaseTime": "2015-05-22T11:15:28Z"
+  },
+  {
+    "id": "1.8.6",
+    "normalized": "1.8.6",
+    "releaseTime": "2015-05-25T10:31:19Z"
+  },
+  {
+    "id": "1.8.7",
+    "normalized": "1.8.7",
+    "releaseTime": "2015-06-05T10:10:44Z"
+  },
+  {
+    "id": "1.8.8-pre",
+    "normalized": "1.8.8-rc",
+    "releaseTime": "2015-07-27T00:00:00Z"
+  },
+  {
+    "id": "1.8.8",
+    "normalized": "1.8.8",
+    "releaseTime": "2015-07-27T10:31:28Z"
+  },
+  {
+    "id": "15w31a",
+    "normalized": "1.9-alpha.15.31.a",
+    "releaseTime": "2015-07-29T13:24:33Z"
+  },
+  {
+    "id": "15w31b",
+    "normalized": "1.9-alpha.15.31.b",
+    "releaseTime": "2015-07-30T13:38:32Z"
+  },
+  {
+    "id": "15w31c",
+    "normalized": "1.9-alpha.15.31.c",
+    "releaseTime": "2015-07-31T13:45:08Z"
+  },
+  {
+    "id": "15w32a",
+    "normalized": "1.9-alpha.15.32.a",
+    "releaseTime": "2015-08-05T12:22:42Z"
+  },
+  {
+    "id": "15w32b",
+    "normalized": "1.9-alpha.15.32.b",
+    "releaseTime": "2015-08-06T13:51:47Z"
+  },
+  {
+    "id": "15w32c",
+    "normalized": "1.9-alpha.15.32.c",
+    "releaseTime": "2015-08-07T14:08:17Z"
+  },
+  {
+    "id": "15w33a",
+    "normalized": "1.9-alpha.15.33.a",
+    "releaseTime": "2015-08-12T14:05:07Z"
+  },
+  {
+    "id": "15w33b",
+    "normalized": "1.9-alpha.15.33.b",
+    "releaseTime": "2015-08-12T15:29:11Z"
+  },
+  {
+    "id": "15w33c",
+    "normalized": "1.9-alpha.15.33.c",
+    "releaseTime": "2015-08-14T13:10:46Z"
+  },
+  {
+    "id": "15w34a",
+    "normalized": "1.9-alpha.15.34.a",
+    "releaseTime": "2015-08-19T12:56:01Z"
+  },
+  {
+    "id": "15w34b",
+    "normalized": "1.9-alpha.15.34.b",
+    "releaseTime": "2015-08-20T14:00:03Z"
+  },
+  {
+    "id": "15w34c",
+    "normalized": "1.9-alpha.15.34.c",
+    "releaseTime": "2015-08-21T12:45:20Z"
+  },
+  {
+    "id": "15w34d",
+    "normalized": "1.9-alpha.15.34.d",
+    "releaseTime": "2015-08-21T15:27:55Z"
+  },
+  {
+    "id": "15w35a",
+    "normalized": "1.9-alpha.15.35.a",
+    "releaseTime": "2015-08-24T14:19:31Z"
+  },
+  {
+    "id": "15w35b",
+    "normalized": "1.9-alpha.15.35.b",
+    "releaseTime": "2015-08-24T15:39:18Z"
+  },
+  {
+    "id": "15w35c",
+    "normalized": "1.9-alpha.15.35.c",
+    "releaseTime": "2015-08-28T11:21:00Z"
+  },
+  {
+    "id": "15w35d",
+    "normalized": "1.9-alpha.15.35.d",
+    "releaseTime": "2015-08-28T16:25:35Z"
+  },
+  {
+    "id": "15w35e",
+    "normalized": "1.9-alpha.15.35.e",
+    "releaseTime": "2015-08-28T18:14:02Z"
+  },
+  {
+    "id": "15w36a",
+    "normalized": "1.9-alpha.15.36.a",
+    "releaseTime": "2015-09-02T14:46:40Z"
+  },
+  {
+    "id": "15w36b",
+    "normalized": "1.9-alpha.15.36.b",
+    "releaseTime": "2015-09-02T15:36:25Z"
+  },
+  {
+    "id": "15w36c",
+    "normalized": "1.9-alpha.15.36.c",
+    "releaseTime": "2015-09-02T16:07:22Z"
+  },
+  {
+    "id": "15w36d",
+    "normalized": "1.9-alpha.15.36.d",
+    "releaseTime": "2015-09-04T14:22:31Z"
+  },
+  {
+    "id": "15w37a",
+    "normalized": "1.9-alpha.15.37.a",
+    "releaseTime": "2015-09-10T14:22:31Z"
+  },
+  {
+    "id": "15w38a",
+    "normalized": "1.9-alpha.15.38.a",
+    "releaseTime": "2015-09-16T14:22:31Z"
+  },
+  {
+    "id": "15w38b",
+    "normalized": "1.9-alpha.15.38.b",
+    "releaseTime": "2015-09-17T14:22:31Z"
+  },
+  {
+    "id": "15w39a",
+    "normalized": "1.9-alpha.15.39.a",
+    "releaseTime": "2015-09-21T13:16:32Z"
+  },
+  {
+    "id": "15w39b",
+    "normalized": "1.9-alpha.15.39.b",
+    "releaseTime": "2015-09-21T15:09:52Z"
+  },
+  {
+    "id": "15w39c",
+    "normalized": "1.9-alpha.15.39.c",
+    "releaseTime": "2015-09-23T13:13:54Z"
+  },
+  {
+    "id": "15w40a",
+    "normalized": "1.9-alpha.15.40.a",
+    "releaseTime": "2015-09-30T13:13:54Z"
+  },
+  {
+    "id": "15w40b",
+    "normalized": "1.9-alpha.15.40.b",
+    "releaseTime": "2015-09-30T14:13:54Z"
+  },
+  {
+    "id": "15w41a",
+    "normalized": "1.9-alpha.15.41.a",
+    "releaseTime": "2015-10-07T13:19:53Z"
+  },
+  {
+    "id": "15w41b",
+    "normalized": "1.9-alpha.15.41.b",
+    "releaseTime": "2015-10-07T14:07:26Z"
+  },
+  {
+    "id": "15w42a",
+    "normalized": "1.9-alpha.15.42.a",
+    "releaseTime": "2015-10-14T13:25:14Z"
+  },
+  {
+    "id": "15w43a",
+    "normalized": "1.9-alpha.15.43.a",
+    "releaseTime": "2015-10-21T15:28:52Z"
+  },
+  {
+    "id": "15w43b",
+    "normalized": "1.9-alpha.15.43.b",
+    "releaseTime": "2015-10-22T14:11:58Z"
+  },
+  {
+    "id": "15w43c",
+    "normalized": "1.9-alpha.15.43.c",
+    "releaseTime": "2015-10-23T15:35:55Z"
+  },
+  {
+    "id": "15w44a",
+    "normalized": "1.9-alpha.15.44.a",
+    "releaseTime": "2015-10-28T15:09:36Z"
+  },
+  {
+    "id": "15w44b",
+    "normalized": "1.9-alpha.15.44.b",
+    "releaseTime": "2015-10-30T11:23:17Z"
+  },
+  {
+    "id": "15w45a",
+    "normalized": "1.9-alpha.15.45.a",
+    "releaseTime": "2015-11-05T13:04:07Z"
+  },
+  {
+    "id": "15w46a",
+    "normalized": "1.9-alpha.15.46.a",
+    "releaseTime": "2015-11-12T12:11:47Z"
+  },
+  {
+    "id": "15w47a",
+    "normalized": "1.9-alpha.15.47.a",
+    "releaseTime": "2015-11-18T15:53:41Z"
+  },
+  {
+    "id": "15w47b",
+    "normalized": "1.9-alpha.15.47.b",
+    "releaseTime": "2015-11-19T14:48:03Z"
+  },
+  {
+    "id": "15w47c",
+    "normalized": "1.9-alpha.15.47.c",
+    "releaseTime": "2015-11-20T12:46:56Z"
+  },
+  {
+    "id": "15w49a",
+    "normalized": "1.9-alpha.15.49.a",
+    "releaseTime": "2015-12-02T15:09:37Z"
+  },
+  {
+    "id": "1.8.9",
+    "normalized": "1.8.9",
+    "releaseTime": "2015-12-03T09:24:39Z"
+  },
+  {
+    "id": "15w49b",
+    "normalized": "1.9-alpha.15.49.b",
+    "releaseTime": "2015-12-03T15:23:22Z"
+  },
+  {
+    "id": "15w50a",
+    "normalized": "1.9-alpha.15.50.a",
+    "releaseTime": "2015-12-09T15:35:57Z"
+  },
+  {
+    "id": "15w51a",
+    "normalized": "1.9-alpha.15.51.a",
+    "releaseTime": "2015-12-17T14:02:37Z"
+  },
+  {
+    "id": "15w51b",
+    "normalized": "1.9-alpha.15.51.b",
+    "releaseTime": "2015-12-17T15:30:41Z"
+  },
+  {
+    "id": "16w02a",
+    "normalized": "1.9-alpha.16.2.a",
+    "releaseTime": "2016-01-13T15:15:16Z"
+  },
+  {
+    "id": "16w03a",
+    "normalized": "1.9-alpha.16.3.a",
+    "releaseTime": "2016-01-20T14:29:24Z"
+  },
+  {
+    "id": "16w04a",
+    "normalized": "1.9-alpha.16.4.a",
+    "releaseTime": "2016-01-28T15:37:24Z"
+  },
+  {
+    "id": "16w05a",
+    "normalized": "1.9-alpha.16.5.a",
+    "releaseTime": "2016-02-03T15:48:38Z"
+  },
+  {
+    "id": "16w05b",
+    "normalized": "1.9-alpha.16.5.b",
+    "releaseTime": "2016-02-04T15:28:02Z"
+  },
+  {
+    "id": "16w06a",
+    "normalized": "1.9-alpha.16.6.a",
+    "releaseTime": "2016-02-10T15:06:41Z"
+  },
+  {
+    "id": "16w07a",
+    "normalized": "1.9-alpha.16.7.a",
+    "releaseTime": "2016-02-15T15:48:46Z"
+  },
+  {
+    "id": "16w07b",
+    "normalized": "1.9-alpha.16.7.b",
+    "releaseTime": "2016-02-16T15:22:39Z"
+  },
+  {
+    "id": "1.9-pre1",
+    "normalized": "1.9-rc.1",
+    "releaseTime": "2016-02-17T15:23:19Z"
+  },
+  {
+    "id": "1.9-pre2",
+    "normalized": "1.9-rc.2",
+    "releaseTime": "2016-02-18T17:41:00Z"
+  },
+  {
+    "id": "1.9-pre3",
+    "normalized": "1.9-rc.3",
+    "releaseTime": "2016-02-24T15:52:36Z"
+  },
+  {
+    "id": "1.9-pre4",
+    "normalized": "1.9-rc.4",
+    "releaseTime": "2016-02-26T15:21:11Z"
+  },
+  {
+    "id": "1.9",
+    "normalized": "1.9",
+    "releaseTime": "2016-02-29T13:49:54Z"
+  },
+  {
+    "id": "1.9.1-pre1",
+    "normalized": "1.9.1-rc.1",
+    "releaseTime": "2016-03-09T16:27:29Z"
+  },
+  {
+    "id": "1.9.1-pre2",
+    "normalized": "1.9.1-rc.2",
+    "releaseTime": "2016-03-10T15:06:03Z"
+  },
+  {
+    "id": "1.9.1-pre3",
+    "normalized": "1.9.1-rc.3",
+    "releaseTime": "2016-03-11T09:20:36Z"
+  },
+  {
+    "id": "1.9.1",
+    "normalized": "1.9.1",
+    "releaseTime": "2016-03-30T13:43:07Z"
+  },
+  {
+    "id": "1.9.2",
+    "normalized": "1.9.2",
+    "releaseTime": "2016-03-30T15:23:55Z"
+  },
+  {
+    "id": "1.RV-Pre1",
+    "normalized": "1.9.2-rv+trendy",
+    "releaseTime": "2016-03-31T16:18:53Z"
+  },
+  {
+    "id": "16w14a",
+    "normalized": "1.9.3-alpha.16.14.a",
+    "releaseTime": "2016-04-07T12:47:51Z"
+  },
+  {
+    "id": "16w15a",
+    "normalized": "1.9.3-alpha.16.15.a",
+    "releaseTime": "2016-04-11T14:38:28Z"
+  },
+  {
+    "id": "16w15b",
+    "normalized": "1.9.3-alpha.16.15.b",
+    "releaseTime": "2016-04-13T13:56:41Z"
+  },
+  {
+    "id": "1.9.3-pre1",
+    "normalized": "1.9.3-rc.1",
+    "releaseTime": "2016-04-21T12:41:42Z"
+  },
+  {
+    "id": "1.9.3-pre2",
+    "normalized": "1.9.3-rc.2",
+    "releaseTime": "2016-04-27T13:33:20Z"
+  },
+  {
+    "id": "1.9.3-pre3",
+    "normalized": "1.9.3-rc.3",
+    "releaseTime": "2016-05-03T09:28:11Z"
+  },
+  {
+    "id": "1.9.3",
+    "normalized": "1.9.3",
+    "releaseTime": "2016-05-10T08:33:35Z"
+  },
+  {
+    "id": "1.9.4",
+    "normalized": "1.9.4",
+    "releaseTime": "2016-05-10T10:17:16Z"
+  },
+  {
+    "id": "16w20a",
+    "normalized": "1.10-alpha.16.20.a",
+    "releaseTime": "2016-05-18T12:45:14Z"
+  },
+  {
+    "id": "16w21a",
+    "normalized": "1.10-alpha.16.21.a",
+    "releaseTime": "2016-05-25T13:12:09Z"
+  },
+  {
+    "id": "16w21b",
+    "normalized": "1.10-alpha.16.21.b",
+    "releaseTime": "2016-05-26T12:47:22Z"
+  },
+  {
+    "id": "1.10-pre1",
+    "normalized": "1.10-rc.1",
+    "releaseTime": "2016-06-02T14:45:16Z"
+  },
+  {
+    "id": "1.10-pre2",
+    "normalized": "1.10-rc.2",
+    "releaseTime": "2016-06-07T14:56:34Z"
+  },
+  {
+    "id": "1.10",
+    "normalized": "1.10",
+    "releaseTime": "2016-06-08T13:06:18Z"
+  },
+  {
+    "id": "1.10.1",
+    "normalized": "1.10.1",
+    "releaseTime": "2016-06-22T10:13:22Z"
+  },
+  {
+    "id": "1.10.2",
+    "normalized": "1.10.2",
+    "releaseTime": "2016-06-23T09:17:32Z"
+  },
+  {
+    "id": "16w32a",
+    "normalized": "1.11-alpha.16.32.a",
+    "releaseTime": "2016-08-10T12:30:10Z"
+  },
+  {
+    "id": "16w32b",
+    "normalized": "1.11-alpha.16.32.b",
+    "releaseTime": "2016-08-11T14:34:29Z"
+  },
+  {
+    "id": "16w33a",
+    "normalized": "1.11-alpha.16.33.a",
+    "releaseTime": "2016-08-17T12:48:57Z"
+  },
+  {
+    "id": "16w35a",
+    "normalized": "1.11-alpha.16.35.a",
+    "releaseTime": "2016-09-01T13:13:38Z"
+  },
+  {
+    "id": "16w36a",
+    "normalized": "1.11-alpha.16.36.a",
+    "releaseTime": "2016-09-08T14:55:10Z"
+  },
+  {
+    "id": "16w38a",
+    "normalized": "1.11-alpha.16.38.a",
+    "releaseTime": "2016-09-20T12:40:49Z"
+  },
+  {
+    "id": "16w39a",
+    "normalized": "1.11-alpha.16.39.a",
+    "releaseTime": "2016-09-28T13:32:06Z"
+  },
+  {
+    "id": "16w39b",
+    "normalized": "1.11-alpha.16.39.b",
+    "releaseTime": "2016-09-29T14:39:39Z"
+  },
+  {
+    "id": "16w39c",
+    "normalized": "1.11-alpha.16.39.c",
+    "releaseTime": "2016-09-30T14:11:48Z"
+  },
+  {
+    "id": "16w40a",
+    "normalized": "1.11-alpha.16.40.a",
+    "releaseTime": "2016-10-06T13:57:59Z"
+  },
+  {
+    "id": "16w41a",
+    "normalized": "1.11-alpha.16.41.a",
+    "releaseTime": "2016-10-13T14:28:35Z"
+  },
+  {
+    "id": "16w42a",
+    "normalized": "1.11-alpha.16.42.a",
+    "releaseTime": "2016-10-19T11:17:47Z"
+  },
+  {
+    "id": "16w43a",
+    "normalized": "1.11-alpha.16.43.a",
+    "releaseTime": "2016-10-27T09:00:51Z"
+  },
+  {
+    "id": "16w44a",
+    "normalized": "1.11-alpha.16.44.a",
+    "releaseTime": "2016-11-03T14:17:11Z"
+  },
+  {
+    "id": "1.11-pre1",
+    "normalized": "1.11-rc.1",
+    "releaseTime": "2016-11-08T13:42:50Z"
+  },
+  {
+    "id": "1.11",
+    "normalized": "1.11",
+    "releaseTime": "2016-11-14T14:34:40Z"
+  },
+  {
+    "id": "1.11.1-pre",
+    "normalized": "1.11.1-rc",
+    "releaseTime": "2016-12-15T00:00:00Z"
+  },
+  {
+    "id": "16w50a",
+    "normalized": "1.11.1-alpha.16.50.a",
+    "releaseTime": "2016-12-15T14:38:52Z"
+  },
+  {
+    "id": "1.11.1",
+    "normalized": "1.11.1",
+    "releaseTime": "2016-12-20T14:05:34Z"
+  },
+  {
+    "id": "1.11.2",
+    "normalized": "1.11.2",
+    "releaseTime": "2016-12-21T09:29:12Z"
+  },
+  {
+    "id": "17w06a",
+    "normalized": "1.12-alpha.17.6.a",
+    "releaseTime": "2017-02-08T13:16:29Z"
+  },
+  {
+    "id": "17w13a-0805",
+    "normalized": "1.12-alpha.17.13.a+0805",
+    "releaseTime": "2017-03-30T00:00:00Z"
+  },
+  {
+    "id": "17w13a-0932",
+    "normalized": "1.12-alpha.17.13.a+0932",
+    "releaseTime": "2017-03-30T00:00:00Z"
+  },
+  {
+    "id": "17w13a",
+    "normalized": "1.12-alpha.17.13.a",
+    "releaseTime": "2017-03-30T09:32:19Z"
+  },
+  {
+    "id": "17w13b",
+    "normalized": "1.12-alpha.17.13.b",
+    "releaseTime": "2017-03-31T11:06:35Z"
+  },
+  {
+    "id": "17w14a",
+    "normalized": "1.12-alpha.17.14.a",
+    "releaseTime": "2017-04-05T13:58:01Z"
+  },
+  {
+    "id": "17w15a",
+    "normalized": "1.12-alpha.17.15.a",
+    "releaseTime": "2017-04-12T09:30:50Z"
+  },
+  {
+    "id": "17w16a",
+    "normalized": "1.12-alpha.17.16.a",
+    "releaseTime": "2017-04-20T13:58:35Z"
+  },
+  {
+    "id": "17w16b",
+    "normalized": "1.12-alpha.17.16.b",
+    "releaseTime": "2017-04-21T12:02:59Z"
+  },
+  {
+    "id": "17w17a",
+    "normalized": "1.12-alpha.17.17.a",
+    "releaseTime": "2017-04-26T13:48:23Z"
+  },
+  {
+    "id": "17w17b",
+    "normalized": "1.12-alpha.17.17.b",
+    "releaseTime": "2017-04-27T13:24:23Z"
+  },
+  {
+    "id": "17w18a-1331",
+    "normalized": "1.12-alpha.17.18.a+1331",
+    "releaseTime": "2017-05-03T00:00:00Z"
+  },
+  {
+    "id": "17w18a-1450",
+    "normalized": "1.12-alpha.17.18.a+1450",
+    "releaseTime": "2017-05-03T00:00:00Z"
+  },
+  {
+    "id": "17w18a",
+    "normalized": "1.12-alpha.17.18.a",
+    "releaseTime": "2017-05-03T14:50:23Z"
+  },
+  {
+    "id": "17w18b",
+    "normalized": "1.12-alpha.17.18.b",
+    "releaseTime": "2017-05-04T13:40:22Z"
+  },
+  {
+    "id": "1.12-pre1",
+    "normalized": "1.12-rc.1",
+    "releaseTime": "2017-05-10T11:37:17Z"
+  },
+  {
+    "id": "1.12-pre2",
+    "normalized": "1.12-rc.2",
+    "releaseTime": "2017-05-11T12:11:12Z"
+  },
+  {
+    "id": "1.12-pre3-1316",
+    "normalized": "1.12-rc.3+1316",
+    "releaseTime": "2017-05-17T00:00:00Z"
+  },
+  {
+    "id": "1.12-pre3-1317",
+    "normalized": "1.12-rc.3+1317",
+    "releaseTime": "2017-05-17T00:00:00Z"
+  },
+  {
+    "id": "1.12-pre3-1409",
+    "normalized": "1.12-rc.3+1409",
+    "releaseTime": "2017-05-17T00:00:00Z"
+  },
+  {
+    "id": "1.12-pre3",
+    "normalized": "1.12-rc.3",
+    "releaseTime": "2017-05-17T14:09:18Z"
+  },
+  {
+    "id": "1.12-pre4",
+    "normalized": "1.12-rc.4",
+    "releaseTime": "2017-05-18T12:28:16Z"
+  },
+  {
+    "id": "1.12-pre5",
+    "normalized": "1.12-rc.5",
+    "releaseTime": "2017-05-19T07:43:28Z"
+  },
+  {
+    "id": "1.12-pre6",
+    "normalized": "1.12-rc.6",
+    "releaseTime": "2017-05-29T11:45:12Z"
+  },
+  {
+    "id": "1.12-pre7",
+    "normalized": "1.12-rc.7",
+    "releaseTime": "2017-05-31T10:56:41Z"
+  },
+  {
+    "id": "1.12",
+    "normalized": "1.12",
+    "releaseTime": "2017-06-02T13:50:27Z"
+  },
+  {
+    "id": "17w31a",
+    "normalized": "1.12.1-alpha.17.31.a",
+    "releaseTime": "2017-08-01T09:41:23Z"
+  },
+  {
+    "id": "1.12.1-pre1",
+    "normalized": "1.12.1-rc.1",
+    "releaseTime": "2017-08-02T10:53:55Z"
+  },
+  {
+    "id": "1.12.1",
+    "normalized": "1.12.1",
+    "releaseTime": "2017-08-03T12:40:39Z"
+  },
+  {
+    "id": "1.12.2-pre1",
+    "normalized": "1.12.2-rc.1",
+    "releaseTime": "2017-09-13T13:33:31Z"
+  },
+  {
+    "id": "1.12.2-pre2",
+    "normalized": "1.12.2-rc.2",
+    "releaseTime": "2017-09-15T08:21:17Z"
+  },
+  {
+    "id": "1.12.2",
+    "normalized": "1.12.2",
+    "releaseTime": "2017-09-18T08:39:46Z"
+  },
+  {
+    "id": "17w43a",
+    "normalized": "1.13-alpha.17.43.a",
+    "releaseTime": "2017-10-25T14:43:50Z"
+  },
+  {
+    "id": "17w43b",
+    "normalized": "1.13-alpha.17.43.b",
+    "releaseTime": "2017-10-26T13:36:22Z"
+  },
+  {
+    "id": "17w45a",
+    "normalized": "1.13-alpha.17.45.a",
+    "releaseTime": "2017-11-08T15:48:00Z"
+  },
+  {
+    "id": "17w45b",
+    "normalized": "1.13-alpha.17.45.b",
+    "releaseTime": "2017-11-10T10:07:02Z"
+  },
+  {
+    "id": "17w46a",
+    "normalized": "1.13-alpha.17.46.a",
+    "releaseTime": "2017-11-15T15:21:55Z"
+  },
+  {
+    "id": "17w47a",
+    "normalized": "1.13-alpha.17.47.a",
+    "releaseTime": "2017-11-22T12:40:05Z"
+  },
+  {
+    "id": "17w47b",
+    "normalized": "1.13-alpha.17.47.b",
+    "releaseTime": "2017-11-23T15:30:12Z"
+  },
+  {
+    "id": "17w48a",
+    "normalized": "1.13-alpha.17.48.a",
+    "releaseTime": "2017-11-27T15:36:33Z"
+  },
+  {
+    "id": "17w49a",
+    "normalized": "1.13-alpha.17.49.a",
+    "releaseTime": "2017-12-06T14:24:30Z"
+  },
+  {
+    "id": "17w49b",
+    "normalized": "1.13-alpha.17.49.b",
+    "releaseTime": "2017-12-07T15:29:54Z"
+  },
+  {
+    "id": "17w50a",
+    "normalized": "1.13-alpha.17.50.a",
+    "releaseTime": "2017-12-11T15:28:08Z"
+  },
+  {
+    "id": "18w01a",
+    "normalized": "1.13-alpha.18.1.a",
+    "releaseTime": "2018-01-03T13:29:30Z"
+  },
+  {
+    "id": "18w02a",
+    "normalized": "1.13-alpha.18.2.a",
+    "releaseTime": "2018-01-10T11:54:55Z"
+  },
+  {
+    "id": "18w03a",
+    "normalized": "1.13-alpha.18.3.a",
+    "releaseTime": "2018-01-17T14:25:24Z"
+  },
+  {
+    "id": "18w03b",
+    "normalized": "1.13-alpha.18.3.b",
+    "releaseTime": "2018-01-17T15:09:14Z"
+  },
+  {
+    "id": "18w05a",
+    "normalized": "1.13-alpha.18.5.a",
+    "releaseTime": "2018-01-31T13:32:09Z"
+  },
+  {
+    "id": "18w06a",
+    "normalized": "1.13-alpha.18.6.a",
+    "releaseTime": "2018-02-09T12:09:55Z"
+  },
+  {
+    "id": "18w07a",
+    "normalized": "1.13-alpha.18.7.a",
+    "releaseTime": "2018-02-14T17:34:13Z"
+  },
+  {
+    "id": "18w07b",
+    "normalized": "1.13-alpha.18.7.b",
+    "releaseTime": "2018-02-15T14:28:42Z"
+  },
+  {
+    "id": "18w07c",
+    "normalized": "1.13-alpha.18.7.c",
+    "releaseTime": "2018-02-16T13:23:32Z"
+  },
+  {
+    "id": "18w08a",
+    "normalized": "1.13-alpha.18.8.a",
+    "releaseTime": "2018-02-21T14:59:00Z"
+  },
+  {
+    "id": "18w08b",
+    "normalized": "1.13-alpha.18.8.b",
+    "releaseTime": "2018-02-22T15:44:49Z"
+  },
+  {
+    "id": "18w09a",
+    "normalized": "1.13-alpha.18.9.a",
+    "releaseTime": "2018-03-01T14:15:10Z"
+  },
+  {
+    "id": "18w10a",
+    "normalized": "1.13-alpha.18.10.a",
+    "releaseTime": "2018-03-06T15:54:24Z"
+  },
+  {
+    "id": "18w10b",
+    "normalized": "1.13-alpha.18.10.b",
+    "releaseTime": "2018-03-07T15:56:01Z"
+  },
+  {
+    "id": "18w10c",
+    "normalized": "1.13-alpha.18.10.c",
+    "releaseTime": "2018-03-08T15:29:23Z"
+  },
+  {
+    "id": "18w10d",
+    "normalized": "1.13-alpha.18.10.d",
+    "releaseTime": "2018-03-09T15:19:12Z"
+  },
+  {
+    "id": "18w11a",
+    "normalized": "1.13-alpha.18.11.a",
+    "releaseTime": "2018-03-13T15:10:59Z"
+  },
+  {
+    "id": "18w14a",
+    "normalized": "1.13-alpha.18.14.a",
+    "releaseTime": "2018-04-04T14:36:14Z"
+  },
+  {
+    "id": "18w14b",
+    "normalized": "1.13-alpha.18.14.b",
+    "releaseTime": "2018-04-05T14:44:02Z"
+  },
+  {
+    "id": "18w15a",
+    "normalized": "1.13-alpha.18.15.a",
+    "releaseTime": "2018-04-11T14:54:22Z"
+  },
+  {
+    "id": "18w16a",
+    "normalized": "1.13-alpha.18.16.a",
+    "releaseTime": "2018-04-19T14:46:35Z"
+  },
+  {
+    "id": "18w19a",
+    "normalized": "1.13-alpha.18.19.a",
+    "releaseTime": "2018-05-08T13:05:19Z"
+  },
+  {
+    "id": "18w19b",
+    "normalized": "1.13-alpha.18.19.b",
+    "releaseTime": "2018-05-09T10:00:51Z"
+  },
+  {
+    "id": "18w20a",
+    "normalized": "1.13-alpha.18.20.a",
+    "releaseTime": "2018-05-15T14:02:25Z"
+  },
+  {
+    "id": "18w20b",
+    "normalized": "1.13-alpha.18.20.b",
+    "releaseTime": "2018-05-16T14:35:35Z"
+  },
+  {
+    "id": "18w20c",
+    "normalized": "1.13-alpha.18.20.c",
+    "releaseTime": "2018-05-17T14:06:56Z"
+  },
+  {
+    "id": "18w21a",
+    "normalized": "1.13-alpha.18.21.a",
+    "releaseTime": "2018-05-23T13:11:49Z"
+  },
+  {
+    "id": "18w21b",
+    "normalized": "1.13-alpha.18.21.b",
+    "releaseTime": "2018-05-25T10:09:09Z"
+  },
+  {
+    "id": "18w22a",
+    "normalized": "1.13-alpha.18.22.a",
+    "releaseTime": "2018-05-29T13:23:55Z"
+  },
+  {
+    "id": "18w22b",
+    "normalized": "1.13-alpha.18.22.b",
+    "releaseTime": "2018-05-30T13:48:58Z"
+  },
+  {
+    "id": "18w22c",
+    "normalized": "1.13-alpha.18.22.c",
+    "releaseTime": "2018-05-31T13:53:15Z"
+  },
+  {
+    "id": "1.13-pre1",
+    "normalized": "1.13-rc.1",
+    "releaseTime": "2018-06-04T15:17:34Z"
+  },
+  {
+    "id": "1.13-pre2",
+    "normalized": "1.13-rc.2",
+    "releaseTime": "2018-06-15T09:20:00Z"
+  },
+  {
+    "id": "1.13-pre3",
+    "normalized": "1.13-rc.3",
+    "releaseTime": "2018-06-21T12:57:11Z"
+  },
+  {
+    "id": "1.13-pre4",
+    "normalized": "1.13-rc.4",
+    "releaseTime": "2018-06-26T13:00:55Z"
+  },
+  {
+    "id": "1.13-pre5",
+    "normalized": "1.13-rc.5",
+    "releaseTime": "2018-06-28T13:58:53Z"
+  },
+  {
+    "id": "1.13-pre6",
+    "normalized": "1.13-rc.6",
+    "releaseTime": "2018-07-04T12:36:00Z"
+  },
+  {
+    "id": "1.13-pre7",
+    "normalized": "1.13-rc.7",
+    "releaseTime": "2018-07-10T14:21:42Z"
+  },
+  {
+    "id": "1.13-pre8",
+    "normalized": "1.13-rc.8",
+    "releaseTime": "2018-07-13T11:45:00Z"
+  },
+  {
+    "id": "1.13-pre9",
+    "normalized": "1.13-rc.9",
+    "releaseTime": "2018-07-16T14:17:42Z"
+  },
+  {
+    "id": "1.13-pre10",
+    "normalized": "1.13-rc.10",
+    "releaseTime": "2018-07-17T14:48:06Z"
+  },
+  {
+    "id": "1.13",
+    "normalized": "1.13",
+    "releaseTime": "2018-07-18T15:11:46Z"
+  },
+  {
+    "id": "18w30a",
+    "normalized": "1.13.1-alpha.18.30.a",
+    "releaseTime": "2018-07-25T14:29:31Z"
+  },
+  {
+    "id": "18w30b",
+    "normalized": "1.13.1-alpha.18.30.b",
+    "releaseTime": "2018-07-26T16:06:57Z"
+  },
+  {
+    "id": "18w31a",
+    "normalized": "1.13.1-alpha.18.31.a",
+    "releaseTime": "2018-08-01T12:54:44Z"
+  },
+  {
+    "id": "18w32a",
+    "normalized": "1.13.1-alpha.18.32.a",
+    "releaseTime": "2018-08-08T13:16:57Z"
+  },
+  {
+    "id": "18w33a",
+    "normalized": "1.13.1-alpha.18.33.a",
+    "releaseTime": "2018-08-15T14:28:56Z"
+  },
+  {
+    "id": "1.13.1-pre1",
+    "normalized": "1.13.1-rc.1",
+    "releaseTime": "2018-08-16T13:08:44Z"
+  },
+  {
+    "id": "1.13.1-pre2",
+    "normalized": "1.13.1-rc.2",
+    "releaseTime": "2018-08-20T13:52:09Z"
+  },
+  {
+    "id": "1.13.1",
+    "normalized": "1.13.1",
+    "releaseTime": "2018-08-22T14:03:42Z"
+  },
+  {
+    "id": "1.13.2-pre1",
+    "normalized": "1.13.2-rc.1",
+    "releaseTime": "2018-10-16T13:40:58Z"
+  },
+  {
+    "id": "1.13.2-pre2",
+    "normalized": "1.13.2-rc.2",
+    "releaseTime": "2018-10-18T14:46:12Z"
+  },
+  {
+    "id": "1.13.2",
+    "normalized": "1.13.2",
+    "releaseTime": "2018-10-22T11:41:07Z"
+  },
+  {
+    "id": "18w43a",
+    "normalized": "1.14-alpha.18.43.a",
+    "releaseTime": "2018-10-24T10:52:16Z"
+  },
+  {
+    "id": "18w43b",
+    "normalized": "1.14-alpha.18.43.b",
+    "releaseTime": "2018-10-24T15:02:30Z"
+  },
+  {
+    "id": "18w43c",
+    "normalized": "1.14-alpha.18.43.c",
+    "releaseTime": "2018-10-26T08:40:46Z"
+  },
+  {
+    "id": "18w44a",
+    "normalized": "1.14-alpha.18.44.a",
+    "releaseTime": "2018-10-31T15:29:16Z"
+  },
+  {
+    "id": "18w45a",
+    "normalized": "1.14-alpha.18.45.a",
+    "releaseTime": "2018-11-07T14:40:06Z"
+  },
+  {
+    "id": "18w46a",
+    "normalized": "1.14-alpha.18.46.a",
+    "releaseTime": "2018-11-15T13:43:14Z"
+  },
+  {
+    "id": "18w47a",
+    "normalized": "1.14-alpha.18.47.a",
+    "releaseTime": "2018-11-21T15:45:22Z"
+  },
+  {
+    "id": "18w47b",
+    "normalized": "1.14-alpha.18.47.b",
+    "releaseTime": "2018-11-23T10:46:41Z"
+  },
+  {
+    "id": "18w48a",
+    "normalized": "1.14-alpha.18.48.a",
+    "releaseTime": "2018-11-29T13:11:38Z"
+  },
+  {
+    "id": "18w48b",
+    "normalized": "1.14-alpha.18.48.b",
+    "releaseTime": "2018-11-30T10:37:31Z"
+  },
+  {
+    "id": "18w49a",
+    "normalized": "1.14-alpha.18.49.a",
+    "releaseTime": "2018-12-05T12:24:30Z"
+  },
+  {
+    "id": "18w50a",
+    "normalized": "1.14-alpha.18.50.a",
+    "releaseTime": "2018-12-12T14:58:13Z"
+  },
+  {
+    "id": "19w02a",
+    "normalized": "1.14-alpha.19.2.a",
+    "releaseTime": "2019-01-09T15:52:07Z"
+  },
+  {
+    "id": "19w03a",
+    "normalized": "1.14-alpha.19.3.a",
+    "releaseTime": "2019-01-16T16:45:02Z"
+  },
+  {
+    "id": "19w03b",
+    "normalized": "1.14-alpha.19.3.b",
+    "releaseTime": "2019-01-17T16:43:27Z"
+  },
+  {
+    "id": "19w03c",
+    "normalized": "1.14-alpha.19.3.c",
+    "releaseTime": "2019-01-18T11:27:13Z"
+  },
+  {
+    "id": "19w04a",
+    "normalized": "1.14-alpha.19.4.a",
+    "releaseTime": "2019-01-24T15:31:52Z"
+  },
+  {
+    "id": "19w04b",
+    "normalized": "1.14-alpha.19.4.b",
+    "releaseTime": "2019-01-25T12:20:15Z"
+  },
+  {
+    "id": "19w05a",
+    "normalized": "1.14-alpha.19.5.a",
+    "releaseTime": "2019-01-30T15:16:49Z"
+  },
+  {
+    "id": "19w06a",
+    "normalized": "1.14-alpha.19.6.a",
+    "releaseTime": "2019-02-06T16:24:13Z"
+  },
+  {
+    "id": "19w07a",
+    "normalized": "1.14-alpha.19.7.a",
+    "releaseTime": "2019-02-13T16:12:08Z"
+  },
+  {
+    "id": "19w08a",
+    "normalized": "1.14-alpha.19.8.a",
+    "releaseTime": "2019-02-20T14:56:58Z"
+  },
+  {
+    "id": "19w08b",
+    "normalized": "1.14-alpha.19.8.b",
+    "releaseTime": "2019-02-21T13:38:09Z"
+  },
+  {
+    "id": "19w09a",
+    "normalized": "1.14-alpha.19.9.a",
+    "releaseTime": "2019-02-27T14:44:30Z"
+  },
+  {
+    "id": "19w11a",
+    "normalized": "1.14-alpha.19.11.a",
+    "releaseTime": "2019-03-13T13:59:29Z"
+  },
+  {
+    "id": "19w11b",
+    "normalized": "1.14-alpha.19.11.b",
+    "releaseTime": "2019-03-14T14:26:23Z"
+  },
+  {
+    "id": "19w12a",
+    "normalized": "1.14-alpha.19.12.a",
+    "releaseTime": "2019-03-20T16:47:34Z"
+  },
+  {
+    "id": "19w12b",
+    "normalized": "1.14-alpha.19.12.b",
+    "releaseTime": "2019-03-21T15:20:01Z"
+  },
+  {
+    "id": "19w13a",
+    "normalized": "1.14-alpha.19.13.a",
+    "releaseTime": "2019-03-27T15:15:31Z"
+  },
+  {
+    "id": "19w13b-1316",
+    "normalized": "1.14-alpha.19.13.b+1316",
+    "releaseTime": "2019-03-29T00:00:00Z"
+  },
+  {
+    "id": "19w13b-1317",
+    "normalized": "1.14-alpha.19.13.b+1317",
+    "releaseTime": "2019-03-29T00:00:00Z"
+  },
+  {
+    "id": "19w13b-1653",
+    "normalized": "1.14-alpha.19.13.b+1653",
+    "releaseTime": "2019-03-29T00:00:00Z"
+  },
+  {
+    "id": "19w13b",
+    "normalized": "1.14-alpha.19.13.b",
+    "releaseTime": "2019-03-29T16:53:22Z"
+  },
+  {
+    "id": "3D Shareware v1.34",
+    "normalized": "1.14-alpha.19.13.shareware",
+    "releaseTime": "2019-04-01T11:18:08Z"
+  },
+  {
+    "id": "19w14a",
+    "normalized": "1.14-alpha.19.14.a",
+    "releaseTime": "2019-04-03T13:45:00Z"
+  },
+  {
+    "id": "19w14b",
+    "normalized": "1.14-alpha.19.14.b",
+    "releaseTime": "2019-04-05T10:33:58Z"
+  },
+  {
+    "id": "1.14-pre1",
+    "normalized": "1.14-rc.1",
+    "releaseTime": "2019-04-10T00:00:00Z"
+  },
+  {
+    "id": "1.14 Pre-Release 1",
+    "normalized": "1.14-rc.1",
+    "releaseTime": "2019-04-10T14:24:16Z"
+  },
+  {
+    "id": "1.14-pre2",
+    "normalized": "1.14-rc.2",
+    "releaseTime": "2019-04-12T00:00:00Z"
+  },
+  {
+    "id": "1.14 Pre-Release 2",
+    "normalized": "1.14-rc.2",
+    "releaseTime": "2019-04-12T11:38:53Z"
+  },
+  {
+    "id": "1.14-pre3",
+    "normalized": "1.14-rc.3",
+    "releaseTime": "2019-04-16T00:00:00Z"
+  },
+  {
+    "id": "1.14 Pre-Release 3",
+    "normalized": "1.14-rc.3",
+    "releaseTime": "2019-04-16T13:57:10Z"
+  },
+  {
+    "id": "1.14-pre4",
+    "normalized": "1.14-rc.4",
+    "releaseTime": "2019-04-17T00:00:00Z"
+  },
+  {
+    "id": "1.14 Pre-Release 4",
+    "normalized": "1.14-rc.4",
+    "releaseTime": "2019-04-17T15:31:12Z"
+  },
+  {
+    "id": "1.14-pre5",
+    "normalized": "1.14-rc.5",
+    "releaseTime": "2019-04-18T00:00:00Z"
+  },
+  {
+    "id": "1.14 Pre-Release 5",
+    "normalized": "1.14-rc.5",
+    "releaseTime": "2019-04-18T11:05:19Z"
+  },
+  {
+    "id": "1.14",
+    "normalized": "1.14",
+    "releaseTime": "2019-04-23T14:52:44Z"
+  },
+  {
+    "id": "1.14.1-pre1",
+    "normalized": "1.14.1-rc.1",
+    "releaseTime": "2019-05-07T00:00:00Z"
+  },
+  {
+    "id": "1.14.1 Pre-Release 1",
+    "normalized": "1.14.1-rc.1",
+    "releaseTime": "2019-05-07T14:44:42Z"
+  },
+  {
+    "id": "1.14.1-pre2",
+    "normalized": "1.14.1-rc.2",
+    "releaseTime": "2019-05-09T00:00:00Z"
+  },
+  {
+    "id": "1.14.1 Pre-Release 2",
+    "normalized": "1.14.1-rc.2",
+    "releaseTime": "2019-05-09T14:01:04Z"
+  },
+  {
+    "id": "1.14.1",
+    "normalized": "1.14.1",
+    "releaseTime": "2019-05-13T11:10:12Z"
+  },
+  {
+    "id": "1.14.2-pre1",
+    "normalized": "1.14.2-rc.1",
+    "releaseTime": "2019-05-16T00:00:00Z"
+  },
+  {
+    "id": "1.14.2 Pre-Release 1",
+    "normalized": "1.14.2-rc.1",
+    "releaseTime": "2019-05-16T15:40:25Z"
+  },
+  {
+    "id": "1.14.2-pre2",
+    "normalized": "1.14.2-rc.2",
+    "releaseTime": "2019-05-17T00:00:00Z"
+  },
+  {
+    "id": "1.14.2 Pre-Release 2",
+    "normalized": "1.14.2-rc.2",
+    "releaseTime": "2019-05-17T12:21:03Z"
+  },
+  {
+    "id": "1.14.2-pre3",
+    "normalized": "1.14.2-rc.3",
+    "releaseTime": "2019-05-22T00:00:00Z"
+  },
+  {
+    "id": "1.14.2 Pre-Release 3",
+    "normalized": "1.14.2-rc.3",
+    "releaseTime": "2019-05-22T13:12:51Z"
+  },
+  {
+    "id": "1.14.2-pre4-241548",
+    "normalized": "1.14.2-rc.4+241548",
+    "releaseTime": "2019-05-24T00:00:00Z"
+  },
+  {
+    "id": "1.14.2-pre4-270720",
+    "normalized": "1.14.2-rc.4+270720",
+    "releaseTime": "2019-05-27T00:00:00Z"
+  },
+  {
+    "id": "1.14.2-pre4-270721",
+    "normalized": "1.14.2-rc.4+270721",
+    "releaseTime": "2019-05-27T00:00:00Z"
+  },
+  {
+    "id": "1.14.2 Pre-Release 4",
+    "normalized": "1.14.2-rc.4",
+    "releaseTime": "2019-05-27T07:21:11Z"
+  },
+  {
+    "id": "1.14.2",
+    "normalized": "1.14.2",
+    "releaseTime": "2019-05-27T11:48:25Z"
+  },
+  {
+    "id": "1.14.3-pre1",
+    "normalized": "1.14.3-rc.1",
+    "releaseTime": "2019-06-03T14:34:20Z"
+  },
+  {
+    "id": "1.14.3-pre2",
+    "normalized": "1.14.3-rc.2",
+    "releaseTime": "2019-06-07T09:11:29Z"
+  },
+  {
+    "id": "1.14.3-pre3",
+    "normalized": "1.14.3-rc.3",
+    "releaseTime": "2019-06-14T08:03:33Z"
+  },
+  {
+    "id": "1.14.3-pre4",
+    "normalized": "1.14.3-rc.4",
+    "releaseTime": "2019-06-19T11:44:29Z"
+  },
+  {
+    "id": "1.14_combat-212796",
+    "normalized": "1.14.3-rc.4.combat.1",
+    "releaseTime": "2019-06-20T13:23:44Z"
+  },
+  {
+    "id": "1.14.3",
+    "normalized": "1.14.3",
+    "releaseTime": "2019-06-24T12:52:52Z"
+  },
+  {
+    "id": "1.14.4-pre1",
+    "normalized": "1.14.4-rc.1",
+    "releaseTime": "2019-07-03T13:01:01Z"
+  },
+  {
+    "id": "1.14.4-pre2",
+    "normalized": "1.14.4-rc.2",
+    "releaseTime": "2019-07-04T14:41:05Z"
+  },
+  {
+    "id": "1.14.4-pre3",
+    "normalized": "1.14.4-rc.3",
+    "releaseTime": "2019-07-08T11:21:42Z"
+  },
+  {
+    "id": "1.14.4-pre4",
+    "normalized": "1.14.4-rc.4",
+    "releaseTime": "2019-07-10T12:53:29Z"
+  },
+  {
+    "id": "1.14.4-pre5",
+    "normalized": "1.14.4-rc.5",
+    "releaseTime": "2019-07-11T10:52:33Z"
+  },
+  {
+    "id": "1.14.4-pre6",
+    "normalized": "1.14.4-rc.6",
+    "releaseTime": "2019-07-15T12:39:49Z"
+  },
+  {
+    "id": "1.14.4-pre7",
+    "normalized": "1.14.4-rc.7",
+    "releaseTime": "2019-07-18T11:32:36Z"
+  },
+  {
+    "id": "1.14.4",
+    "normalized": "1.14.4",
+    "releaseTime": "2019-07-19T09:25:47Z"
+  },
+  {
+    "id": "1.14_combat-0",
+    "normalized": "1.14.5-combat.2",
+    "releaseTime": "2019-08-13T07:33:42Z"
+  },
+  {
+    "id": "19w34a",
+    "normalized": "1.15-alpha.19.34.a",
+    "releaseTime": "2019-08-22T12:06:21Z"
+  },
+  {
+    "id": "19w35a",
+    "normalized": "1.15-alpha.19.35.a",
+    "releaseTime": "2019-08-28T15:01:44Z"
+  },
+  {
+    "id": "19w36a",
+    "normalized": "1.15-alpha.19.36.a",
+    "releaseTime": "2019-09-04T11:19:34Z"
+  },
+  {
+    "id": "19w37a",
+    "normalized": "1.15-alpha.19.37.a",
+    "releaseTime": "2019-09-11T11:46:44Z"
+  },
+  {
+    "id": "19w38a",
+    "normalized": "1.15-alpha.19.38.a",
+    "releaseTime": "2019-09-18T10:03:22Z"
+  },
+  {
+    "id": "19w38b",
+    "normalized": "1.15-alpha.19.38.b",
+    "releaseTime": "2019-09-18T14:59:13Z"
+  },
+  {
+    "id": "19w39a",
+    "normalized": "1.15-alpha.19.39.a",
+    "releaseTime": "2019-09-27T10:13:33Z"
+  },
+  {
+    "id": "19w40a",
+    "normalized": "1.15-alpha.19.40.a",
+    "releaseTime": "2019-10-02T13:40:26Z"
+  },
+  {
+    "id": "19w41a",
+    "normalized": "1.15-alpha.19.41.a",
+    "releaseTime": "2019-10-09T15:21:35Z"
+  },
+  {
+    "id": "19w42a",
+    "normalized": "1.15-alpha.19.42.a",
+    "releaseTime": "2019-10-16T15:30:39Z"
+  },
+  {
+    "id": "19w44a",
+    "normalized": "1.15-alpha.19.44.a",
+    "releaseTime": "2019-10-30T15:31:44Z"
+  },
+  {
+    "id": "1.14_combat-3",
+    "normalized": "1.14.5-combat.3",
+    "releaseTime": "2019-10-31T14:31:38Z"
+  },
+  {
+    "id": "19w45a",
+    "normalized": "1.15-alpha.19.45.a",
+    "releaseTime": "2019-11-07T16:19:20Z"
+  },
+  {
+    "id": "19w45b",
+    "normalized": "1.15-alpha.19.45.b",
+    "releaseTime": "2019-11-08T12:42:44Z"
+  },
+  {
+    "id": "19w46a",
+    "normalized": "1.15-alpha.19.46.a",
+    "releaseTime": "2019-11-13T16:37:46Z"
+  },
+  {
+    "id": "19w46b",
+    "normalized": "1.15-alpha.19.46.b",
+    "releaseTime": "2019-11-14T13:29:24Z"
+  },
+  {
+    "id": "1.15-pre1",
+    "normalized": "1.15-rc.1",
+    "releaseTime": "2019-11-21T17:01:17Z"
+  },
+  {
+    "id": "1.15-pre2",
+    "normalized": "1.15-rc.2",
+    "releaseTime": "2019-11-25T18:09:38Z"
+  },
+  {
+    "id": "1.15-pre3",
+    "normalized": "1.15-rc.3",
+    "releaseTime": "2019-11-28T17:17:50Z"
+  },
+  {
+    "id": "1.15_combat-1",
+    "normalized": "1.15-rc.3.combat.4",
+    "releaseTime": "2019-11-29T15:41:39Z"
+  },
+  {
+    "id": "1.15-pre4",
+    "normalized": "1.15-rc.4",
+    "releaseTime": "2019-12-03T12:24:24Z"
+  },
+  {
+    "id": "1.15-pre5",
+    "normalized": "1.15-rc.5",
+    "releaseTime": "2019-12-05T13:20:00Z"
+  },
+  {
+    "id": "1.15-pre6",
+    "normalized": "1.15-rc.6",
+    "releaseTime": "2019-12-06T12:04:30Z"
+  },
+  {
+    "id": "1.15-pre7",
+    "normalized": "1.15-rc.7",
+    "releaseTime": "2019-12-09T12:14:11Z"
+  },
+  {
+    "id": "1.15",
+    "normalized": "1.15",
+    "releaseTime": "2019-12-09T13:13:38Z"
+  },
+  {
+    "id": "1.15.1-pre1",
+    "normalized": "1.15.1-rc.1",
+    "releaseTime": "2019-12-12T14:02:30Z"
+  },
+  {
+    "id": "1.15.1",
+    "normalized": "1.15.1",
+    "releaseTime": "2019-12-16T10:29:47Z"
+  },
+  {
+    "id": "1.15.2-pre1",
+    "normalized": "1.15.2-rc.1",
+    "releaseTime": "2020-01-14T16:19:31Z"
+  },
+  {
+    "id": "1.15_combat-6",
+    "normalized": "1.15.2-rc.2.combat.5",
+    "releaseTime": "2020-01-15T09:46:35Z"
+  },
+  {
+    "id": "1.15.2-pre2",
+    "normalized": "1.15.2-rc.2",
+    "releaseTime": "2020-01-16T12:35:57Z"
+  },
+  {
+    "id": "1.15.2",
+    "normalized": "1.15.2",
+    "releaseTime": "2020-01-17T10:03:52Z"
+  },
+  {
+    "id": "20w06a",
+    "normalized": "1.16-alpha.20.6.a",
+    "releaseTime": "2020-02-05T16:05:22Z"
+  },
+  {
+    "id": "20w07a",
+    "normalized": "1.16-alpha.20.7.a",
+    "releaseTime": "2020-02-14T13:20:49Z"
+  },
+  {
+    "id": "20w08a",
+    "normalized": "1.16-alpha.20.8.a",
+    "releaseTime": "2020-02-19T13:30:09Z"
+  },
+  {
+    "id": "20w09a",
+    "normalized": "1.16-alpha.20.9.a",
+    "releaseTime": "2020-02-26T16:43:08Z"
+  },
+  {
+    "id": "20w10a",
+    "normalized": "1.16-alpha.20.10.a",
+    "releaseTime": "2020-03-04T16:21:41Z"
+  },
+  {
+    "id": "20w11a",
+    "normalized": "1.16-alpha.20.11.a",
+    "releaseTime": "2020-03-11T16:28:27Z"
+  },
+  {
+    "id": "20w12a",
+    "normalized": "1.16-alpha.20.12.a",
+    "releaseTime": "2020-03-18T16:42:06Z"
+  },
+  {
+    "id": "20w13a",
+    "normalized": "1.16-alpha.20.13.a",
+    "releaseTime": "2020-03-25T17:05:33Z"
+  },
+  {
+    "id": "20w13b",
+    "normalized": "1.16-alpha.20.13.b",
+    "releaseTime": "2020-03-26T13:00:34Z"
+  },
+  {
+    "id": "20w14infinite",
+    "normalized": "1.16-alpha.20.13.inf",
+    "releaseTime": "2020-04-01T12:47:08Z"
+  },
+  {
+    "id": "20w14a",
+    "normalized": "1.16-alpha.20.14.a",
+    "releaseTime": "2020-04-02T14:28:06Z"
+  },
+  {
+    "id": "20w15a",
+    "normalized": "1.16-alpha.20.15.a",
+    "releaseTime": "2020-04-08T12:29:24Z"
+  },
+  {
+    "id": "20w16a",
+    "normalized": "1.16-alpha.20.16.a",
+    "releaseTime": "2020-04-15T14:13:01Z"
+  },
+  {
+    "id": "20w17a",
+    "normalized": "1.16-alpha.20.17.a",
+    "releaseTime": "2020-04-22T13:47:50Z"
+  },
+  {
+    "id": "20w18a",
+    "normalized": "1.16-alpha.20.18.a",
+    "releaseTime": "2020-04-29T15:16:34Z"
+  },
+  {
+    "id": "20w19a",
+    "normalized": "1.16-alpha.20.19.a",
+    "releaseTime": "2020-05-06T16:23:24Z"
+  },
+  {
+    "id": "20w20a",
+    "normalized": "1.16-alpha.20.20.a",
+    "releaseTime": "2020-05-13T15:11:43Z"
+  },
+  {
+    "id": "20w20b",
+    "normalized": "1.16-alpha.20.20.b",
+    "releaseTime": "2020-05-14T08:16:26Z"
+  },
+  {
+    "id": "20w21a",
+    "normalized": "1.16-alpha.20.21.a",
+    "releaseTime": "2020-05-20T12:07:18Z"
+  },
+  {
+    "id": "20w22a",
+    "normalized": "1.16-alpha.20.22.a",
+    "releaseTime": "2020-05-29T11:25:02Z"
+  },
+  {
+    "id": "1.16-pre1",
+    "normalized": "1.16-rc.1",
+    "releaseTime": "2020-06-04T18:17:51Z"
+  },
+  {
+    "id": "1.16-pre2",
+    "normalized": "1.16-rc.2",
+    "releaseTime": "2020-06-05T10:47:59Z"
+  },
+  {
+    "id": "1.16-pre3",
+    "normalized": "1.16-rc.3",
+    "releaseTime": "2020-06-10T14:57:43Z"
+  },
+  {
+    "id": "1.16-pre4",
+    "normalized": "1.16-rc.4",
+    "releaseTime": "2020-06-11T15:45:55Z"
+  },
+  {
+    "id": "1.16-pre5",
+    "normalized": "1.16-rc.5",
+    "releaseTime": "2020-06-12T14:33:59Z"
+  },
+  {
+    "id": "1.16-pre6",
+    "normalized": "1.16-rc.6",
+    "releaseTime": "2020-06-15T16:57:57Z"
+  },
+  {
+    "id": "1.16-pre7",
+    "normalized": "1.16-rc.7",
+    "releaseTime": "2020-06-16T15:31:35Z"
+  },
+  {
+    "id": "1.16-pre8",
+    "normalized": "1.16-rc.8",
+    "releaseTime": "2020-06-17T14:45:23Z"
+  },
+  {
+    "id": "1.16-rc1",
+    "normalized": "1.16-rc.9",
+    "releaseTime": "2020-06-18T12:49:28Z"
+  },
+  {
+    "id": "1.16-221349",
+    "normalized": "1.16+221349",
+    "releaseTime": "2020-06-23T00:00:00Z"
+  },
+  {
+    "id": "1.16-231620",
+    "normalized": "1.16+231620",
+    "releaseTime": "2020-06-23T00:00:00Z"
+  },
+  {
+    "id": "1.16",
+    "normalized": "1.16",
+    "releaseTime": "2020-06-23T16:20:52Z"
+  },
+  {
+    "id": "1.16.1",
+    "normalized": "1.16.1",
+    "releaseTime": "2020-06-24T10:31:40Z"
+  },
+  {
+    "id": "20w27a",
+    "normalized": "1.16.2-alpha.20.27.a",
+    "releaseTime": "2020-07-01T15:07:35Z"
+  },
+  {
+    "id": "20w28a",
+    "normalized": "1.16.2-alpha.20.28.a",
+    "releaseTime": "2020-07-08T15:10:40Z"
+  },
+  {
+    "id": "20w29a",
+    "normalized": "1.16.2-alpha.20.29.a",
+    "releaseTime": "2020-07-15T14:13:47Z"
+  },
+  {
+    "id": "20w30a",
+    "normalized": "1.16.2-alpha.20.30.a",
+    "releaseTime": "2020-07-22T15:05:15Z"
+  },
+  {
+    "id": "1.16.2-pre1",
+    "normalized": "1.16.2-beta.1",
+    "releaseTime": "2020-07-29T13:19:05Z"
+  },
+  {
+    "id": "1.16.2-pre2",
+    "normalized": "1.16.2-beta.2",
+    "releaseTime": "2020-08-05T15:30:50Z"
+  },
+  {
+    "id": "1.16.2-pre3",
+    "normalized": "1.16.2-beta.3",
+    "releaseTime": "2020-08-06T16:44:52Z"
+  },
+  {
+    "id": "1.16_combat-0",
+    "normalized": "1.16.2-beta.3.combat.6",
+    "releaseTime": "2020-08-07T10:44:47Z"
+  },
+  {
+    "id": "1.16.2-rc1",
+    "normalized": "1.16.2-rc.1",
+    "releaseTime": "2020-08-07T14:35:39Z"
+  },
+  {
+    "id": "1.16.2-rc2",
+    "normalized": "1.16.2-rc.2",
+    "releaseTime": "2020-08-10T11:43:36Z"
+  },
+  {
+    "id": "1.16.2",
+    "normalized": "1.16.2",
+    "releaseTime": "2020-08-11T10:13:46Z"
+  },
+  {
+    "id": "1.16_combat-1",
+    "normalized": "1.16.3-combat.7",
+    "releaseTime": "2020-08-12T14:07:25Z"
+  },
+  {
+    "id": "1.16_combat-2",
+    "normalized": "1.16.3-combat.7.b",
+    "releaseTime": "2020-08-13T11:56:30Z"
+  },
+  {
+    "id": "1.16_combat-3",
+    "normalized": "1.16.3-combat.7.c",
+    "releaseTime": "2020-08-14T09:02:15Z"
+  },
+  {
+    "id": "1.16_combat-5",
+    "normalized": "1.16.3-combat.8.b",
+    "releaseTime": "2020-08-21T09:23:13Z"
+  },
+  {
+    "id": "1.16_combat-6",
+    "normalized": "1.16.3-combat.8.c",
+    "releaseTime": "2020-08-26T06:24:28Z"
+  },
+  {
+    "id": "1.16.3-rc1",
+    "normalized": "1.16.3-rc.1",
+    "releaseTime": "2020-09-07T12:34:06Z"
+  },
+  {
+    "id": "1.16.3",
+    "normalized": "1.16.3",
+    "releaseTime": "2020-09-10T13:42:37Z"
+  },
+  {
+    "id": "1.16.4-pre1",
+    "normalized": "1.16.4-beta.1",
+    "releaseTime": "2020-10-13T14:36:07Z"
+  },
+  {
+    "id": "1.16.4-pre2",
+    "normalized": "1.16.4-beta.2",
+    "releaseTime": "2020-10-22T15:32:17Z"
+  },
+  {
+    "id": "1.16.4-rc1",
+    "normalized": "1.16.4-rc.1",
+    "releaseTime": "2020-10-27T16:31:08Z"
+  },
+  {
+    "id": "1.16.4",
+    "normalized": "1.16.4",
+    "releaseTime": "2020-10-29T15:49:37Z"
+  },
+  {
+    "id": "20w45a",
+    "normalized": "1.17-alpha.20.45.a",
+    "releaseTime": "2020-11-04T16:42:00Z"
+  },
+  {
+    "id": "20w46a",
+    "normalized": "1.17-alpha.20.46.a",
+    "releaseTime": "2020-11-11T15:30:32Z"
+  },
+  {
+    "id": "20w48a",
+    "normalized": "1.17-alpha.20.48.a",
+    "releaseTime": "2020-11-25T15:42:24Z"
+  },
+  {
+    "id": "20w49a",
+    "normalized": "1.17-alpha.20.49.a",
+    "releaseTime": "2020-12-02T16:47:20Z"
+  },
+  {
+    "id": "20w51a",
+    "normalized": "1.17-alpha.20.51.a",
+    "releaseTime": "2020-12-16T16:27:57Z"
+  },
+  {
+    "id": "1.16.5-rc1-1005",
+    "normalized": "1.16.5-rc.1+1005",
+    "releaseTime": "2021-01-13T00:00:00Z"
+  },
+  {
+    "id": "1.16.5-rc1-1558",
+    "normalized": "1.16.5-rc.1+1558",
+    "releaseTime": "2021-01-13T00:00:00Z"
+  },
+  {
+    "id": "1.16.5-rc1",
+    "normalized": "1.16.5-rc.1",
+    "releaseTime": "2021-01-13T15:58:55Z"
+  },
+  {
+    "id": "1.16.5",
+    "normalized": "1.16.5",
+    "releaseTime": "2021-01-14T16:05:32Z"
+  },
+  {
+    "id": "21w03a",
+    "normalized": "1.17-alpha.21.3.a",
+    "releaseTime": "2021-01-20T14:56:29Z"
+  },
+  {
+    "id": "21w05a",
+    "normalized": "1.17-alpha.21.5.a",
+    "releaseTime": "2021-02-03T15:56:54Z"
+  },
+  {
+    "id": "21w05b",
+    "normalized": "1.17-alpha.21.5.b",
+    "releaseTime": "2021-02-04T15:09:29Z"
+  },
+  {
+    "id": "21w06a",
+    "normalized": "1.17-alpha.21.6.a",
+    "releaseTime": "2021-02-10T17:13:54Z"
+  },
+  {
+    "id": "21w07a",
+    "normalized": "1.17-alpha.21.7.a",
+    "releaseTime": "2021-02-17T16:35:40Z"
+  },
+  {
+    "id": "21w08a",
+    "normalized": "1.17-alpha.21.8.a",
+    "releaseTime": "2021-02-24T14:38:51Z"
+  },
+  {
+    "id": "21w08b",
+    "normalized": "1.17-alpha.21.8.b",
+    "releaseTime": "2021-02-25T11:46:34Z"
+  },
+  {
+    "id": "21w10a",
+    "normalized": "1.17-alpha.21.10.a",
+    "releaseTime": "2021-03-10T15:24:38Z"
+  },
+  {
+    "id": "21w11a",
+    "normalized": "1.17-alpha.21.11.a",
+    "releaseTime": "2021-03-17T15:05:50Z"
+  },
+  {
+    "id": "21w13a",
+    "normalized": "1.17-alpha.21.13.a",
+    "releaseTime": "2021-03-31T16:17:46Z"
+  },
+  {
+    "id": "21w14a",
+    "normalized": "1.17-alpha.21.14.a",
+    "releaseTime": "2021-04-07T14:04:09Z"
+  },
+  {
+    "id": "21w15a",
+    "normalized": "1.17-alpha.21.15.a",
+    "releaseTime": "2021-04-14T13:41:34Z"
+  },
+  {
+    "id": "21w16a",
+    "normalized": "1.17-alpha.21.16.a",
+    "releaseTime": "2021-04-21T16:41:14Z"
+  },
+  {
+    "id": "21w17a",
+    "normalized": "1.17-alpha.21.17.a",
+    "releaseTime": "2021-04-28T13:54:05Z"
+  },
+  {
+    "id": "21w18a",
+    "normalized": "1.17-alpha.21.18.a",
+    "releaseTime": "2021-05-05T15:24:35Z"
+  },
+  {
+    "id": "21w19a",
+    "normalized": "1.17-alpha.21.19.a",
+    "releaseTime": "2021-05-12T11:19:15Z"
+  },
+  {
+    "id": "21w20a",
+    "normalized": "1.17-alpha.21.20.a",
+    "releaseTime": "2021-05-19T15:22:02Z"
+  },
+  {
+    "id": "1.17-pre1",
+    "normalized": "1.17-beta.1",
+    "releaseTime": "2021-05-27T09:39:21Z"
+  },
+  {
+    "id": "1.17-pre2",
+    "normalized": "1.17-beta.2",
+    "releaseTime": "2021-05-31T15:54:05Z"
+  },
+  {
+    "id": "1.17-pre3",
+    "normalized": "1.17-beta.3",
+    "releaseTime": "2021-06-01T15:43:46Z"
+  },
+  {
+    "id": "1.17-pre4",
+    "normalized": "1.17-beta.4",
+    "releaseTime": "2021-06-02T16:15:43Z"
+  },
+  {
+    "id": "1.17-pre5",
+    "normalized": "1.17-beta.5",
+    "releaseTime": "2021-06-03T17:01:28Z"
+  },
+  {
+    "id": "1.17-rc1",
+    "normalized": "1.17-rc.1",
+    "releaseTime": "2021-06-04T13:24:48Z"
+  },
+  {
+    "id": "1.17-rc2",
+    "normalized": "1.17-rc.2",
+    "releaseTime": "2021-06-07T11:46:28Z"
+  },
+  {
+    "id": "1.17",
+    "normalized": "1.17",
+    "releaseTime": "2021-06-08T11:00:40Z"
+  },
+  {
+    "id": "1.17.1-pre1",
+    "normalized": "1.17.1-beta.1",
+    "releaseTime": "2021-06-18T12:24:40Z"
+  },
+  {
+    "id": "1.17.1-pre2",
+    "normalized": "1.17.1-beta.2",
+    "releaseTime": "2021-06-29T15:14:12Z"
+  },
+  {
+    "id": "1.17.1-pre3",
+    "normalized": "1.17.1-beta.3",
+    "releaseTime": "2021-06-30T15:43:16Z"
+  },
+  {
+    "id": "1.17.1-rc1",
+    "normalized": "1.17.1-rc.1",
+    "releaseTime": "2021-07-01T15:23:37Z"
+  },
+  {
+    "id": "1.17.1-rc2",
+    "normalized": "1.17.1-rc.2",
+    "releaseTime": "2021-07-05T12:58:01Z"
+  },
+  {
+    "id": "1.17.1",
+    "normalized": "1.17.1",
+    "releaseTime": "2021-07-06T12:01:34Z"
+  },
+  {
+    "id": "1.18-exp1",
+    "normalized": "1.18-Experimental.1",
+    "releaseTime": "2021-07-13T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-1",
+    "normalized": "1.18-Experimental.1",
+    "releaseTime": "2021-07-13T12:54:19Z"
+  },
+  {
+    "id": "1.18-exp2",
+    "normalized": "1.18-Experimental.2",
+    "releaseTime": "2021-07-20T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-2",
+    "normalized": "1.18-Experimental.2",
+    "releaseTime": "2021-07-20T13:35:08Z"
+  },
+  {
+    "id": "1.18-exp3",
+    "normalized": "1.18-Experimental.3",
+    "releaseTime": "2021-08-10T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-3",
+    "normalized": "1.18-Experimental.3",
+    "releaseTime": "2021-08-10T12:42:45Z"
+  },
+  {
+    "id": "1.18-exp4",
+    "normalized": "1.18-Experimental.4",
+    "releaseTime": "2021-08-17T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-4",
+    "normalized": "1.18-Experimental.4",
+    "releaseTime": "2021-08-17T16:10:25Z"
+  },
+  {
+    "id": "1.18-exp5",
+    "normalized": "1.18-Experimental.5",
+    "releaseTime": "2021-08-25T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-5",
+    "normalized": "1.18-Experimental.5",
+    "releaseTime": "2021-08-25T14:41:57Z"
+  },
+  {
+    "id": "1.18-exp6",
+    "normalized": "1.18-Experimental.6",
+    "releaseTime": "2021-09-01T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-6",
+    "normalized": "1.18-Experimental.6",
+    "releaseTime": "2021-09-01T12:53:14Z"
+  },
+  {
+    "id": "1.18-exp7",
+    "normalized": "1.18-Experimental.7",
+    "releaseTime": "2021-09-08T00:00:00Z"
+  },
+  {
+    "id": "1.18_experimental-snapshot-7",
+    "normalized": "1.18-Experimental.7",
+    "releaseTime": "2021-09-08T12:33:23Z"
+  },
+  {
+    "id": "21w37a",
+    "normalized": "1.18-alpha.21.37.a",
+    "releaseTime": "2021-09-15T16:04:30Z"
+  },
+  {
+    "id": "21w38a",
+    "normalized": "1.18-alpha.21.38.a",
+    "releaseTime": "2021-09-23T14:36:06Z"
+  },
+  {
+    "id": "21w39a",
+    "normalized": "1.18-alpha.21.39.a",
+    "releaseTime": "2021-09-29T16:27:05Z"
+  },
+  {
+    "id": "21w40a",
+    "normalized": "1.18-alpha.21.40.a",
+    "releaseTime": "2021-10-07T11:17:50Z"
+  },
+  {
+    "id": "21w41a",
+    "normalized": "1.18-alpha.21.41.a",
+    "releaseTime": "2021-10-13T15:23:23Z"
+  },
+  {
+    "id": "21w42a",
+    "normalized": "1.18-alpha.21.42.a",
+    "releaseTime": "2021-10-20T12:41:25Z"
+  },
+  {
+    "id": "21w43a",
+    "normalized": "1.18-alpha.21.43.a",
+    "releaseTime": "2021-10-27T14:38:55Z"
+  },
+  {
+    "id": "21w44a",
+    "normalized": "1.18-alpha.21.44.a",
+    "releaseTime": "2021-11-03T16:14:34Z"
+  },
+  {
+    "id": "1.18-pre1",
+    "normalized": "1.18-beta.1",
+    "releaseTime": "2021-11-11T16:14:06Z"
+  },
+  {
+    "id": "1.18-pre2",
+    "normalized": "1.18-beta.2",
+    "releaseTime": "2021-11-16T17:04:48Z"
+  },
+  {
+    "id": "1.18-pre3",
+    "normalized": "1.18-beta.3",
+    "releaseTime": "2021-11-17T16:04:25Z"
+  },
+  {
+    "id": "1.18-pre4",
+    "normalized": "1.18-beta.4",
+    "releaseTime": "2021-11-17T18:07:56Z"
+  },
+  {
+    "id": "1.18-pre5",
+    "normalized": "1.18-beta.5",
+    "releaseTime": "2021-11-19T15:47:09Z"
+  },
+  {
+    "id": "1.18-pre6",
+    "normalized": "1.18-beta.6",
+    "releaseTime": "2021-11-22T17:09:05Z"
+  },
+  {
+    "id": "1.18-pre7",
+    "normalized": "1.18-beta.7",
+    "releaseTime": "2021-11-23T16:37:41Z"
+  },
+  {
+    "id": "1.18-pre8",
+    "normalized": "1.18-beta.8",
+    "releaseTime": "2021-11-24T14:57:32Z"
+  },
+  {
+    "id": "1.18-rc1",
+    "normalized": "1.18-rc.1",
+    "releaseTime": "2021-11-25T14:28:49Z"
+  },
+  {
+    "id": "1.18-rc2",
+    "normalized": "1.18-rc.2",
+    "releaseTime": "2021-11-26T10:02:04Z"
+  },
+  {
+    "id": "1.18-rc3",
+    "normalized": "1.18-rc.3",
+    "releaseTime": "2021-11-26T15:51:56Z"
+  },
+  {
+    "id": "1.18-rc4",
+    "normalized": "1.18-rc.4",
+    "releaseTime": "2021-11-29T13:43:42Z"
+  },
+  {
+    "id": "1.18",
+    "normalized": "1.18",
+    "releaseTime": "2021-11-30T09:16:29Z"
+  },
+  {
+    "id": "1.18.1-pre1",
+    "normalized": "1.18.1-beta.1",
+    "releaseTime": "2021-12-03T13:45:38Z"
+  },
+  {
+    "id": "1.18.1-rc1",
+    "normalized": "1.18.1-rc.1",
+    "releaseTime": "2021-12-07T15:52:47Z"
+  },
+  {
+    "id": "1.18.1-rc2",
+    "normalized": "1.18.1-rc.2",
+    "releaseTime": "2021-12-08T12:29:36Z"
+  },
+  {
+    "id": "1.18.1-rc3",
+    "normalized": "1.18.1-rc.3",
+    "releaseTime": "2021-12-10T03:36:38Z"
+  },
+  {
+    "id": "1.18.1",
+    "normalized": "1.18.1",
+    "releaseTime": "2021-12-10T08:23:00Z"
+  },
+  {
+    "id": "22w03a",
+    "normalized": "1.18.2-alpha.22.3.a",
+    "releaseTime": "2022-01-19T16:04:59Z"
+  },
+  {
+    "id": "22w05a",
+    "normalized": "1.18.2-alpha.22.5.a",
+    "releaseTime": "2022-02-02T16:08:39Z"
+  },
+  {
+    "id": "22w06a",
+    "normalized": "1.18.2-alpha.22.6.a",
+    "releaseTime": "2022-02-09T16:47:48Z"
+  },
+  {
+    "id": "22w07a",
+    "normalized": "1.18.2-alpha.22.7.a",
+    "releaseTime": "2022-02-16T16:13:58Z"
+  },
+  {
+    "id": "1.19-exp1",
+    "normalized": "1.19-Experimental.1",
+    "releaseTime": "2022-02-17T00:00:00Z"
+  },
+  {
+    "id": "1.19_deep_dark_experimental_snapshot-1",
+    "normalized": "1.19-Experimental.1",
+    "releaseTime": "2022-02-17T13:55:59Z"
+  },
+  {
+    "id": "1.18.2-pre1",
+    "normalized": "1.18.2-beta.1",
+    "releaseTime": "2022-02-18T16:00:32Z"
+  },
+  {
+    "id": "1.18.2-pre2",
+    "normalized": "1.18.2-beta.2",
+    "releaseTime": "2022-02-21T15:26:19Z"
+  },
+  {
+    "id": "1.18.2-pre3",
+    "normalized": "1.18.2-beta.3",
+    "releaseTime": "2022-02-23T15:23:12Z"
+  },
+  {
+    "id": "1.18.2-rc1",
+    "normalized": "1.18.2-rc.1",
+    "releaseTime": "2022-02-25T13:25:40Z"
+  },
+  {
+    "id": "1.18.2",
+    "normalized": "1.18.2",
+    "releaseTime": "2022-02-28T10:42:45Z"
+  },
+  {
+    "id": "22w11a",
+    "normalized": "1.19-alpha.22.11.a",
+    "releaseTime": "2022-03-16T15:55:38Z"
+  },
+  {
+    "id": "22w12a",
+    "normalized": "1.19-alpha.22.12.a",
+    "releaseTime": "2022-03-24T16:15:02Z"
+  },
+  {
+    "id": "22w13a",
+    "normalized": "1.19-alpha.22.13.a",
+    "releaseTime": "2022-03-31T14:53:25Z"
+  },
+  {
+    "id": "22w13oneblockatatime",
+    "normalized": "1.18.3-alpha.22.13.oneblockatatime",
+    "releaseTime": "2022-04-01T11:56:58Z"
+  },
+  {
+    "id": "22w14a",
+    "normalized": "1.19-alpha.22.14.a",
+    "releaseTime": "2022-04-06T13:37:12Z"
+  },
+  {
+    "id": "22w15a",
+    "normalized": "1.19-alpha.22.15.a",
+    "releaseTime": "2022-04-13T15:41:17Z"
+  },
+  {
+    "id": "22w16a",
+    "normalized": "1.19-alpha.22.16.a",
+    "releaseTime": "2022-04-20T14:37:07Z"
+  },
+  {
+    "id": "22w16b",
+    "normalized": "1.19-alpha.22.16.b",
+    "releaseTime": "2022-04-20T17:25:32Z"
+  },
+  {
+    "id": "22w17a",
+    "normalized": "1.19-alpha.22.17.a",
+    "releaseTime": "2022-04-27T15:54:15Z"
+  },
+  {
+    "id": "22w18a",
+    "normalized": "1.19-alpha.22.18.a",
+    "releaseTime": "2022-05-04T14:41:35Z"
+  },
+  {
+    "id": "22w19a",
+    "normalized": "1.19-alpha.22.19.a",
+    "releaseTime": "2022-05-12T15:36:11Z"
+  },
+  {
+    "id": "1.19-pre1",
+    "normalized": "1.19-beta.1",
+    "releaseTime": "2022-05-18T13:51:54Z"
+  },
+  {
+    "id": "1.19-pre2",
+    "normalized": "1.19-beta.2",
+    "releaseTime": "2022-05-23T14:54:00Z"
+  },
+  {
+    "id": "1.19-pre3",
+    "normalized": "1.19-beta.3",
+    "releaseTime": "2022-05-25T09:56:47Z"
+  },
+  {
+    "id": "1.19-pre4",
+    "normalized": "1.19-beta.4",
+    "releaseTime": "2022-05-30T14:43:01Z"
+  },
+  {
+    "id": "1.19-pre5",
+    "normalized": "1.19-beta.5",
+    "releaseTime": "2022-06-01T10:56:23Z"
+  },
+  {
+    "id": "1.19-rc1",
+    "normalized": "1.19-rc.1",
+    "releaseTime": "2022-06-02T12:12:52Z"
+  },
+  {
+    "id": "1.19-rc2",
+    "normalized": "1.19-rc.2",
+    "releaseTime": "2022-06-03T11:47:25Z"
+  },
+  {
+    "id": "1.19",
+    "normalized": "1.19",
+    "releaseTime": "2022-06-07T09:42:18Z"
+  },
+  {
+    "id": "22w24a",
+    "normalized": "1.19.1-alpha.22.24.a",
+    "releaseTime": "2022-06-15T16:21:49Z"
+  },
+  {
+    "id": "1.19.1-pre1",
+    "normalized": "1.19.1-beta.1",
+    "releaseTime": "2022-06-21T17:13:59Z"
+  },
+  {
+    "id": "1.19.1-rc1",
+    "normalized": "1.19.1-rc.1",
+    "releaseTime": "2022-06-23T16:32:41Z"
+  },
+  {
+    "id": "1.19.1-pre2",
+    "normalized": "1.19.1-beta.2",
+    "releaseTime": "2022-06-30T15:57:20Z"
+  },
+  {
+    "id": "1.19.1-pre3",
+    "normalized": "1.19.1-beta.3",
+    "releaseTime": "2022-07-06T14:50:46Z"
+  },
+  {
+    "id": "1.19.1-pre4",
+    "normalized": "1.19.1-beta.4",
+    "releaseTime": "2022-07-08T11:41:59Z"
+  },
+  {
+    "id": "1.19.1-pre5",
+    "normalized": "1.19.1-beta.5",
+    "releaseTime": "2022-07-15T11:51:44Z"
+  },
+  {
+    "id": "1.19.1-pre6",
+    "normalized": "1.19.1-beta.6",
+    "releaseTime": "2022-07-20T15:49:31Z"
+  },
+  {
+    "id": "1.19.1-rc2",
+    "normalized": "1.19.1-rc.2",
+    "releaseTime": "2022-07-21T16:25:50Z"
+  },
+  {
+    "id": "1.19.1-rc3",
+    "normalized": "1.19.1-rc.3",
+    "releaseTime": "2022-07-26T15:34:35Z"
+  },
+  {
+    "id": "1.19.1",
+    "normalized": "1.19.1",
+    "releaseTime": "2022-07-27T09:25:33Z"
+  },
+  {
+    "id": "1.19.2-rc1",
+    "normalized": "1.19.2-rc.1",
+    "releaseTime": "2022-08-04T10:07:26Z"
+  },
+  {
+    "id": "1.19.2-rc2",
+    "normalized": "1.19.2-rc.2",
+    "releaseTime": "2022-08-04T15:19:44Z"
+  },
+  {
+    "id": "1.19.2",
+    "normalized": "1.19.2",
+    "releaseTime": "2022-08-05T11:57:05Z"
+  },
+  {
+    "id": "22w42a",
+    "normalized": "1.19.3-alpha.22.42.a",
+    "releaseTime": "2022-10-19T09:34:22Z"
+  },
+  {
+    "id": "22w43a",
+    "normalized": "1.19.3-alpha.22.43.a",
+    "releaseTime": "2022-10-26T11:55:59Z"
+  },
+  {
+    "id": "22w44a",
+    "normalized": "1.19.3-alpha.22.44.a",
+    "releaseTime": "2022-11-02T13:15:43Z"
+  },
+  {
+    "id": "22w45a",
+    "normalized": "1.19.3-alpha.22.45.a",
+    "releaseTime": "2022-11-09T14:30:16Z"
+  },
+  {
+    "id": "22w46a",
+    "normalized": "1.19.3-alpha.22.46.a",
+    "releaseTime": "2022-11-16T13:32:50Z"
+  },
+  {
+    "id": "1.19.3-pre1",
+    "normalized": "1.19.3-beta.1",
+    "releaseTime": "2022-11-22T13:59:37Z"
+  },
+  {
+    "id": "1.19.3-pre2",
+    "normalized": "1.19.3-beta.2",
+    "releaseTime": "2022-11-23T16:12:25Z"
+  },
+  {
+    "id": "1.19.3-pre3",
+    "normalized": "1.19.3-beta.3",
+    "releaseTime": "2022-11-29T14:28:08Z"
+  },
+  {
+    "id": "1.19.3-rc1",
+    "normalized": "1.19.3-rc.1",
+    "releaseTime": "2022-12-01T13:45:18Z"
+  },
+  {
+    "id": "1.19.3-rc2",
+    "normalized": "1.19.3-rc.2",
+    "releaseTime": "2022-12-05T13:21:34Z"
+  },
+  {
+    "id": "1.19.3-rc3",
+    "normalized": "1.19.3-rc.3",
+    "releaseTime": "2022-12-06T10:24:01Z"
+  },
+  {
+    "id": "1.19.3",
+    "normalized": "1.19.3",
+    "releaseTime": "2022-12-07T08:17:18Z"
+  },
+  {
+    "id": "23w03a",
+    "normalized": "1.19.4-alpha.23.3.a",
+    "releaseTime": "2023-01-18T13:10:31Z"
+  },
+  {
+    "id": "23w04a",
+    "normalized": "1.19.4-alpha.23.4.a",
+    "releaseTime": "2023-01-24T15:19:06Z"
+  },
+  {
+    "id": "23w05a",
+    "normalized": "1.19.4-alpha.23.5.a",
+    "releaseTime": "2023-02-01T14:20:33Z"
+  },
+  {
+    "id": "23w06a",
+    "normalized": "1.19.4-alpha.23.6.a",
+    "releaseTime": "2023-02-08T15:00:04Z"
+  },
+  {
+    "id": "23w07a",
+    "normalized": "1.19.4-alpha.23.7.a",
+    "releaseTime": "2023-02-15T14:32:29Z"
+  },
+  {
+    "id": "1.19.4-pre1",
+    "normalized": "1.19.4-beta.1",
+    "releaseTime": "2023-02-22T16:00:34Z"
+  },
+  {
+    "id": "1.19.4-pre2",
+    "normalized": "1.19.4-beta.2",
+    "releaseTime": "2023-02-27T13:38:53Z"
+  },
+  {
+    "id": "1.19.4-pre3",
+    "normalized": "1.19.4-beta.3",
+    "releaseTime": "2023-03-01T14:11:05Z"
+  },
+  {
+    "id": "1.19.4-pre4",
+    "normalized": "1.19.4-beta.4",
+    "releaseTime": "2023-03-08T13:08:22Z"
+  },
+  {
+    "id": "1.19.4-rc1",
+    "normalized": "1.19.4-rc.1",
+    "releaseTime": "2023-03-09T14:35:50Z"
+  },
+  {
+    "id": "1.19.4-rc2",
+    "normalized": "1.19.4-rc.2",
+    "releaseTime": "2023-03-10T12:42:54Z"
+  },
+  {
+    "id": "1.19.4-rc3",
+    "normalized": "1.19.4-rc.3",
+    "releaseTime": "2023-03-13T10:03:11Z"
+  },
+  {
+    "id": "1.19.4",
+    "normalized": "1.19.4",
+    "releaseTime": "2023-03-14T12:56:18Z"
+  },
+  {
+    "id": "23w12a",
+    "normalized": "1.20-alpha.23.12.a",
+    "releaseTime": "2023-03-22T13:28:42Z"
+  },
+  {
+    "id": "23w13a",
+    "normalized": "1.20-alpha.23.13.a",
+    "releaseTime": "2023-03-29T13:54:16Z"
+  },
+  {
+    "id": "23w13a_or_b_original",
+    "normalized": "1.20-alpha.23.13.ab+original",
+    "releaseTime": "2023-04-01T07:24:50Z"
+  },
+  {
+    "id": "23w13a_or_b",
+    "normalized": "1.20-alpha.23.13.ab",
+    "releaseTime": "2023-04-01T12:52:18Z"
+  },
+  {
+    "id": "23w14a",
+    "normalized": "1.20-alpha.23.14.a",
+    "releaseTime": "2023-04-05T12:05:17Z"
+  },
+  {
+    "id": "23w16a",
+    "normalized": "1.20-alpha.23.16.a",
+    "releaseTime": "2023-04-20T11:55:19Z"
+  },
+  {
+    "id": "23w17a",
+    "normalized": "1.20-alpha.23.17.a",
+    "releaseTime": "2023-04-26T12:09:48Z"
+  },
+  {
+    "id": "23w18a",
+    "normalized": "1.20-alpha.23.18.a",
+    "releaseTime": "2023-05-03T11:29:26Z"
+  },
+  {
+    "id": "1.20-pre1",
+    "normalized": "1.20-beta.1",
+    "releaseTime": "2023-05-10T12:19:34Z"
+  },
+  {
+    "id": "1.20-pre2",
+    "normalized": "1.20-beta.2",
+    "releaseTime": "2023-05-16T11:34:54Z"
+  },
+  {
+    "id": "1.20-pre3",
+    "normalized": "1.20-beta.3",
+    "releaseTime": "2023-05-19T11:39:46Z"
+  },
+  {
+    "id": "1.20-pre4",
+    "normalized": "1.20-beta.4",
+    "releaseTime": "2023-05-19T13:13:45Z"
+  },
+  {
+    "id": "1.20-pre5",
+    "normalized": "1.20-beta.5",
+    "releaseTime": "2023-05-23T12:22:52Z"
+  },
+  {
+    "id": "1.20-pre6",
+    "normalized": "1.20-beta.6",
+    "releaseTime": "2023-05-25T12:22:00Z"
+  },
+  {
+    "id": "1.20-pre7",
+    "normalized": "1.20-beta.7",
+    "releaseTime": "2023-05-29T13:44:34Z"
+  },
+  {
+    "id": "1.20-rc1",
+    "normalized": "1.20-rc.1",
+    "releaseTime": "2023-05-31T12:33:33Z"
+  },
+  {
+    "id": "1.20",
+    "normalized": "1.20",
+    "releaseTime": "2023-06-02T08:36:17Z"
+  },
+  {
+    "id": "1.20.1-rc1",
+    "normalized": "1.20.1-rc.1",
+    "releaseTime": "2023-06-09T14:15:49Z"
+  },
+  {
+    "id": "1.20.1",
+    "normalized": "1.20.1",
+    "releaseTime": "2023-06-12T13:25:51Z"
+  },
+  {
+    "id": "23w31a",
+    "normalized": "1.20.2-alpha.23.31.a",
+    "releaseTime": "2023-08-01T10:03:13Z"
+  },
+  {
+    "id": "23w32a",
+    "normalized": "1.20.2-alpha.23.32.a",
+    "releaseTime": "2023-08-09T12:14:25Z"
+  },
+  {
+    "id": "23w33a",
+    "normalized": "1.20.2-alpha.23.33.a",
+    "releaseTime": "2023-08-17T11:39:08Z"
+  },
+  {
+    "id": "23w35a",
+    "normalized": "1.20.2-alpha.23.35.a",
+    "releaseTime": "2023-08-30T11:24:35Z"
+  },
+  {
+    "id": "1.20.2-pre1",
+    "normalized": "1.20.2-beta.1",
+    "releaseTime": "2023-09-05T12:06:20Z"
+  },
+  {
+    "id": "1.20.2-pre2",
+    "normalized": "1.20.2-beta.2",
+    "releaseTime": "2023-09-07T12:42:32Z"
+  },
+  {
+    "id": "1.20.2-pre3",
+    "normalized": "1.20.2-beta.3",
+    "releaseTime": "2023-09-12T12:15:08Z"
+  },
+  {
+    "id": "1.20.2-pre4",
+    "normalized": "1.20.2-beta.4",
+    "releaseTime": "2023-09-13T15:06:51Z"
+  },
+  {
+    "id": "1.20.2-rc1",
+    "normalized": "1.20.2-rc.1",
+    "releaseTime": "2023-09-15T13:10:30Z"
+  },
+  {
+    "id": "1.20.2-rc2",
+    "normalized": "1.20.2-rc.2",
+    "releaseTime": "2023-09-18T12:34:57Z"
+  },
+  {
+    "id": "1.20.2",
+    "normalized": "1.20.2",
+    "releaseTime": "2023-09-20T09:02:57Z"
+  },
+  {
+    "id": "23w40a",
+    "normalized": "1.20.3-alpha.23.40.a",
+    "releaseTime": "2023-10-04T12:48:53Z"
+  },
+  {
+    "id": "23w41a",
+    "normalized": "1.20.3-alpha.23.41.a",
+    "releaseTime": "2023-10-11T12:32:46Z"
+  },
+  {
+    "id": "23w42a",
+    "normalized": "1.20.3-alpha.23.42.a",
+    "releaseTime": "2023-10-18T11:37:28Z"
+  },
+  {
+    "id": "23w43a",
+    "normalized": "1.20.3-alpha.23.43.a",
+    "releaseTime": "2023-10-25T13:34:37Z"
+  },
+  {
+    "id": "23w43b",
+    "normalized": "1.20.3-alpha.23.43.b",
+    "releaseTime": "2023-10-26T13:46:16Z"
+  },
+  {
+    "id": "23w44a",
+    "normalized": "1.20.3-alpha.23.44.a",
+    "releaseTime": "2023-11-01T12:30:52Z"
+  },
+  {
+    "id": "23w45a",
+    "normalized": "1.20.3-alpha.23.45.a",
+    "releaseTime": "2023-11-08T13:59:58Z"
+  },
+  {
+    "id": "23w46a",
+    "normalized": "1.20.3-alpha.23.46.a",
+    "releaseTime": "2023-11-16T14:11:33Z"
+  },
+  {
+    "id": "1.20.3-pre1",
+    "normalized": "1.20.3-beta.1",
+    "releaseTime": "2023-11-20T15:40:14Z"
+  },
+  {
+    "id": "1.20.3-pre2",
+    "normalized": "1.20.3-beta.2",
+    "releaseTime": "2023-11-22T12:21:26Z"
+  },
+  {
+    "id": "1.20.3-pre3",
+    "normalized": "1.20.3-beta.3",
+    "releaseTime": "2023-11-27T14:24:36Z"
+  },
+  {
+    "id": "1.20.3-pre4",
+    "normalized": "1.20.3-beta.4",
+    "releaseTime": "2023-11-28T13:47:32Z"
+  },
+  {
+    "id": "1.20.3-rc1",
+    "normalized": "1.20.3-rc.1",
+    "releaseTime": "2023-11-30T13:41:45Z"
+  },
+  {
+    "id": "1.20.3",
+    "normalized": "1.20.3",
+    "releaseTime": "2023-12-04T12:10:32Z"
+  },
+  {
+    "id": "1.20.4-rc1",
+    "normalized": "1.20.4-rc.1",
+    "releaseTime": "2023-12-06T14:38:01Z"
+  },
+  {
+    "id": "1.20.4",
+    "normalized": "1.20.4",
+    "releaseTime": "2023-12-07T12:56:20Z"
+  },
+  {
+    "id": "23w51a",
+    "normalized": "1.20.5-alpha.23.51.a",
+    "releaseTime": "2023-12-18T13:36:46Z"
+  },
+  {
+    "id": "23w51b",
+    "normalized": "1.20.5-alpha.23.51.b",
+    "releaseTime": "2023-12-18T15:39:14Z"
+  },
+  {
+    "id": "24w03a",
+    "normalized": "1.20.5-alpha.24.3.a",
+    "releaseTime": "2024-01-17T13:19:20Z"
+  },
+  {
+    "id": "24w03b",
+    "normalized": "1.20.5-alpha.24.3.b",
+    "releaseTime": "2024-01-18T12:42:37Z"
+  },
+  {
+    "id": "24w04a",
+    "normalized": "1.20.5-alpha.24.4.a",
+    "releaseTime": "2024-01-24T13:42:45Z"
+  },
+  {
+    "id": "24w05a",
+    "normalized": "1.20.5-alpha.24.5.a",
+    "releaseTime": "2024-01-31T13:05:26Z"
+  },
+  {
+    "id": "24w05b",
+    "normalized": "1.20.5-alpha.24.5.b",
+    "releaseTime": "2024-02-01T12:55:14Z"
+  },
+  {
+    "id": "24w06a",
+    "normalized": "1.20.5-alpha.24.6.a",
+    "releaseTime": "2024-02-07T14:47:18Z"
+  },
+  {
+    "id": "24w07a",
+    "normalized": "1.20.5-alpha.24.7.a",
+    "releaseTime": "2024-02-14T12:51:01Z"
+  },
+  {
+    "id": "24w09a",
+    "normalized": "1.20.5-alpha.24.9.a",
+    "releaseTime": "2024-02-28T12:38:12Z"
+  },
+  {
+    "id": "24w10a",
+    "normalized": "1.20.5-alpha.24.10.a",
+    "releaseTime": "2024-03-06T10:37:35Z"
+  },
+  {
+    "id": "24w11a",
+    "normalized": "1.20.5-alpha.24.11.a",
+    "releaseTime": "2024-03-14T14:21:33Z"
+  },
+  {
+    "id": "24w12a",
+    "normalized": "1.20.5-alpha.24.12.a",
+    "releaseTime": "2024-03-20T14:38:37Z"
+  },
+  {
+    "id": "24w13a",
+    "normalized": "1.20.5-alpha.24.13.a",
+    "releaseTime": "2024-03-27T14:30:20Z"
+  },
+  {
+    "id": "24w14potato_original",
+    "normalized": "1.20.5-alpha.24.12.potato+original",
+    "releaseTime": "2024-04-01T08:41:32Z"
+  },
+  {
+    "id": "24w14potato",
+    "normalized": "1.20.5-alpha.24.12.potato",
+    "releaseTime": "2024-04-01T11:07:19Z"
+  },
+  {
+    "id": "24w14a",
+    "normalized": "1.20.5-alpha.24.14.a",
+    "releaseTime": "2024-04-03T11:49:39Z"
+  },
+  {
+    "id": "1.20.5-pre1",
+    "normalized": "1.20.5-beta.1",
+    "releaseTime": "2024-04-10T12:44:25Z"
+  },
+  {
+    "id": "1.20.5-pre2",
+    "normalized": "1.20.5-beta.2",
+    "releaseTime": "2024-04-15T12:36:05Z"
+  },
+  {
+    "id": "1.20.5-pre3",
+    "normalized": "1.20.5-beta.3",
+    "releaseTime": "2024-04-16T11:57:30Z"
+  },
+  {
+    "id": "1.20.5-pre4",
+    "normalized": "1.20.5-beta.4",
+    "releaseTime": "2024-04-17T11:56:02Z"
+  },
+  {
+    "id": "1.20.5-rc1",
+    "normalized": "1.20.5-rc.1",
+    "releaseTime": "2024-04-18T11:45:40Z"
+  },
+  {
+    "id": "1.20.5-rc2",
+    "normalized": "1.20.5-rc.2",
+    "releaseTime": "2024-04-19T13:13:15Z"
+  },
+  {
+    "id": "1.20.5-rc3",
+    "normalized": "1.20.5-rc.3",
+    "releaseTime": "2024-04-22T13:42:34Z"
+  },
+  {
+    "id": "1.20.5",
+    "normalized": "1.20.5",
+    "releaseTime": "2024-04-23T11:54:12Z"
+  },
+  {
+    "id": "1.20.6-rc1",
+    "normalized": "1.20.6-rc.1",
+    "releaseTime": "2024-04-26T10:12:17Z"
+  },
+  {
+    "id": "1.20.6",
+    "normalized": "1.20.6",
+    "releaseTime": "2024-04-29T12:40:45Z"
+  },
+  {
+    "id": "24w18a",
+    "normalized": "1.21-alpha.24.18.a",
+    "releaseTime": "2024-05-03T12:08:27Z"
+  },
+  {
+    "id": "24w19a",
+    "normalized": "1.21-alpha.24.19.a",
+    "releaseTime": "2024-05-10T12:15:31Z"
+  },
+  {
+    "id": "24w19b",
+    "normalized": "1.21-alpha.24.19.b",
+    "releaseTime": "2024-05-10T14:32:42Z"
+  },
+  {
+    "id": "24w20a",
+    "normalized": "1.21-alpha.24.20.a",
+    "releaseTime": "2024-05-15T12:00:35Z"
+  },
+  {
+    "id": "24w21a",
+    "normalized": "1.21-alpha.24.21.a",
+    "releaseTime": "2024-05-22T14:18:26Z"
+  },
+  {
+    "id": "24w21b",
+    "normalized": "1.21-alpha.24.21.b",
+    "releaseTime": "2024-05-22T16:25:41Z"
+  },
+  {
+    "id": "1.21-pre1",
+    "normalized": "1.21-beta.1",
+    "releaseTime": "2024-05-29T12:04:43Z"
+  },
+  {
+    "id": "1.21-pre2",
+    "normalized": "1.21-beta.2",
+    "releaseTime": "2024-05-31T12:44:56Z"
+  },
+  {
+    "id": "1.21-pre3",
+    "normalized": "1.21-beta.3",
+    "releaseTime": "2024-06-05T08:51:44Z"
+  },
+  {
+    "id": "1.21-pre4",
+    "normalized": "1.21-beta.4",
+    "releaseTime": "2024-06-07T12:00:15Z"
+  },
+  {
+    "id": "1.21-rc1",
+    "normalized": "1.21-rc.1",
+    "releaseTime": "2024-06-10T12:24:08Z"
+  },
+  {
+    "id": "1.21",
+    "normalized": "1.21",
+    "releaseTime": "2024-06-13T08:24:03Z"
+  },
+  {
+    "id": "1.21.1-rc1",
+    "normalized": "1.21.1-rc.1",
+    "releaseTime": "2024-08-07T14:29:18Z"
+  },
+  {
+    "id": "1.21.1",
+    "normalized": "1.21.1",
+    "releaseTime": "2024-08-08T12:24:45Z"
+  },
+  {
+    "id": "24w33a",
+    "normalized": "1.21.2-alpha.24.33.a",
+    "releaseTime": "2024-08-15T12:39:34Z"
+  },
+  {
+    "id": "24w34a",
+    "normalized": "1.21.2-alpha.24.34.a",
+    "releaseTime": "2024-08-21T14:14:13Z"
+  },
+  {
+    "id": "24w35a",
+    "normalized": "1.21.2-alpha.24.35.a",
+    "releaseTime": "2024-08-28T12:25:10Z"
+  },
+  {
+    "id": "24w36a",
+    "normalized": "1.21.2-alpha.24.36.a",
+    "releaseTime": "2024-09-04T12:44:12Z"
+  },
+  {
+    "id": "24w37a",
+    "normalized": "1.21.2-alpha.24.37.a",
+    "releaseTime": "2024-09-11T13:01:31Z"
+  },
+  {
+    "id": "24w38a",
+    "normalized": "1.21.2-alpha.24.38.a",
+    "releaseTime": "2024-09-18T12:32:07Z"
+  },
+  {
+    "id": "24w39a",
+    "normalized": "1.21.2-alpha.24.39.a",
+    "releaseTime": "2024-09-25T13:08:41Z"
+  },
+  {
+    "id": "24w40a",
+    "normalized": "1.21.2-alpha.24.40.a",
+    "releaseTime": "2024-10-02T13:15:42Z"
+  },
+  {
+    "id": "1.21.2-pre1",
+    "normalized": "1.21.2-beta.1",
+    "releaseTime": "2024-10-08T13:22:12Z"
+  },
+  {
+    "id": "1.21.2-pre2",
+    "normalized": "1.21.2-beta.2",
+    "releaseTime": "2024-10-10T12:59:14Z"
+  },
+  {
+    "id": "1.21.2-pre3",
+    "normalized": "1.21.2-beta.3",
+    "releaseTime": "2024-10-11T12:32:27Z"
+  },
+  {
+    "id": "1.21.2-pre4",
+    "normalized": "1.21.2-beta.4",
+    "releaseTime": "2024-10-15T11:59:11Z"
+  },
+  {
+    "id": "1.21.2-pre5",
+    "normalized": "1.21.2-beta.5",
+    "releaseTime": "2024-10-16T13:30:35Z"
+  },
+  {
+    "id": "1.21.2-rc1",
+    "normalized": "1.21.2-rc.1",
+    "releaseTime": "2024-10-17T12:43:18Z"
+  },
+  {
+    "id": "1.21.2-rc2",
+    "normalized": "1.21.2-rc.2",
+    "releaseTime": "2024-10-21T15:53:05Z"
+  },
+  {
+    "id": "1.21.2",
+    "normalized": "1.21.2",
+    "releaseTime": "2024-10-22T09:58:55Z"
+  },
+  {
+    "id": "1.21.3",
+    "normalized": "1.21.3",
+    "releaseTime": "2024-10-23T12:28:15Z"
+  },
+  {
+    "id": "24w44a",
+    "normalized": "1.21.4-alpha.24.44.a",
+    "releaseTime": "2024-10-30T12:53:55Z"
+  },
+  {
+    "id": "24w45a",
+    "normalized": "1.21.4-alpha.24.45.a",
+    "releaseTime": "2024-11-06T13:31:58Z"
+  },
+  {
+    "id": "24w46a",
+    "normalized": "1.21.4-alpha.24.46.a",
+    "releaseTime": "2024-11-13T13:12:38Z"
+  },
+  {
+    "id": "1.21.4-pre1",
+    "normalized": "1.21.4-beta.1",
+    "releaseTime": "2024-11-20T13:45:00Z"
+  },
+  {
+    "id": "1.21.4-pre2",
+    "normalized": "1.21.4-beta.2",
+    "releaseTime": "2024-11-25T13:18:35Z"
+  },
+  {
+    "id": "1.21.4-pre3",
+    "normalized": "1.21.4-beta.3",
+    "releaseTime": "2024-11-26T15:07:29Z"
+  },
+  {
+    "id": "1.21.4-rc1",
+    "normalized": "1.21.4-rc.1",
+    "releaseTime": "2024-11-28T10:19:01Z"
+  },
+  {
+    "id": "1.21.4-rc2",
+    "normalized": "1.21.4-rc.2",
+    "releaseTime": "2024-11-29T10:33:13Z"
+  },
+  {
+    "id": "1.21.4-rc3",
+    "normalized": "1.21.4-rc.3",
+    "releaseTime": "2024-11-29T17:02:53Z"
+  },
+  {
+    "id": "1.21.4",
+    "normalized": "1.21.4",
+    "releaseTime": "2024-12-03T10:12:57Z"
+  },
+  {
+    "id": "25w02a",
+    "normalized": "1.21.5-alpha.25.2.a",
+    "releaseTime": "2025-01-08T13:42:18Z"
+  },
+  {
+    "id": "25w03a",
+    "normalized": "1.21.5-alpha.25.3.a",
+    "releaseTime": "2025-01-15T14:28:04Z"
+  },
+  {
+    "id": "25w04a",
+    "normalized": "1.21.5-alpha.25.4.a",
+    "releaseTime": "2025-01-22T13:14:44Z"
+  },
+  {
+    "id": "25w05a",
+    "normalized": "1.21.5-alpha.25.5.a",
+    "releaseTime": "2025-01-29T14:03:54Z"
+  },
+  {
+    "id": "25w06a",
+    "normalized": "1.21.5-alpha.25.6.a",
+    "releaseTime": "2025-02-05T12:41:17Z"
+  },
+  {
+    "id": "25w07a",
+    "normalized": "1.21.5-alpha.25.7.a",
+    "releaseTime": "2025-02-13T12:55:37Z"
+  },
+  {
+    "id": "25w08a",
+    "normalized": "1.21.5-alpha.25.8.a",
+    "releaseTime": "2025-02-19T13:41:43Z"
+  },
+  {
+    "id": "25w09a",
+    "normalized": "1.21.5-alpha.25.9.a",
+    "releaseTime": "2025-02-26T15:16:02Z"
+  },
+  {
+    "id": "25w09b",
+    "normalized": "1.21.5-alpha.25.9.b",
+    "releaseTime": "2025-02-27T11:07:08Z"
+  },
+  {
+    "id": "25w10a",
+    "normalized": "1.21.5-alpha.25.10.a",
+    "releaseTime": "2025-03-05T13:11:13Z"
+  },
+  {
+    "id": "1.21.5-pre1",
+    "normalized": "1.21.5-beta.1",
+    "releaseTime": "2025-03-11T12:49:44Z"
+  },
+  {
+    "id": "1.21.5-pre2",
+    "normalized": "1.21.5-beta.2",
+    "releaseTime": "2025-03-12T12:36:02Z"
+  },
+  {
+    "id": "1.21.5-pre3",
+    "normalized": "1.21.5-beta.3",
+    "releaseTime": "2025-03-18T13:58:30Z"
+  },
+  {
+    "id": "1.21.5-rc1",
+    "normalized": "1.21.5-rc.1",
+    "releaseTime": "2025-03-20T13:45:48Z"
+  },
+  {
+    "id": "1.21.5-rc2",
+    "normalized": "1.21.5-rc.2",
+    "releaseTime": "2025-03-24T13:07:03Z"
+  },
+  {
+    "id": "1.21.5",
+    "normalized": "1.21.5",
+    "releaseTime": "2025-03-25T12:14:58Z"
+  },
+  {
+    "id": "25w14craftmine",
+    "normalized": "1.21.6-alpha.25.14.craftmine",
+    "releaseTime": "2025-04-01T15:50:09Z"
+  },
+  {
+    "id": "25w15a",
+    "normalized": "1.21.6-alpha.25.15.a",
+    "releaseTime": "2025-04-08T12:16:59Z"
+  },
+  {
+    "id": "25w16a",
+    "normalized": "1.21.6-alpha.25.16.a",
+    "releaseTime": "2025-04-15T12:01:58Z"
+  },
+  {
+    "id": "25w17a",
+    "normalized": "1.21.6-alpha.25.17.a",
+    "releaseTime": "2025-04-22T12:51:30Z"
+  },
+  {
+    "id": "25w18a",
+    "normalized": "1.21.6-alpha.25.18.a",
+    "releaseTime": "2025-04-29T12:21:01Z"
+  },
+  {
+    "id": "25w19a",
+    "normalized": "1.21.6-alpha.25.19.a",
+    "releaseTime": "2025-05-06T12:57:57Z"
+  },
+  {
+    "id": "25w20a",
+    "normalized": "1.21.6-alpha.25.20.a",
+    "releaseTime": "2025-05-13T11:46:28Z"
+  },
+  {
+    "id": "25w21a",
+    "normalized": "1.21.6-alpha.25.21.a",
+    "releaseTime": "2025-05-20T12:09:09Z"
+  },
+  {
+    "id": "1.21.6-pre1",
+    "normalized": "1.21.6-beta.1",
+    "releaseTime": "2025-05-28T09:34:04Z"
+  },
+  {
+    "id": "1.21.6-pre2",
+    "normalized": "1.21.6-beta.2",
+    "releaseTime": "2025-06-02T13:40:47Z"
+  },
+  {
+    "id": "1.21.6-pre3",
+    "normalized": "1.21.6-beta.3",
+    "releaseTime": "2025-06-04T13:33:25Z"
+  },
+  {
+    "id": "1.21.6-pre4",
+    "normalized": "1.21.6-beta.4",
+    "releaseTime": "2025-06-10T12:22:36Z"
+  },
+  {
+    "id": "1.21.6-rc1",
+    "normalized": "1.21.6-rc.1",
+    "releaseTime": "2025-06-12T12:04:37Z"
+  },
+  {
+    "id": "1.21.6",
+    "normalized": "1.21.6",
+    "releaseTime": "2025-06-17T11:10:28Z"
+  },
+  {
+    "id": "1.21.7-rc1",
+    "normalized": "1.21.7-rc.1",
+    "releaseTime": "2025-06-25T12:41:59Z"
+  },
+  {
+    "id": "1.21.7-rc2",
+    "normalized": "1.21.7-rc.2",
+    "releaseTime": "2025-06-26T13:59:20Z"
+  },
+  {
+    "id": "1.21.7",
+    "normalized": "1.21.7",
+    "releaseTime": "2025-06-30T09:32:16Z"
+  },
+  {
+    "id": "1.21.8-rc1",
+    "normalized": "1.21.8-rc.1",
+    "releaseTime": "2025-07-15T13:42:50Z"
+  },
+  {
+    "id": "1.21.8",
+    "normalized": "1.21.8",
+    "releaseTime": "2025-07-17T12:04:02Z"
+  },
+  {
+    "id": "25w31a",
+    "normalized": "1.21.9-alpha.25.31.a",
+    "releaseTime": "2025-07-29T11:29:33Z"
+  },
+  {
+    "id": "25w32a",
+    "normalized": "1.21.9-alpha.25.32.a",
+    "releaseTime": "2025-08-05T12:21:45Z"
+  }
+]

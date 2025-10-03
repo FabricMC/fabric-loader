@@ -17,6 +17,8 @@
 package net.fabricmc.loader.impl.launch.knot;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -26,20 +28,28 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 
 import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
@@ -55,10 +65,10 @@ import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
 final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> implements KnotClassLoaderInterface {
-	private static final boolean LOG_CLASS_LOAD = System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD) != null;
-	private static final boolean LOG_CLASS_LOAD_ERRORS = LOG_CLASS_LOAD || System.getProperty(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS) != null;
-	private static final boolean LOG_TRANSFORM_ERRORS = System.getProperty(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS) != null;
-	private static final boolean DISABLE_ISOLATION = System.getProperty(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION) != null;
+	private static final boolean LOG_CLASS_LOAD = SystemProperties.isSet(SystemProperties.DEBUG_LOG_CLASS_LOAD);
+	private static final boolean LOG_CLASS_LOAD_ERRORS = LOG_CLASS_LOAD || SystemProperties.isSet(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS);
+	private static final boolean LOG_TRANSFORM_ERRORS = SystemProperties.isSet(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS);
+	private static final boolean DISABLE_ISOLATION = SystemProperties.isSet(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION);
 
 	static final class Metadata {
 		static final Metadata EMPTY = new Metadata(null, null);
@@ -86,6 +96,9 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private volatile Set<Path> validParentCodeSources = null; // null = disabled isolation, game provider has to set it to opt in
 	private final Map<Path, String[]> allowedPrefixes = new ConcurrentHashMap<>();
 	private final Set<String> parentSourcedClasses = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+	private static final Collection<Path> JVM_NATIVE_DIRS = computeJvmNativeDirs();
+	private static final Map<String, String> PROCESSED_NATIVES = new HashMap<>();
 
 	KnotClassDelegate(boolean isDevelopment, EnvType envType, T classLoader, ClassLoader parentClassLoader, GameProvider provider) {
 		this.isDevelopment = isDevelopment;
@@ -539,5 +552,132 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		Class<?> findLoadedClassFwd(String name);
 		Class<?> defineClassFwd(String name, byte[] b, int off, int len, CodeSource cs);
 		void resolveClassFwd(Class<?> cls);
+	}
+
+	private static Collection<Path> computeJvmNativeDirs() {
+		Set<Path> ret = new HashSet<>();
+		String[] libPathProperties = { "sun.boot.library.path", "java.library.path" };
+
+		for (String libPathProperty : libPathProperties) {
+			String value = System.getProperty(libPathProperty);
+			if (value == null || value.isEmpty()) continue;
+
+			for (String pathStr : value.split(File.pathSeparator)) {
+				try {
+					Path path = Paths.get(pathStr);
+
+					if (Files.exists(path)) {
+						ret.add(path);
+					}
+				} catch (InvalidPathException e) {
+					Log.warn(LogCategory.KNOT, "Ignoring invalid library path %s", pathStr);
+				}
+			}
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Implementation of {@link ClassLoader#findLibrary} that falls back to grabbing natives from the class path.
+	 *
+	 * @param libname Library name to find
+	 * @return Library path if available, null otherwise
+	 */
+	synchronized String findLibrary(String libname) {
+		String ret = PROCESSED_NATIVES.get(libname); // cache for repeat queries, avoids expensive validation
+		if (ret != null) return ret;
+
+		String fileName = System.mapLibraryName(libname);
+
+		// check if the jvm will provide the native after us
+
+		for (Path dir : JVM_NATIVE_DIRS) {
+			Path file = dir.resolve(fileName);
+
+			if (Files.exists(file)) return null;
+		}
+
+		// check if we can find the native on the knot class path
+
+		URL url = classLoader.getResource(fileName);
+		if (url == null) return null;
+
+		// grab native from class path, extracting it as needed
+
+		Path codeSource;
+
+		try {
+			codeSource = UrlUtil.getCodeSource(url, fileName);
+		} catch (UrlConversionException e) {
+			throw new RuntimeException(e);
+		}
+
+		Path libFile;
+
+		if (Files.isDirectory(codeSource)) { // cp entry is a folder, use library file directly
+			libFile = codeSource.resolve(fileName);
+		} else { // cp entry is a jar, extract library file
+			Path cacheDir = null;
+
+			try {
+				cacheDir = FabricLoaderImpl.INSTANCE.getGameDir().resolve(FabricLoaderImpl.CACHE_DIR_NAME).resolve("natives");
+				assert cacheDir.isAbsolute();
+				Files.createDirectories(cacheDir);
+			} catch (IllegalStateException e) { // too early access
+				return null;
+			} catch (IOException e) {
+				Log.warn(LogCategory.KNOT, "Error creating natives cache directory %s", cacheDir, e);
+				return null;
+			}
+
+			libFile = cacheDir.resolve(fileName);
+			Log.debug(LogCategory.KNOT, "Extracting native %s from class path %s to %s", libname, url, libFile);
+
+			try {
+				copyZipEntryIfDistinct(codeSource, fileName, libFile);
+			} catch (IOException e) {
+				Log.warn(LogCategory.KNOT, "Error extracting native %s to %s", url, cacheDir, e);
+				return null;
+			}
+		}
+
+		ret = libFile.toString();
+		PROCESSED_NATIVES.put(libname, ret);
+
+		Log.debug(LogCategory.KNOT, "Supplying native %s from class path (%s)", libname, ret);
+
+		return ret;
+	}
+
+	private static void copyZipEntryIfDistinct(Path zipFile, String fileName, Path output) throws IOException {
+		try (ZipFile zf = new ZipFile(zipFile.toFile())) {
+			ZipEntry entry = zf.getEntry(fileName);
+			if (entry == null) throw new FileNotFoundException(String.format("zip file %s doesn't contain %s", zipFile, fileName));
+
+			if (Files.exists(output)) { // extracted file exists, check size and crc
+				long expectedSize = entry.getSize();
+				long expectedCrc = entry.getCrc();
+
+				if (Files.size(output) == expectedSize) {
+					CRC32 crc = new CRC32();
+					byte[] buffer = new byte[0x4000];
+
+					try (InputStream is = Files.newInputStream(output)) {
+						int len;
+
+						while ((len = is.read(buffer)) >= 0) {
+							crc.update(buffer, 0, len);
+						}
+					}
+
+					if (crc.getValue() == expectedCrc) { // existing file has the same size and crc as the zip entry
+						return;
+					}
+				}
+			}
+
+			Files.copy(zf.getInputStream(entry), output, StandardCopyOption.REPLACE_EXISTING);
+		}
 	}
 }
