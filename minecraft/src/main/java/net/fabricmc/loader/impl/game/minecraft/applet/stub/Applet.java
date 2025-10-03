@@ -16,82 +16,86 @@
 
 package net.fabricmc.loader.impl.game.minecraft.applet.stub;
 
-import net.fabricmc.loader.impl.game.minecraft.applet.AppletLauncher;
+import java.awt.Dimension;
+import java.awt.Panel;
+import java.net.URL;
+import java.util.Locale;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.net.URL;
-import java.util.Locale;
+import net.fabricmc.loader.impl.game.minecraft.applet.AppletLauncher;
 
 /**
  * A minimal stub implementation of an Applet, just enough to make Minecraft happy.
  */
 public class Applet extends Panel {
-    private @Nullable AppletLauncher appletLauncher;
+	private @Nullable AppletLauncher appletLauncher;
 
-    public final void setStub(AppletLauncher appletLauncher) {
-        this.appletLauncher = appletLauncher;
-    }
+	public final void setStub(AppletLauncher appletLauncher) {
+		this.appletLauncher = appletLauncher;
+	}
 
-    public boolean isActive() {
-        if (appletLauncher != null) {
-            return appletLauncher.isActive();
-        } else {
-            return false;
-        }
-    }
+	public boolean isActive() {
+		if (appletLauncher != null) {
+			return appletLauncher.isActive();
+		} else {
+			return false;
+		}
+	}
 
-    public URL getDocumentBase() {
-        return appletLauncher.getDocumentBase();
-    }
+	public URL getDocumentBase() {
+		return appletLauncher.getDocumentBase();
+	}
 
-    public URL getCodeBase() {
-        return appletLauncher.getCodeBase();
-    }
+	public URL getCodeBase() {
+		return appletLauncher.getCodeBase();
+	}
 
-    public String getParameter(String name) {
-        return appletLauncher.getParameter(name);
-    }
+	public String getParameter(String name) {
+		return appletLauncher.getParameter(name);
+	}
 
-    @SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation")
 	@Override
-    public void resize(int width, int height) {
-        Dimension d = size();
-        if ((d.width != width) || (d.height != height)) {
-            super.resize(width, height);
-        }
-    }
+	public void resize(int width, int height) {
+		Dimension d = size();
 
-    @SuppressWarnings("deprecation")
+		if ((d.width != width) || (d.height != height)) {
+			super.resize(width, height);
+		}
+	}
+
+	@SuppressWarnings("deprecation")
 	@Override
-    public void resize(Dimension d) {
-        resize(d.width, d.height);
-    }
-
-    @Override
-    public boolean isValidateRoot() {
-        return true;
-    }
+	public void resize(Dimension d) {
+		resize(d.width, d.height);
+	}
 
 	@Override
-    public Locale getLocale() {
-        Locale locale = super.getLocale();
-        if (locale == null) {
-            return Locale.getDefault();
-        }
-        return locale;
-    }
+	public boolean isValidateRoot() {
+		return true;
+	}
 
-    public void init() {
-    }
+	@Override
+	public Locale getLocale() {
+		Locale locale = super.getLocale();
 
-    public void start() {
-    }
+		if (locale == null) {
+			return Locale.getDefault();
+		}
 
-    public void stop() {
-    }
+		return locale;
+	}
 
-    public void destroy() {
-    }
+	public void init() {
+	}
+
+	public void start() {
+	}
+
+	public void stop() {
+	}
+
+	public void destroy() {
+	}
 }
