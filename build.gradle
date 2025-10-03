@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 buildscript {
 	dependencies {
 		classpath 'org.kohsuke:github-api:1.135'
-		classpath 'com.guardsquare:proguard-gradle:7.5.0'
+		classpath 'com.guardsquare:proguard-gradle:7.7.0'
 	}
 }
 
@@ -14,10 +14,10 @@ plugins {
 	id 'eclipse'
 	id 'maven-publish'
 	id 'checkstyle'
-	id 'com.diffplug.spotless' version "6.22.0"
-	id 'fabric-loom' version '1.4-SNAPSHOT' apply false
-	id 'com.github.johnrengelman.shadow' version '8.1.1'
-	id 'me.modmuss50.remotesign' version "0.4.0"
+	id 'com.diffplug.spotless' version "8.0.0"
+	id 'fabric-loom' version '1.11-SNAPSHOT' apply false
+	id 'com.gradleup.shadow' version '9.2.2'
+	id 'me.modmuss50.remotesign' version "0.5.0"
 }
 
 base {
@@ -124,7 +124,7 @@ dependencies {
 	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
 	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 
-	testImplementation("org.mockito:mockito-core:5.10.0")
+	testImplementation("org.mockito:mockito-core:5.20.0")
 }
 
 apply from: rootProject.file('gradle/installer-json.gradle')
@@ -134,7 +134,7 @@ processResources {
 	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": inputs.properties.version
 	}
 }
 
@@ -184,8 +184,10 @@ tasks.register('fatJar', ShadowJar) {
 	from sourceSets.main.output
 	from project(":minecraft").sourceSets.main.output
 	from getSat4jAbout.destinationDir
+
+	inputs.property "archivesName", project.base.archivesName.get()
 	from("LICENSE") {
-		rename { "${it}_${project.base.archivesName.get()}" }
+		rename { "${it}_${inputs.properties.archivesName}" }
 	}
 
 	manifest {
@@ -211,8 +213,11 @@ tasks.register('fatJar', ShadowJar) {
 	exclude 'META-INF/*.RSA'
 	exclude 'META-INF/*.SF'
 
+	inputs.files(project.configurations.development)
+	def devFiles = project.configurations.development.files
+
 	doLast {
-		JarNester.nestJars(project.configurations.development.files, archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
+		JarNester.nestJars(devFiles, archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
 	}
 
 	outputs.upToDateWhen { false }
@@ -319,7 +324,7 @@ javadoc {
 	classpath = sourceSets.main.compileClasspath + sourceSets.main.output // compile impl stuff for dep as well
 	include("**/api/**")
 	// workaround as one of the api stuff use that package
-	failOnError false
+	failOnError = false
 }
 
 tasks.register('javadocJar', Jar) {
@@ -437,7 +442,7 @@ task github(dependsOn: publish) {
 task checkVersion {
 	doFirst {
 		def xml = new URL("https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml").text
-		def metadata = new XmlSlurper().parseText(xml)
+		def metadata = new groovy.xml.XmlSlurper().parseText(xml)
 		def versions = metadata.versioning.versions.version*.text();
 		if (versions.contains(version)) {
 			throw new RuntimeException("${version} has already been released!")
