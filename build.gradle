@@ -17,7 +17,7 @@ plugins {
 	id 'com.diffplug.spotless' version "8.0.0"
 	id 'fabric-loom' version '1.11-SNAPSHOT' apply false
 	id 'com.gradleup.shadow' version '9.2.2'
-	id 'me.modmuss50.remotesign' version "0.4.0"
+	id 'me.modmuss50.remotesign' version "0.5.0"
 }
 
 base {
@@ -184,8 +184,10 @@ tasks.register('fatJar', ShadowJar) {
 	from sourceSets.main.output
 	from project(":minecraft").sourceSets.main.output
 	from getSat4jAbout.destinationDir
+
+	inputs.property "archivesName", project.base.archivesName.get()
 	from("LICENSE") {
-		rename { "${it}_${project.base.archivesName.get()}" }
+		rename { "${it}_${inputs.properties.archivesName}" }
 	}
 
 	manifest {
@@ -211,8 +213,11 @@ tasks.register('fatJar', ShadowJar) {
 	exclude 'META-INF/*.RSA'
 	exclude 'META-INF/*.SF'
 
+	inputs.files(project.configurations.development)
+	def devFiles = project.configurations.development.files
+
 	doLast {
-		JarNester.nestJars(project.configurations.development.files, archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
+		JarNester.nestJars(devFiles, archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
 	}
 
 	outputs.upToDateWhen { false }
@@ -319,7 +324,7 @@ javadoc {
 	classpath = sourceSets.main.compileClasspath + sourceSets.main.output // compile impl stuff for dep as well
 	include("**/api/**")
 	// workaround as one of the api stuff use that package
-	failOnError false
+	failOnError = false
 }
 
 tasks.register('javadocJar', Jar) {
