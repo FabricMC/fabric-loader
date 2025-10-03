@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/setup-java@v3
         with:
-          distribution: 'microsoft'
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
       - uses: actions/checkout@v4
       - uses: gradle/actions/wrapper-validation@v4
@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-java@v3
         with:
-          distribution: 'microsoft'
+          distribution: 'temurin'
           java-version: '25'
       - run: ./gradlew :minecraft:minecraft-test:runProductionAutoTestClient --stacktrace --warning-mode=fail
       - uses: actions/upload-artifact@v4
