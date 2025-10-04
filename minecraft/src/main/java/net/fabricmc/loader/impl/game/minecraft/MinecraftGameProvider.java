@@ -43,7 +43,6 @@ import net.fabricmc.loader.impl.FormattedException;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.game.GameProviderHelper;
 import net.fabricmc.loader.impl.game.LibClassifier;
-import net.fabricmc.loader.impl.game.minecraft.patch.AppletPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
@@ -78,6 +77,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 	private EnvType envType;
 	private String entrypoint;
+	private boolean usesApplet;
 	private Arguments arguments;
 	private final List<Path> gameJars = new ArrayList<>(2); // env game jar and potentially common game jar
 	private Path realmsJar;
@@ -88,13 +88,14 @@ public class MinecraftGameProvider implements GameProvider {
 	private Collection<Path> validParentClassPath; // computed parent class path restriction (loader+deps)
 	private McVersion versionData;
 	private boolean hasModLoader = false;
+	private Set<BuiltinTransform> gameTransforms;
+	private Set<BuiltinTransform> modTransforms;
 
 	private final GameTransformer transformer = new GameTransformer(
 			new EntrypointPatch(this),
 			new BrandingPatch(),
 			new EntrypointPatchFML125(),
-			new TinyFDPatch(),
-			new AppletPatch());
+			new TinyFDPatch());
 
 	@Override
 	public String getGameId() {
@@ -166,19 +167,12 @@ public class MinecraftGameProvider implements GameProvider {
 				|| className.indexOf('.') < 0; // obf classes
 
 		if (isMinecraftClass) {
-			if (FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) { // combined client+server jar, strip back down to production equivalent
-				return TRANSFORM_WIDENALL_STRIPENV_CLASSTWEAKS;
-			} else { // environment specific jar, inherently env stripped
-				return TRANSFORM_WIDENALL_CLASSTWEAKS;
-			}
-		} else { // mod class TODO: exclude game libs
-			return TRANSFORM_STRIPENV;
+			return gameTransforms;
 		}
-	}
 
-	private static final Set<BuiltinTransform> TRANSFORM_WIDENALL_STRIPENV_CLASSTWEAKS = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.STRIP_ENVIRONMENT, BuiltinTransform.CLASS_TWEAKS);
-	private static final Set<BuiltinTransform> TRANSFORM_WIDENALL_CLASSTWEAKS = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.CLASS_TWEAKS);
-	private static final Set<BuiltinTransform> TRANSFORM_STRIPENV = EnumSet.of(BuiltinTransform.STRIP_ENVIRONMENT);
+		// mod class TODO: exclude game libs
+		return modTransforms;
+	}
 
 	@Override
 	public boolean isEnabled() {
@@ -236,10 +230,14 @@ public class MinecraftGameProvider implements GameProvider {
 			}
 
 			entrypoint = classifier.getClassName(envGameLib);
+			usesApplet = envType == EnvType.CLIENT && entrypoint != null && entrypoint.contains("Applet");
 			realmsJar = classifier.getOrigin(McLibrary.REALMS);
 			hasModLoader = classifier.has(McLibrary.MODLOADER);
 			log4jAvailable = classifier.has(McLibrary.LOG4J_API) && classifier.has(McLibrary.LOG4J_CORE);
 			slf4jAvailable = classifier.has(McLibrary.SLF4J_API) && classifier.has(McLibrary.SLF4J_CORE);
+			gameTransforms = getGameTransforms(FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment(), usesApplet);
+			modTransforms = EnumSet.of(BuiltinTransform.STRIP_ENVIRONMENT);
+
 			boolean hasLogLib = log4jAvailable || slf4jAvailable;
 
 			Log.configureBuiltin(hasLogLib, !hasLogLib);
@@ -491,7 +489,7 @@ public class MinecraftGameProvider implements GameProvider {
 	public void launch(ClassLoader loader) {
 		String targetClass = entrypoint;
 
-		if (envType == EnvType.CLIENT && targetClass.contains("Applet")) {
+		if (usesApplet) {
 			targetClass = "net.fabricmc.loader.impl.game.minecraft.applet.AppletMain";
 		}
 
@@ -509,5 +507,19 @@ public class MinecraftGameProvider implements GameProvider {
 		} catch (Throwable t) {
 			throw FormattedException.ofLocalized("exception.minecraft.generic", t);
 		}
+	}
+
+	private static Set<BuiltinTransform> getGameTransforms(boolean devEnv, boolean applet) {
+		EnumSet<BuiltinTransform> transforms = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.CLASS_TWEAKS);
+
+		if (devEnv) {
+			transforms.add(BuiltinTransform.STRIP_ENVIRONMENT);
+		}
+
+		if (applet) {
+			transforms.add(BuiltinTransform.MINECRAFT_APPLET_STUB);
+		}
+
+		return Collections.unmodifiableSet(transforms);
 	}
 }

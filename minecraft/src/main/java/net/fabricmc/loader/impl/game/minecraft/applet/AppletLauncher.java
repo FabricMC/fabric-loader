@@ -27,6 +27,7 @@ import java.util.Map;
 
 import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import net.fabricmc.loader.impl.game.minecraft.applet.stub.Applet;
+import net.fabricmc.loader.impl.game.minecraft.applet.stub.AppletStub;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 /**
@@ -37,7 +38,7 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
  *
  * <p>It has been adapted here for the purposes of the Fabric loader.
  */
-public class AppletLauncher extends Applet {
+public class AppletLauncher extends Applet implements AppletStub {
 	public static File gameDir;
 
 	private final Map<String, String> params;
