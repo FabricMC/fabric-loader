@@ -28,6 +28,8 @@ public final class SystemProperties {
 	public static final String GAME_MAPPING_NAMESPACE = "fabric.gameMappingNamespace";
 	// mapping namespace to use at runtime, defaults to named if DEVELOPMENT is set or intermediary otherwise
 	public static final String RUNTIME_MAPPING_NAMESPACE = "fabric.runtimeMappingNamespace";
+	// remaps mods to the runtime mapping namespace, defaults to true if DEVELOPMENT is set or false otherwise
+	public static final String REMAP_MODS = "fabric.remapMods";
 	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
 	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
 	// game jar paths for common/client/server, replaces lookup from class path if present, env specific takes precedence

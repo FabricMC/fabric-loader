@@ -207,7 +207,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	}
 
 	private void setup() throws ModResolutionException {
-		boolean remapRegularMods = isDevelopmentEnvironment();
+		boolean remapRegularMods = FabricLauncherBase.getLauncher().isRemapMods();
 		VersionOverrides versionOverrides = new VersionOverrides();
 		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
 

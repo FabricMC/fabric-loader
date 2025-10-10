@@ -57,6 +57,8 @@ public interface FabricLauncher {
 
 	boolean isDevelopment();
 
+	boolean isRemapMods();
+
 	String getEntrypoint();
 
 	String getDefaultRuntimeNamespace();
