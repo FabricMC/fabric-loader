@@ -158,7 +158,7 @@ class BuiltinMetadataWrapper extends AbstractModMetadata implements LoaderModMet
 	}
 
 	@Override
-	public String getAccessWidener() {
+	public String getClassTweaker() {
 		return null;
 	}
 

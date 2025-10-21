@@ -247,7 +247,7 @@ final class V0ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public String getAccessWidener() {
+	public String getClassTweaker() {
 		return null; // intentional null
 	}
 
