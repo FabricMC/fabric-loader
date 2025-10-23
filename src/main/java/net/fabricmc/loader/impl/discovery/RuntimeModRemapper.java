@@ -228,11 +228,11 @@ public final class RuntimeModRemapper {
 	}
 
 	private static byte[] remapClassTweaker(byte[] input, Remapper remapper, String modNs, String runtimeNs) {
-		ClassTweakerWriter writer = ClassTweakerWriter.create(ClassTweaker.CT_V1);
+		ClassTweakerWriter writer = ClassTweakerWriter.create(ClassTweaker.CT_LATEST);
 		ClassTweakerRemapperVisitor remappingDecorator = new ClassTweakerRemapperVisitor(writer, remapper, modNs, runtimeNs);
 		ClassTweakerReader reader = ClassTweakerReader.create(remappingDecorator);
 		reader.read(input, modNs);
-		return writer.writeString().getBytes(StandardCharsets.UTF_8);
+		return writer.getOutput();
 	}
 
 	private static List<Path> getRemapClasspath() throws IOException {
