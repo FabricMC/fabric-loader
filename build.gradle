@@ -113,7 +113,7 @@ dependencies {
 	include 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 	include 'org.ow2.sat4j:org.ow2.sat4j.pb:2.3.6'
 	include "net.fabricmc:tiny-remapper:0.11.2"
-	include "net.fabricmc:class-tweaker:0.1.0"
+	include "net.fabricmc:class-tweaker:0.2"
 	include "net.fabricmc:mapping-io:0.7.1"
 
 	development "io.github.llamalad7:mixinextras-fabric:$mixin_extras_version"
