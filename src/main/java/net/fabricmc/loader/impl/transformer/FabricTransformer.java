@@ -22,7 +22,6 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-import net.fabricmc.accesswidener.AccessWidenerClassVisitor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider.BuiltinTransform;
@@ -33,9 +32,9 @@ public final class FabricTransformer {
 		Set<BuiltinTransform> transforms = FabricLoaderImpl.INSTANCE.getGameProvider().getBuiltinTransforms(name);
 		boolean transformAccess = transforms.contains(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS) && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = transforms.contains(BuiltinTransform.STRIP_ENVIRONMENT);
-		boolean applyAccessWidener = transforms.contains(BuiltinTransform.CLASS_TWEAKS) && FabricLoaderImpl.INSTANCE.getAccessWidener().getTargets().contains(name);
+		boolean applyClassTweaker = transforms.contains(BuiltinTransform.CLASS_TWEAKS) && FabricLoaderImpl.INSTANCE.getClassTweaker().getTargets().contains(name.replace('.', '/'));
 
-		if (!transformAccess && !environmentStrip && !applyAccessWidener) {
+		if (!transformAccess && !environmentStrip && !applyClassTweaker) {
 			return bytes;
 		}
 
@@ -44,8 +43,8 @@ public final class FabricTransformer {
 		ClassVisitor visitor = classWriter;
 		int visitorCount = 0;
 
-		if (applyAccessWidener) {
-			visitor = AccessWidenerClassVisitor.createClassVisitor(FabricLoaderImpl.ASM_VERSION, visitor, FabricLoaderImpl.INSTANCE.getAccessWidener());
+		if (applyClassTweaker) {
+			visitor = FabricLoaderImpl.INSTANCE.getClassTweaker().createClassVisitor(FabricLoaderImpl.ASM_VERSION, visitor, null); // TODO: generated classes?
 			visitorCount++;
 		}
 
