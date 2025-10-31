@@ -77,6 +77,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 		return defaultNs;
 	}
 
+	default String getDefaultModDistributionNamespace(String defaultNs) {
+		return defaultNs;
+	}
+
 	default boolean canOpenErrorGui() {
 		return true;
 	}

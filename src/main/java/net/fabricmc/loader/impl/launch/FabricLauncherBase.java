@@ -59,14 +59,6 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 		return mappingConfiguration;
 	}
 
-	@Override
-	public final String getDefaultRuntimeNamespace() {
-		String ret = System.getProperty(SystemProperties.RUNTIME_MAPPING_NAMESPACE);
-		if (ret != null) return ret;
-
-		return IS_DEVELOPMENT ? MappingConfiguration.NAMED_NAMESPACE : MappingConfiguration.INTERMEDIARY_NAMESPACE;
-	}
-
 	protected static void setProperties(Map<String, Object> propertiesA) {
 		if (properties != null && properties != propertiesA) {
 			throw new RuntimeException("Duplicate setProperties call!");

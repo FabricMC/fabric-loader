@@ -315,22 +315,30 @@ public class MinecraftGameProvider implements GameProvider {
 	public void initialize(FabricLauncher launcher) {
 		launcher.setValidParentClassPath(validParentClassPath);
 
+		MappingConfiguration config = launcher.getMappingConfiguration();
+		String runtimeNs = config.getRuntimeNamespace();
 		String gameNs = System.getProperty(SystemProperties.GAME_MAPPING_NAMESPACE);
 
 		if (gameNs == null) {
-			List<String> mappingNamespaces;
+			if (config.hasAnyMappings()) {
+				List<String> mappingNamespaces;
 
-			if (launcher.isDevelopment()) {
-				gameNs = MappingConfiguration.NAMED_NAMESPACE;
-			} else if ((mappingNamespaces = launcher.getMappingConfiguration().getNamespaces()) == null
-					|| mappingNamespaces.contains(MappingConfiguration.OFFICIAL_NAMESPACE)) {
+				if (launcher.isDevelopment()) {
+					gameNs = MappingConfiguration.NAMED_NAMESPACE;
+				} else if ((mappingNamespaces = config.getNamespaces()) == null
+						|| mappingNamespaces.contains(MappingConfiguration.OFFICIAL_NAMESPACE)) {
+					gameNs = MappingConfiguration.OFFICIAL_NAMESPACE;
+				} else {
+					gameNs = envType == EnvType.CLIENT ? MappingConfiguration.CLIENT_OFFICIAL_NAMESPACE : MappingConfiguration.SERVER_OFFICIAL_NAMESPACE;
+				}
+			} else { // no mappings, assume the game is unobfuscated
 				gameNs = MappingConfiguration.OFFICIAL_NAMESPACE;
-			} else {
-				gameNs = envType == EnvType.CLIENT ? MappingConfiguration.CLIENT_OFFICIAL_NAMESPACE : MappingConfiguration.SERVER_OFFICIAL_NAMESPACE;
 			}
 		}
 
-		if (!gameNs.equals(launcher.getMappingConfiguration().getRuntimeNamespace())) { // game is obfuscated / in another namespace -> remap
+		Log.debug(LogCategory.GAME_PROVIDER, "namespace detection result: game=%s runtime=%s mod-default=%s", gameNs, runtimeNs, config.getDefaultModDistributionNamespace());
+
+		if (!gameNs.equals(runtimeNs)) { // game is obfuscated / in another namespace -> remap
 			Map<String, Path> obfJars = new HashMap<>(3);
 			String[] names = new String[gameJars.size()];
 
