@@ -16,11 +16,6 @@
 
 package net.fabricmc.test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,14 +38,15 @@ import net.fabricmc.loader.impl.metadata.ModMetadataParser;
 import net.fabricmc.loader.impl.metadata.ParseMetadataException;
 import net.fabricmc.loader.impl.metadata.VersionOverrides;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 final class V1ModJsonParsingTests {
-	private static Path testLocation;
 	private static Path specPath;
 	private static Path errorPath;
 
 	@BeforeAll
 	public static void setupPaths() {
-		testLocation = new File(System.getProperty("user.dir"))
+		Path testLocation = new File(System.getProperty("user.dir"))
 				.toPath()
 				.resolve("src")
 				.resolve("test")
@@ -142,7 +138,7 @@ final class V1ModJsonParsingTests {
 		final String friendlyString = metadata.getVersion().getFriendlyString();
 		assertEquals("1.0.0-SNAPSHOT", friendlyString, String.format("Version \"%s\" was found, expected \"1.0.0-SNAPSHOT\"", friendlyString));
 
-		assertTrue(metadata.getVersion() instanceof SemanticVersion, "Parsed version was not a semantic version, expected a semantic version");
+		assertInstanceOf(SemanticVersion.class, metadata.getVersion(), "Parsed version was not a semantic version, expected a semantic version");
 	}
 
 	@Test
@@ -202,16 +198,16 @@ final class V1ModJsonParsingTests {
 	@Test
 	public void verifyMissingVersionFails() {
 		// Missing version should throw an exception
-		assertThrows(ParseMetadataException.MissingField.class, () -> {
-			parseMetadata(errorPath.resolve("missing_version.json"));
-		}, "Missing version exception was not caught");
+		assertThrows(ParseMetadataException.MissingField.class, () ->
+				parseMetadata(errorPath.resolve("missing_version.json")),
+				"Missing version exception was not caught");
 	}
 
 	@Test
 	public void validateDuplicateSchemaVersionMismatchFails() {
-		assertThrows(ParseMetadataException.class, () -> {
-			parseMetadata(errorPath.resolve("missing_version.json"));
-		}, "Parser did not fail when the duplicate \"schemaVersion\" mismatches");
+		assertThrows(ParseMetadataException.class, () ->
+				parseMetadata(errorPath.resolve("missing_version.json")),
+				"Parser did not fail when the duplicate \"schemaVersion\" mismatches");
 	}
 
 	/*
