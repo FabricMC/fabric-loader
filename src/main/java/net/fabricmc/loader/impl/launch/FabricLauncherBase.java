@@ -55,6 +55,14 @@ public abstract class FabricLauncherBase implements FabricLauncher {
 	}
 
 	@Override
+	public final boolean isRemapMods() {
+		String ret = System.getProperty(SystemProperties.REMAP_MODS);
+		if (ret != null) return SystemProperties.isSet(SystemProperties.REMAP_MODS);
+
+		return IS_DEVELOPMENT;
+	}
+
+	@Override
 	public MappingConfiguration getMappingConfiguration() {
 		return mappingConfiguration;
 	}

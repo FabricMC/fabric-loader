@@ -208,15 +208,17 @@ public final class GameProviderHelper {
 	private static boolean emittedInfo = false;
 
 	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String sourceNamespace, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher) {
-		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", inputFileMap);
+		return deobfuscate(inputFileMap, sourceNamespace, launcher.getMappingConfiguration().getRuntimeNamespace(), gameId, gameVersion, gameDir, launcher);
+	}
 
-		MappingConfiguration mappingConfig = launcher.getMappingConfiguration();
-		String targetNamespace = mappingConfig.getRuntimeNamespace();
+	public static Map<String, Path> deobfuscate(Map<String, Path> inputFileMap, String sourceNamespace, String targetNamespace, String gameId, String gameVersion, Path gameDir, FabricLauncher launcher) {
+		Log.debug(LogCategory.GAME_REMAP, "Requesting deobfuscation of %s", inputFileMap);
 
 		if (sourceNamespace.equals(targetNamespace)) {
 			return inputFileMap;
 		}
 
+		MappingConfiguration mappingConfig = launcher.getMappingConfiguration();
 		if (!mappingConfig.matches(gameId, gameVersion)) {
 			String mappingsGameId = mappingConfig.getGameId();
 			String mappingsGameVersion = mappingConfig.getGameVersion();
@@ -231,9 +233,7 @@ public final class GameProviderHelper {
 
 		List<String> namespaces = mappingConfig.getNamespaces();
 
-		if (namespaces == null
-				|| !namespaces.contains(sourceNamespace)
-				|| !namespaces.contains(targetNamespace)) {
+		if (namespaces == null) {
 			Log.debug(LogCategory.GAME_REMAP, "No mappings, using input files");
 			return inputFileMap;
 		}
