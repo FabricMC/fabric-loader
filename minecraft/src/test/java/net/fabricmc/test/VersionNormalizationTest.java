@@ -16,12 +16,13 @@
 
 package net.fabricmc.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -241,7 +242,7 @@ public class VersionNormalizationTest {
 	public void testGetRelease() {
 		for (MinecraftVersion result : expectedResults) {
 			for (NormalizedVersion entry : result.entries) {
-				Assertions.assertEquals(entry.release, McVersionLookup.getRelease(entry.version), "getRelease(" + entry.version + ")");
+				assertEquals(entry.release, McVersionLookup.getRelease(entry.version), "getRelease(" + entry.version + ")");
 			}
 		}
 	}
@@ -250,7 +251,7 @@ public class VersionNormalizationTest {
 	public void testNormalizeVersion() {
 		for (MinecraftVersion result : expectedResults) {
 			for (NormalizedVersion entry : result.entries) {
-				Assertions.assertEquals(entry.normalizedVersion, McVersionLookup.normalizeVersion(entry.version, entry.release), "normalizeVersion(" + entry.version + ", " + entry.release + ")");
+				assertEquals(entry.normalizedVersion, McVersionLookup.normalizeVersion(entry.version, entry.release), "normalizeVersion(" + entry.version + ", " + entry.release + ")");
 			}
 		}
 	}
@@ -270,9 +271,9 @@ public class VersionNormalizationTest {
 						Version v2 = result2.entries.get(l).semver();
 
 						if (i == k) {
-							Assertions.assertEquals(true, v1.compareTo(v2) == 0, v1.toString() + " == " + v2.toString());
+							assertEquals(0, v1.compareTo(v2), v1 + " == " + v2);
 						} else {
-							Assertions.assertEquals(i > k, v1.compareTo(v2) > 0, v1.toString() + " > " + v2.toString());
+							assertEquals(i > k, v1.compareTo(v2) > 0, v1 + " > " + v2);
 						}
 					}
 				}

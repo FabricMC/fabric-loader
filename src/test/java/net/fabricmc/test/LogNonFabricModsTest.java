@@ -53,7 +53,7 @@ public class LogNonFabricModsTest {
 	 */
 	@Test
 	public void testLogNonFabricMods() {
-		List<Path> nonFabricMods = new ArrayList<Path>();
+		List<Path> nonFabricMods = new ArrayList<>();
 		nonFabricMods.add(Paths.get("mods/non_fabric_mod1.jar"));
 		nonFabricMods.add(Paths.get("mods/non_fabric_mod2.jar"));
 		nonFabricMods.add(Paths.get("mods/non_fabric_mod3.jar"));

@@ -44,7 +44,7 @@ public class JunitTest {
 	@Test
 	public void testItems() {
 		Identifier id = Registries.ITEM.getId(Items.DIAMOND);
-		assertEquals(id.toString(), "minecraft:diamond");
+		assertEquals("minecraft:diamond", id.toString());
 
 		System.out.println(id);
 	}

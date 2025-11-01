@@ -16,7 +16,8 @@
 
 package net.fabricmc.test;
 
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 
 import net.fabricmc.loader.impl.util.Arguments;
@@ -28,9 +29,9 @@ public class ArgumentParsingTests {
 		arguments.parse(new String[]{"--clientId", "123", "--xuid", "abc", "--versionType", "release"});
 		arguments.put("versionType", "Fabric");
 
-		Assertions.assertEquals(arguments.keys().size(), 3);
-		Assertions.assertEquals(arguments.get("xuid"), "abc");
-		Assertions.assertEquals(arguments.get("versionType"), "Fabric");
+		assertEquals(3, arguments.keys().size());
+		assertEquals("abc", arguments.get("xuid"));
+		assertEquals("Fabric", arguments.get("versionType"));
 	}
 
 	@Test
@@ -39,8 +40,8 @@ public class ArgumentParsingTests {
 		arguments.parse(new String[]{"--clientId", "123", "--xuid", "--versionType", "release"});
 		arguments.put("versionType", "Fabric");
 
-		Assertions.assertEquals(arguments.keys().size(), 3);
-		Assertions.assertEquals(arguments.get("xuid"), "");
-		Assertions.assertEquals(arguments.get("versionType"), "Fabric");
+		assertEquals(3, arguments.keys().size());
+		assertEquals("", arguments.get("xuid"));
+		assertEquals("Fabric", arguments.get("versionType"));
 	}
 }

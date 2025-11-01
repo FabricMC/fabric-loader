@@ -45,7 +45,7 @@ public final class McVersionLookupTest {
 		if (Files.isDirectory(path)) {
 			Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 					if (file.getFileName().toString().endsWith(".jar")) {
 						check(file, path.relativize(file).toString(), invalid);
 					}

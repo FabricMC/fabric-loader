@@ -75,8 +75,9 @@ public class VersionNormalizationAntiRegressionTest {
 		Type listType = new TypeToken<List<MinecraftVersion>>() {
 		}.getType();
 
-		try (Reader reader = new InputStreamReader(VersionNormalizationAntiRegressionTest.class.getClassLoader()
-				.getResourceAsStream(MINECRAFT_VERSIONS_RESOURCE))) {
+		try (Reader reader = new InputStreamReader(Objects
+				.requireNonNull(VersionNormalizationAntiRegressionTest.class.getClassLoader()
+						.getResourceAsStream(MINECRAFT_VERSIONS_RESOURCE)))) {
 			expectedResults = gson.fromJson(reader, listType);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read in existing versions from json", e);
@@ -174,8 +175,9 @@ public class VersionNormalizationAntiRegressionTest {
 	private Set<Set<String>> getRereleasedVersions() {
 		Set<Set<String>> vs = new HashSet<>();
 
-		try (Reader reader = new InputStreamReader(VersionNormalizationAntiRegressionTest.class.getClassLoader()
-				.getResourceAsStream("duplicate_versions.json"))) {
+		try (Reader reader = new InputStreamReader(Objects
+				.requireNonNull(VersionNormalizationAntiRegressionTest.class.getClassLoader()
+						.getResourceAsStream("duplicate_versions.json")))) {
 			JsonParser parser = new JsonParser();
 
 			for (JsonElement grpElem : parser.parse(reader).getAsJsonObject().getAsJsonArray("duplicates")) {
@@ -254,9 +256,8 @@ public class VersionNormalizationAntiRegressionTest {
 
 		try (Reader in = new InputStreamReader(url.openStream())) {
 			PistonMetaV2 pistonMetaV2 = gson.fromJson(in, PistonMetaV2.class);
-			pistonMetaV2.versions.forEach(v -> {
-				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant()));
-			});
+			pistonMetaV2.versions.forEach(v ->
+					minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant())));
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read PistonV2 meta", e);
 		}
@@ -279,9 +280,8 @@ public class VersionNormalizationAntiRegressionTest {
 
 		try (Reader in = new InputStreamReader(url.openStream())) {
 			FabricMeta fabricMeta = gson.fromJson(in, FabricMeta.class);
-			fabricMeta.versions.forEach(v -> {
-				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant()));
-			});
+			fabricMeta.versions.forEach(v ->
+					minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant())));
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read PistonV2 meta", e);
 		}
@@ -351,7 +351,7 @@ public class VersionNormalizationAntiRegressionTest {
 	}
 
 	private static List<String> parseCsvLine(String line) {
-		// Let's just do the simple parsing for this, it isn't run often anyways
+		// Let's just do the simple parsing for this, it isn't run often anyway
 		return Arrays.asList(line.split(","));
 	}
 
@@ -359,6 +359,7 @@ public class VersionNormalizationAntiRegressionTest {
 	 * <a href="https://piston-meta.mojang.com/mc/game/version_manifest_v2.json">Metadata</a>.
 	 */
 	private static class PistonMetaV2 {
+		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 		List<Version> versions;
 
 		static class Version {
@@ -372,6 +373,7 @@ public class VersionNormalizationAntiRegressionTest {
 	 * <a href="https://maven.fabricmc.net/net/minecraft/experimental_versions.json">Metadata</a>.
 	 */
 	private static class FabricMeta {
+		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 		List<Version> versions;
 
 		static class Version {
