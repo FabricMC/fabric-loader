@@ -129,10 +129,11 @@ public final class MappingConfiguration {
 		String ret = System.getProperty(SystemProperties.RUNTIME_MAPPING_NAMESPACE);
 		if (ret != null) return ret;
 
-		if (hasAnyMappings()) {
-			ret = FabricLauncherBase.getLauncher().isDevelopment() ? NAMED_NAMESPACE : INTERMEDIARY_NAMESPACE;
-		} else {
-			ret = OFFICIAL_NAMESPACE;
+		ret = OFFICIAL_NAMESPACE; // default
+
+		if (hasAnyMappings()) { // switch to named or intermediary if they are supplied
+			String newNs = FabricLauncherBase.getLauncher().isDevelopment() ? NAMED_NAMESPACE : INTERMEDIARY_NAMESPACE;
+			if (getNamespaces().contains(newNs)) ret = newNs;
 		}
 
 		return FabricLoaderImpl.INSTANCE.getGameProvider().getRuntimeNamespace(ret);

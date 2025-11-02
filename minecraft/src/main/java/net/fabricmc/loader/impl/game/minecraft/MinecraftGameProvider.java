@@ -320,19 +320,19 @@ public class MinecraftGameProvider implements GameProvider {
 		String gameNs = System.getProperty(SystemProperties.GAME_MAPPING_NAMESPACE);
 
 		if (gameNs == null) {
-			if (config.hasAnyMappings()) {
-				List<String> mappingNamespaces;
+			gameNs = MappingConfiguration.OFFICIAL_NAMESPACE; // default
 
-				if (launcher.isDevelopment()) {
-					gameNs = MappingConfiguration.NAMED_NAMESPACE;
-				} else if ((mappingNamespaces = config.getNamespaces()) == null
-						|| mappingNamespaces.contains(MappingConfiguration.OFFICIAL_NAMESPACE)) {
-					gameNs = MappingConfiguration.OFFICIAL_NAMESPACE;
-				} else {
-					gameNs = envType == EnvType.CLIENT ? MappingConfiguration.CLIENT_OFFICIAL_NAMESPACE : MappingConfiguration.SERVER_OFFICIAL_NAMESPACE;
+			if (config.hasAnyMappings()) {
+				List<String> mappingNamespaces = config.getNamespaces();
+
+				if (mappingNamespaces != null) {
+					if (launcher.isDevelopment()
+							&& mappingNamespaces.contains(MappingConfiguration.NAMED_NAMESPACE)) { // dev with named (e.g. yarn)
+						gameNs = MappingConfiguration.NAMED_NAMESPACE;
+					} else if (!mappingNamespaces.contains(MappingConfiguration.OFFICIAL_NAMESPACE)) { // prod with old mc that didn't use the same mappings for client and server jars
+						gameNs = envType == EnvType.CLIENT ? MappingConfiguration.CLIENT_OFFICIAL_NAMESPACE : MappingConfiguration.SERVER_OFFICIAL_NAMESPACE;
+					}
 				}
-			} else { // no mappings, assume the game is unobfuscated
-				gameNs = MappingConfiguration.OFFICIAL_NAMESPACE;
 			}
 		}
 
