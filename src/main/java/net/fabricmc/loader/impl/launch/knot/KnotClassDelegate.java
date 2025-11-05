@@ -32,8 +32,8 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.CodeSigner;
 import java.security.CodeSource;
-import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +41,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -69,16 +72,19 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	private static final boolean LOG_CLASS_LOAD_ERRORS = LOG_CLASS_LOAD || SystemProperties.isSet(SystemProperties.DEBUG_LOG_CLASS_LOAD_ERRORS);
 	private static final boolean LOG_TRANSFORM_ERRORS = SystemProperties.isSet(SystemProperties.DEBUG_LOG_TRANSFORM_ERRORS);
 	private static final boolean DISABLE_ISOLATION = SystemProperties.isSet(SystemProperties.DEBUG_DISABLE_CLASS_PATH_ISOLATION);
+	private static final boolean DISABLE_JAR_SIGNERS = SystemProperties.isSet(SystemProperties.DEBUG_DISABLE_JAR_SIGNERS);
 
 	static final class Metadata {
-		static final Metadata EMPTY = new Metadata(null, null);
+		static final Metadata EMPTY = new Metadata(null, null, false);
 
 		final Manifest manifest;
 		final CodeSource codeSource;
+		final boolean isManifestSigned;
 
-		Metadata(Manifest manifest, CodeSource codeSource) {
+		Metadata(Manifest manifest, CodeSource codeSource, boolean isManifestSigned) {
 			this.manifest = manifest;
 			this.codeSource = codeSource;
+			this.isManifestSigned = isManifestSigned;
 		}
 	}
 
@@ -189,7 +195,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 
 	@Override
 	public Manifest getManifest(Path codeSource) {
-		return getMetadata(LoaderUtil.normalizeExistingPath(codeSource)).manifest;
+		return getMetadata(LoaderUtil.normalizeExistingPath(codeSource), null).manifest;
 	}
 
 	@Override
@@ -373,14 +379,14 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 		URL url = classLoader.getResource(fileName);
 		if (url == null || !hasRegularCodeSource(url)) return Metadata.EMPTY;
 
-		return getMetadata(getCodeSource(url, fileName));
+		return getMetadata(getCodeSource(url, fileName), fileName);
 	}
 
-	private Metadata getMetadata(Path codeSource) {
-		return metadataCache.computeIfAbsent(codeSource, (Path path) -> {
+	private Metadata getMetadata(Path codeSource, String fileName) {
+		Metadata metadata = metadataCache.computeIfAbsent(codeSource, (Path path) -> {
 			Manifest manifest = null;
-			CodeSource cs = null;
-			Certificate[] certificates = null;
+			CodeSource cs;
+			boolean isManifestSigned = false;
 
 			try {
 				if (Files.isDirectory(path)) {
@@ -389,8 +395,13 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 					URLConnection connection = new URL("jar:" + path.toUri().toString() + "!/").openConnection();
 
 					if (connection instanceof JarURLConnection) {
-						manifest = ((JarURLConnection) connection).getManifest();
-						certificates = ((JarURLConnection) connection).getCertificates();
+						JarFile jarFile = ((JarURLConnection) connection).getJarFile();
+						manifest = jarFile.getManifest();
+
+						if (!DISABLE_JAR_SIGNERS && manifest != null) {
+							JarEntry jarEntry = jarFile.getJarEntry(JarFile.MANIFEST_NAME);
+							isManifestSigned = jarEntry.getCodeSigners() != null; // signed jar
+						}
 					}
 
 					if (manifest == null) {
@@ -398,13 +409,6 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 							manifest = ManifestUtil.readManifestFromBasePath(jarFs.get().getRootDirectories().iterator().next());
 						}
 					}
-
-					// TODO
-					/* JarEntry codeEntry = codeSourceJar.getJarEntry(filename);
-
-					if (codeEntry != null) {
-						cs = new CodeSource(codeSourceURL, codeEntry.getCodeSigners());
-					} */
 				}
 			} catch (IOException | FileSystemNotFoundException e) {
 				if (FabricLauncherBase.getLauncher().isDevelopment()) {
@@ -412,16 +416,47 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 				}
 			}
 
-			if (cs == null) {
-				try {
-					cs = new CodeSource(UrlUtil.asUrl(path), certificates);
-				} catch (MalformedURLException e) {
-					throw new RuntimeException(e);
-				}
+			try {
+				cs = new CodeSource(UrlUtil.asUrl(path), (CodeSigner[]) null);
+			} catch (MalformedURLException e) {
+				throw new RuntimeException(e);
 			}
 
-			return new Metadata(manifest, cs);
+			return new Metadata(manifest, cs, isManifestSigned);
 		});
+
+		if (DISABLE_JAR_SIGNERS || !metadata.isManifestSigned) {
+			return metadata; // fast path for directory/unsigned jar
+		}
+
+		// obtain signers from filename
+		try {
+			boolean multiRelease = false;
+			Attributes attributes = metadata.manifest.getMainAttributes(); // manifest never null here
+
+			if (attributes != null) {
+				// handles multi-release jars
+				// fix file not found exception when loaded class is inside multi-release dir
+				multiRelease = "true".equalsIgnoreCase(attributes.getValue("Multi-Release"));
+			}
+
+			URLConnection connection = new URL("jar:" + codeSource.toUri().toString() + "!/" + (multiRelease ? "#runtime" : "")).openConnection();
+
+			if (connection instanceof JarURLConnection) {
+				JarFile jarFile = ((JarURLConnection) connection).getJarFile();
+
+				JarEntry jarEntry = jarFile.getJarEntry(fileName);
+				CodeSigner[] codeSigners = jarEntry.getCodeSigners();
+				CodeSource signedCodeSource = new CodeSource(metadata.codeSource.getLocation(), codeSigners);
+				return new Metadata(metadata.manifest, signedCodeSource, true);
+			}
+		} catch (IOException e) {
+			if (FabricLauncherBase.getLauncher().isDevelopment()) {
+				Log.warn(LogCategory.KNOT, "Failed to read JAR", e);
+			}
+		}
+
+		return metadata;
 	}
 
 	private byte[] getPostMixinClassByteArray(String name, boolean allowFromParent) {

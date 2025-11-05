@@ -70,6 +70,8 @@ public final class SystemProperties {
 	public static final String DEBUG_LOG_TRANSFORM_ERRORS = "fabric.debug.logTransformErrors";
 	// disables system class path isolation, allowing bogus lib accesses (too early, transient jars)
 	public static final String DEBUG_DISABLE_CLASS_PATH_ISOLATION = "fabric.debug.disableClassPathIsolation";
+	// disables signers from being available in ProtectionDomain/Class#getSigners for signed JARs
+	public static final String DEBUG_DISABLE_JAR_SIGNERS = "fabric.debug.disableJarSigners";
 	// disables mod load order shuffling to be the same in-dev as in production
 	public static final String DEBUG_DISABLE_MOD_SHUFFLE = "fabric.debug.disableModShuffle";
 	// workaround for bad load order dependencies
