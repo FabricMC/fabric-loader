@@ -52,7 +52,7 @@ public final class McVersionLookup {
 	private static final Pattern TEST_BUILD_PATTERN = Pattern.compile(".+(?:-tb| Test Build )(\\d+)?(?:-(\\d+))?"); // ... Test Build 1, ...-tb2, ...-tb3-1234
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?"); // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234
 	private static final Pattern RELEASE_CANDIDATE_PATTERN = Pattern.compile(".+(?:-rc| RC| [Rr]elease Candidate )(\\d+)(?:-(\\d+))?"); // ... RC1, ... Release Candidate 2, ...-rc3, ...-rc4-1234
-	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+))?"); // Snapshot 16w02a, 20w13b, 22w18c-1234
+	private static final Pattern SNAPSHOT_PATTERN = Pattern.compile("(?:Snapshot )?(\\d+)w0?(0|[1-9]\\d*)([a-z])(?:-(\\d+)|[ _]([Uu]nobfuscated))?"); // Snapshot 16w02a, 20w13b, 22w18c-1234, 25w45a Unobfuscated
 	private static final Pattern EXPERIMENTAL_PATTERN = Pattern.compile(".+(?:-exp|(?:_deep_dark)?_experimental[_-]snapshot-|(?: Deep Dark)? [Ee]xperimental [Ss]napshot )(\\d+)"); // 1.18 Experimental Snapshot 1, 1.18_experimental-snapshot-2, 1.18-exp3, 1.19 Deep Dark Experimental Snapshot 1
 	private static final Pattern BETA_PATTERN = Pattern.compile("(?:b|Beta v?)1\\.((\\d+)(?:\\.(\\d+))?(_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Beta 1.2, b1.2_02-launcher, b1.3b, b1.3-1731, Beta v1.5_02, b1.8.1
 	private static final Pattern ALPHA_PATTERN = Pattern.compile("(?:(?:server-)?a|Alpha v?)[01]\\.(\\d+\\.\\d+(?:_0\\d)?)([a-z])?(?:-(\\d+))?(?:-(launcher))?"); // Alpha v1.0.1, Alpha 1.0.1_01, a1.0.4-launcher, a1.1.0-131933, a1.2.2a, a1.2.3_05, Alpha 0.1.0, server-a0.2.8
@@ -71,20 +71,19 @@ public final class McVersionLookup {
 			+ "|" + INDEV_PATTERN.pattern()
 			+ "|" + ALPHA_PATTERN.pattern()
 			+ "|" + BETA_PATTERN.pattern()
-				+ "(" + TEST_BUILD_PATTERN.pattern().substring(2) + ")?"
-				+ "(" + PRE_RELEASE_PATTERN.pattern().substring(2) + ")?"
-				+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + TEST_BUILD_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + PRE_RELEASE_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
 			+ "|" + RELEASE_PATTERN.pattern()
-				+ "(" + TEST_BUILD_PATTERN.pattern().substring(2) + ")?"
-				+ "(" + PRE_RELEASE_PATTERN.pattern().substring(2) + ")?"
-				+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
-				+ "(" + EXPERIMENTAL_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + TEST_BUILD_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + PRE_RELEASE_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + RELEASE_CANDIDATE_PATTERN.pattern().substring(2) + ")?"
+			+ "(" + EXPERIMENTAL_PATTERN.pattern().substring(2) + ")?"
 			+ "|" + SNAPSHOT_PATTERN.pattern()
 			+ "|" + "[Cc]ombat(?: Test )?\\d[a-z]?" // combat snapshots
 			+ "|" + "Minecraft RC\\d" // special case for 1.0.0 release candidates
 			+ "|" + "2.0|1\\.RV-Pre1|3D Shareware v1\\.34|20w14~|22w13oneBlockAtATime|23w13a_or_b|24w14potato|25w14craftmine" // odd exceptions
-				+ "(" + TIMESTAMP_PATTERN.pattern() + ")?"
-	);
+			+ "(" + TIMESTAMP_PATTERN.pattern() + ")?");
 
 	public static McVersion getVersion(List<Path> gameJars, String entrypointClass, String versionName) {
 		McVersion.Builder builder = new McVersion.Builder();
@@ -353,7 +352,7 @@ public final class McVersionLookup {
 		pos = version.indexOf(" Release Candidate");
 		if (pos >= 0) return version.substring(0, pos);
 
-		matcher = SNAPSHOT_PATTERN.matcher(version); // Snapshot 16w02a, 20w13b, 22w18c-1234
+		matcher = SNAPSHOT_PATTERN.matcher(version); // Snapshot 16w02a, 20w13b, 22w18c-1234, 25w45a Unobfuscated
 
 		if (matcher.matches()) {
 			int year = Integer.parseInt(matcher.group(1));
@@ -504,7 +503,7 @@ public final class McVersionLookup {
 				// 1.0.0 release candidates are simply known as eg. 'Minecraft RC1' in the jar
 				if (release.equals("Minecraft")) {
 					ret.replace(0, "Minecraft".length(), "1.0.0");
-				// This is a hack to fake 1.16's new release candidates to follow on from the 8 pre releases.
+					// This is a hack to fake 1.16's new release candidates to follow on from the 8 pre releases.
 				} else if (release.equals("1.16")) {
 					int build = Integer.parseInt(rcBuild);
 					rcBuild = Integer.toString(8 + build);
@@ -561,15 +560,19 @@ public final class McVersionLookup {
 						}
 
 						int minor = Integer.parseInt(releaseMatcher.group(2));
-						int patch = (releaseMatcher.group(3) == null)
-											? 0 // use 0 if no patch version is given (1.7 -> 1.7.0)
-											: Integer.parseInt(releaseMatcher.group(3));
+						int patch;
+
+						if (releaseMatcher.group(3) == null) {
+							patch = 0; // use 0 if no patch version is given (1.7 -> 1.7.0)
+						} else {
+							patch = Integer.parseInt(releaseMatcher.group(3));
+						}
 
 						boolean showAsRelease = (minor == 2 && patch == 0) // 1.2
-											|| (minor == 3 && patch == 0) // 1.3
-											|| (minor == 4 && (patch == 0 || patch == 1 || patch == 3)) // 1.4, 1.4.1, 1.4.3
-											|| (minor == 6 && (patch == 0 || patch == 3)) // 1.6, 1.6.3
-											|| (minor == 7 && (patch == 0 || patch == 1 || patch == 3)); // 1.7, 1.7.1, 1.7.3
+								|| (minor == 3 && patch == 0) // 1.3
+								|| (minor == 4 && (patch == 0 || patch == 1 || patch == 3)) // 1.4, 1.4.1, 1.4.3
+								|| (minor == 6 && (patch == 0 || patch == 3)) // 1.6, 1.6.3
+								|| (minor == 7 && (patch == 0 || patch == 1 || patch == 3)); // 1.7, 1.7.1, 1.7.3
 
 						if (showAsRelease) {
 							// remove the - separator
@@ -618,8 +621,12 @@ public final class McVersionLookup {
 				String normalized = normalizeSpecialVersion(name);
 				if (normalized != null) return normalized;
 			}
-		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) { // Snapshot 16w02a, 20w13b, 22w18c-1234
-			timestamp = matcher.group(4);
+		} else if ((matcher = SNAPSHOT_PATTERN.matcher(name)).matches()) { // Snapshot 16w02a, 20w13b, 22w18c-1234, 25w45a Unobfuscated
+			if (matcher.group(4) != null) { // 22w18c-1234
+				timestamp = matcher.group(4);
+			} else if (matcher.group(5) != null) { // 25w45a Unobfuscated
+				timestamp = "unobfuscated";
+			}
 
 			ret.append("alpha.");
 			ret.append(matcher.group(1)); // year
