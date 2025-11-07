@@ -106,16 +106,48 @@ public final class MappingConfiguration {
 
 	public MappingTree getMappings() {
 		initializeMappings(false);
+		assert mappings != null;
 
 		return mappings;
 	}
 
+	public boolean hasAnyMappings() {
+		MappingTree tree = getMappings();
+
+		return !tree.getClasses().isEmpty();
+	}
+
 	public String getRuntimeNamespace() {
 		if (namespace == null) {
-			namespace = FabricLoaderImpl.INSTANCE.getGameProvider().getRuntimeNamespace(FabricLauncherBase.getLauncher().getDefaultRuntimeNamespace());
+			namespace = computeRuntimeNamespace();
 		}
 
 		return namespace;
+	}
+
+	private String computeRuntimeNamespace() {
+		String ret = System.getProperty(SystemProperties.RUNTIME_MAPPING_NAMESPACE);
+		if (ret != null) return ret;
+
+		ret = OFFICIAL_NAMESPACE; // default
+
+		if (hasAnyMappings()) { // switch to named or intermediary if they are supplied
+			String newNs = FabricLauncherBase.getLauncher().isDevelopment() ? NAMED_NAMESPACE : INTERMEDIARY_NAMESPACE;
+			if (getNamespaces().contains(newNs)) ret = newNs;
+		}
+
+		return FabricLoaderImpl.INSTANCE.getGameProvider().getRuntimeNamespace(ret);
+	}
+
+	public String getDefaultModDistributionNamespace() {
+		String ret = System.getProperty(SystemProperties.DEFAULT_MOD_DISTRIBUTION_NAMESPACE);
+		if (ret != null) return ret;
+
+		ret = getRuntimeNamespace();
+
+		if (!ret.equals(OFFICIAL_NAMESPACE)) ret = INTERMEDIARY_NAMESPACE;
+
+		return FabricLoaderImpl.INSTANCE.getGameProvider().getDefaultModDistributionNamespace(ret);
 	}
 
 	public boolean requiresPackageAccessHack() {

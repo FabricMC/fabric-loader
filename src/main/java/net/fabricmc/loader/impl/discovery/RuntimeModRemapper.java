@@ -78,9 +78,9 @@ public final class RuntimeModRemapper {
 		if (modsToRemap.isEmpty()) return;
 
 		MappingConfiguration config = FabricLauncherBase.getLauncher().getMappingConfiguration();
-		String modNs = MappingConfiguration.INTERMEDIARY_NAMESPACE;
+		String modNs = config.getDefaultModDistributionNamespace();
 		String runtimeNs = config.getRuntimeNamespace();
-		if (modNs.equals(runtimeNs)) return;
+		if (modNs.equals(runtimeNs) || !config.hasAnyMappings()) return;
 
 		Map<ModCandidateImpl, RemapInfo> infoMap = new HashMap<>();
 
