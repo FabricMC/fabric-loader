@@ -7,58 +7,58 @@
         ],
         "common": [
             {
-                "name": "org.ow2.asm:asm:9.8",
+                "name": "org.ow2.asm:asm:9.9",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "f5adf3bfc54fb3d2cd8e3a1f275084bc",
-                "sha1": "dc19ecb3f7889b7860697215cae99c0f9b6f6b4b",
-                "sha256": "876eab6a83daecad5ca67eb9fcabb063c97b5aeb8cf1fca7a989ecde17522051",
-                "sha512": "cbd250b9c698a48a835e655f5f5262952cc6dd1a434ec0bc3429a9de41f2ce08fcd3c4f569daa7d50321ca6ad1d32e131e4199aa4fe54bce9e9691b37e45060e",
-                "size": 126113
+                "md5": "6d1dd0482c03a6dc1807d9d004456021",
+                "sha1": "c29635c8a7afa03d74b33c1884df8abb2b3f3dcc",
+                "sha256": "03d99a74ad1ee5c71334ef67437f4ef4fe3488caa7c96d8645abc73c8e2017d4",
+                "sha512": "197a4fb3ecb34d05ac555c6a510e69affcb1e476f24c5e935ad513ecdabf74b45aa1b0e0b25dbe91224fc6db7959b2677ea5876ee49e7487265e2a29c560c21c",
+                "size": 126122
             },
             {
-                "name": "org.ow2.asm:asm-analysis:9.8",
+                "name": "org.ow2.asm:asm-analysis:9.9",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "3d63508405f5610fc2ea673ff5471553",
-                "sha1": "b9747a320844b6cb1eacd90d8ecfd260a16c01d3",
-                "sha256": "e640732fbcd3c6271925a504f125e38384688f4dfbbf92c8622dfcee0d09edb9",
-                "sha512": "0268e6dc2cc4965180ca1b62372e3c5fc280d6dc09cfeace2ac4e43468025e8a78813e4e93beafc0352e67498c70616cb4368313aaab532025fa98146c736117",
-                "size": 35151
+                "md5": "f07383cfbd50f097558341a03b8871e1",
+                "sha1": "0bf4fa6e66638851c1cd22c2caea0c3ee5d5f437",
+                "sha256": "6a15d28e8bd29ba4fd5bca4baf9b50e8fba2d7b51fbf78cfa0c875a7214c678b",
+                "sha512": "293fdf9ffd6858559d9bf4a2b68dfcfc58cb581d27e0fbcd2c2d0c540520498e9d587094534dd58d782ff5051b90f160971cfc388ea132e06eafa089bcc0bed7",
+                "size": 35149
             },
             {
-                "name": "org.ow2.asm:asm-commons:9.8",
+                "name": "org.ow2.asm:asm-commons:9.9",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "c8c3d9ccf240144e74d94ff658b024c9",
-                "sha1": "36e4d212970388e5bd2c5180292012502df461bb",
-                "sha256": "3301a1c1cb4c59fcc5292648dac1d7c5aed4c0f067dfbe88873b8cdfe77404f4",
-                "sha512": "d2add10e25416b701bd84651b42161e090df2f32940de5e06e0e2a41c6106734db2fe5136f661d8a8af55e80dc958bc7b385a1004f0ebe550828dfa1e9d70d41",
-                "size": 73498
+                "md5": "8103b3de8f48fb4c7f97efdaa46ce809",
+                "sha1": "db9165a3bf908ded6b08612d583a15d1d0c7bda0",
+                "sha256": "db2f6f26150bbe7c126606b4a1151836bcc22a1e05a423b3585698bece995ff8",
+                "sha512": "4949cde2b51e5d171d0ff02ebd1f9f7f111bf538c8bfd62f139364181ee4bebd6598949d895f1c78daaba6dd1da4e564fab10e602cfe297915cd0287f8c2f1d5",
+                "size": 74348
             },
             {
-                "name": "org.ow2.asm:asm-tree:9.8",
+                "name": "org.ow2.asm:asm-tree:9.9",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "4ab1aaec43c77a2d9b56e6d6d496f705",
-                "sha1": "018419ca5b77a2f81097c741e7872e6ab8d2f40d",
-                "sha256": "14b7880cb7c85eed101e2710432fc3ffb83275532a6a894dc4c4095d49ad59f1",
-                "sha512": "4493f573d9f0cfc8837db9be25a8b61a825a06aafc0e02f0363875584ff184a5a14600e53793c09866300859e44f153faffd0e050de4a7fba1a63b5fb010a9a7",
-                "size": 51934
+                "md5": "912eeaba1a63d574ffc66c651c7c6725",
+                "sha1": "f8de6eead6d24dd0f45bd065bbe112b2cda6ea21",
+                "sha256": "42178f3775c9c63f9e5e1446747d29b4eca4d91bd6e75e5c43cfa372a47d38c6",
+                "sha512": "8b555d9166a17dcd0d1b297bd61fb3da59279b00a97fd7d0a3b139cb68ca8012ac14fb9bab0a6fa7ebe5612337f8e39b240d97b05a2c25ebc9ece15b7a1bc131",
+                "size": 51947
             },
             {
-                "name": "org.ow2.asm:asm-util:9.8",
+                "name": "org.ow2.asm:asm-util:9.9",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "62498ef324bdab15f407d703f7d78d19",
-                "sha1": "395f1c1f035258511f27bc9b2583d76e4b143f59",
-                "sha256": "8ba0460ecb28fd0e2980e5f3ef3433a513a457bc077f81a53bdc75b587a08d15",
-                "sha512": "b68048e199c49d2f90b2990c6993f1fcddccd34fb9d91154ef327d874aa5ff8609db5fbd63e23141020cdeda8fb753e97a61c2152e1b4e8f20003a5390e7e1d9",
-                "size": 94559
+                "md5": "ef5e90e736cd09bc407c1d46a3faba0f",
+                "sha1": "42fdfc0508b43807c8078d6e82ecff2ce2112ae8",
+                "sha256": "3842e13cfe324ee9ab7cdc4914be9943541ead397c17e26daf0b8a755bede717",
+                "sha512": "cd4f82589e0acc801618e4f55de2e7b85718d30cf5a7d2e5ead383dcdc2689a934abea37b81f5a7c508d9f7fc9ceb2e8ae5c8e4e958537ebb80b621814b099fb",
+                "size": 94565
             },
             {
-                "name": "net.fabricmc:sponge-mixin:0.16.3+mixin.0.8.7",
+                "name": "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "aa4a43d5b0e9abf4fcb57520ffeb0019",
-                "sha1": "3e535042688d1265447e52ad86950b7d9678a5fa",
-                "sha256": "bd13b372996ed6c2ea76a31b496b779562b2cd20cb1f8197e9fa91d6a5f4649c",
-                "sha512": "525186f69ed9f06f5f9b1afd714fab9bd89cc2b453f3b052561729332cd0e6ef312d728eaf8c2cb68d3f06cb5da844862931de36373e4e14a8bb3793af266b1a",
-                "size": 1504156
+                "md5": "798c8c25fb84d91b384bdee442c249d7",
+                "sha1": "80fc3a9f592673cea87f4cd702f87991c6c9fe4d",
+                "sha256": "bf65996f6edd93ba4061a175e2c814205c1ba694357a1e5a336c7ba5078ca376",
+                "sha512": "7246dbbf88f6e9c017dcc3e94424bd25699c62a28b4beebfd3060c54a42f9ba86a7af78df0aad6a7b626d74f7662071fbca69267c76db0acf50f1083540fec76",
+                "size": 1504519
             }
         ],
         "server": [

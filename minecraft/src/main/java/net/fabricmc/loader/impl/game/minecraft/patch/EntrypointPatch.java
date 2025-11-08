@@ -82,6 +82,7 @@ public class EntrypointPatch extends GamePatch {
 		// Main -> Game entrypoint search
 		//
 		// -- CLIENT --
+		// pre-classic: find init() invocation before "Failed to start RubyDung" log message
 		// pre-1.6 (seems to hold to 0.0.11!): find the only non-static non-java-packaged Object field
 		// 1.6.1+: [client].start() [INVOKEVIRTUAL]
 		// 19w04a: [client].<init> [INVOKESPECIAL] -> Thread.start()
@@ -206,6 +207,62 @@ public class EntrypointPatch extends GamePatch {
 					if (gameMethodQuality < 1) {
 						gameMethod = gmCandidate;
 						gameMethodQuality = 1;
+					}
+				}
+
+				if (type == EnvType.CLIENT && !isApplet && gmCandidate.name.equals("run")) {
+					// For pre-classic, try to find the "Failed to start RubyDung" log message
+					// that is shown if the init() method throws an exception, then patch said
+					// init() method.
+
+					MethodInsnNode potentialInitInsn = null;
+					boolean hasFailedToStartLog = false;
+
+					for (AbstractInsnNode insn : gmCandidate.instructions) {
+						if (insn instanceof MethodInsnNode && potentialInitInsn == null) {
+							MethodInsnNode methodInsn = (MethodInsnNode) insn;
+
+							if (methodInsn.getOpcode() == Opcodes.INVOKEVIRTUAL && methodInsn.owner.equals(gameClass.name)) {
+								potentialInitInsn = methodInsn;
+							} else {
+								// first method insn is not init(), this is not pre-classic!
+								break;
+							}
+						}
+
+						if (insn instanceof LdcInsnNode && !hasFailedToStartLog) {
+							if (potentialInitInsn == null) {
+								// found LDC before init() invocation, this is not pre-classic!
+								break;
+							}
+
+							Object cst = ((LdcInsnNode) insn).cst;
+
+							if (cst instanceof String) {
+								String s = (String) cst;
+
+								if (s.equals("Failed to start RubyDung")) {
+									hasFailedToStartLog = true;
+								}
+							}
+
+							if (!hasFailedToStartLog) {
+								// first LDC insn is not the expected log message, this is not pre-classic!
+								break;
+							}
+						}
+
+						if (potentialInitInsn != null && hasFailedToStartLog) {
+							// found log message and init() invocation, now get the init() method node
+							for (MethodNode gm : gameClass.methods) {
+								if (gm.name.equals(potentialInitInsn.name) && gm.desc.equals(potentialInitInsn.desc)) {
+									gameMethod = gm;
+									gameMethodQuality = 2;
+
+									break;
+								}
+							}
+						}
 					}
 				}
 
@@ -509,6 +566,17 @@ public class EntrypointPatch extends GamePatch {
 					patched = true;
 					break;
 				}
+			}
+
+			// TODO: better handling of run directory for pre-classic
+			if (!patched && gameMethod != gameConstructor) {
+				ListIterator<AbstractInsnNode> it = gameMethod.instructions.iterator();
+
+				it.add(new InsnNode(Opcodes.ACONST_NULL));
+				it.add(new VarInsnNode(Opcodes.ALOAD, 0));
+				finishEntrypoint(type, it);
+
+				patched = true;
 			}
 		}
 

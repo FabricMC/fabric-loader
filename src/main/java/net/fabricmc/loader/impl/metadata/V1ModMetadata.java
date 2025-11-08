@@ -50,7 +50,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	private final Collection<NestedJarEntry> jars;
 	private final Collection<MixinEntry> mixins;
 	/* @Nullable */
-	private final String accessWidener;
+	private final String classTweaker;
 
 	// Optional (dependency resolution)
 	private Collection<ModDependency> dependencies;
@@ -75,7 +75,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 
 	V1ModMetadata(String id, Version version, Collection<String> provides,
 			ModEnvironment environment, Map<String, List<EntrypointMetadata>> entrypoints, Collection<NestedJarEntry> jars,
-			Collection<MixinEntry> mixins, /* @Nullable */ String accessWidener,
+			Collection<MixinEntry> mixins, /* @Nullable */ String classTweaker,
 			Collection<ModDependency> dependencies, boolean hasRequires,
 			/* @Nullable */ String name, /* @Nullable */String description,
 			Collection<Person> authors, Collection<Person> contributors, /* @Nullable */ContactInformation contact, Collection<String> license, IconEntry icon,
@@ -88,7 +88,7 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 		this.entrypoints = Collections.unmodifiableMap(entrypoints);
 		this.jars = Collections.unmodifiableCollection(jars);
 		this.mixins = Collections.unmodifiableCollection(mixins);
-		this.accessWidener = accessWidener;
+		this.classTweaker = classTweaker;
 		this.dependencies = Collections.unmodifiableCollection(dependencies);
 		this.hasRequires = hasRequires;
 		this.name = name;
@@ -244,8 +244,8 @@ final class V1ModMetadata extends AbstractModMetadata implements LoaderModMetada
 	}
 
 	@Override
-	public String getAccessWidener() {
-		return this.accessWidener;
+	public String getClassTweaker() {
+		return this.classTweaker;
 	}
 
 	@Override

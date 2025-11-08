@@ -17,6 +17,7 @@
 package net.fabricmc.test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -65,8 +67,7 @@ public class VersionNormalizationAntiRegressionTest {
 
 	@BeforeEach
 	public void setup() {
-		JsonDeserializer<Instant> instantDeserializer = (json, type, ctx) ->
-				Instant.parse(json.getAsString());
+		JsonDeserializer<Instant> instantDeserializer = (json, type, ctx) -> Instant.parse(json.getAsString());
 
 		Gson gson = new GsonBuilder()
 				.registerTypeAdapter(Instant.class, instantDeserializer)
@@ -117,51 +118,56 @@ public class VersionNormalizationAntiRegressionTest {
 	 */
 	@Test
 	public void confirmAllUnique() throws VersionParsingException {
-		boolean hasFailure = false;
-		List<String[]> failures = new ArrayList<>();
+		List<MinecraftVersion> failures = new ArrayList<>();
 		List<String> failedIds = new ArrayList<>();
 		Set<Set<String>> duplicated = getRereleasedVersions();
 
-		for (MinecraftVersion expectedResult : expectedResults) {
-			Version v1 = Version.parse(expectedResult.normalized);
+		for (MinecraftVersion versionA : expectedResults) {
+			Version normalizedA = Version.parse(versionA.normalized);
 
-			inner: for (MinecraftVersion expectedResult2 : expectedResults) {
-				if (expectedResult2.equals(expectedResult)) {
+			inner: for (MinecraftVersion versionB : expectedResults) {
+				if (versionB.equals(versionA)) {
 					continue;
 				}
 
-				Version v2 = Version.parse(expectedResult2.normalized);
+				Version normalizedB = Version.parse(versionB.normalized);
 
-				if (v1.compareTo(v2) == 0) {
-					// OmniArchive gives re-released versions different ids,
+				if (normalizedA.compareTo(normalizedB) == 0) {
+					// non-mcmeta sources like OmniArchive gives re-released versions different ids,
 					// but they should normalize to the same version
-					for (Set<String> dupes : duplicated) {
-						if (dupes.contains(expectedResult.id) && dupes.contains(expectedResult2.id)) {
-							continue inner;
+					if (!versionA.source.equals("mcmeta") || !versionB.source.equals("mcmeta")) {
+						for (Set<String> dupes : duplicated) {
+							if (dupes.contains(versionA.id) && dupes.contains(versionB.id)) {
+								continue inner;
+							}
 						}
 					}
 
-					hasFailure = true;
-
-					if (!failedIds.contains(expectedResult.id) && !failedIds.contains(expectedResult2.id)) {
-						failures.add(new String[] {expectedResult.id, expectedResult.normalized, expectedResult2.id, expectedResult2.normalized});
-						failedIds.add(expectedResult.id);
-						failedIds.add(expectedResult2.id);
+					if (!failedIds.contains(versionA.id) && !failedIds.contains(versionB.id)) {
+						failures.add(versionA);
+						failures.add(versionB);
+						failedIds.add(versionA.id);
+						failedIds.add(versionB.id);
 					}
 				}
 			}
 		}
 
-		assertFalse(hasFailure, () -> {
+		assertTrue(failures.isEmpty(), () -> {
 			StringBuilder sb = new StringBuilder("The following versions compare as equivalent:");
 
-			for (String[] failure : failures) {
+			for (int i = 0; i < failures.size(); i += 2) {
+				MinecraftVersion versionA = failures.get(i);
+				MinecraftVersion versionB = failures.get(i + 1);
+
 				sb.append('\n');
 				sb.append('\t');
-				sb.append("id1: ").append(failure[0]).append('\t');
-				sb.append("normalized1: ").append(failure[1]).append('\t');
-				sb.append("id2: ").append(failure[2]).append('\t');
-				sb.append("normalized2: ").append(failure[3]).append('\t');
+				sb.append("idA: ").append(versionA.id).append('\t');
+				sb.append("normalizedA: ").append(versionA.normalized).append('\t');
+				sb.append("sourceA: ").append(versionA.source).append('\t');
+				sb.append("idB: ").append(versionB.id).append('\t');
+				sb.append("normalizedB: ").append(versionB.normalized).append('\t');
+				sb.append("sourceB: ").append(versionB.source).append('\t');
 			}
 
 			return sb.toString();
@@ -204,6 +210,7 @@ public class VersionNormalizationAntiRegressionTest {
 	}
 
 	private static void generateInitialJson() throws IOException {
+		@SuppressWarnings("serial")
 		Set<MinecraftVersion> minecraftVersions = new TreeSet<MinecraftVersion>() {
 			final Set<String> ids = new HashSet<>();
 
@@ -217,12 +224,13 @@ public class VersionNormalizationAntiRegressionTest {
 				return super.add(minecraftVersion);
 			}
 		};
+
 		minecraftVersions.addAll(getMojangData());
 		minecraftVersions.addAll(getFabricMirror());
 		minecraftVersions.addAll(getOmniArchiveData());
 
 		JsonSerializer<Instant> instantSerializer = (src, typeOfSrc, context) ->
-				new JsonPrimitive(src.toString());
+		new JsonPrimitive(src.toString());
 
 		Gson gson = new GsonBuilder()
 				.setPrettyPrinting()
@@ -241,10 +249,9 @@ public class VersionNormalizationAntiRegressionTest {
 
 	private static List<MinecraftVersion> getMojangData() throws MalformedURLException {
 		String manifestUrl = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
-		URL url = new URL(manifestUrl);
+		URL url = URI.create(manifestUrl).toURL();
 
-		JsonDeserializer<OffsetDateTime> deserializer = (json, typeOfT, context) ->
-				OffsetDateTime.parse(json.getAsString());
+		JsonDeserializer<OffsetDateTime> deserializer = (json, typeOfT, context) -> OffsetDateTime.parse(json.getAsString());
 
 		Gson gson = new GsonBuilder()
 				.registerTypeAdapter(OffsetDateTime.class, deserializer)
@@ -255,7 +262,7 @@ public class VersionNormalizationAntiRegressionTest {
 		try (Reader in = new InputStreamReader(url.openStream())) {
 			PistonMetaV2 pistonMetaV2 = gson.fromJson(in, PistonMetaV2.class);
 			pistonMetaV2.versions.forEach(v -> {
-				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant()));
+				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant(), "mcmeta"));
 			});
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read PistonV2 meta", e);
@@ -266,10 +273,9 @@ public class VersionNormalizationAntiRegressionTest {
 
 	private static List<MinecraftVersion> getFabricMirror() throws MalformedURLException {
 		String manifestUrl = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
-		URL url = new URL(manifestUrl);
+		URL url = URI.create(manifestUrl).toURL();
 
-		JsonDeserializer<OffsetDateTime> deserializer = (json, typeOfT, context) ->
-				OffsetDateTime.parse(json.getAsString());
+		JsonDeserializer<OffsetDateTime> deserializer = (json, typeOfT, context) -> OffsetDateTime.parse(json.getAsString());
 
 		Gson gson = new GsonBuilder()
 				.registerTypeAdapter(OffsetDateTime.class, deserializer)
@@ -280,7 +286,7 @@ public class VersionNormalizationAntiRegressionTest {
 		try (Reader in = new InputStreamReader(url.openStream())) {
 			FabricMeta fabricMeta = gson.fromJson(in, FabricMeta.class);
 			fabricMeta.versions.forEach(v -> {
-				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant()));
+				minecraftVersions.add(new MinecraftVersion(v.id, v.releaseTime.toInstant(), "fabricexp"));
 			});
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read PistonV2 meta", e);
@@ -308,7 +314,7 @@ public class VersionNormalizationAntiRegressionTest {
 	}
 
 	private static List<MinecraftVersion> getVersionsFromOmniArchive(String urlS) throws MalformedURLException {
-		URL url = new URL(urlS);
+		URL url = URI.create(urlS).toURL();;
 
 		List<MinecraftVersion> versions = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(
@@ -341,7 +347,7 @@ public class VersionNormalizationAntiRegressionTest {
 					continue;
 				}
 
-				versions.add(new MinecraftVersion(id, LocalDate.parse(date).atStartOfDay().toInstant(ZoneOffset.UTC)));
+				versions.add(new MinecraftVersion(id, LocalDate.parse(date).atStartOfDay().toInstant(ZoneOffset.UTC), "omniarchive"));
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to read OmniArchive data", e);
@@ -384,17 +390,19 @@ public class VersionNormalizationAntiRegressionTest {
 		String id;
 		String normalized;
 		Instant releaseTime;
+		String source;
 
-		MinecraftVersion(String id, Instant releaseTime) {
-			this(id, McVersionLookup.normalizeVersion(id, McVersionLookup.getRelease(id)), releaseTime);
+		MinecraftVersion(String id, Instant releaseTime, String source) {
+			this(id, McVersionLookup.normalizeVersion(id, McVersionLookup.getRelease(id)), releaseTime, source);
 		}
 
-		MinecraftVersion(String id, String normalized, Instant releaseTime) {
+		MinecraftVersion(String id, String normalized, Instant releaseTime, String source) {
 			Objects.requireNonNull(id);
 			Objects.requireNonNull(releaseTime);
 			this.id = id;
 			this.normalized = normalized;
 			this.releaseTime = releaseTime;
+			this.source = source;
 		}
 
 		@Override

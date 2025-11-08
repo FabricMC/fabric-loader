@@ -38,9 +38,9 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.Opcodes;
 
-import net.fabricmc.accesswidener.AccessWidener;
-import net.fabricmc.accesswidener.AccessWidenerReader;
 import net.fabricmc.api.EnvType;
+import net.fabricmc.classtweaker.api.ClassTweaker;
+import net.fabricmc.classtweaker.api.ClassTweakerReader;
 import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.MappingResolver;
 import net.fabricmc.loader.api.ModContainer;
@@ -76,7 +76,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 
-	public static final String VERSION = "0.17.2";
+	public static final String VERSION = "0.17.3";
 	public static final String MOD_ID = "fabricloader";
 
 	public static final String CACHE_DIR_NAME = ".fabric"; // relative to game dir
@@ -90,7 +90,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	private final Map<String, LanguageAdapter> adapterMap = new HashMap<>();
 	private final EntrypointStorage entrypointStorage = new EntrypointStorage();
-	private final AccessWidener accessWidener = new AccessWidener();
+	private final ClassTweaker classTweaker = ClassTweaker.newInstance();
 
 	private final ObjectShare objectShare = new ObjectShareImpl();
 
@@ -517,21 +517,21 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 	}
 
-	public void loadAccessWideners() {
-		AccessWidenerReader accessWidenerReader = new AccessWidenerReader(accessWidener);
+	public void loadClassTweakers() {
+		ClassTweakerReader ctReader = ClassTweakerReader.create(classTweaker);
 
 		for (net.fabricmc.loader.api.ModContainer modContainer : getAllMods()) {
 			LoaderModMetadata modMetadata = (LoaderModMetadata) modContainer.getMetadata();
-			String accessWidener = modMetadata.getAccessWidener();
-			if (accessWidener == null) continue;
+			String location = modMetadata.getClassTweaker();
+			if (location == null) continue;
 
-			Path path = modContainer.findPath(accessWidener).orElse(null);
-			if (path == null) throw new RuntimeException(String.format("Missing accessWidener file %s from mod %s", accessWidener, modContainer.getMetadata().getId()));
+			Path path = modContainer.findPath(location).orElse(null);
+			if (path == null) throw new RuntimeException(String.format("Missing classTweaker file %s from mod %s", location, modContainer.getMetadata().getId()));
 
 			try (BufferedReader reader = Files.newBufferedReader(path)) {
-				accessWidenerReader.read(reader, FabricLauncherBase.getLauncher().getMappingConfiguration().getRuntimeNamespace());
+				ctReader.read(reader, FabricLauncherBase.getLauncher().getMappingConfiguration().getRuntimeNamespace());
 			} catch (Exception e) {
-				throw new RuntimeException("Failed to read accessWidener file from mod " + modMetadata.getId(), e);
+				throw new RuntimeException("Failed to read classTweaker file from mod " + modMetadata.getId(), e);
 			}
 		}
 	}
@@ -591,8 +591,8 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 	}
 
-	public AccessWidener getAccessWidener() {
-		return accessWidener;
+	public ClassTweaker getClassTweaker() {
+		return classTweaker;
 	}
 
 	/**

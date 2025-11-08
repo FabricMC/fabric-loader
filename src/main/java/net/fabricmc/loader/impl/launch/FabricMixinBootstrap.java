@@ -61,12 +61,12 @@ public final class FabricMixinBootstrap {
 		MixinBootstrap.init();
 
 		if (FabricLauncherBase.getLauncher().isDevelopment()) {
-			MappingConfiguration mappingConfiguration = FabricLauncherBase.getLauncher().getMappingConfiguration();
-			MappingTree mappings = mappingConfiguration.getMappings();
-			final String modNs = MappingConfiguration.INTERMEDIARY_NAMESPACE;
-			String runtimeNs = mappingConfiguration.getRuntimeNamespace();
+			MappingConfiguration config = FabricLauncherBase.getLauncher().getMappingConfiguration();
+			MappingTree mappings = config.getMappings();
+			final String modNs = config.getDefaultModDistributionNamespace();
+			String runtimeNs = config.getRuntimeNamespace();
 
-			if (mappings != null && !modNs.equals(runtimeNs)) {
+			if (config.hasAnyMappings() && !modNs.equals(runtimeNs)) {
 				List<String> namespaces = new ArrayList<>(mappings.getDstNamespaces());
 				namespaces.add(mappings.getSrcNamespace());
 
@@ -121,6 +121,7 @@ public final class FabricMixinBootstrap {
 			// maximum loader version and bundled fabric mixin version, DESCENDING ORDER, LATEST FIRST
 			// loader versions with new mixin versions need to be added here
 
+			addVersion("0.17.3", FabricUtil.COMPATIBILITY_0_16_5);
 			addVersion("0.16.0", FabricUtil.COMPATIBILITY_0_14_0);
 			addVersion("0.12.0-", FabricUtil.COMPATIBILITY_0_10_0);
 		}

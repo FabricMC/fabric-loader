@@ -62,7 +62,7 @@ final class V1ModMetadataParser {
 		Map<String, List<EntrypointMetadata>> entrypoints = new HashMap<>();
 		List<NestedJarEntry> jars = new ArrayList<>();
 		List<V1ModMetadata.MixinEntry> mixins = new ArrayList<>();
-		String accessWidener = null;
+		String classTweaker = null;
 
 		// Optional (dependency resolution)
 		List<ModDependency> dependencies = new ArrayList<>();
@@ -145,7 +145,7 @@ final class V1ModMetadataParser {
 					throw new ParseMetadataException("Access Widener file must be a string", reader);
 				}
 
-				accessWidener = reader.nextString();
+				classTweaker = reader.nextString();
 				break;
 			case "depends":
 				readDependenciesContainer(reader, ModDependency.Kind.DEPENDS, dependencies);
@@ -223,7 +223,7 @@ final class V1ModMetadataParser {
 		ModMetadataParser.logWarningMessages(id, warnings);
 
 		return new V1ModMetadata(id, version, provides,
-				environment, entrypoints, jars, mixins, accessWidener,
+				environment, entrypoints, jars, mixins, classTweaker,
 				dependencies, hasRequires,
 				name, description, authors, contributors, contact, license, icon, languageAdapters, customValues);
 	}

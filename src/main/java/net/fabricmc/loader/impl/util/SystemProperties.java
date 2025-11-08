@@ -26,8 +26,10 @@ public final class SystemProperties {
 	public static final String MAPPING_PATH = "fabric.mappingPath";
 	// mapping namespace used by the game, defaults to named if DEVELOPMENT is set or official otherwise
 	public static final String GAME_MAPPING_NAMESPACE = "fabric.gameMappingNamespace";
-	// mapping namespace to use at runtime, defaults to named if DEVELOPMENT is set or intermediary otherwise
+	// mapping namespace to use at runtime, default: official for unobfuscated games, named for obfuscated games while DEVELOPMENT is set or intermediary otherwise
 	public static final String RUNTIME_MAPPING_NAMESPACE = "fabric.runtimeMappingNamespace";
+	// mapping namespace to assume mods are using when not explicitly stated, defaults to official if the runtime namespace is official or intermediary otherwise
+	public static final String DEFAULT_MOD_DISTRIBUTION_NAMESPACE = "fabric.defaultModDistributionNamespace";
 	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
 	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
 	// game jar paths for common/client/server, replaces lookup from class path if present, env specific takes precedence

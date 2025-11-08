@@ -140,7 +140,7 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		loader.freeze();
 
 		launchClassLoader.registerTransformer(FabricClassTransformer.class.getName());
-		FabricLoaderImpl.INSTANCE.loadAccessWideners();
+		FabricLoaderImpl.INSTANCE.loadClassTweakers();
 
 		// Setup Mixin environment
 		MixinBootstrap.init();
