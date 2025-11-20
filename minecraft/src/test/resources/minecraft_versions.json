@@ -8596,5 +8596,35 @@
     "normalized": "1.21.11-alpha.25.45.a+unobfuscated",
     "releaseTime": "2025-11-04T14:07:08Z",
     "source": "fabricexp"
+  },
+  {
+    "id": "25w46a-obf",
+    "normalized": "25.w.46.a-obf",
+    "releaseTime": "2025-11-11T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "25w46a",
+    "normalized": "1.21.11-alpha.25.46.a",
+    "releaseTime": "2025-11-11T13:05:00Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "25w46a_unobfuscated",
+    "normalized": "1.21.11-alpha.25.46.a+unobfuscated",
+    "releaseTime": "2025-11-11T13:20:54Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-pre1",
+    "normalized": "1.21.11-beta.1",
+    "releaseTime": "2025-11-19T08:06:45Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-pre1_unobfuscated",
+    "normalized": "1.21.11-beta.1+unobfuscated",
+    "releaseTime": "2025-11-19T08:30:46Z",
+    "source": "fabricexp"
   }
 ]
