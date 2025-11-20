@@ -143,6 +143,11 @@ public class VersionNormalizationAntiRegressionTest {
 						}
 					}
 
+					// The normalised unobfuscated versions match to the same version as only the metadata differs
+					if (versionA.id.endsWith("_unobfuscated") || versionB.id.endsWith("_unobfuscated")) {
+						continue;
+					}
+
 					if (!failedIds.contains(versionA.id) && !failedIds.contains(versionB.id)) {
 						failures.add(versionA);
 						failures.add(versionB);

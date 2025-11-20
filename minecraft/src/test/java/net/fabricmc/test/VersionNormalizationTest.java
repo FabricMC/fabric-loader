@@ -229,7 +229,11 @@ public class VersionNormalizationTest {
 				// 2024 april fools
 				new MinecraftVersion("24w14potato", null, "1.20.5-alpha.24.12.potato"),
 				// 2025 april fools
-				new MinecraftVersion("25w14craftmine", null, "1.21.6-alpha.25.14.craftmine")
+				new MinecraftVersion("25w14craftmine", null, "1.21.6-alpha.25.14.craftmine"),
+				// 2025 unobfuscated versions
+				new MinecraftVersion("1.21.11-pre1_unobfuscated", "1.21.11", "1.21.11-beta.1+unobfuscated"),
+				new MinecraftVersion("1.21.11-rc1_unobfuscated", "1.21.11", "1.21.11-rc.1+unobfuscated"),
+				new MinecraftVersion("1.21.11_unobfuscated", "1.21.11", "1.21.11+unobfuscated")
 				);
 	}
 
