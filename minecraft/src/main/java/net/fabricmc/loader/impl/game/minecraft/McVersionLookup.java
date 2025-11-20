@@ -488,8 +488,6 @@ public final class McVersionLookup {
 		Matcher matcher;
 
 		if ((matcher = RELEASE_PATTERN.matcher(name)).matches()) { // 1.6, 1.16.5, 1.16+131620
-			timestamp = matcher.group(4);
-
 			if (matcher.group(4) != null) {
 				timestamp = matcher.group(4);
 			} else if (matcher.group(5) != null) { // 1.21.11_unobfuscated
