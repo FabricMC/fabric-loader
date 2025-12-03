@@ -233,7 +233,13 @@ public class VersionNormalizationTest {
 				// 2025 unobfuscated versions
 				new MinecraftVersion("1.21.11-pre1_unobfuscated", "1.21.11", "1.21.11-beta.1+unobfuscated"),
 				new MinecraftVersion("1.21.11-rc1_unobfuscated", "1.21.11", "1.21.11-rc.1+unobfuscated"),
-				new MinecraftVersion("1.21.11_unobfuscated", "1.21.11", "1.21.11+unobfuscated")
+				new MinecraftVersion("1.21.11_unobfuscated", "1.21.11", "1.21.11+unobfuscated"),
+				// year based scheme
+				new MinecraftVersion("26.1-snapshot-1", "26.1", "26.1-alpha.1"),
+				new MinecraftVersion("26.1-pre-1", "26.1", "26.1-pre.1"),
+				new MinecraftVersion("26.1-rc-1", "26.1", "26.1-rc.1"),
+				new MinecraftVersion("26.1", "26.1", "26.1"),
+				new MinecraftVersion("26.1.1", "26.1.1", "26.1.1")
 				);
 	}
 
