@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.Opcodes;
 
@@ -135,7 +136,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	private void setGameDir(Path gameDir) {
 		this.gameDir = gameDir.toAbsolutePath().normalize();
-		this.configDir = gameDir.resolve("config");
+		this.configDir = getConfigDirectory0();
 	}
 
 	@Override
@@ -617,9 +618,17 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	@Override
 	protected Path getModsDirectory0() {
-		String directory = System.getProperty(SystemProperties.MODS_FOLDER);
+		return getConfiguredOrRelativeDirectory(SystemProperties.MODS_FOLDER, "mods");
+	}
 
-		return directory != null ? Paths.get(directory) : gameDir.resolve("mods");
+	private Path getConfigDirectory0() {
+		return getConfiguredOrRelativeDirectory(SystemProperties.CONFIG_FOLDER, "config");
+	}
+
+	private @NotNull Path getConfiguredOrRelativeDirectory(String systemProperty, String fallbackName) {
+		String directory = System.getProperty(systemProperty);
+
+		return directory != null ? Paths.get(directory) : gameDir.resolve(fallbackName);
 	}
 
 	/**
