@@ -48,6 +48,7 @@ import net.fabricmc.loader.impl.util.version.SemanticVersionImpl;
 import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 public final class McVersionLookup {
+	private static final Pattern DATE_BASED_PATTERN = Pattern.compile("(\\d{2}\\.\\d+(?:\\.\\d+)?)(?:-(snapshot|pre|rc)-(\\d+))?");
 	private static final Pattern RELEASE_PATTERN = Pattern.compile("(1\\.(\\d+)(?:\\.(\\d+))?)(?:-(\\d+))?(?:[ _]([Uu]nobfuscated))?"); // 1.6, 1.16.5, 1,16+231620, 1.21.11_unobfuscated
 	private static final Pattern TEST_BUILD_PATTERN = Pattern.compile(".+(?:-tb| Test Build )(\\d+)?(?:-(\\d+))?"); // ... Test Build 1, ...-tb2, ...-tb3-1234
 	private static final Pattern PRE_RELEASE_PATTERN = Pattern.compile(".+(?:-pre| Pre-?[Rr]elease ?)(?:(\\d+)(?: ;\\))?)?(?:-(\\d+))?(?:[ _]([Uu]nobfuscated))?"); // ... Prerelease, ... Pre-release 1, ... Pre-Release 2, ...-pre3, ...-pre4-1234, ...-pre1_unobfuscated
@@ -282,8 +283,15 @@ public final class McVersionLookup {
 
 	@VisibleForTesting
 	public static String getRelease(String version) {
+		// 26.1, 26.1.1, 26.1-snapshot-1, 26.1-pre-1, 26.1-rc-1
+		Matcher matcher = DATE_BASED_PATTERN.matcher(version);
+
+		if (matcher.matches()) {
+			return matcher.group(1);
+		}
+
 		// 1.6, 1.16.5, 1,16+231620
-		Matcher matcher = RELEASE_PATTERN.matcher(version);
+		matcher = RELEASE_PATTERN.matcher(version);
 
 		if (matcher.matches()) {
 			// return name without timestamp
@@ -487,7 +495,20 @@ public final class McVersionLookup {
 
 		Matcher matcher;
 
-		if ((matcher = RELEASE_PATTERN.matcher(name)).matches()) { // 1.6, 1.16.5, 1.16+131620
+		if ((matcher = DATE_BASED_PATTERN.matcher(name)).matches()) { // 26.1, 26.1.1, 26.1-snapshot-1, 26.1-pre-1, 26.1-rc-1
+			if (matcher.group(2) != null) {
+				switch (matcher.group(2)) {
+				case "snapshot":
+					ret.append("alpha");
+					break;
+				default:
+					ret.append(matcher.group(2));
+				}
+
+				ret.append('.');
+				ret.append(matcher.group(3));
+			}
+		} else if ((matcher = RELEASE_PATTERN.matcher(name)).matches()) { // 1.6, 1.16.5, 1.16+131620
 			if (matcher.group(4) != null) {
 				timestamp = matcher.group(4);
 			} else if (matcher.group(5) != null) { // 1.21.11_unobfuscated
