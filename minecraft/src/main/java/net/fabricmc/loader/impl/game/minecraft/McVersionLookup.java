@@ -222,10 +222,15 @@ public final class McVersionLookup {
 
 			reader.endObject();
 
+			if (id != null) { // strip trailing git hash
+				int pos = id.indexOf(" / ");
+				if (pos > 0) id = id.substring(0, pos);
+			}
+
 			String version;
 
 			if (name == null
-					|| id != null && id.length() < name.length()) {
+					|| id != null && id.length() <= name.length()) { // takes care of 21w39a (id=Minecraft.Server name=21w39a)
 				version = id;
 			} else {
 				version = name;
