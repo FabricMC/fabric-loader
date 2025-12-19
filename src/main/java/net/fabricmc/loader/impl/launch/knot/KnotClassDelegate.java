@@ -169,11 +169,13 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 	public void setAllowedPrefixes(Path codeSource, String... prefixes) {
 		codeSource = LoaderUtil.normalizeExistingPath(codeSource);
 
-		if (prefixes.length == 0) {
-			allowedPrefixes.remove(codeSource);
-		} else {
-			allowedPrefixes.put(codeSource, prefixes);
-		}
+		allowedPrefixes.put(codeSource, prefixes);
+	}
+
+	@Override
+	public void setAllPrefixesAllowed(Path codeSource) {
+		codeSource = LoaderUtil.normalizeExistingPath(codeSource);
+		allowedPrefixes.remove(codeSource);
 	}
 
 	@Override
