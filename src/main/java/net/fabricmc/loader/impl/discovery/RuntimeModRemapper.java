@@ -145,7 +145,7 @@ public final class RuntimeModRemapper {
 				InputTag tag = remapper.createInputTag();
 				info.tag = tag;
 
-				if (requiresMixinRemap(info.inputPath)) {
+				if (requiresMixinRemap(info.inputPath, config.getDefaultMixinRemapType())) {
 					remapMixins.add(tag);
 				}
 
@@ -254,13 +254,15 @@ public final class RuntimeModRemapper {
 	 *
 	 * <p>This is typically the case when a mod was built without the Mixin annotation processor generating refmaps.
 	 */
-	private static boolean requiresMixinRemap(Path inputPath) throws IOException, URISyntaxException {
+	private static boolean requiresMixinRemap(Path inputPath, String defaultMixinRemapType) throws IOException, URISyntaxException {
 		final Manifest manifest = ManifestUtil.readManifest(inputPath);
 		if (manifest == null) return false;
 
 		final Attributes mainAttributes = manifest.getMainAttributes();
 
-		return REMAP_TYPE_STATIC.equalsIgnoreCase(mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY));
+		String remapType = mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY);
+		if (remapType == null) remapType = defaultMixinRemapType;
+		return REMAP_TYPE_STATIC.equalsIgnoreCase(remapType);
 	}
 
 	private static class RemapInfo {
