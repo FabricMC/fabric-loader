@@ -150,6 +150,10 @@ public final class MappingConfiguration {
 		return FabricLoaderImpl.INSTANCE.getGameProvider().getDefaultModDistributionNamespace(ret);
 	}
 
+	public String getDefaultMixinRemapType() {
+		return System.getProperty(SystemProperties.DEFAULT_MIXIN_REMAP_TYPE, "mixin");
+	}
+
 	public boolean requiresPackageAccessHack() {
 		// TODO
 		return FIX_PACKAGE_ACCESS || getRuntimeNamespace().equals(NAMED_NAMESPACE);

@@ -30,6 +30,8 @@ public final class SystemProperties {
 	public static final String RUNTIME_MAPPING_NAMESPACE = "fabric.runtimeMappingNamespace";
 	// mapping namespace to assume mods are using when not explicitly stated, defaults to official if the runtime namespace is official or intermediary otherwise
 	public static final String DEFAULT_MOD_DISTRIBUTION_NAMESPACE = "fabric.defaultModDistributionNamespace";
+	// mixin remap type to assume mods are using when not explicit stated, defaults to mixin
+	public static final String DEFAULT_MIXIN_REMAP_TYPE = "fabric.defaultMixinRemapType";
 	// skips the embedded MC game provider, letting ServiceLoader-provided ones take over
 	public static final String SKIP_MC_PROVIDER = "fabric.skipMcProvider";
 	// game jar paths for common/client/server, replaces lookup from class path if present, env specific takes precedence
