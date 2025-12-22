@@ -52,13 +52,13 @@
                 "size": 94565
             },
             {
-                "name": "net.fabricmc:sponge-mixin:0.16.5+mixin.0.8.7",
+                "name": "net.fabricmc:sponge-mixin:0.17.0+mixin.0.8.7",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "798c8c25fb84d91b384bdee442c249d7",
-                "sha1": "80fc3a9f592673cea87f4cd702f87991c6c9fe4d",
-                "sha256": "bf65996f6edd93ba4061a175e2c814205c1ba694357a1e5a336c7ba5078ca376",
-                "sha512": "7246dbbf88f6e9c017dcc3e94424bd25699c62a28b4beebfd3060c54a42f9ba86a7af78df0aad6a7b626d74f7662071fbca69267c76db0acf50f1083540fec76",
-                "size": 1504519
+                "md5": "d27dcb910788a0bd4bea72942a714093",
+                "sha1": "cf31463202f72d03b0ef1e1e38e8ee71b7faaab6",
+                "sha256": "e7889fcd185e4199052dcbcf0fe2128581cbf8630aea7feb37429667b1ba49a9",
+                "sha512": "133dd898dabad73381f50bf36ff6c5a10f6d1b36864f407a90266eba639ef52bb7fc8fc011dd3c8560179213ceada291655dae059bfd5d3a9860bd968e7ed97c",
+                "size": 1505269
             },
             {
                 "name": "net.minecraft:launchwrapper:1.12",
