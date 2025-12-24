@@ -63,6 +63,7 @@ import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 public final class RuntimeModRemapper {
 	private static final String REMAP_TYPE_MANIFEST_KEY = "Fabric-Loom-Mixin-Remap-Type";
+	private static final String REMAP_TYPE_MIXIN = "mixin";
 	private static final String REMAP_TYPE_STATIC = "static";
 
 	public static void remap(Collection<ModCandidateImpl> modCandidates, Path tmpDir, Path outputDir) {
@@ -139,13 +140,15 @@ public final class RuntimeModRemapper {
 				throw new RuntimeException("Failed to populate remap classpath", e);
 			}
 
+			String defaultMixinRemapType = System.getProperty(SystemProperties.DEFAULT_MIXIN_REMAP_TYPE, REMAP_TYPE_MIXIN);
+
 			for (ModCandidateImpl mod : modsToRemap) {
 				RemapInfo info = infoMap.get(mod);
 
 				InputTag tag = remapper.createInputTag();
 				info.tag = tag;
 
-				if (requiresMixinRemap(info.inputPath, config.getDefaultMixinRemapType())) {
+				if (requiresMixinRemap(info.inputPath, defaultMixinRemapType)) {
 					remapMixins.add(tag);
 				}
 
@@ -262,6 +265,7 @@ public final class RuntimeModRemapper {
 
 		String remapType = mainAttributes.getValue(REMAP_TYPE_MANIFEST_KEY);
 		if (remapType == null) remapType = defaultMixinRemapType;
+
 		return REMAP_TYPE_STATIC.equalsIgnoreCase(remapType);
 	}
 
