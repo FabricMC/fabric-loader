@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -144,5 +145,10 @@ public final class MetadataVerifier {
 		}
 
 		throw new ParseMetadataException(sw.toString());
+	}
+
+	public static boolean isValidModId(String id) {
+		Objects.requireNonNull(id, "id");
+		return MOD_ID_PATTERN.matcher(id).matches();
 	}
 }

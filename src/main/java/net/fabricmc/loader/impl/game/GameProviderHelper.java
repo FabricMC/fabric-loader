@@ -243,7 +243,7 @@ public final class GameProviderHelper {
 			return inputFileMap;
 		}
 
-		Path deobfJarDir = getDeobfJarDir(gameDir, gameId, gameVersion);
+		Path deobfJarDir = getDeobfJarDir(gameId, gameVersion);
 		List<Path> inputFiles = new ArrayList<>(inputFileMap.size());
 		List<Path> outputFiles = new ArrayList<>(inputFileMap.size());
 		List<Path> tmpFiles = new ArrayList<>(inputFileMap.size());
@@ -301,8 +301,8 @@ public final class GameProviderHelper {
 		return ret;
 	}
 
-	private static Path getDeobfJarDir(Path gameDir, String gameId, String gameVersion) {
-		Path ret = gameDir.resolve(FabricLoaderImpl.CACHE_DIR_NAME).resolve(FabricLoaderImpl.REMAPPED_JARS_DIR_NAME);
+	private static Path getDeobfJarDir(String gameId, String gameVersion) {
+		Path ret = FabricLoaderImpl.INSTANCE.getDirectories(FabricLoaderImpl.MOD_ID).getCacheDir().resolve(FabricLoaderImpl.REMAPPED_JARS_DIR_NAME);
 		StringBuilder versionDirName = new StringBuilder();
 
 		if (!gameId.isEmpty()) {
