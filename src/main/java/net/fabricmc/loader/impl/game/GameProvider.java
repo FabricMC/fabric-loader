@@ -57,6 +57,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 		 * Applies class tweakers, including access wideners, as supplied by mods.
 		 */
 		CLASS_TWEAKS,
+		/**
+		 * Redirect Java applet usage to Fabric Loader's own stub classes, used to support Java 26+ for Minecraft versions that use applets.
+		 */
+		MINECRAFT_APPLET_STUB,
 	}
 
 	boolean isEnabled();
