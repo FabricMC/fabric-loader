@@ -932,16 +932,23 @@ public final class McVersionLookup {
 			// 2.0 update version as known in the jar, forked from 1.5.1
 			return "1.5.2-2.0";
 
+		case "2.0-preview":
+			// a preview for the 2.0 april fools version, similar to blue
+			return "1.5.2-2.0+preview";
+
+		case "2.0-red":
 		case "2point0_red":
 		case "af-2013-red":
 			// 2.0 update version red, forked from 1.5.1
 			return "1.5.2-2.0+red";
 
+		case "2.0-purple":
 		case "2point0_purple":
 		case "af-2013-purple":
 			// 2.0 update version purple, forked from 1.5.1
 			return "1.5.2-2.0+purple";
 
+		case "2.0-blue":
 		case "2point0_blue":
 		case "af-2013-blue":
 			// 2.0 update version blue, forked from 1.5.1
