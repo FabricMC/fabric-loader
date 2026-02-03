@@ -243,6 +243,7 @@ public final class GameProviderHelper {
 			return inputFileMap;
 		}
 
+		String mappingId = mappingConfig.getMappingId();
 		Path deobfJarDir = getDeobfJarDir(gameDir, gameId, gameVersion);
 		List<Path> inputFiles = new ArrayList<>(inputFileMap.size());
 		List<Path> outputFiles = new ArrayList<>(inputFileMap.size());
@@ -254,7 +255,9 @@ public final class GameProviderHelper {
 			String name = entry.getKey();
 			Path inputFile = entry.getValue();
 			// TODO: allow versioning mappings?
-			String deobfJarFilename = String.format("%s-%s.jar", name, targetNamespace);
+			String deobfJarFilename = (mappingId == null)
+					? String.format("%s-%s.jar", name, targetNamespace)
+					: String.format("%s-%s-%s.jar", name, targetNamespace, mappingId);
 			Path outputFile = deobfJarDir.resolve(deobfJarFilename);
 			Path tmpFile = deobfJarDir.resolve(deobfJarFilename + ".tmp");
 
