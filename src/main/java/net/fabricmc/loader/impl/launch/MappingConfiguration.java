@@ -72,6 +72,8 @@ public final class MappingConfiguration {
 	@Nullable
 	private String gameVersion;
 	@Nullable
+	private String mappingId;
+	@Nullable
 	private List<String> namespaces;
 	@Nullable
 	private MemoryMappingTree mappings;
@@ -88,6 +90,13 @@ public final class MappingConfiguration {
 		initializeMappings(true);
 
 		return gameVersion;
+	}
+
+	@Nullable
+	public String getMappingId() {
+		initializeMappings(true);
+
+		return mappingId;
 	}
 
 	@Nullable
@@ -185,6 +194,7 @@ public final class MappingConfiguration {
 					if (manifest != null) {
 						gameId = ManifestUtil.getManifestValue(manifest, new Name("Game-Id"));
 						gameVersion = ManifestUtil.getManifestValue(manifest, new Name("Game-Version"));
+						mappingId = ManifestUtil.getManifestValue(manifest, new Name("Mapping-Id"));
 					}
 				}
 
