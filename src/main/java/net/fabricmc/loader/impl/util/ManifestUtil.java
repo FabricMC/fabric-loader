@@ -29,10 +29,17 @@ import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.function.BiConsumer;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 
 public final class ManifestUtil {
+	private static final ArrayList<BiConsumer<Manifest, Path>> callbacks = new ArrayList<>();
+
+	public static void addCallback(BiConsumer<Manifest, Path> callback) {
+		callbacks.add(callback);
+	}
+
 	public static Manifest readManifest(Class<?> cls) throws IOException, URISyntaxException {
 		CodeSource cs = cls.getProtectionDomain().getCodeSource();
 		if (cs == null) return null;
@@ -76,7 +83,13 @@ public final class ManifestUtil {
 		if (!Files.exists(path)) return null;
 
 		try (InputStream stream = Files.newInputStream(path)) {
-			return new Manifest(stream);
+			Manifest manifest = new Manifest(stream);
+
+			for (BiConsumer<Manifest, Path> callback : callbacks) {
+				callback.accept(manifest, path);
+			}
+
+			return manifest;
 		}
 	}
 
