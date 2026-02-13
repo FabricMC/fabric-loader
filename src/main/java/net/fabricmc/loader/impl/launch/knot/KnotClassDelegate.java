@@ -389,7 +389,7 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 					URLConnection connection = new URL("jar:" + path.toUri().toString() + "!/").openConnection();
 
 					if (connection instanceof JarURLConnection) {
-						manifest = ((JarURLConnection) connection).getManifest();
+						manifest = ManifestUtil.processCallback(((JarURLConnection) connection).getManifest(), path);
 						certificates = ((JarURLConnection) connection).getCertificates();
 					}
 

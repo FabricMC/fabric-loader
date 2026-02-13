@@ -83,14 +83,16 @@ public final class ManifestUtil {
 		if (!Files.exists(path)) return null;
 
 		try (InputStream stream = Files.newInputStream(path)) {
-			Manifest manifest = new Manifest(stream);
-
-			for (BiConsumer<Manifest, Path> callback : callbacks) {
-				callback.accept(manifest, path);
-			}
-
-			return manifest;
+			return processCallback(new Manifest(stream), path);
 		}
+	}
+
+	public static Manifest processCallback(Manifest manifest, Path path) {
+		for (BiConsumer<Manifest, Path> callback : callbacks) {
+			callback.accept(manifest, path);
+		}
+
+		return manifest;
 	}
 
 	public static String getManifestValue(Manifest manifest, Name name) {
