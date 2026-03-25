@@ -24,16 +24,10 @@ import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingVisitor;
 import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 
-// Filter out all method arguments, local variable names and comments
+// Filter out all method local variable names and comments
 public class FilteringMappingVisitor extends ForwardingMappingVisitor {
 	public FilteringMappingVisitor(MappingVisitor next) {
 		super(next);
-	}
-
-	@Override
-	public boolean visitMethodArg(int argPosition, int lvIndex, @Nullable String srcName) throws IOException {
-		// ignored
-		return false;
 	}
 
 	@Override
