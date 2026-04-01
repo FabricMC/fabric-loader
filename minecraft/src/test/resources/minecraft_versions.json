@@ -8626,5 +8626,293 @@
     "normalized": "1.21.11-beta.1+unobfuscated",
     "releaseTime": "2025-11-19T08:30:46Z",
     "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-pre2",
+    "normalized": "1.21.11-beta.2",
+    "releaseTime": "2025-11-21T11:44:15Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-pre2_unobfuscated",
+    "normalized": "1.21.11-beta.2+unobfuscated",
+    "releaseTime": "2025-11-21T12:07:21Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-pre3",
+    "normalized": "1.21.11-beta.3",
+    "releaseTime": "2025-11-25T13:56:50Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-pre3_unobfuscated",
+    "normalized": "1.21.11-beta.3+unobfuscated",
+    "releaseTime": "2025-11-25T14:14:30Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-pre4",
+    "normalized": "1.21.11-beta.4",
+    "releaseTime": "2025-12-01T13:17:32Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-pre4_unobfuscated",
+    "normalized": "1.21.11-beta.4+unobfuscated",
+    "releaseTime": "2025-12-01T13:40:12Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-pre5",
+    "normalized": "1.21.11-beta.5",
+    "releaseTime": "2025-12-03T13:14:25Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-pre5_unobfuscated",
+    "normalized": "1.21.11-beta.5+unobfuscated",
+    "releaseTime": "2025-12-03T13:34:06Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-rc1",
+    "normalized": "1.21.11-rc.1",
+    "releaseTime": "2025-12-04T15:20:43Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-rc1_unobfuscated",
+    "normalized": "1.21.11-rc.1+unobfuscated",
+    "releaseTime": "2025-12-04T15:56:55Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-rc2",
+    "normalized": "1.21.11-rc.2",
+    "releaseTime": "2025-12-05T11:14:20Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-rc2_unobfuscated",
+    "normalized": "1.21.11-rc.2+unobfuscated",
+    "releaseTime": "2025-12-05T11:57:45Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11-rc3",
+    "normalized": "1.21.11-rc.3",
+    "releaseTime": "2025-12-08T13:17:37Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11-rc3_unobfuscated",
+    "normalized": "1.21.11-rc.3+unobfuscated",
+    "releaseTime": "2025-12-08T13:59:34Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "1.21.11",
+    "normalized": "1.21.11",
+    "releaseTime": "2025-12-09T12:23:30Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "1.21.11_unobfuscated",
+    "normalized": "1.21.11+unobfuscated",
+    "releaseTime": "2025-12-09T12:43:15Z",
+    "source": "fabricexp"
+  },
+  {
+    "id": "26.1-snap1",
+    "normalized": "26.1-snap.1",
+    "releaseTime": "2025-12-16T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-1",
+    "normalized": "26.1-alpha.1",
+    "releaseTime": "2025-12-16T12:42:29Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap2",
+    "normalized": "26.1-snap.2",
+    "releaseTime": "2026-01-07T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-2",
+    "normalized": "26.1-alpha.2",
+    "releaseTime": "2026-01-07T12:38:03Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap3",
+    "normalized": "26.1-snap.3",
+    "releaseTime": "2026-01-13T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-3",
+    "normalized": "26.1-alpha.3",
+    "releaseTime": "2026-01-13T12:47:34Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap4",
+    "normalized": "26.1-snap.4",
+    "releaseTime": "2026-01-20T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-4",
+    "normalized": "26.1-alpha.4",
+    "releaseTime": "2026-01-20T14:15:37Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap5",
+    "normalized": "26.1-snap.5",
+    "releaseTime": "2026-01-27T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-5",
+    "normalized": "26.1-alpha.5",
+    "releaseTime": "2026-01-27T13:01:17Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap6",
+    "normalized": "26.1-snap.6",
+    "releaseTime": "2026-02-03T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-6",
+    "normalized": "26.1-alpha.6",
+    "releaseTime": "2026-02-03T12:46:52Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap7",
+    "normalized": "26.1-snap.7",
+    "releaseTime": "2026-02-11T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-7",
+    "normalized": "26.1-alpha.7",
+    "releaseTime": "2026-02-11T09:25:36Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap8",
+    "normalized": "26.1-snap.8",
+    "releaseTime": "2026-02-17T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-8",
+    "normalized": "26.1-alpha.8",
+    "releaseTime": "2026-02-17T12:42:24Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap9",
+    "normalized": "26.1-snap.9",
+    "releaseTime": "2026-02-18T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-9",
+    "normalized": "26.1-alpha.9",
+    "releaseTime": "2026-02-18T10:13:30Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap10",
+    "normalized": "26.1-snap.10",
+    "releaseTime": "2026-02-24T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-10",
+    "normalized": "26.1-alpha.10",
+    "releaseTime": "2026-02-24T13:03:38Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-snap11",
+    "normalized": "26.1-snap.11",
+    "releaseTime": "2026-03-03T00:00:00Z",
+    "source": "omniarchive"
+  },
+  {
+    "id": "26.1-snapshot-11",
+    "normalized": "26.1-alpha.11",
+    "releaseTime": "2026-03-03T13:01:51Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-pre-1",
+    "normalized": "26.1-pre.1",
+    "releaseTime": "2026-03-10T13:00:38Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-pre-2",
+    "normalized": "26.1-pre.2",
+    "releaseTime": "2026-03-13T12:55:35Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-pre-3",
+    "normalized": "26.1-pre.3",
+    "releaseTime": "2026-03-17T13:37:33Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-rc-1",
+    "normalized": "26.1-rc.1",
+    "releaseTime": "2026-03-19T14:48:47Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-rc-2",
+    "normalized": "26.1-rc.2",
+    "releaseTime": "2026-03-20T10:21:13Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1-rc-3",
+    "normalized": "26.1-rc.3",
+    "releaseTime": "2026-03-23T11:11:54Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1",
+    "normalized": "26.1",
+    "releaseTime": "2026-03-24T12:11:04Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1.1-rc-1",
+    "normalized": "26.1.1-rc.1",
+    "releaseTime": "2026-03-31T10:07:21Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26.1.1",
+    "normalized": "26.1.1",
+    "releaseTime": "2026-04-01T09:06:36Z",
+    "source": "mcmeta"
+  },
+  {
+    "id": "26w14a",
+    "normalized": "26.1.1-alpha.26.14.a",
+    "releaseTime": "2026-04-01T12:13:30Z",
+    "source": "mcmeta"
   }
 ]

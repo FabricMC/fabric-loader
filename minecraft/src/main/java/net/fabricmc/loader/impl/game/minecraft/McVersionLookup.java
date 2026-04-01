@@ -371,7 +371,9 @@ public final class McVersionLookup {
 			int year = Integer.parseInt(matcher.group(1));
 			int week = Integer.parseInt(matcher.group(2));
 
-			if (year == 25 && week >= 41 || year > 25) {
+			if (year == 26 && week == 14) {
+				return "26.1.1"; // 2026 April fools snapshot
+			} else if (year == 25 && week >= 41 || year > 25) {
 				return "1.21.11";
 			} else if (year == 25 && week >= 31 && week <= 37) {
 				return "1.21.9";
@@ -1073,6 +1075,10 @@ public final class McVersionLookup {
 		case "1.16_combat-6":
 			// The ninth Combat Test 8c, forked from 1.16.2
 			return "1.16.3-combat.8.c";
+
+		case "26w14a":
+			// 2026 April fools version, forked from 1.26.1
+			return "26.1.1-alpha.26.14.a";
 
 		default:
 			return null; //Don't recognise the version
