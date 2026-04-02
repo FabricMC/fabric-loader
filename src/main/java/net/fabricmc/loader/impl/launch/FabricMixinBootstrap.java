@@ -30,9 +30,7 @@ import org.spongepowered.asm.mixin.extensibility.IMixinConfig;
 import org.spongepowered.asm.mixin.transformer.Config;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.loader.api.SemanticVersion;
 import net.fabricmc.loader.api.Version;
-import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
 import net.fabricmc.loader.api.metadata.ModDependency.Kind;
 import net.fabricmc.loader.api.metadata.version.VersionInterval;
@@ -115,18 +113,6 @@ public final class FabricMixinBootstrap {
 	}
 
 	private static final class MixinConfigDecorator {
-		private static final List<LoaderMixinVersionEntry> versions = new ArrayList<>();
-
-		static {
-			// maximum loader version and bundled fabric mixin version, DESCENDING ORDER, LATEST FIRST
-			// loader versions with new mixin versions need to be added here
-
-			addVersion("0.18.4", FabricUtil.COMPATIBILITY_0_17_0);
-			addVersion("0.17.3", FabricUtil.COMPATIBILITY_0_16_5);
-			addVersion("0.16.0", FabricUtil.COMPATIBILITY_0_14_0);
-			addVersion("0.12.0-", FabricUtil.COMPATIBILITY_0_10_0);
-		}
-
 		static void apply(Map<String, ModContainerImpl> configToModMap) {
 			for (Config rawConfig : Mixins.getConfigs()) {
 				ModContainerImpl mod = configToModMap.get(rawConfig.getName());
@@ -159,7 +145,7 @@ public final class FabricMixinBootstrap {
 			Version minLoaderVersion = reqIntervals.get(0).getMin(); // it is sorted, to 0 has the absolute lower bound
 
 			if (minLoaderVersion != null) { // has a lower bound
-				for (LoaderMixinVersionEntry version : versions) {
+				for (FabricMixinVersions.LoaderMixinVersionEntry version : FabricMixinVersions.getVersions()) {
 					if (minLoaderVersion.compareTo(version.loaderVersion) >= 0) { // lower bound is >= current version
 						return version.mixinVersion;
 					}
@@ -167,24 +153,6 @@ public final class FabricMixinBootstrap {
 			}
 
 			return FabricUtil.COMPATIBILITY_0_9_2;
-		}
-
-		private static void addVersion(String minLoaderVersion, int mixinCompat) {
-			try {
-				versions.add(new LoaderMixinVersionEntry(SemanticVersion.parse(minLoaderVersion), mixinCompat));
-			} catch (VersionParsingException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		private static final class LoaderMixinVersionEntry {
-			final SemanticVersion loaderVersion;
-			final int mixinVersion;
-
-			LoaderMixinVersionEntry(SemanticVersion loaderVersion, int mixinVersion) {
-				this.loaderVersion = loaderVersion;
-				this.mixinVersion = mixinVersion;
-			}
 		}
 	}
 }
