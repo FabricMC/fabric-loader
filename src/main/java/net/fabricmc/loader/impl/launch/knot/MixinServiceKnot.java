@@ -30,9 +30,11 @@ import org.spongepowered.asm.logging.ILogger;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 import org.spongepowered.asm.mixin.transformer.IMixinTransformerFactory;
+import org.spongepowered.asm.service.IAdviceProvider;
 import org.spongepowered.asm.service.IClassBytecodeProvider;
 import org.spongepowered.asm.service.IClassProvider;
 import org.spongepowered.asm.service.IClassTracker;
+import org.spongepowered.asm.service.IFeatureValidator;
 import org.spongepowered.asm.service.IMixinAuditTrail;
 import org.spongepowered.asm.service.IMixinInternal;
 import org.spongepowered.asm.service.IMixinService;
@@ -41,6 +43,7 @@ import org.spongepowered.asm.service.ITransformerProvider;
 import org.spongepowered.asm.util.ReEntranceLock;
 
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
+import net.fabricmc.loader.impl.launch.FabricMixinVersions;
 import net.fabricmc.loader.impl.util.UrlUtil;
 
 public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBytecodeProvider, ITransformerProvider, IClassTracker {
@@ -169,6 +172,21 @@ public class MixinServiceKnot implements IMixinService, IClassProvider, IClassBy
 	@Override
 	public IMixinAuditTrail getAuditTrail() {
 		return null;
+	}
+
+	@Override
+	public IFeatureValidator getFeatureValidator() {
+		return IFeatureValidator.ALLOW_ALL;
+	}
+
+	@Override
+	public IAdviceProvider getAdviceProvider() {
+		return new IAdviceProvider() {
+			@Override
+			public String higherCompatibilityNeeded(int requiredCompatibility, String requiredCompatibilityString) {
+				return "Increase your Fabric Loader dependency to at least " + FabricMixinVersions.getMinLoaderVersion(requiredCompatibility);
+			}
+		};
 	}
 
 	@Override

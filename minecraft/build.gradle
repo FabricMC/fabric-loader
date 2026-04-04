@@ -23,6 +23,7 @@ dependencies {
 	implementation project(":").sourceSets.main.output
 	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
 	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+	testImplementation('com.google.code.gson:gson:2.2.4')
 }
 
 sourceSets {
