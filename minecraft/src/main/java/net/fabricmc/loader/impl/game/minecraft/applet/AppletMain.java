@@ -35,6 +35,9 @@ public final class AppletMain implements Runnable {
 	}
 
 	public static void main(String[] args) {
+		// Fix for border when using a HiDPI display
+		System.setProperty("sun.java2d.uiScale", "1.0");
+
 		java.awt.EventQueue.invokeLater(new AppletMain(args));
 	}
 
