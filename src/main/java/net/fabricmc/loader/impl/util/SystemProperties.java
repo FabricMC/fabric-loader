@@ -88,6 +88,8 @@ public final class SystemProperties {
 	public static final String DEBUG_DEOBFUSCATE_WITH_CLASSPATH = "fabric.debug.deobfuscateWithClasspath";
 	// whether fabric loader is running in a unit test, this affects logging classpath setup
 	public static final String UNIT_TEST = "fabric.unitTest";
+	// whether to disable the swing gui popup when error occurred
+	public static final String NO_GUI = "fabric.noGui";
 
 	public static boolean isSet(String property) {
 		String val = System.getProperty(property);
