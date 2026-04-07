@@ -34,6 +34,7 @@ import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricTreeWarningLevel;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.Localization;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.UrlUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
@@ -119,9 +120,12 @@ public final class FabricGuiEntry {
 	}
 
 	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomiser, boolean exitAfter) {
+		boolean isCI = System.getenv("CI") != null;
+		boolean isNoGui = SystemProperties.isSet(SystemProperties.NO_GUI);
+
 		GameProvider provider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
 
-		if (!GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
+		if (!isCI && !isNoGui && !GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
 			String title = "Fabric Loader " + FabricLoaderImpl.VERSION;
 			FabricStatusTree tree = new FabricStatusTree(title, mainText);
 			FabricStatusTab crashTab = tree.addTab(Localization.format("gui.tab.crash"));
