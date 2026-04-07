@@ -120,7 +120,7 @@ public final class FabricGuiEntry {
 	}
 
 	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomiser, boolean exitAfter) {
-		boolean isCI = Boolean.parseBoolean(System.getenv("CI"));
+		boolean isCI = System.getenv("CI") != null;
 		boolean isNoGui = SystemProperties.isSet(SystemProperties.NO_GUI);
 
 		GameProvider provider = FabricLoaderImpl.INSTANCE.tryGetGameProvider();
