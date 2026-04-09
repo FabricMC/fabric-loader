@@ -34,7 +34,7 @@ public class FabricMixinVersions {
 		// maximum loader version and bundled fabric mixin version, DESCENDING ORDER, LATEST FIRST
 		// loader versions with new mixin versions need to be added here
 
-		addVersion("0.18.7", FabricUtil.COMPATIBILITY_0_17_1);
+		addVersion("0.19.0", FabricUtil.COMPATIBILITY_0_17_1);
 		addVersion("0.18.4", FabricUtil.COMPATIBILITY_0_17_0);
 		addVersion("0.17.3", FabricUtil.COMPATIBILITY_0_16_5);
 		addVersion("0.16.0", FabricUtil.COMPATIBILITY_0_14_0);
