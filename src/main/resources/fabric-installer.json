@@ -52,13 +52,13 @@
                 "size": 94565
             },
             {
-                "name": "net.fabricmc:sponge-mixin:0.17.1+mixin.0.8.7",
+                "name": "net.fabricmc:sponge-mixin:0.17.2+mixin.0.8.7",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "029143df2fceae74b8d606fba0b5605b",
-                "sha1": "1cca8837fa31d8cfbde11a391f108f2bda30bca4",
-                "sha256": "855815cdfd685daf1a6c6ac391669754b805ce4e6ae1bc900ed29eedba48b806",
-                "sha512": "bc6f0601caf9c6d30351ca77a31cd14011fa3130808c1a41b583cd2c1d51c7b42df558d35f40e1847d8e34cec4e9e80691725ecdb209ed2f1771ad8e423b5140",
-                "size": 1540025
+                "md5": "4b6b96074976cc7aa096b9e569ca623e",
+                "sha1": "edf98d1d98229e46e36c61774ae2b54dcd852981",
+                "sha256": "95cef6aebd9da1559cf9c4624eafae2ce1242d0167e3587d5d62c488e45b6999",
+                "sha512": "89044dca9a63bd5f2ceec09bfcb5807f1b294026665294bae7a9a980da89bd86c6d441eb38c92c89ca0efe86884c0730dab348d27633ef1e3970ed9eb5c30a4e",
+                "size": 1540039
             }
         ],
         "server": [
@@ -66,13 +66,13 @@
         ],
         "development": [
             {
-                "name": "io.github.llamalad7:mixinextras-fabric:0.5.3",
+                "name": "io.github.llamalad7:mixinextras-fabric:0.5.4",
                 "url": "https://maven.fabricmc.net/",
-                "md5": "b69f9aabf42ad4249d751ea894329312",
-                "sha1": "8ee5af001acbc9f7970e383bdf0944d063c80f63",
-                "sha256": "6f8d64297f42937c3e53985c7799ee5ea8aa3f6aa936426e83032eeb82d6839d",
-                "sha512": "9e984b698337027ab1449ac268bdf332ae871970bfba28b7b9941ca28a63cc234791a6d83e01691f229a0d71c819599e700a929e4bc33cbf2da7ca570752ceda",
-                "size": 726308
+                "md5": "d5070aa9700de60274a740d4c2640b4d",
+                "sha1": "5e167154bcb9942111313a5e186e16cd7265f858",
+                "sha256": "bd79ddb2f54b39a08deeb50cb12439bba01481264dd5a9f5ea830551bfef31ff",
+                "sha512": "31b929374c2526ebb532185cd54b752c0a5ca7f56a48c99ed6a73f598a4155c9db88ab4c8ea5904fa2e2f78310424393238b2db6cd435c0f3ad87d1391ea3320",
+                "size": 727805
             }
         ]
     },
