@@ -118,6 +118,7 @@ public final class DefaultLanguageAdapter implements LanguageAdapter {
 
 			if (targetExecutable instanceof Method) {
 				Method targetMethod = (Method) targetExecutable;
+
 				if ((targetMethod.getModifiers() & Modifier.STATIC) == 0) {
 					try {
 						object = c.getDeclaredConstructor().newInstance();
