@@ -237,14 +237,8 @@ class FabricMainWindow {
 		CountDownLatch guiTerminatedLatch = new CountDownLatch(1);
 
 		SwingUtilities.invokeAndWait(() -> {
-			ClassLoader oldContextClassLoader = Thread.currentThread().getContextClassLoader();
-
-			try {
-				Thread.currentThread().setContextClassLoader(FabricMainWindow.class.getClassLoader());
-				createUi(guiTerminatedLatch, tree);
-			} finally {
-				Thread.currentThread().setContextClassLoader(oldContextClassLoader);
-			}
+			Thread.currentThread().setContextClassLoader(FabricMainWindow.class.getClassLoader());
+			createUi(guiTerminatedLatch, tree);
 		});
 
 		if (shouldWait) {
