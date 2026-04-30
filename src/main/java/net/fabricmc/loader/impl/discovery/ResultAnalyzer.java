@@ -18,6 +18,7 @@ package net.fabricmc.loader.impl.discovery;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -38,6 +40,7 @@ import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.impl.discovery.ModSolver.AddModVar;
 import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiData;
 import net.fabricmc.loader.impl.util.Localization;
 import net.fabricmc.loader.impl.util.StringUtil;
 import net.fabricmc.loader.impl.util.version.VersionIntervalImpl;
@@ -90,18 +93,15 @@ final class ResultAnalyzer {
 				List<Map.Entry<ModCandidateImpl, InactiveReason>> entries = new ArrayList<>(result.fix.inactiveMods.entrySet());
 
 				// sort by root, id, version
-				entries.sort(new Comparator<Map.Entry<ModCandidateImpl, ?>>() {
-					@Override
-					public int compare(Entry<ModCandidateImpl, ?> o1, Entry<ModCandidateImpl, ?> o2) {
-						ModCandidateImpl a = o1.getKey();
-						ModCandidateImpl b = o2.getKey();
+				entries.sort((Comparator<Entry<ModCandidateImpl, ?>>) (o1, o2) -> {
+					ModCandidateImpl a = o1.getKey();
+					ModCandidateImpl b = o2.getKey();
 
-						if (a.isRoot() != b.isRoot()) {
-							return a.isRoot() ? -1 : 1;
-						}
-
-						return ModCandidateImpl.ID_VERSION_COMPARATOR.compare(a, b);
+					if (a.isRoot() != b.isRoot()) {
+						return a.isRoot() ? -1 : 1;
 					}
+
+					return ModCandidateImpl.ID_VERSION_COMPARATOR.compare(a, b);
 				});
 
 				for (Map.Entry<ModCandidateImpl, InactiveReason> entry : entries) {
@@ -119,6 +119,125 @@ final class ResultAnalyzer {
 		}
 
 		return sw.toString();
+	}
+
+	static DependencyGuiData gatherErrorData(ModSolver.Result result, Map<String, ModCandidateImpl> selectedMods, Map<String, List<ModCandidateImpl>> modsById,
+			Map<String, Set<ModCandidateImpl>> envDisabledMods, EnvType envType) {
+		DependencyGuiData data = new DependencyGuiData();
+
+		if (result.fix != null) {
+			formatFixData(result.fix, selectedMods, modsById, envDisabledMods, envType, data);
+		}
+
+		List<ModCandidateImpl> matches = new ArrayList<>();
+
+		for (Explanation explanation : result.reason) {
+			assert explanation.error.isDependencyError;
+			addIconSource(data, explanation.mod);
+
+			ModDependency dep = explanation.dep;
+			ModCandidateImpl selected = selectedMods.get(dep.getModId());
+
+			if (selected != null) {
+				matches.add(selected);
+			} else {
+				List<ModCandidateImpl> candidates = modsById.get(dep.getModId());
+				if (candidates != null) matches.addAll(candidates);
+			}
+
+			for (ModCandidateImpl match : matches) {
+				addIconSource(data, match);
+				addIconSource(data, dep.getModId(), match);
+			}
+
+			addErrorToData(data, explanation.mod, explanation.dep, matches);
+			matches.clear();
+		}
+
+		return data;
+	}
+
+	private static void formatFixData(ModSolver.Fix fix,
+			Map<String, ModCandidateImpl> selectedMods, Map<String, List<ModCandidateImpl>> modsById,
+			Map<String, Set<ModCandidateImpl>> envDisabledMods, EnvType envType,
+			DependencyGuiData data) {
+		for (AddModVar mod : fix.modsToAdd) {
+			Set<ModCandidateImpl> envDisabledAlternatives = envDisabledMods.get(mod.getId());
+			String text;
+
+			if (envDisabledAlternatives == null) {
+				text = Localization.format("resolution.solution.addMod",
+						mod.getId(),
+						formatVersionRequirements(mod.getVersionIntervals()));
+			} else {
+				String envKey = String.format("environment.%s", envType.name().toLowerCase(Locale.ENGLISH));
+
+				text = Localization.format("resolution.solution.replaceModEnvDisabled",
+						formatOldMods(envDisabledAlternatives),
+						mod.getId(),
+						formatVersionRequirements(mod.getVersionIntervals()),
+						Localization.format(envKey));
+			}
+
+			data.addSuggestedChange(text, mod.getId());
+		}
+
+		for (ModCandidateImpl mod : fix.modsToRemove) {
+			addIconSource(data, mod);
+			data.addSuggestedChange(Localization.format("resolution.solution.removeMod", getName(mod), getVersion(mod), mod.getLocalPath()), mod.getId());
+		}
+
+		for (Entry<AddModVar, List<ModCandidateImpl>> entry : fix.modReplacements.entrySet()) {
+			AddModVar newMod = entry.getKey();
+			List<ModCandidateImpl> oldMods = entry.getValue();
+			String oldModsFormatted = formatOldMods(oldMods);
+			String targetId = oldMods.isEmpty() ? newMod.getId() : oldMods.get(0).getId();
+
+			for (ModCandidateImpl oldMod : oldMods) {
+				addIconSource(data, oldMod);
+			}
+
+			if (oldMods.size() != 1 || !oldMods.get(0).getId().equals(newMod.getId())) {
+				String newModName = newMod.getId();
+				ModCandidateImpl alt = selectedMods.get(newMod.getId());
+
+				if (alt != null) {
+					newModName = getName(alt);
+				} else {
+					List<ModCandidateImpl> alts = modsById.get(newMod.getId());
+					if (alts != null && !alts.isEmpty()) newModName = getName(alts.get(0));
+				}
+
+				data.addSuggestedChange(Localization.format("resolution.solution.replaceMod",
+						oldModsFormatted,
+						newModName,
+						formatVersionRequirements(newMod.getVersionIntervals())), targetId);
+			} else {
+				ModCandidateImpl oldMod = oldMods.get(0);
+				targetId = oldMod.getId();
+				boolean hasOverlap = !VersionInterval.and(newMod.getVersionIntervals(),
+						Collections.singletonList(new VersionIntervalImpl(oldMod.getVersion(), true, oldMod.getVersion(), true))).isEmpty();
+
+				if (!hasOverlap) {
+					data.addSuggestedChange(Localization.format("resolution.solution.replaceModVersion",
+							oldModsFormatted,
+							formatVersionRequirements(newMod.getVersionIntervals())), targetId);
+				} else {
+					data.addSuggestedChange(Localization.format("resolution.solution.replaceModVersionDifferent",
+							oldModsFormatted,
+							formatVersionRequirements(newMod.getVersionIntervals())), targetId);
+				}
+			}
+		}
+	}
+
+	private static void addErrorToData(DependencyGuiData data, ModCandidateImpl mod, ModDependency dep, List<ModCandidateImpl> matches) {
+		String dependencyId = dep.getModId();
+		String dependencyDisplayName = matches.isEmpty() ? dependencyId : formatDisplayNameWithId(matches.get(0));
+		String versionRequirement = formatVersionRequirements(dep.getVersionIntervals());
+
+		data.addDependency(dependencyId, dependencyDisplayName, versionRequirement);
+		data.addAffectedMod(mod.getId(), getDisplayName(mod), getVersion(mod)).addRequirement(dependencyId, dependencyDisplayName, versionRequirement);
 	}
 
 	private static void formatFix(ModSolver.Fix fix,
@@ -399,6 +518,40 @@ final class ResultAnalyzer {
 		}
 
 		return formatEnumeration(ret, true);
+	}
+
+	private static void addIconSource(DependencyGuiData data, ModCandidateImpl candidate) {
+		if (candidate == null) {
+			return;
+		}
+
+		addIconSource(data, candidate.getId(), candidate);
+	}
+
+	private static void addIconSource(DependencyGuiData data, String id, ModCandidateImpl candidate) {
+		if (id == null || id.isEmpty() || candidate == null || !candidate.hasPath()) {
+			return;
+		}
+
+		Optional<String> iconPath = candidate.getMetadata().getIconPath(32);
+
+		if (!iconPath.isPresent()) {
+			return;
+		}
+
+		List<String> paths = candidate.getPaths().stream()
+				.map(Path::toString)
+				.collect(Collectors.toList());
+
+		data.addIconSource(id, iconPath.get(), paths);
+	}
+
+	private static String getDisplayName(ModCandidateImpl candidate) {
+		return candidate.getMetadata().getName();
+	}
+
+	private static String formatDisplayNameWithId(ModCandidateImpl candidate) {
+		return String.format("%s (%s)", getDisplayName(candidate), candidate.getId());
 	}
 
 	private static String getName(ModCandidateImpl candidate) {
