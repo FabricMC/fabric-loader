@@ -199,7 +199,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 			setup();
 		} catch (ModResolutionException exception) {
 			if (exception.getCause() == null) {
-				throw FormattedException.ofLocalized("exception.incompatible", exception.getMessage());
+				throw FormattedException.ofLocalized("exception.incompatible", exception.getMessage(), exception);
 			} else {
 				throw FormattedException.ofLocalized("exception.incompatible", exception);
 			}
@@ -469,7 +469,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		return FabricLauncherBase.getLauncher().isDevelopment();
 	}
 
-	private void addMod(ModCandidateImpl candidate) throws ModResolutionException {
+	private void addMod(ModCandidateImpl candidate) {
 		ModContainerImpl container = new ModContainerImpl(candidate);
 		mods.add(container);
 		modMap.put(candidate.getId(), container);

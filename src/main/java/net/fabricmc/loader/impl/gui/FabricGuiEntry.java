@@ -29,6 +29,8 @@ import java.util.function.Consumer;
 
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.discovery.ModResolutionException;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiData;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusTab;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricTreeWarningLevel;
@@ -97,6 +99,22 @@ public final class FabricGuiEntry {
 		System.exit(0);
 	}
 
+	private static DependencyGuiData findDependencyGuiData(Throwable exception) {
+		while (exception != null) {
+			if (exception instanceof ModResolutionException) {
+				DependencyGuiData data = ((ModResolutionException) exception).getDependencyGuiData();
+
+				if (data != null) {
+					return data;
+				}
+			}
+
+			exception = exception.getCause();
+		}
+
+		return null;
+	}
+
 	/** @param exitAfter If true then this will call {@link System#exit(int)} after showing the gui, otherwise this will
 	 *            return normally. */
 	public static void displayCriticalError(Throwable exception, boolean exitAfter) {
@@ -128,6 +146,12 @@ public final class FabricGuiEntry {
 		if (!isCI && !isNoGui && !GraphicsEnvironment.isHeadless() && (provider == null || provider.canOpenErrorGui())) {
 			String title = "Fabric Loader " + FabricLoaderImpl.VERSION;
 			FabricStatusTree tree = new FabricStatusTree(title, mainText);
+			DependencyGuiData dependencyGuiData = findDependencyGuiData(exception);
+
+			if (dependencyGuiData != null) {
+				tree.setDependencyGuiData(dependencyGuiData);
+			}
+
 			FabricStatusTab crashTab = tree.addTab(Localization.format("gui.tab.crash"));
 
 			if (exception != null) {

@@ -115,6 +115,7 @@ dependencies {
 	include "net.fabricmc:tiny-remapper:0.13.0"
 	include "net.fabricmc:class-tweaker:0.3.0-beta.2"
 	include "net.fabricmc:mapping-io:0.7.1"
+	include "com.formdev:flatlaf:3.7.1:no-natives"
 
 	development "io.github.llamalad7:mixinextras-fabric:$mixin_extras_version"
 
@@ -206,6 +207,7 @@ tasks.register('fatJar', ShadowJar) {
 	relocate 'net.fabricmc.classtweaker', 'net.fabricmc.loader.impl.lib.classtweaker'
 	relocate 'net.fabricmc.tinyremapper', 'net.fabricmc.loader.impl.lib.tinyremapper'
 	relocate 'net.fabricmc.mappingio', 'net.fabricmc.loader.impl.lib.mappingio'
+	relocate 'com.formdev.flatlaf', 'net.fabricmc.loader.impl.lib.flatlaf'
 
 	exclude 'about.html'
 	exclude 'sat4j.version'
