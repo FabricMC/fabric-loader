@@ -26,6 +26,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
+import net.fabricmc.loader.impl.launch.knot.URLLoader;
 import net.fabricmc.loader.impl.util.Arguments;
 import net.fabricmc.loader.impl.util.LoaderUtil;
 import net.fabricmc.loader.impl.util.SystemProperties;
@@ -87,6 +88,10 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 
 	default boolean hasAwtSupport() {
 		return LoaderUtil.hasAwtSupport();
+	}
+
+	default URLLoader getProviderCL() { //Cannot use intersecting types, see https://bugs.openjdk.org/browse/JDK-8380420
+		return null;
 	}
 
 	class BuiltinMod {
