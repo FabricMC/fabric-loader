@@ -16,7 +16,6 @@
 
 package net.fabricmc.loader.impl.gui;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -119,6 +118,7 @@ import net.fabricmc.loader.impl.util.StringUtil;
 class FabricMainWindow {
 	static Icon missingIcon = null;
 	private static final Map<String, Icon> modIconCache = new HashMap<>();
+	private static final Map<String, Icon> uiIconCache = new HashMap<>();
 	private static Map<String, DependencyGuiIconSource> dependencyGuiIconSources = java.util.Collections.emptyMap();
 	private static JComponent suggestedChangesSection;
 
@@ -332,7 +332,7 @@ class FabricMainWindow {
 				BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor()),
 				BorderFactory.createEmptyBorder(26, PAGE_MARGIN, 26, PAGE_MARGIN)));
 
-		JLabel icon = new JLabel(new ErrorIcon(66));
+		JLabel icon = new JLabel(loadUiIcon("/ui/icon/error_x24.png", 66, ERROR));
 		header.add(icon, BorderLayout.WEST);
 
 		JPanel text = new JPanel();
@@ -503,7 +503,7 @@ class FabricMainWindow {
 			JPanel left = new JPanel(new BorderLayout(14, 0));
 			left.setOpaque(false);
 			Icon modIcon = loadModIcon(issue.modId, 34);
-			left.add(createIconLabel(modIcon != null ? modIcon : new DocumentIcon(34), 44), BorderLayout.WEST);
+			left.add(createIconLabel(modIcon != null ? modIcon : loadUiIcon("/ui/icon/document_x24.png", 34, secondaryTextColor()), 44), BorderLayout.WEST);
 
 			JPanel text = new JPanel();
 			text.setOpaque(false);
@@ -559,7 +559,7 @@ class FabricMainWindow {
 		JPanel heroLeft = new JPanel(new BorderLayout(14, 0));
 		heroLeft.setOpaque(false);
 		Icon modIcon = loadModIcon(issue.modId, 42);
-		heroLeft.add(new JLabel(modIcon != null ? modIcon : new DocumentIcon(42)), BorderLayout.WEST);
+		heroLeft.add(new JLabel(modIcon != null ? modIcon : loadUiIcon("/ui/icon/document_x24.png", 42, secondaryTextColor())), BorderLayout.WEST);
 
 		JPanel heroText = new JPanel();
 		heroText.setOpaque(false);
@@ -606,7 +606,7 @@ class FabricMainWindow {
 			JPanel left = new JPanel(new BorderLayout(14, 0));
 			left.setOpaque(false);
 			Icon requirementIcon = loadModIcon(requirement.id, 30);
-			left.add(new JLabel(requirementIcon != null ? requirementIcon : new DocumentIcon(30)), BorderLayout.WEST);
+			left.add(new JLabel(requirementIcon != null ? requirementIcon : loadUiIcon("/ui/icon/document_x24.png", 30, secondaryTextColor())), BorderLayout.WEST);
 
 			JPanel text = new JPanel();
 			text.setOpaque(false);
@@ -643,7 +643,7 @@ class FabricMainWindow {
 		badge.setOpaque(false);
 		badge.setForeground(Color.WHITE);
 		badge.setFont(deriveFontSize(badge, Font.BOLD, 15f));
-		badge.setIcon(new CircleIcon(38, ERROR));
+		badge.setIcon(loadUiIcon("/ui/icon/circle_x24.png", 38, ERROR));
 		badge.setHorizontalTextPosition(SwingConstants.CENTER);
 		badge.setVerticalTextPosition(SwingConstants.CENTER);
 		badge.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
@@ -686,7 +686,7 @@ class FabricMainWindow {
 			JPanel left = new JPanel(new BorderLayout(14, 0));
 			left.setOpaque(false);
 			Icon dependencyIcon = loadModIcon(dependency.id, 30);
-			left.add(new JLabel(dependencyIcon != null ? dependencyIcon : new DocumentIcon(30)), BorderLayout.WEST);
+			left.add(new JLabel(dependencyIcon != null ? dependencyIcon : loadUiIcon("/ui/icon/document_x24.png", 30, secondaryTextColor())), BorderLayout.WEST);
 
 			JLabel name = new JLabel(dependency.displayName);
 			name.setFont(deriveFont(name, Font.BOLD, 1.12f));
@@ -718,7 +718,7 @@ class FabricMainWindow {
 			JPanel left = new JPanel(new BorderLayout(14, 0));
 			left.setOpaque(false);
 			Icon modIcon = loadModIcon(dependant.modId, 34);
-			left.add(new JLabel(modIcon != null ? modIcon : new DocumentIcon(34)), BorderLayout.WEST);
+			left.add(new JLabel(modIcon != null ? modIcon : loadUiIcon("/ui/icon/document_x24.png", 34, secondaryTextColor())), BorderLayout.WEST);
 
 			JPanel text = new JPanel();
 			text.setOpaque(false);
@@ -795,7 +795,7 @@ class FabricMainWindow {
 			}
 		}
 
-		return new DocumentIcon(size);
+		return loadUiIcon("/ui/icon/document_x24.png", size, secondaryTextColor());
 	}
 
 	private static JPanel createDetailSection(String title, String description, Component rows) {
@@ -1005,7 +1005,7 @@ class FabricMainWindow {
 			JButton btn = new JButton(button.text);
 
 			if (button.clipboard != null) {
-				btn.setIcon(new ClipboardIcon(18));
+				btn.setIcon(loadUiIcon("/ui/icon/clipboard_x24.png", 18, INFO));
 			}
 
 			btn.addActionListener(event -> {
@@ -1270,6 +1270,41 @@ class FabricMainWindow {
 		} catch (IOException e) {
 			return null;
 		}
+	}
+
+	private static Icon loadUiIcon(String path, int size, Color color) {
+		String cacheKey = path + "@" + size + "@" + color.getRGB();
+		Icon cached = uiIconCache.get(cacheKey);
+
+		if (cached != null) {
+			return cached;
+		}
+
+		try {
+			BufferedImage image = tintImage(loadImage(path), color);
+			Icon icon = new ImageIcon(scaleImage(image, size));
+			uiIconCache.put(cacheKey, icon);
+			return icon;
+		} catch (IOException e) {
+			return missingIcon();
+		}
+	}
+
+	private static BufferedImage tintImage(BufferedImage image, Color color) {
+		BufferedImage tinted = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		int colorRgb = color.getRGB() & 0x00_FF_FF_FF;
+
+		for (int y = 0; y < image.getHeight(); y++) {
+			for (int x = 0; x < image.getWidth(); x++) {
+				int alpha = image.getRGB(x, y) >>> 24;
+
+				if (alpha != 0) {
+					tinted.setRGB(x, y, (alpha << 24) | colorRgb);
+				}
+			}
+		}
+
+		return tinted;
 	}
 
 	private static Optional<String> findModDisplayName(String modId) {
@@ -1722,130 +1757,6 @@ class FabricMainWindow {
 			g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
 			g2.dispose();
 			super.paintComponent(g);
-		}
-	}
-
-	private static final class ErrorIcon implements Icon {
-		private final int size;
-
-		ErrorIcon(int size) {
-			this.size = size;
-		}
-
-		@Override
-		public int getIconWidth() {
-			return size;
-		}
-
-		@Override
-		public int getIconHeight() {
-			return size;
-		}
-
-		@Override
-		public void paintIcon(Component c, Graphics g, int x, int y) {
-			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setColor(ERROR);
-			g2.fillOval(x, y, size, size);
-			g2.setColor(Color.WHITE);
-			g2.setStroke(new BasicStroke(Math.max(3, size / 14), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			int cx = x + size / 2;
-			g2.drawLine(cx, y + size / 4, cx, y + size * 3 / 5);
-			g2.fillOval(cx - size / 22, y + size * 11 / 16, size / 11, size / 11);
-			g2.dispose();
-		}
-	}
-
-	private static final class CircleIcon implements Icon {
-		private final int size;
-		private final Color color;
-
-		CircleIcon(int size, Color color) {
-			this.size = size;
-			this.color = color;
-		}
-
-		@Override
-		public int getIconWidth() {
-			return size;
-		}
-
-		@Override
-		public int getIconHeight() {
-			return size;
-		}
-
-		@Override
-		public void paintIcon(Component c, Graphics g, int x, int y) {
-			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setColor(color);
-			g2.fillOval(x, y, size, size);
-			g2.dispose();
-		}
-	}
-
-	private static final class DocumentIcon implements Icon {
-		private final int size;
-
-		DocumentIcon(int size) {
-			this.size = size;
-		}
-
-		@Override
-		public int getIconWidth() {
-			return size;
-		}
-
-		@Override
-		public int getIconHeight() {
-			return size;
-		}
-
-		@Override
-		public void paintIcon(Component c, Graphics g, int x, int y) {
-			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setColor(secondaryTextColor());
-			int w = size * 4 / 5;
-			int left = x + (size - w) / 2;
-			int fold = size / 4;
-			g2.fillRoundRect(left, y, w, size, 3, 3);
-			g2.setColor(cardColor());
-			int[] xs = new int[] { left + w - fold, left + w, left + w };
-			int[] ys = new int[] { y, y + fold, y };
-			g2.fillPolygon(xs, ys, 3);
-			g2.dispose();
-		}
-	}
-
-	private static final class ClipboardIcon implements Icon {
-		private final int size;
-
-		ClipboardIcon(int size) {
-			this.size = size;
-		}
-
-		@Override
-		public int getIconWidth() {
-			return size;
-		}
-
-		@Override
-		public int getIconHeight() {
-			return size;
-		}
-
-		@Override
-		public void paintIcon(Component c, Graphics g, int x, int y) {
-			Graphics2D g2 = (Graphics2D) g.create();
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2.setColor(INFO);
-			g2.setStroke(new BasicStroke(1.5f));
-			g2.drawRoundRect(x + size / 4, y + size / 6, size * 3 / 5, size * 3 / 4, 2, 2);
-			g2.drawRoundRect(x + size / 8, y + size / 3, size * 3 / 5, size * 3 / 4, 2, 2);
-			g2.dispose();
 		}
 	}
 
