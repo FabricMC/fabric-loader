@@ -30,6 +30,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.Insets;
@@ -481,13 +483,13 @@ class FabricMainWindow {
 
 		for (ModIssue issue : data.modIssues.values()) {
 			RoundedPanel row = createCardPanel();
-			row.setLayout(new BorderLayout(16, 0));
-			row.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
+			row.setLayout(new BorderLayout(18, 0));
+			row.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
 
 			JPanel left = new JPanel(new BorderLayout(14, 0));
 			left.setOpaque(false);
 			Icon modIcon = loadModIcon(issue.modId, 34);
-			left.add(new JLabel(modIcon != null ? modIcon : new DocumentIcon(34)), BorderLayout.WEST);
+			left.add(createIconLabel(modIcon != null ? modIcon : new DocumentIcon(34), 44), BorderLayout.WEST);
 
 			JPanel text = new JPanel();
 			text.setOpaque(false);
@@ -496,35 +498,27 @@ class FabricMainWindow {
 			JLabel name = new JLabel(html("<b>" + escape(issue.modDisplayName) + "</b>"
 					+ (issue.modId.isEmpty() ? "" : " <span style='color:" + colorToHex(secondaryTextColor()) + "'>(" + escape(issue.modId) + ")</span>")));
 			name.setFont(deriveFont(name, 1.07f));
+			name.setAlignmentX(Component.LEFT_ALIGNMENT);
 			text.add(name);
 			text.add(Box.createVerticalStrut(4));
 
 			JLabel summary = new JLabel(issue.getSummaryText());
 			summary.setFont(deriveFont(summary, 1.0f));
 			summary.setForeground(secondaryTextColor());
+			summary.setAlignmentX(Component.LEFT_ALIGNMENT);
 			text.add(summary);
 
-			left.add(text, BorderLayout.CENTER);
+			left.add(centerVertically(text), BorderLayout.CENTER);
 			row.add(left, BorderLayout.CENTER);
-
-			JPanel right = new JPanel();
-			right.setOpaque(false);
-			right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
 
 			if (!issue.modVersion.isEmpty()) {
 				JLabel pill = createPill(issue.modVersion);
-				pill.setAlignmentX(Component.RIGHT_ALIGNMENT);
-				right.add(pill);
-				right.add(Box.createVerticalStrut(10));
+				pill.setHorizontalAlignment(SwingConstants.CENTER);
+				pill.setPreferredSize(new Dimension(96, pill.getPreferredSize().height));
+				row.add(pill, BorderLayout.EAST);
 			}
 
-			JButton detailsButton = createDetailButton(Localization.format("gui.dependency.button.details"));
-			detailsButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
-			detailsButton.addActionListener(event -> onSelect.accept(issue));
-			right.add(detailsButton);
-
-			row.add(right, BorderLayout.EAST);
-			attachClickHandler(row, () -> onSelect.accept(issue));
+			attachSelectableRowHandler(row, () -> onSelect.accept(issue));
 
 			rows.add(row);
 			rows.add(Box.createVerticalStrut(8));
@@ -799,6 +793,26 @@ class FabricMainWindow {
 		return section;
 	}
 
+	private static JLabel createIconLabel(Icon icon, int size) {
+		JLabel label = new JLabel(icon, SwingConstants.CENTER);
+		label.setVerticalAlignment(SwingConstants.CENTER);
+		Dimension dimension = new Dimension(size, size);
+		label.setMinimumSize(dimension);
+		label.setPreferredSize(dimension);
+		label.setMaximumSize(dimension);
+		return label;
+	}
+
+	private static JPanel centerVertically(Component component) {
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setOpaque(false);
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
+		panel.add(component, constraints);
+		return panel;
+	}
+
 	private static JPanel createRowsPanel() {
 		JPanel rows = new JPanel();
 		rows.setOpaque(false);
@@ -850,20 +864,62 @@ class FabricMainWindow {
 		return Box.createVerticalStrut(24);
 	}
 
-	private static void attachClickHandler(Component component, Runnable action) {
-		if (!(component instanceof JButton)) {
-			component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			component.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					action.run();
+	private static void attachSelectableRowHandler(RoundedPanel row, Runnable action) {
+		Color normalBorder = borderColor();
+		Color hoverBorder = accentColor();
+		Color pressedBorder = darkerColor(accentColor(), 0.78f);
+		Color normalBackground = cardColor();
+		Color hoverBackground = tintedColor(INFO, 0.06f);
+		Color pressedBackground = tintedColor(INFO, 0.12f);
+
+		MouseAdapter listener = new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				applyRowState(row, hoverBorder, hoverBackground);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				if (!row.contains(SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row))) {
+					applyRowState(row, normalBorder, normalBackground);
 				}
-			});
-		}
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				applyRowState(row, pressedBorder, pressedBackground);
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				boolean inside = row.contains(SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row));
+
+				if (inside) {
+					// Reset before switching cards so the overview row is not left highlighted when navigating back.
+					applyRowState(row, normalBorder, normalBackground);
+					action.run();
+				} else {
+					applyRowState(row, normalBorder, normalBackground);
+				}
+			}
+		};
+
+		installRowMouseHandler(row, listener);
+	}
+
+	private static void applyRowState(RoundedPanel row, Color border, Color background) {
+		row.setBorderColor(border);
+		row.setBackground(background);
+		row.repaint();
+	}
+
+	private static void installRowMouseHandler(Component component, MouseAdapter listener) {
+		component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		component.addMouseListener(listener);
 
 		if (component instanceof Container) {
 			for (Component child : ((Container) component).getComponents()) {
-				attachClickHandler(child, action);
+				installRowMouseHandler(child, listener);
 			}
 		}
 	}
@@ -1060,6 +1116,18 @@ class FabricMainWindow {
 	private static Color secondaryTextColor() {
 		Color color = UIManager.getColor("Label.disabledForeground");
 		return color == null ? new Color(105, 110, 118) : color;
+	}
+
+	private static Color accentColor() {
+		Color color = UIManager.getColor("Component.focusColor");
+		return color == null ? INFO : color;
+	}
+
+	private static Color darkerColor(Color color, float multiplier) {
+		return new Color(
+				Math.max(0, Math.round(color.getRed() * multiplier)),
+				Math.max(0, Math.round(color.getGreen() * multiplier)),
+				Math.max(0, Math.round(color.getBlue() * multiplier)));
 	}
 
 	private static Color tintedColor(Color color, float amount) {
