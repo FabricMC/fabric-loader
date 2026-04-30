@@ -171,6 +171,11 @@ public final class FabricStatusTree {
 		this.dependencyGuiData = dependencyGuiData;
 	}
 
+	public enum DependencyGuiRequirementKind {
+		DEPENDENCY,
+		CONFLICT
+	}
+
 	public static final class DependencyGuiData {
 		public final List<DependencyGuiSuggestedChange> suggestedChanges = new ArrayList<>();
 		public final Map<String, DependencyGuiDependency> dependencies = new LinkedHashMap<>();
@@ -186,7 +191,7 @@ public final class FabricStatusTree {
 
 			for (int i = is.readInt(); i > 0; i--) {
 				DependencyGuiDependency dependency = new DependencyGuiDependency(is);
-				dependencies.put(dependency.id, dependency);
+				dependencies.put(dependency.id + "@" + dependency.kind.name(), dependency);
 			}
 
 			for (int i = is.readInt(); i > 0; i--) {
@@ -232,12 +237,13 @@ public final class FabricStatusTree {
 			return suggestedChange;
 		}
 
-		public DependencyGuiDependency addDependency(String id, String displayName, String versionRequirement) {
-			DependencyGuiDependency dependency = dependencies.get(id);
+		public DependencyGuiDependency addDependency(String id, String displayName, String versionRequirement, DependencyGuiRequirementKind kind) {
+			String key = id + "@" + kind.name();
+			DependencyGuiDependency dependency = dependencies.get(key);
 
 			if (dependency == null) {
-				dependency = new DependencyGuiDependency(id, displayName);
-				dependencies.put(id, dependency);
+				dependency = new DependencyGuiDependency(id, displayName, kind);
+				dependencies.put(key, dependency);
 			}
 
 			dependency.addVersionRequirement(versionRequirement);
@@ -323,6 +329,7 @@ public final class FabricStatusTree {
 	public static final class DependencyGuiSuggestedChange {
 		public final String text;
 		public final String targetId;
+		public final List<String> details = new ArrayList<>();
 
 		public DependencyGuiSuggestedChange(String text, String targetId) {
 			this.text = Objects.requireNonNull(text, "null text");
@@ -332,27 +339,47 @@ public final class FabricStatusTree {
 		DependencyGuiSuggestedChange(DataInputStream is) throws IOException {
 			text = is.readUTF();
 			targetId = is.readUTF();
+
+			for (int i = is.readInt(); i > 0; i--) {
+				details.add(is.readUTF());
+			}
 		}
 
 		void writeTo(DataOutputStream os) throws IOException {
 			os.writeUTF(text);
 			os.writeUTF(targetId);
+			os.writeInt(details.size());
+
+			for (String detail : details) {
+				os.writeUTF(detail);
+			}
+		}
+
+		public DependencyGuiSuggestedChange addDetail(String detail) {
+			if (detail != null && !detail.isEmpty()) {
+				details.add(detail);
+			}
+
+			return this;
 		}
 	}
 
 	public static final class DependencyGuiDependency {
 		public final String id;
 		public final String displayName;
+		public final DependencyGuiRequirementKind kind;
 		public final List<String> versionRequirements = new ArrayList<>();
 
-		public DependencyGuiDependency(String id, String displayName) {
+		public DependencyGuiDependency(String id, String displayName, DependencyGuiRequirementKind kind) {
 			this.id = Objects.requireNonNull(id, "null id");
 			this.displayName = Objects.requireNonNull(displayName, "null displayName");
+			this.kind = Objects.requireNonNull(kind, "null kind");
 		}
 
 		DependencyGuiDependency(DataInputStream is) throws IOException {
 			id = is.readUTF();
 			displayName = is.readUTF();
+			kind = DependencyGuiRequirementKind.valueOf(is.readUTF());
 
 			for (int i = is.readInt(); i > 0; i--) {
 				versionRequirements.add(is.readUTF());
@@ -362,6 +389,7 @@ public final class FabricStatusTree {
 		void writeTo(DataOutputStream os) throws IOException {
 			os.writeUTF(id);
 			os.writeUTF(displayName);
+			os.writeUTF(kind.name());
 			os.writeInt(versionRequirements.size());
 
 			for (String versionRequirement : versionRequirements) {
@@ -411,8 +439,8 @@ public final class FabricStatusTree {
 			}
 		}
 
-		public DependencyGuiRequirement addRequirement(String dependencyId, String dependencyDisplayName, String versionRequirement) {
-			DependencyGuiRequirement requirement = new DependencyGuiRequirement(dependencyId, dependencyDisplayName, versionRequirement);
+		public DependencyGuiRequirement addRequirement(String dependencyId, String dependencyDisplayName, String versionRequirement, DependencyGuiRequirementKind kind) {
+			DependencyGuiRequirement requirement = new DependencyGuiRequirement(dependencyId, dependencyDisplayName, versionRequirement, kind);
 			requirements.add(requirement);
 			return requirement;
 		}
@@ -422,23 +450,27 @@ public final class FabricStatusTree {
 		public final String dependencyId;
 		public final String dependencyDisplayName;
 		public final String versionRequirement;
+		public final DependencyGuiRequirementKind kind;
 
-		public DependencyGuiRequirement(String dependencyId, String dependencyDisplayName, String versionRequirement) {
+		public DependencyGuiRequirement(String dependencyId, String dependencyDisplayName, String versionRequirement, DependencyGuiRequirementKind kind) {
 			this.dependencyId = Objects.requireNonNull(dependencyId, "null dependencyId");
 			this.dependencyDisplayName = Objects.requireNonNull(dependencyDisplayName, "null dependencyDisplayName");
 			this.versionRequirement = versionRequirement == null ? "" : versionRequirement;
+			this.kind = Objects.requireNonNull(kind, "null kind");
 		}
 
 		DependencyGuiRequirement(DataInputStream is) throws IOException {
 			dependencyId = is.readUTF();
 			dependencyDisplayName = is.readUTF();
 			versionRequirement = is.readUTF();
+			kind = DependencyGuiRequirementKind.valueOf(is.readUTF());
 		}
 
 		void writeTo(DataOutputStream os) throws IOException {
 			os.writeUTF(dependencyId);
 			os.writeUTF(dependencyDisplayName);
 			os.writeUTF(versionRequirement);
+			os.writeUTF(kind.name());
 		}
 	}
 

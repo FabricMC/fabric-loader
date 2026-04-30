@@ -106,6 +106,7 @@ import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiIconSource;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiDependency;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiMod;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiRequirement;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiRequirementKind;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiSuggestedChange;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricBasicButtonType;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.FabricStatusButton;
@@ -401,7 +402,18 @@ class FabricMainWindow {
 			}
 
 			page.add(leftAligned(createNumberedSection(section++, Localization.format("gui.dependency.section.whatsMissing"),
-					Localization.format("gui.dependency.section.whatsMissing.desc"), createDependencyRows(data))));
+					Localization.format("gui.dependency.section.whatsMissing.desc"), createDependencyRows(data.dependencies.values()))));
+		}
+
+		if (!data.conflicts.isEmpty()) {
+			if (section > 1) {
+				page.add(createSectionGap());
+				page.add(createPageSeparator());
+				page.add(createSectionGap());
+			}
+
+			page.add(leftAligned(createNumberedSection(section++, Localization.format("gui.dependency.section.conflictsOverview"),
+					Localization.format("gui.dependency.section.conflictsOverview.desc"), createDependencyRows(data.conflicts.values()))));
 		}
 
 		if (!data.dependants.isEmpty()) {
@@ -471,8 +483,16 @@ class FabricMainWindow {
 			page.add(createSectionGap());
 			page.add(createPageSeparator());
 			page.add(createSectionGap());
-			page.add(leftAligned(createNumberedSection(section, Localization.format("gui.dependency.section.missingOverview"),
-					Localization.format("gui.dependency.section.missingOverview.desc"), createDependencyRows(data))));
+			page.add(leftAligned(createNumberedSection(section++, Localization.format("gui.dependency.section.missingOverview"),
+					Localization.format("gui.dependency.section.missingOverview.desc"), createDependencyRows(data.dependencies.values()))));
+		}
+
+		if (!data.conflicts.isEmpty()) {
+			page.add(createSectionGap());
+			page.add(createPageSeparator());
+			page.add(createSectionGap());
+			page.add(leftAligned(createNumberedSection(section, Localization.format("gui.dependency.section.conflictsOverview"),
+					Localization.format("gui.dependency.section.conflictsOverview.desc"), createDependencyRows(data.conflicts.values()))));
 		}
 
 		return page;
@@ -575,8 +595,8 @@ class FabricMainWindow {
 
 		page.add(leftAligned(hero));
 		page.add(Box.createVerticalStrut(24));
-		page.add(leftAligned(createDetailSection(Localization.format("gui.dependency.section.requiredDependencies"),
-				Localization.format("gui.dependency.section.requiredDependencies.desc"), createModRequirementRows(issue))));
+		page.add(leftAligned(createDetailSection(issue.getDetailSectionTitle(),
+				issue.getDetailSectionDescription(), createModRequirementRows(issue))));
 
 		return page;
 	}
@@ -604,7 +624,7 @@ class FabricMainWindow {
 
 			for (String version : requirement.versions) {
 				text.add(Box.createVerticalStrut(4));
-				JLabel line = new JLabel(html("<span style='color:" + colorToHex(ERROR) + "'>" + escape(formatVersionText(version)) + "</span>"));
+				JLabel line = new JLabel(html("<span style='color:" + colorToHex(ERROR) + "'>" + escape(formatIssueVersionText(version, requirement.conflict)) + "</span>"));
 				line.setFont(deriveFont(line, 0.98f));
 				text.add(line);
 			}
@@ -661,10 +681,10 @@ class FabricMainWindow {
 		return section;
 	}
 
-	private static JPanel createDependencyRows(DependencyUiData data) {
+	private static JPanel createDependencyRows(Iterable<DependencyRequirement> dependencies) {
 		JPanel rows = createRowsPanel();
 
-		for (DependencyRequirement dependency : data.dependencies.values()) {
+		for (DependencyRequirement dependency : dependencies) {
 			RoundedPanel row = createCardPanel();
 			row.setLayout(new BorderLayout(16, 0));
 			row.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
@@ -679,7 +699,7 @@ class FabricMainWindow {
 			left.add(name, BorderLayout.CENTER);
 			row.add(left, BorderLayout.CENTER);
 
-			JLabel version = new JLabel(html("<span style='color:" + colorToHex(ERROR) + "'>" + escape(formatVersionText(dependency.getSummaryVersion())) + "</span>"));
+			JLabel version = new JLabel(html("<span style='color:" + colorToHex(ERROR) + "'>" + escape(formatIssueVersionText(dependency.getSummaryVersion(), dependency.conflict)) + "</span>"));
 			version.setFont(deriveFont(version, 1.0f));
 			row.add(version, BorderLayout.EAST);
 
@@ -716,8 +736,8 @@ class FabricMainWindow {
 			text.add(name);
 			text.add(Box.createVerticalStrut(3));
 
-			JLabel requires = new JLabel(html(escape(Localization.format("gui.dependency.requires")) + " <span style='color:" + colorToHex(ERROR) + "'>" + escape(dependant.dependencyDisplayName) + "</span>"
-					+ (dependant.requiredVersion.isEmpty() ? "" : " <span style='color:" + colorToHex(secondaryTextColor()) + "'>(" + escape(formatVersionText(dependant.requiredVersion)) + ")</span>")));
+			JLabel requires = new JLabel(html(escape(Localization.format(dependant.conflict ? "gui.dependency.conflictsWith" : "gui.dependency.requires")) + " <span style='color:" + colorToHex(ERROR) + "'>" + escape(dependant.dependencyDisplayName) + "</span>"
+					+ (dependant.requiredVersion.isEmpty() ? "" : " <span style='color:" + colorToHex(secondaryTextColor()) + "'>(" + escape(formatIssueVersionText(dependant.requiredVersion, dependant.conflict)) + ")</span>")));
 			requires.setFont(deriveFont(requires, 1.0f));
 			text.add(requires);
 
@@ -740,12 +760,30 @@ class FabricMainWindow {
 	private static JPanel createActionRows(DependencyUiData data) {
 		JPanel rows = createRowsPanel();
 
-		for (String action : data.otherActions) {
+		for (SuggestedAction action : data.otherActions) {
 			RoundedPanel row = createCardPanel();
 			row.setLayout(new BorderLayout(12, 0));
 			row.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
-			row.add(new JLabel(getActionIcon(data.actionTargetIds.get(action), 24)), BorderLayout.WEST);
-			row.add(new JLabel(action), BorderLayout.CENTER);
+			row.add(new JLabel(getActionIcon(action.targetId, 24)), BorderLayout.WEST);
+
+			JPanel text = new JPanel();
+			text.setOpaque(false);
+			text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
+
+			JLabel main = new JLabel(action.text);
+			main.setAlignmentX(Component.LEFT_ALIGNMENT);
+			text.add(main);
+
+			for (String detail : action.details) {
+				text.add(Box.createVerticalStrut(4));
+				JLabel detailLabel = new JLabel(html("&bull; " + escape(detail)));
+				detailLabel.setFont(deriveFont(detailLabel, 0.96f));
+				detailLabel.setForeground(secondaryTextColor());
+				detailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+				text.add(detailLabel);
+			}
+
+			row.add(text, BorderLayout.CENTER);
 			rows.add(row);
 			rows.add(Box.createVerticalStrut(8));
 		}
@@ -1150,6 +1188,16 @@ class FabricMainWindow {
 		return version;
 	}
 
+	private static String formatIssueVersionText(String version, boolean conflict) {
+		String formatted = formatVersionText(version);
+
+		if (formatted.isEmpty()) {
+			return formatted;
+		}
+
+		return conflict ? Localization.format("gui.dependency.conflict.version", formatted) : formatted;
+	}
+
 	private static Icon loadModIcon(String modId, int size) {
 		if (modId == null || modId.isEmpty()) {
 			return null;
@@ -1359,22 +1407,46 @@ class FabricMainWindow {
 		return text.replace("<html>", "").replace("</html>", "");
 	}
 
+	private static final class SuggestedAction {
+		final String text;
+		String targetId;
+		final List<String> details = new ArrayList<>();
+
+		SuggestedAction(String text, String targetId, List<String> details) {
+			this.text = text;
+			this.targetId = targetId == null ? "" : targetId;
+			addDetails(details);
+		}
+
+		void addDetails(List<String> details) {
+			if (details == null) {
+				return;
+			}
+
+			for (String detail : details) {
+				if (detail != null && !detail.isEmpty() && !this.details.contains(detail)) {
+					this.details.add(detail);
+				}
+			}
+		}
+	}
+
 	private static final class DependencyUiData {
 		final Map<String, DependencyRequirement> dependencies = new LinkedHashMap<>();
+		final Map<String, DependencyRequirement> conflicts = new LinkedHashMap<>();
 		final Map<String, ModIssue> modIssues = new LinkedHashMap<>();
 		final List<DependantRequirement> dependants = new ArrayList<>();
-		final List<String> otherActions = new ArrayList<>();
-		final Map<String, String> actionTargetIds = new LinkedHashMap<>();
+		final List<SuggestedAction> otherActions = new ArrayList<>();
 
 		static DependencyUiData from(DependencyGuiData source) {
 			DependencyUiData data = new DependencyUiData();
 
 			for (DependencyGuiSuggestedChange suggestedChange : source.suggestedChanges) {
-				data.addSuggestedAction(suggestedChange.text, suggestedChange.targetId);
+				data.addSuggestedAction(suggestedChange.text, suggestedChange.targetId, suggestedChange.details);
 			}
 
 			for (DependencyGuiDependency dependency : source.dependencies.values()) {
-				DependencyRequirement target = data.getOrCreateDependency(dependency.id, dependency.displayName);
+				DependencyRequirement target = data.getOrCreateDependency(dependency.id, dependency.displayName, dependency.kind == DependencyGuiRequirementKind.CONFLICT);
 
 				for (String versionRequirement : dependency.versionRequirements) {
 					target.addVersion(versionRequirement);
@@ -1386,11 +1458,12 @@ class FabricMainWindow {
 				data.modIssues.put(issue.getKey(), issue);
 
 				for (DependencyGuiRequirement sourceRequirement : sourceMod.requirements) {
-					DependencyRequirement dependency = data.getOrCreateDependency(sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName);
+					boolean conflict = sourceRequirement.kind == DependencyGuiRequirementKind.CONFLICT;
+					DependencyRequirement dependency = data.getOrCreateDependency(sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, conflict);
 					dependency.addVersion(sourceRequirement.versionRequirement);
-					issue.addRequirement(sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement);
+					issue.addRequirement(sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement, conflict);
 					data.dependants.add(new DependantRequirement(sourceMod.displayName, sourceMod.id, sourceMod.version,
-							sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement));
+							sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement, conflict));
 				}
 			}
 
@@ -1398,26 +1471,33 @@ class FabricMainWindow {
 		}
 
 		boolean hasContent() {
-			return !dependencies.isEmpty() || !modIssues.isEmpty() || !dependants.isEmpty() || !otherActions.isEmpty();
+			return !dependencies.isEmpty() || !conflicts.isEmpty() || !modIssues.isEmpty() || !dependants.isEmpty() || !otherActions.isEmpty();
 		}
 
-		private void addSuggestedAction(String action, String targetId) {
-			if (!otherActions.contains(action)) {
-				otherActions.add(action);
+		private void addSuggestedAction(String text, String targetId, List<String> details) {
+			for (SuggestedAction action : otherActions) {
+				if (action.text.equals(text)) {
+					action.addDetails(details);
+
+					if (action.targetId.isEmpty() && targetId != null && !targetId.isEmpty()) {
+						action.targetId = targetId;
+					}
+
+					return;
+				}
 			}
 
-			if (targetId != null && !targetId.isEmpty()) {
-				actionTargetIds.put(action, targetId);
-			}
+			otherActions.add(new SuggestedAction(text, targetId, details));
 		}
 
-		private DependencyRequirement getOrCreateDependency(String id, String displayName) {
+		private DependencyRequirement getOrCreateDependency(String id, String displayName, boolean conflict) {
 			displayName = canonicalDisplayName(id, displayName);
-			DependencyRequirement existing = dependencies.get(id);
+			Map<String, DependencyRequirement> targetMap = conflict ? conflicts : dependencies;
+			DependencyRequirement existing = targetMap.get(id);
 
 			if (existing == null) {
-				existing = new DependencyRequirement(id, displayName, "");
-				dependencies.put(id, existing);
+				existing = new DependencyRequirement(id, displayName, "", conflict);
+				targetMap.put(id, existing);
 			}
 
 			return existing;
@@ -1431,11 +1511,13 @@ class FabricMainWindow {
 	private static final class DependencyRequirement {
 		final String id;
 		final String displayName;
+		final boolean conflict;
 		final List<String> versions = new ArrayList<>();
 
-		DependencyRequirement(String id, String displayName, String version) {
+		DependencyRequirement(String id, String displayName, String version, boolean conflict) {
 			this.id = id;
 			this.displayName = displayName;
+			this.conflict = conflict;
 			addVersion(version);
 		}
 
@@ -1456,11 +1538,13 @@ class FabricMainWindow {
 		final String dependencyId;
 		final String dependencyDisplayName;
 		final String requiredVersion;
+		final boolean conflict;
 
-		RequirementEntry(String dependencyId, String dependencyDisplayName, String requiredVersion) {
+		RequirementEntry(String dependencyId, String dependencyDisplayName, String requiredVersion, boolean conflict) {
 			this.dependencyId = dependencyId;
 			this.dependencyDisplayName = dependencyDisplayName;
 			this.requiredVersion = requiredVersion;
+			this.conflict = conflict;
 		}
 	}
 
@@ -1476,43 +1560,114 @@ class FabricMainWindow {
 			this.modVersion = modVersion;
 		}
 
-		void addRequirement(String dependencyId, String dependencyDisplayName, String requiredVersion) {
+		void addRequirement(String dependencyId, String dependencyDisplayName, String requiredVersion, boolean conflict) {
 			dependencyDisplayName = DependencyUiData.canonicalDisplayName(dependencyId, dependencyDisplayName);
 
 			for (RequirementEntry entry : requirements) {
-				if (entry.dependencyId.equals(dependencyId) && entry.requiredVersion.equals(requiredVersion)) {
+				if (entry.dependencyId.equals(dependencyId) && entry.requiredVersion.equals(requiredVersion) && entry.conflict == conflict) {
 					return;
 				}
 			}
 
-			requirements.add(new RequirementEntry(dependencyId, dependencyDisplayName, requiredVersion));
+			requirements.add(new RequirementEntry(dependencyId, dependencyDisplayName, requiredVersion, conflict));
 		}
 
 		String getKey() {
 			return modId.isEmpty() ? modDisplayName + "@" + modVersion : modId;
 		}
 
+		int getDependencyCount() {
+			int count = 0;
+
+			for (RequirementEntry requirement : requirements) {
+				if (!requirement.conflict) count++;
+			}
+
+			return count;
+		}
+
+		int getConflictCount() {
+			int count = 0;
+
+			for (RequirementEntry requirement : requirements) {
+				if (requirement.conflict) count++;
+			}
+
+			return count;
+		}
+
 		String getSummaryText() {
 			if (requirements.isEmpty()) return Localization.format("gui.dependency.mod.noDetails");
-			if (requirements.size() == 1) return Localization.format("gui.dependency.mod.summary.one", requirements.get(0).dependencyDisplayName);
-			if (requirements.size() == 2) return Localization.format("gui.dependency.mod.summary.two", requirements.get(0).dependencyDisplayName, requirements.get(1).dependencyDisplayName);
-			return Localization.format("gui.dependency.mod.summary.many", requirements.size(), requirements.get(0).dependencyDisplayName, requirements.get(1).dependencyDisplayName, requirements.size() - 2);
+
+			int dependencyCount = getDependencyCount();
+			int conflictCount = getConflictCount();
+
+			if (dependencyCount > 0 && conflictCount > 0) {
+				return Localization.format("gui.dependency.mod.summary.mixed", dependencyCount, conflictCount);
+			}
+
+			if (conflictCount > 0) {
+				if (conflictCount == 1) return Localization.format("gui.dependency.mod.conflictSummary.one", getRequirement(0, true).dependencyDisplayName);
+				if (conflictCount == 2) return Localization.format("gui.dependency.mod.conflictSummary.two", getRequirement(0, true).dependencyDisplayName, getRequirement(1, true).dependencyDisplayName);
+				return Localization.format("gui.dependency.mod.conflictSummary.many", conflictCount, getRequirement(0, true).dependencyDisplayName, getRequirement(1, true).dependencyDisplayName, conflictCount - 2);
+			}
+
+			if (dependencyCount == 1) return Localization.format("gui.dependency.mod.summary.one", getRequirement(0, false).dependencyDisplayName);
+			if (dependencyCount == 2) return Localization.format("gui.dependency.mod.summary.two", getRequirement(0, false).dependencyDisplayName, getRequirement(1, false).dependencyDisplayName);
+			return Localization.format("gui.dependency.mod.summary.many", dependencyCount, getRequirement(0, false).dependencyDisplayName, getRequirement(1, false).dependencyDisplayName, dependencyCount - 2);
+		}
+
+		private RequirementEntry getRequirement(int index, boolean conflict) {
+			int current = 0;
+
+			for (RequirementEntry requirement : requirements) {
+				if (requirement.conflict == conflict) {
+					if (current++ == index) return requirement;
+				}
+			}
+
+			throw new IndexOutOfBoundsException(String.valueOf(index));
 		}
 
 		String getDetailSubtitle() {
+			int dependencyCount = getDependencyCount();
+			int conflictCount = getConflictCount();
+
+			if (dependencyCount > 0 && conflictCount > 0) {
+				return Localization.format("gui.dependency.mod.detailSubtitle.mixed", requirements.size());
+			}
+
+			if (conflictCount > 0) {
+				return conflictCount == 1 ? Localization.format("gui.dependency.mod.conflictDetailSubtitle.one")
+						: Localization.format("gui.dependency.mod.conflictDetailSubtitle.many", conflictCount);
+			}
+
 			return requirements.size() == 1 ? Localization.format("gui.dependency.mod.detailSubtitle.one")
 					: Localization.format("gui.dependency.mod.detailSubtitle.many", requirements.size());
+		}
+
+		String getDetailSectionTitle() {
+			if (getDependencyCount() > 0 && getConflictCount() > 0) return Localization.format("gui.dependency.section.dependencyIssues");
+			if (getConflictCount() > 0) return Localization.format("gui.dependency.section.conflictingMods");
+			return Localization.format("gui.dependency.section.requiredDependencies");
+		}
+
+		String getDetailSectionDescription() {
+			if (getDependencyCount() > 0 && getConflictCount() > 0) return Localization.format("gui.dependency.section.dependencyIssues.desc");
+			if (getConflictCount() > 0) return Localization.format("gui.dependency.section.conflictingMods.desc");
+			return Localization.format("gui.dependency.section.requiredDependencies.desc");
 		}
 
 		Map<String, DependencyRequirement> getGroupedRequirements() {
 			Map<String, DependencyRequirement> grouped = new LinkedHashMap<>();
 
 			for (RequirementEntry entry : requirements) {
-				DependencyRequirement existing = grouped.get(entry.dependencyId);
+				String key = entry.dependencyId + "@" + entry.conflict;
+				DependencyRequirement existing = grouped.get(key);
 
 				if (existing == null) {
-					existing = new DependencyRequirement(entry.dependencyId, entry.dependencyDisplayName, entry.requiredVersion);
-					grouped.put(entry.dependencyId, existing);
+					existing = new DependencyRequirement(entry.dependencyId, entry.dependencyDisplayName, entry.requiredVersion, entry.conflict);
+					grouped.put(key, existing);
 				} else {
 					existing.addVersion(entry.requiredVersion);
 				}
@@ -1529,14 +1684,16 @@ class FabricMainWindow {
 		final String dependencyId;
 		final String dependencyDisplayName;
 		final String requiredVersion;
+		final boolean conflict;
 
-		DependantRequirement(String modDisplayName, String modId, String modVersion, String dependencyId, String dependencyDisplayName, String requiredVersion) {
+		DependantRequirement(String modDisplayName, String modId, String modVersion, String dependencyId, String dependencyDisplayName, String requiredVersion, boolean conflict) {
 			this.modDisplayName = modDisplayName;
 			this.modId = modId;
 			this.modVersion = modVersion;
 			this.dependencyId = dependencyId;
 			this.dependencyDisplayName = dependencyDisplayName;
 			this.requiredVersion = requiredVersion;
+			this.conflict = conflict;
 		}
 	}
 

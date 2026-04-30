@@ -47,6 +47,8 @@ import net.fabricmc.loader.impl.discovery.ModSolver.AddModVar;
 import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
 import net.fabricmc.loader.impl.metadata.AbstractModMetadata;
 import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiData;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiRequirementKind;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiSuggestedChange;
 import net.fabricmc.loader.impl.util.Localization;
 import net.fabricmc.loader.impl.util.StringUtil;
 import net.fabricmc.loader.impl.util.version.VersionIntervalImpl;
@@ -229,11 +231,47 @@ final class ResultAnalyzer {
 							oldModsFormatted,
 							formatVersionRequirements(newMod.getVersionIntervals())), targetId);
 				} else {
-					data.addSuggestedChange(Localization.format("resolution.solution.replaceModVersionDifferent",
+					DependencyGuiSuggestedChange suggestedChange = data.addSuggestedChange(Localization.format("resolution.solution.replaceModVersionDifferent",
 							oldModsFormatted,
 							formatVersionRequirements(newMod.getVersionIntervals())), targetId);
+					addReplaceModVersionDifferentDetails(suggestedChange, fix, oldMod);
 				}
 			}
+		}
+	}
+
+	private static void addReplaceModVersionDifferentDetails(DependencyGuiSuggestedChange suggestedChange, ModSolver.Fix fix, ModCandidateImpl oldMod) {
+		boolean foundAny = false;
+
+		for (ModDependency dep : oldMod.getDependencies()) {
+			if (dep.getKind().isSoft()) continue;
+
+			ModCandidateImpl mod = fix.activeMods.get(dep.getModId());
+
+			if (mod != null) {
+				if (dep.matches(mod.getVersion()) != dep.getKind().isPositive()) {
+					suggestedChange.addDetail(Localization.format("resolution.solution.replaceModVersionDifferent.reqSupportedModVersion",
+							mod.getId(),
+							getVersion(mod)));
+					foundAny = true;
+				}
+
+				continue;
+			}
+
+			for (AddModVar addMod : fix.modReplacements.keySet()) {
+				if (addMod.getId().equals(dep.getModId())) {
+					suggestedChange.addDetail(Localization.format("resolution.solution.replaceModVersionDifferent.reqSupportedModVersions",
+							addMod.getId(),
+							formatVersionRequirements(addMod.getVersionIntervals())));
+					foundAny = true;
+					break;
+				}
+			}
+		}
+
+		if (!foundAny) {
+			suggestedChange.addDetail(Localization.format("resolution.solution.replaceModVersionDifferent.unknown"));
 		}
 	}
 
@@ -241,9 +279,12 @@ final class ResultAnalyzer {
 		String dependencyId = dep.getModId();
 		String dependencyDisplayName = matches.isEmpty() ? dependencyId : formatDisplayNameWithId(matches.get(0));
 		String versionRequirement = formatVersionRequirements(dep.getVersionIntervals());
+		DependencyGuiRequirementKind kind = dep.getKind() == ModDependency.Kind.BREAKS
+				? DependencyGuiRequirementKind.CONFLICT
+				: DependencyGuiRequirementKind.DEPENDENCY;
 
-		data.addDependency(dependencyId, dependencyDisplayName, versionRequirement);
-		data.addAffectedMod(mod.getId(), getDisplayName(mod), getVersion(mod)).addRequirement(dependencyId, dependencyDisplayName, versionRequirement);
+		data.addDependency(dependencyId, dependencyDisplayName, versionRequirement, kind);
+		data.addAffectedMod(mod.getId(), getDisplayName(mod), getVersion(mod)).addRequirement(dependencyId, dependencyDisplayName, versionRequirement, kind);
 	}
 
 	private static void formatFix(ModSolver.Fix fix,
