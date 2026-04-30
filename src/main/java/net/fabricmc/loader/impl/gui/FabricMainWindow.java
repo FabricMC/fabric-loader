@@ -42,6 +42,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1199,6 +1200,18 @@ class FabricMainWindow {
 	}
 
 	private static Icon loadIconFromSerializedSource(DependencyGuiIconSource iconSource, int size) {
+		if (iconSource.iconBytes.length > 0) {
+			try {
+				BufferedImage image = ImageIO.read(new ByteArrayInputStream(iconSource.iconBytes));
+
+				if (image != null) {
+					return new ImageIcon(scaleImage(image, size));
+				}
+			} catch (IOException ignored) {
+				// Fall back to path based loading below.
+			}
+		}
+
 		List<Path> paths = new ArrayList<>();
 
 		for (String path : iconSource.paths) {

@@ -255,13 +255,20 @@ public final class FabricStatusTree {
 			return mod;
 		}
 
-		public void addIconSource(String id, String iconPath, List<String> paths) {
-			if (id == null || id.isEmpty() || iconPath == null || iconPath.isEmpty() || paths == null || paths.isEmpty()) {
+		public void addIconSource(String id, String iconPath, List<String> paths, byte[] iconBytes) {
+			if (id == null || id.isEmpty() || iconPath == null || iconPath.isEmpty()) {
+				return;
+			}
+
+			boolean hasPaths = paths != null && !paths.isEmpty();
+			boolean hasIconBytes = iconBytes != null && iconBytes.length > 0;
+
+			if (!hasPaths && !hasIconBytes) {
 				return;
 			}
 
 			if (!iconSources.containsKey(id)) {
-				iconSources.put(id, new DependencyGuiIconSource(id, iconPath, paths));
+				iconSources.put(id, new DependencyGuiIconSource(id, iconPath, paths, iconBytes));
 			}
 		}
 	}
@@ -270,11 +277,17 @@ public final class FabricStatusTree {
 		public final String id;
 		public final String iconPath;
 		public final List<String> paths = new ArrayList<>();
+		public final byte[] iconBytes;
 
-		public DependencyGuiIconSource(String id, String iconPath, List<String> paths) {
+		public DependencyGuiIconSource(String id, String iconPath, List<String> paths, byte[] iconBytes) {
 			this.id = Objects.requireNonNull(id, "null id");
 			this.iconPath = Objects.requireNonNull(iconPath, "null iconPath");
-			this.paths.addAll(Objects.requireNonNull(paths, "null paths"));
+
+			if (paths != null) {
+				this.paths.addAll(paths);
+			}
+
+			this.iconBytes = iconBytes == null ? new byte[0] : iconBytes.clone();
 		}
 
 		DependencyGuiIconSource(DataInputStream is) throws IOException {
@@ -283,6 +296,13 @@ public final class FabricStatusTree {
 
 			for (int i = is.readInt(); i > 0; i--) {
 				paths.add(is.readUTF());
+			}
+
+			int iconByteCount = is.readInt();
+			iconBytes = new byte[iconByteCount];
+
+			if (iconByteCount > 0) {
+				is.readFully(iconBytes);
 			}
 		}
 
@@ -294,6 +314,9 @@ public final class FabricStatusTree {
 			for (String path : paths) {
 				os.writeUTF(path);
 			}
+
+			os.writeInt(iconBytes.length);
+			os.write(iconBytes);
 		}
 	}
 

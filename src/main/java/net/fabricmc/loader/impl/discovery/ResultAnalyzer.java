@@ -16,9 +16,11 @@
 
 package net.fabricmc.loader.impl.discovery;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,12 +28,16 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.SemanticVersion;
@@ -529,7 +535,7 @@ final class ResultAnalyzer {
 	}
 
 	private static void addIconSource(DependencyGuiData data, String id, ModCandidateImpl candidate) {
-		if (id == null || id.isEmpty() || candidate == null || !candidate.hasPath()) {
+		if (id == null || id.isEmpty() || candidate == null) {
 			return;
 		}
 
@@ -539,11 +545,109 @@ final class ResultAnalyzer {
 			return;
 		}
 
-		List<String> paths = candidate.getPaths().stream()
-				.map(Path::toString)
-				.collect(Collectors.toList());
+		List<String> paths;
+		byte[] iconBytes = null;
 
-		data.addIconSource(id, iconPath.get(), paths);
+		if (candidate.hasPath()) {
+			paths = candidate.getPaths().stream()
+					.map(Path::toString)
+					.collect(Collectors.toList());
+			iconBytes = readIconBytes(candidate, iconPath.get());
+		} else {
+			paths = Collections.emptyList();
+			iconBytes = readIconBytes(candidate, iconPath.get());
+		}
+
+		data.addIconSource(id, iconPath.get(), paths, iconBytes);
+	}
+
+	private static byte[] readIconBytes(ModCandidateImpl candidate, String iconPath) {
+		if (candidate.hasPath()) {
+			byte[] iconBytes = readIconBytes(candidate.getPaths(), iconPath);
+
+			if (iconBytes != null) {
+				return iconBytes;
+			}
+		}
+
+		if (candidate.isBuiltin()) {
+			return null;
+		}
+
+		Path tempDir = null;
+		Path tempPath = null;
+
+		try {
+			tempDir = Files.createTempDirectory("fabric-loader-icon");
+			tempPath = candidate.copyToDir(tempDir, true);
+			return readIconBytes(Collections.singletonList(tempPath), iconPath);
+		} catch (IOException | RuntimeException ignored) {
+			return null;
+		} finally {
+			if (tempPath != null) {
+				try {
+					Files.deleteIfExists(tempPath);
+				} catch (IOException ignored) {
+					// Ignore cleanup failure.
+				}
+			}
+
+			if (tempDir != null) {
+				try {
+					Files.deleteIfExists(tempDir);
+				} catch (IOException ignored) {
+					// Ignore cleanup failure.
+				}
+			}
+		}
+	}
+
+	private static byte[] readIconBytes(List<Path> paths, String iconPath) {
+		String normalizedIconPath = iconPath.replace('\\', '/');
+
+		for (Path path : paths) {
+			try {
+				if (Files.isDirectory(path)) {
+					Path resolvedIconPath = path;
+
+					for (String part : normalizedIconPath.split("/")) {
+						if (!part.isEmpty()) {
+							resolvedIconPath = resolvedIconPath.resolve(part);
+						}
+					}
+
+					if (Files.isRegularFile(resolvedIconPath)) {
+						return Files.readAllBytes(resolvedIconPath);
+					}
+				} else {
+					try (ZipFile zip = new ZipFile(path.toFile())) {
+						ZipEntry entry = zip.getEntry(normalizedIconPath);
+
+						if (entry != null) {
+							try (InputStream input = zip.getInputStream(entry)) {
+								return readAllBytes(input);
+							}
+						}
+					}
+				}
+			} catch (IOException ignored) {
+				// Invalid or unreadable icons should not prevent the error UI from opening.
+			}
+		}
+
+		return null;
+	}
+
+	private static byte[] readAllBytes(InputStream input) throws IOException {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		byte[] buffer = new byte[8192];
+		int read;
+
+		while ((read = input.read(buffer)) >= 0) {
+			output.write(buffer, 0, read);
+		}
+
+		return output.toByteArray();
 	}
 
 	private static String getDisplayName(ModCandidateImpl candidate) {
