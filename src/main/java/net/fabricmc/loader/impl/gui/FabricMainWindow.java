@@ -880,12 +880,6 @@ class FabricMainWindow {
 		return button;
 	}
 
-	private static JButton createDetailButton(String text) {
-		JButton button = createSecondaryButton(text);
-		button.putClientProperty("JComponent.minimumWidth", 114);
-		return button;
-	}
-
 	private static JSeparator createPageSeparator() {
 		JSeparator separator = new JSeparator();
 		separator.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1492,7 +1486,7 @@ class FabricMainWindow {
 					dependency.addVersion(sourceRequirement.versionRequirement);
 					issue.addRequirement(sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement, conflict);
 					data.dependants.add(new DependantRequirement(sourceMod.displayName, sourceMod.id, sourceMod.version,
-							sourceRequirement.dependencyId, sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement, conflict));
+							sourceRequirement.dependencyDisplayName, sourceRequirement.versionRequirement, conflict));
 				}
 			}
 
@@ -1710,16 +1704,14 @@ class FabricMainWindow {
 		final String modDisplayName;
 		final String modId;
 		final String modVersion;
-		final String dependencyId;
 		final String dependencyDisplayName;
 		final String requiredVersion;
 		final boolean conflict;
 
-		DependantRequirement(String modDisplayName, String modId, String modVersion, String dependencyId, String dependencyDisplayName, String requiredVersion, boolean conflict) {
+		DependantRequirement(String modDisplayName, String modId, String modVersion, String dependencyDisplayName, String requiredVersion, boolean conflict) {
 			this.modDisplayName = modDisplayName;
 			this.modId = modId;
 			this.modVersion = modVersion;
-			this.dependencyId = dependencyId;
 			this.dependencyDisplayName = dependencyDisplayName;
 			this.requiredVersion = requiredVersion;
 			this.conflict = conflict;
