@@ -22,16 +22,19 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.game.GameProvider;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 import net.fabricmc.loader.impl.mrj.AbstractSecureClassLoader;
+import net.fabricmc.loader.impl.util.log.Log;
+import net.fabricmc.loader.impl.util.log.LogCategory;
 
 // class name referenced by string constant in net.fabricmc.loader.impl.util.LoaderUtil.verifyNotInTargetCl
 final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLoaderAccess {
-	private static final class DynamicURLClassLoader extends URLClassLoader {
+	private static final class DynamicURLClassLoader extends URLClassLoader implements URLLoader {
 		private DynamicURLClassLoader(URL[] urls) {
 			super(urls, new DummyClassLoader());
 		}
@@ -46,15 +49,19 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 		}
 	}
 
-	private final DynamicURLClassLoader urlLoader;
+	private final URLLoader urlLoader;
 	private final ClassLoader originalLoader;
 	private final KnotClassDelegate<KnotClassLoader> delegate;
 
 	KnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
-		super("knot", new DynamicURLClassLoader(new URL[0]));
+		super("knot", obtainClassloader(provider));
 		this.originalLoader = getClass().getClassLoader();
-		this.urlLoader = (DynamicURLClassLoader) getParent();
+		this.urlLoader = (URLLoader) getParent();
 		this.delegate = new KnotClassDelegate<>(isDevelopment, envType, this, originalLoader, provider);
+
+		if (!(urlLoader instanceof DynamicURLClassLoader)) {
+			Log.info(LogCategory.KNOT, "Found provider classloader: " + urlLoader.getClass().getCanonicalName());
+		}
 	}
 
 	KnotClassDelegate<?> getDelegate() {
@@ -105,13 +112,10 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 	public Enumeration<URL> getResources(String name) throws IOException {
 		Objects.requireNonNull(name);
 
-		final Enumeration<URL> resources = urlLoader.getResources(name);
-
-		if (!resources.hasMoreElements()) {
-			return originalLoader.getResources(name);
-		}
-
-		return resources;
+		return new MultiEnumeration<URL>(
+			urlLoader.getResources(name),
+			originalLoader.getResources(name)
+		);
 	}
 
 	@Override
@@ -170,7 +174,55 @@ final class KnotClassLoader extends AbstractSecureClassLoader implements ClassLo
 		super.resolveClass(cls);
 	}
 
+	private static ClassLoader obtainClassloader(GameProvider provider) { //cannot use intersecting return type: https://bugs.openjdk.org/browse/JDK-8380420
+		URLLoader ret = provider.getProviderCL();
+
+		if (ret == null) {
+			ret = new DynamicURLClassLoader(new URL[0]);
+		}
+
+		return (ClassLoader) ret;
+	}
+
 	static {
 		registerAsParallelCapable();
+	}
+
+	private static final class MultiEnumeration<T> implements Enumeration<T> {
+		private final Enumeration<T>[] enumerations;
+		private int index = 0;
+
+		@SafeVarargs
+		MultiEnumeration(Enumeration<T>... enumerations) {
+			this.enumerations = enumerations;
+			advance();
+		}
+
+		private void advance() {
+			while (index < enumerations.length && !enumerations[index].hasMoreElements()) {
+				index++;
+			}
+		}
+
+		@Override
+		public boolean hasMoreElements() {
+			return index < enumerations.length;
+		}
+
+		@Override
+		public T nextElement() {
+			if (!hasMoreElements()) {
+				throw new NoSuchElementException();
+			}
+
+			T element = enumerations[index].nextElement();
+
+			if (!enumerations[index].hasMoreElements()) {
+				index++;
+				advance();
+			}
+
+			return element;
+		}
 	}
 }
