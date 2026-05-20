@@ -38,6 +38,7 @@ import net.fabricmc.loader.impl.discovery.ModSolver.InactiveReason;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiData;
 
 public class ModResolver {
 	public static List<ModCandidateImpl> resolve(Collection<ModCandidateImpl> candidates, EnvType envType, Map<String, Set<ModCandidateImpl>> envDisabledMods) throws ModResolutionException {
@@ -144,7 +145,10 @@ public class ModResolver {
 				}
 			}
 
+			DependencyGuiData dependencyGuiData = ResultAnalyzer.gatherErrorData(result, selectedMods, modsById, envDisabledMods, envType);
+
 			throw new ModResolutionException("Some of your mods are incompatible with the game or each other!%s",
+					dependencyGuiData,
 					ResultAnalyzer.gatherErrors(result, selectedMods, modsById, envDisabledMods, envType));
 		}
 
