@@ -33,8 +33,9 @@ public final class FabricTransformer {
 		boolean transformAccess = transforms.contains(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS) && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
 		boolean environmentStrip = transforms.contains(BuiltinTransform.STRIP_ENVIRONMENT);
 		boolean applyClassTweaker = transforms.contains(BuiltinTransform.CLASS_TWEAKS) && FabricLoaderImpl.INSTANCE.getClassTweaker().getTargets().contains(name.replace('.', '/'));
+		boolean appletStub = transforms.contains(BuiltinTransform.MINECRAFT_APPLET_STUB);
 
-		if (!transformAccess && !environmentStrip && !applyClassTweaker) {
+		if (!transformAccess && !environmentStrip && !applyClassTweaker && !appletStub) {
 			return bytes;
 		}
 
@@ -65,6 +66,11 @@ public final class FabricTransformer {
 				visitor = new ClassStripper(FabricLoaderImpl.ASM_VERSION, visitor, stripData.getStripInterfaces(), stripData.getStripFields(), stripData.getStripMethods());
 				visitorCount++;
 			}
+		}
+
+		if (appletStub) {
+			visitor = new MinecraftAppletTransformer(visitor);
+			visitorCount++;
 		}
 
 		if (visitorCount <= 0) {
