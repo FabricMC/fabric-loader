@@ -37,4 +37,10 @@ public final class EntrypointTest {
 	public static String fieldEntry() {
 		return "field";
 	}
+
+	public static final class EntrypointCtorTest {
+		public EntrypointCtorTest() {
+			Log.info(LogCategory.TEST, "EntrypointCtorTest instance created! This runs at main");
+		}
+	}
 }

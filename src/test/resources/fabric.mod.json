@@ -9,7 +9,8 @@
       "net.fabricmc.test.TestMod"
     ],
     "main": [
-      "net.fabricmc.test.TestMod"
+      "net.fabricmc.test.TestMod",
+      "net.fabricmc.test.EntrypointTest$EntrypointCtorTest::<init>"
     ],
     "test:testing": [
       "net.fabricmc.test.EntrypointTest::instanceEntry",
