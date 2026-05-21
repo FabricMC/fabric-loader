@@ -26,6 +26,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 
 import net.fabricmc.loader.impl.util.LoaderUtil;
+import net.fabricmc.loader.impl.util.SystemProperties;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -54,10 +55,12 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 		}
 
 		try {
-			Files.walkFileTree(this.path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), 1, new SimpleFileVisitor<Path>() {
+			Files.walkFileTree(this.path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), System.getProperty(SystemProperties.LOAD_MODS_RECURSIVELY) != null ? Integer.MAX_VALUE : 1, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					if (isValidFile(file)) {
+					if (file.getParent() != null && file.getParent().toString().contains("disabled")) {
+						return FileVisitResult.SKIP_SUBTREE;
+					} else if (isValidFile(file)) {
 						out.accept(file, requiresRemap);
 					}
 
