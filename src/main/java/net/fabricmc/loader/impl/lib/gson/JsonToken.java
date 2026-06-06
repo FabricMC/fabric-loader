@@ -19,6 +19,8 @@
 
 package net.fabricmc.loader.impl.lib.gson;
 
+import org.spongepowered.include.com.google.gson.stream.JsonWriter;
+
 /**
  * A structure, name or value type in a JSON-encoded string.
  *

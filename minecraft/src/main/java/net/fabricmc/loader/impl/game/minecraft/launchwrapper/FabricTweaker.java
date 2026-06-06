@@ -234,10 +234,10 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		}
 	}
 
-	// By default the remapped jar will be on the classpath after the obfuscated one.
+	// By default, the remapped jar will be on the classpath after the obfuscated one.
 	// This will lead to us finding and the launching the obfuscated one when we search
 	// for the entrypoint.
-	// To work around that, we pre-popuplate the LaunchClassLoader's resource cache,
+	// To work around that, we pre-populate the LaunchClassLoader's resource cache,
 	// which will then cause it to use the one we need it to.
 	@SuppressWarnings("unchecked")
 	private void preloadRemappedJar(Path remappedJarFile) throws IOException {

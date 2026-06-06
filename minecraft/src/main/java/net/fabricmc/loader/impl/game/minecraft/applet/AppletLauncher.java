@@ -153,7 +153,7 @@ public class AppletLauncher extends Applet implements AppletStub {
 	/**
 	 * Minecraft 0.30 checks for "minecraft.net" or "www.minecraft.net" being
 	 * the applet hosting location, as an anti-rehosting measure. Of course,
-	 * being ran stand-alone, it's not actually "hosted" anywhere.
+	 * being run stand-alone, it's not actually "hosted" anywhere.
 	 *
 	 * <p>The side effect of not providing the correct URL here is all levels,
 	 * loaded or generated, being set to null.

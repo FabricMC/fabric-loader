@@ -143,7 +143,7 @@ public class VersionNormalizationAntiRegressionTest {
 						}
 					}
 
-					// The normalised unobfuscated versions match to the same version as only the metadata differs
+					// The normalized unobfuscated versions match to the same version as only the metadata differs
 					if (versionA.id.endsWith("_unobfuscated") || versionB.id.endsWith("_unobfuscated")) {
 						continue;
 					}
@@ -362,7 +362,7 @@ public class VersionNormalizationAntiRegressionTest {
 	}
 
 	private static List<String> parseCsvLine(String line) {
-		// Let's just do the simple parsing for this, it isn't run often anyways
+		// Let's just do the simple parsing for this, it isn't run often anyway
 		return Arrays.asList(line.split(","));
 	}
 

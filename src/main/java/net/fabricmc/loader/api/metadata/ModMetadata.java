@@ -68,7 +68,7 @@ public interface ModMetadata {
 	ModEnvironment getEnvironment();
 
 	/**
-	 * Returns all of the mod's dependencies.
+	 * Returns all the mod's dependencies.
 	 */
 	Collection<ModDependency> getDependencies();
 

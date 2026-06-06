@@ -119,7 +119,7 @@ public final class FabricGuiEntry {
 		}, exitAfter);
 	}
 
-	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomiser, boolean exitAfter) {
+	public static void displayError(String mainText, Throwable exception, Consumer<FabricStatusTree> treeCustomizer, boolean exitAfter) {
 		boolean isCI = System.getenv("CI") != null;
 		boolean isNoGui = SystemProperties.isSet(SystemProperties.NO_GUI);
 
@@ -139,7 +139,7 @@ public final class FabricGuiEntry {
 			// Maybe add an "open mods folder" button?
 			// or should that be part of the main tree's right-click menu?
 			tree.addButton(Localization.format("gui.button.exit"), FabricBasicButtonType.CLICK_ONCE).makeClose();
-			treeCustomiser.accept(tree);
+			treeCustomizer.accept(tree);
 
 			try {
 				open(tree);

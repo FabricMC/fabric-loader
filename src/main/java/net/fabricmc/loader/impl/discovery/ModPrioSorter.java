@@ -31,12 +31,12 @@ final class ModPrioSorter {
 	/**
 	 * Sort the mod candidate list by priority.
 	 *
-	 * <p>This is implemented with two sorting passes, first sorting by isRoot/id/version/nesting/parent, then a best
+	 * <p>This is implemented with two sorting passes, first sorting by isRoot/id/version/nesting/parent, then the best
 	 * effort pass to prioritize mods that have overall newer id:version pairs.
 	 *
 	 * <p>The second pass won't prioritize non-root mods over root mods or above a mod with the same main id but a newer
 	 * version as these cases are deemed deliberately influenced by the end user or mod author. Since there may be
-	 * multiple id:version pairs the choice can only be best effort, but the SAT solver will ensure all hard constraints
+	 * multiple id:version pairs the choice can only be the best effort, but the SAT solver will ensure all hard constraints
 	 * are still met later on.
 	 *
 	 * @param mods mods to sort
@@ -154,10 +154,10 @@ final class ModPrioSorter {
 
 		if (a.isRoot()) {
 			if (!b.isRoot()) {
-				return -1; // only a is root
+				return -1; // only `a` is root
 			}
 		} else if (b.isRoot()) {
-			return 1; // only b is root
+			return 1; // only `b` is root
 		}
 
 		// sort id asc

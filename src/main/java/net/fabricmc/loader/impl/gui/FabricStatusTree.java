@@ -80,7 +80,7 @@ public final class FabricStatusTree {
 	public static final String ICON_TYPE_FABRIC_JSON = "json+fabric";
 	/** Java bytecode class file. */
 	public static final String ICON_TYPE_JAVA_CLASS = "java_class";
-	/** A folder inside of a Java JAR. */
+	/** A folder inside a Java JAR. */
 	public static final String ICON_TYPE_PACKAGE = "package";
 	/** A folder that contains Java class files. */
 	public static final String ICON_TYPE_JAVA_PACKAGE = "java_package";
@@ -361,7 +361,7 @@ public final class FabricStatusTree {
 		public FabricStatusNode addCleanedException(Throwable exception) {
 			return addException(this, Collections.newSetFromMap(new IdentityHashMap<>()), exception, e -> {
 				// Remove some self-repeating exception traces from the tree
-				// (for example the RuntimeException that is is created unnecessarily by ForkJoinTask)
+				// (for example the RuntimeException that is created unnecessarily by ForkJoinTask)
 				Throwable cause;
 
 				while ((cause = e.getCause()) != null) {

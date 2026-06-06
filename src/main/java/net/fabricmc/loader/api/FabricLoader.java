@@ -164,7 +164,7 @@ public interface FabricLoader {
 	 * Checks if a mod with a given ID is loaded.
 	 *
 	 * @param id the ID of the mod, as defined in {@code fabric.mod.json}
-	 * @return whether or not the mod is present in this Fabric Loader instance
+	 * @return whether the mod is present in this Fabric Loader instance
 	 */
 	boolean isModLoaded(String id);
 
@@ -175,7 +175,7 @@ public interface FabricLoader {
 	 * <p>This should not be used to make assumptions on certain features,
 	 * such as mappings, but as a toggle for certain functionalities.</p>
 	 *
-	 * @return whether or not Loader is currently in a "development"
+	 * @return whether Loader is currently in a "development"
 	 * environment
 	 */
 	boolean isDevelopmentEnvironment();

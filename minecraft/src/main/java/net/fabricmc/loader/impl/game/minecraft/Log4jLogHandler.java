@@ -102,7 +102,7 @@ public final class Log4jLogHandler implements LogHandler {
 		if (version == null) return true;
 
 		try {
-			return Version.parse(version).compareTo(Version.parse("2.16")) < 0; // 2.15+ doesn't lookup by default, but we patch anything up to 2.16 just in case
+			return Version.parse(version).compareTo(Version.parse("2.16")) < 0; // 2.15+ doesn't look up by default, but we patch anything up to 2.16 just in case
 		} catch (VersionParsingException e) {
 			Log.warn(LogCategory.GAME_PROVIDER, "Can't parse Log4J2 Manifest version %s", version, e);
 			return true;

@@ -38,7 +38,7 @@ public final class UrlUtil {
 				return asPath(((JarURLConnection) connection).getJarFileURL());
 			} else {
 				URI uri = url.toURI();
-				String path = uri.getPath(); // URI.getPath decodes percent-encoding etc unlike URL.getPath or URI.getRawPath
+				String path = uri.getPath(); // URI.getPath decodes percent-encoding etc. unlike URL.getPath or URI.getRawPath
 
 				if (path.endsWith(localPath)) {
 					String basePath = path.substring(0, path.length() - localPath.length()); // keep trailing / in case it's standalone (root dir)

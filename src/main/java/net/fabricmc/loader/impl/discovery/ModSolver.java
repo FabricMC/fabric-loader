@@ -703,8 +703,8 @@ final class ModSolver {
 
 				if (selectedMod != null) { // dep is already selected = present
 					if (!removalSim) {
-						if (!dep.getKind().isSoft() // .. and is a hard dep
-								&& dep.matches(selectedMod.getVersion()) != dep.getKind().isPositive()) { // ..but isn't suitable (DEPENDS without match or BREAKS with match)
+						if (!dep.getKind().isSoft() // and is a hard dep
+								&& dep.matches(selectedMod.getVersion()) != dep.getKind().isPositive()) { // but isn't suitable (DEPENDS without match or BREAKS with match)
 							if (depDisableSim) {
 								dependencyHelper.setTrue(getCreateDisableDepVar(dep, disabledDeps), new Explanation(ErrorKind.HARD_DEP, mod, dep));
 							} else {

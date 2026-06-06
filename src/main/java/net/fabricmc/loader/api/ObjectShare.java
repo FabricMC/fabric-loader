@@ -51,7 +51,7 @@ public interface ObjectShare {
 	 *
 	 * <p>Consider using {@link #whenAvailable} instead if the value may not be available yet. The mod load order is
 	 * undefined, so entries that are added during the same load phase should be queried in a later phase or be handled
-	 * through {@link whenAvailable}.
+	 * through {@link #whenAvailable}.
 	 *
 	 * @param key key to query, format {@code modid:subkey}
 	 * @return value associated with the key or null if none
@@ -61,7 +61,7 @@ public interface ObjectShare {
 	/**
 	 * Request being notified when a key/value becomes available.
 	 *
-	 * <p>This is primarily intended to resolve load order issues, when there is no good time to call {@link get}.
+	 * <p>This is primarily intended to resolve load order issues, when there is no good time to call {@link #get}.
 	 *
 	 * <p>If there is already a value associated with the {@code key}, the consumer will be invoked directly, otherwise
 	 * when one of the {@code put} methods adds a value for the key. The invocation happens on the thread calling
@@ -79,7 +79,7 @@ public interface ObjectShare {
 	 * </pre>
 	 *
 	 * @param key key to react upon, format {@code modid:subkey}
-	 * @paran consumer consumer receiving the key/value pair: key first, value second
+	 * @param consumer consumer receiving the key/value pair: key first, value second
 	 */
 	void whenAvailable(String key, BiConsumer<String, Object> consumer);
 

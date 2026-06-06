@@ -61,8 +61,8 @@ public final class ModMetadataParser {
 
 	private static LoaderModMetadata readModMetadata(InputStream is, boolean isDevelopment) throws IOException, ParseMetadataException {
 		// So some context:
-		// Per the json specification, ordering of fields is not typically enforced.
-		// Furthermore we cannot guarantee the `schemaVersion` is the first field in every `fabric.mod.json`
+		// Per the JSON specification, ordering of fields is not typically enforced.
+		// Furthermore, we cannot guarantee the `schemaVersion` is the first field in every `fabric.mod.json`
 		//
 		// To work around this, we do the following:
 		// Try to read first field

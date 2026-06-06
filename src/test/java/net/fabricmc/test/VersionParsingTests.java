@@ -197,7 +197,7 @@ public class VersionParsingTests {
 			testFalse(predicate.test(new SemanticVersionImpl("3.0.0-alpha.1", false)));
 		}
 
-		// Test: tilde-ranges. "~a" = ">=a <(a[0]).(a[1]+1).0-" (at least a, same major+minor)
+		// Test: tilde-ranges. "~a" = ">=a <(a[0]).(a[1]+1).0-" (at least `a`, same major+minor)
 		{
 			Predicate<Version> predicate = VersionPredicateParser.parse("~1.2.3");
 			testTrue(predicate.test(new SemanticVersionImpl("1.2.3", false)));
@@ -257,7 +257,7 @@ public class VersionParsingTests {
 			testFalse(predicate.test(new SemanticVersionImpl("1.2.3-alpha.4", false)));
 		}
 
-		// Test: caret-range. "^a" = ">=a <(a[0]+1).0.0-" (at least a, same major)
+		// Test: caret-range. "^a" = ">=a <(a[0]+1).0.0-" (at least `a`, same major)
 		{
 			Predicate<Version> predicate = VersionPredicateParser.parse("^1.2.3");
 			testTrue(predicate.test(new SemanticVersionImpl("1.2.3", false)));

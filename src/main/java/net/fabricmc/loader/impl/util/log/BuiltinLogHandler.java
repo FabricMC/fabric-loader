@@ -32,8 +32,8 @@ import net.fabricmc.loader.impl.util.SystemProperties;
  * Default LogHandler until Log is initialized.
  *
  * <p>The log handler has the following properties:
- * - log to stdout for anything but LogLevel.ERROR
- * - log to stderr for LogLevel.ERROR
+ * - log to stdout for anything but {@link LogLevel#ERROR}
+ * - log to stderr for {@link LogLevel#ERROR}
  * - option to relay previous log output to another log handler if requested through Log.init
  * - dumps previous log output to a log file if not closed/relayed yet
  */

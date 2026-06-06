@@ -209,7 +209,7 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	/**
-	 * Find game provider embedded into the Fabric Loader jar, best effort.
+	 * Find game provider embedded into the Fabric Loader jar, the best effort.
 	 *
 	 * <p>This is faster than going through service loader because it only looks at a single jar.
 	 */

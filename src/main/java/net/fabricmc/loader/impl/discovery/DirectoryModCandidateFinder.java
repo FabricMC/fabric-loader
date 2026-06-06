@@ -76,7 +76,7 @@ public class DirectoryModCandidateFinder implements ModCandidateFinder {
 		 *
 		 * Some OSes Generate metadata so consider the following because of OSes:
 		 * UNIX: Exclude if file is hidden; this occurs when starting a file name with `.`
-		 * MacOS: Exclude hidden + startsWith "." since Mac OS names their metadata files in the form of `.mod.jar`
+		 * macOS: Exclude hidden + startsWith "." since macOS names their metadata files in the form of `.mod.jar`
 		 */
 
 		if (!Files.isRegularFile(path)) return false;

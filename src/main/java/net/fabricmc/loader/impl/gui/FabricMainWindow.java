@@ -80,7 +80,7 @@ class FabricMainWindow {
 			throw new HeadlessException();
 		}
 
-		// Set MacOS specific system props
+		// Set macOS specific system props
 		System.setProperty("apple.awt.application.appearance", "system");
 		System.setProperty("apple.awt.application.name", tree.title);
 
@@ -421,7 +421,7 @@ class FabricMainWindow {
 
 		private CustomTreeCellRenderer(IconSet icons) {
 			this.iconSet = icons;
-			//setVerticalTextPosition(TOP); // Move icons to top rather than centre
+			//setVerticalTextPosition(TOP); // Move icons to top rather than center
 		}
 
 		@Override

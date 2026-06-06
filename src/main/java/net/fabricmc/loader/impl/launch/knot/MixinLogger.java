@@ -91,7 +91,7 @@ final class MixinLogger extends LoggerAdapterAbstract {
 							sb.append(param);
 						}
 
-						i++; // skip over }
+						i++; // skip over '}'
 					} else {
 						sb.append(c);
 					}

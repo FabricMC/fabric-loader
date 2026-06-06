@@ -319,7 +319,7 @@ public final class VersionIntervalImpl implements VersionInterval {
 				if (cMax == null) { // ..a..] [..c..
 					cmp = aMax.compareTo((Version) cMin);
 
-					if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // ..a..]..[..c.. or ..a..)(..c..
+					if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // "..a..]..[..c.." or "..a..)(..c.."
 						out.add(i, a);
 					} else { // ..a..|..c.. or ..a.[..].c..
 						out.clear();
@@ -338,9 +338,9 @@ public final class VersionIntervalImpl implements VersionInterval {
 					} else { // aMax < cMax
 						cmp = aMax.compareTo((Version) cMin);
 
-						if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // ..a..]..[..c..] or ..a..)(..c..]
+						if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // "..a..]..[..c..]" or "..a..)(..c..]"
 							out.add(i, a);
-						} else { // c extends a to the right
+						} else { // `c` extends `a` to the right
 							out.set(i, new VersionIntervalImpl(null, false, cMax, c.isMaxInclusive()));
 						}
 
@@ -358,9 +358,9 @@ public final class VersionIntervalImpl implements VersionInterval {
 				} else { // aMin < cMin
 					cmp = aMax.compareTo((Version) cMin);
 
-					if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // [..a..]..[..c.. or [..a..)(..c..
+					if (cmp < 0 || cmp == 0 && !a.isMaxInclusive() && !c.isMinInclusive()) { // "[..a..]..[..c.." or "[..a..)(..c.."
 						out.add(i, a);
-					} else { // a extends c to the left
+					} else { // `a` extends `c` to the left
 						out.set(i, new VersionIntervalImpl(aMin, a.isMinInclusive(), null, false));
 					}
 				}
@@ -444,7 +444,7 @@ public final class VersionIntervalImpl implements VersionInterval {
 			} else { // (-∞,x = left open towards min -> half open towards max
 				return Collections.singletonList(new VersionIntervalImpl(interval.getMax(), !interval.isMaxInclusive(), null, false));
 			}
-		} else if (interval.getMax() == null) { // x,∞) = half open towards max -> half open towards min
+		} else if (interval.getMax() == null) { // "x,∞)" = half open towards max -> half open towards min
 			return Collections.singletonList(new VersionIntervalImpl(null, false, interval.getMin(), !interval.isMinInclusive()));
 		} else if (interval.getMin().equals(interval.getMax()) && !interval.isMinInclusive() && !interval.isMaxInclusive()) { // (x,x) = effectively empty interval -> infinite
 			return Collections.singletonList(INFINITE);

@@ -162,7 +162,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 
 			return fs.getRootDirectories().iterator().next();
 
-			// We never close here. It's fine. getJarFileSystem() will handle it gracefully, and so should mods
+			// We never close here. It's fine. `getJarFileSystem()` will handle it gracefully, and so should mods
 		}
 	}
 

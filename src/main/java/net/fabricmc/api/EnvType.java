@@ -19,7 +19,7 @@ package net.fabricmc.api;
 /**
  * Represents a type of environment.
  *
- * <p>A type of environment is a jar file in a <i>Minecraft</i> version's json file's {@code download}
+ * <p>A type of environment is a jar file in a <i>Minecraft</i> version's JSON file's {@code download}
  * subsection, including the {@code client.jar} and the {@code server.jar}.</p>
  *
  * @see Environment

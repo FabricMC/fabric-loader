@@ -28,7 +28,7 @@ import java.util.Arrays;
 /**
  * Reads a JSON (<a href="http://www.ietf.org/rfc/rfc7159.txt">RFC 7159</a>)
  * encoded value as a stream of tokens. This stream includes both literal
- * values (strings, numbers, booleans, and nulls) as well as the begin and
+ * values (strings, numbers, booleans, and nulls) as well as the beginning and
  * end delimiters of objects and arrays. The tokens are traversed in
  * depth-first order, the same order that they appear in the JSON document.
  * Within JSON objects, name/value pairs are represented by a single token.
@@ -277,7 +277,7 @@ public class JsonReader implements Closeable {
 	 * stack contains an object (EMPTY_OBJECT, DANGLING_NAME or NONEMPTY_OBJECT),
 	 * pathNames contains the name at this scope. Where it contains an array
 	 * (EMPTY_ARRAY, NONEMPTY_ARRAY) pathIndices contains the current index in
-	 * that array. Otherwise the value is undefined, and we take advantage of that
+	 * that array. Otherwise, the value is undefined, and we take advantage of that
 	 * by incrementing pathIndices when doing so isn't useful.
 	 */
 	private String[] pathNames = new String[32];
@@ -616,7 +616,7 @@ public class JsonReader implements Closeable {
 			return PEEKED_NONE;
 		}
 
-		// Confirm that chars [1..length) match the keyword.
+		// Confirm that chars "[1..length)" match the keyword.
 		int length = keyword.length();
 		for (int i = 1; i < length; i++) {
 			if (pos + i >= limit && !fillBuffer(i + 1)) {
@@ -979,7 +979,7 @@ public class JsonReader implements Closeable {
 	 * not include it in the returned string.
 	 *
 	 * @param quote either ' or ".
-	 * @throws NumberFormatException if any unicode escape sequences are
+	 * @throws NumberFormatException if any Unicode escape sequences are
 	 *     malformed.
 	 */
 	private String nextQuotedValue(char quote) throws IOException {
@@ -1386,7 +1386,7 @@ public class JsonReader implements Closeable {
 				pos = p;
 				/*
 				 * Skip a # hash end-of-line comment. The JSON RFC doesn't
-				 * specify this behaviour, but it's required to parse
+				 * specify this behavior, but it's required to parse
 				 * existing documents. See http://b/2571423.
 				 */
 				checkLenient();
@@ -1496,10 +1496,10 @@ public class JsonReader implements Closeable {
 	/**
 	 * Unescapes the character identified by the character or characters that
 	 * immediately follow a backslash. The backslash '\' should have already
-	 * been read. This supports both unicode escapes "u000A" and two-character
+	 * been read. This supports both Unicode escapes "u000A" and two-character
 	 * escapes "\n".
 	 *
-	 * @throws NumberFormatException if any unicode escape sequences are
+	 * @throws NumberFormatException if any Unicode escape sequences are
 	 *     malformed.
 	 */
 	private char readEscapeCharacter() throws IOException {
@@ -1574,7 +1574,7 @@ public class JsonReader implements Closeable {
 	 * Consumes the non-execute prefix if it exists.
 	 */
 	private void consumeNonExecutePrefix() throws IOException {
-		// fast forward through the leading whitespace
+		// fast-forward through the leading whitespace
 		nextNonWhitespace(true);
 		pos--;
 
