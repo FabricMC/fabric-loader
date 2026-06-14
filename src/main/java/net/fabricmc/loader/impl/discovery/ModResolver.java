@@ -19,8 +19,10 @@ package net.fabricmc.loader.impl.discovery;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,6 +154,7 @@ public class ModResolver {
 
 		// clear cached data and inbound refs for unused mods, set minNestLevel for used non-root mods to max, queue root mods
 
+		Set<ModCandidateImpl> modsToRemove = Collections.newSetFromMap(new IdentityHashMap<>());
 		Queue<ModCandidateImpl> queue = new ArrayDeque<>();
 
 		for (ModCandidateImpl mod : allModsSorted) {
@@ -160,15 +163,24 @@ public class ModResolver {
 					queue.add(mod);
 				}
 			} else {
-				mod.clearCachedData();
+				modsToRemove.add(mod);
+			}
+		}
 
-				for (ModCandidateImpl m : mod.getNestedMods()) {
-					m.getParentMods().remove(mod);
-				}
+		// these mods are not present in the allModsSorted list!
+		for (Set<ModCandidateImpl> disabledMods : envDisabledMods.values()) {
+			modsToRemove.addAll(disabledMods);
+		}
 
-				for (ModCandidateImpl m : mod.getParentMods()) {
-					m.getNestedMods().remove(mod);
-				}
+		for (ModCandidateImpl mod : modsToRemove) {
+			mod.clearCachedData();
+
+			for (ModCandidateImpl m : mod.getNestedMods()) {
+				m.getParentMods().remove(mod);
+			}
+
+			for (ModCandidateImpl m : mod.getParentMods()) {
+				m.getNestedMods().remove(mod);
 			}
 		}
 
