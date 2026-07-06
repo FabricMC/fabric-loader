@@ -163,20 +163,28 @@ public class MinecraftGameProvider implements GameProvider {
 				|| className.startsWith("com.mojang.blaze3d.") // unobf blaze3d classes
 				|| className.indexOf('.') < 0; // obf classes
 
+		boolean stripEnv = FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment();
+
 		if (isMinecraftClass) {
-			if (FabricLoaderImpl.INSTANCE.isDevelopmentEnvironment()) { // combined client+server jar, strip back down to production equivalent
+			if (stripEnv) { // combined client+server jar, strip back down to production equivalent
 				return TRANSFORM_WIDENALL_STRIPENV_CLASSTWEAKS;
 			} else { // environment specific jar, inherently env stripped
 				return TRANSFORM_WIDENALL_CLASSTWEAKS;
 			}
-		} else { // mod class TODO: exclude game libs
-			return TRANSFORM_STRIPENV;
+		} else {
+			// mod class TODO: exclude game libs
+			if (stripEnv) {
+				return TRANSFORM_STRIPENV;
+			} else {
+				return TRANSFORM_EMPTY;
+			}
 		}
 	}
 
 	private static final Set<BuiltinTransform> TRANSFORM_WIDENALL_STRIPENV_CLASSTWEAKS = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.STRIP_ENVIRONMENT, BuiltinTransform.CLASS_TWEAKS);
 	private static final Set<BuiltinTransform> TRANSFORM_WIDENALL_CLASSTWEAKS = EnumSet.of(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS, BuiltinTransform.CLASS_TWEAKS);
 	private static final Set<BuiltinTransform> TRANSFORM_STRIPENV = EnumSet.of(BuiltinTransform.STRIP_ENVIRONMENT);
+	private static final Set<BuiltinTransform> TRANSFORM_EMPTY = EnumSet.noneOf(BuiltinTransform.class);
 
 	@Override
 	public boolean isEnabled() {
