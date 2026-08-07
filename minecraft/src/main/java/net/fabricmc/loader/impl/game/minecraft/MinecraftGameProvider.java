@@ -161,6 +161,7 @@ public class MinecraftGameProvider implements GameProvider {
 				|| className.startsWith("com.mojang.minecraft.") // unobf classes in classic
 				|| className.startsWith("com.mojang.rubydung.") // unobf classes in pre-classic
 				|| className.startsWith("com.mojang.blaze3d.") // unobf blaze3d classes
+				|| className.startsWith("com.mojang.renderpearl.") // unobf renderpearl classes
 				|| className.indexOf('.') < 0; // obf classes
 
 		if (isMinecraftClass) {
