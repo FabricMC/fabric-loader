@@ -46,7 +46,7 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 		/**
 		 * Removes classes, fields and methods annotated with a different {@literal @}{@link Environment} from the current runtime.
 		 *
-		 * <p>This can be disabled with {@link SystemProperties#DISABLE_STRIP_ENVIRONMENT}.
+		 * <p>This can be disabled with {@link SystemProperties#DISABLE_ENVIRONMENT_STRIP}.
 		 */
 		STRIP_ENVIRONMENT,
 		/**

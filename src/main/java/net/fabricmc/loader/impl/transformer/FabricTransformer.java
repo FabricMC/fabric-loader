@@ -29,12 +29,12 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.util.SystemProperties;
 
 public final class FabricTransformer {
-	private static final boolean DISABLE_STRIP_ENVIRONMENT = SystemProperties.isSet(SystemProperties.DISABLE_STRIP_ENVIRONMENT);
+	private static final boolean DISABLE_ENVIRONMENT_STRIP = SystemProperties.isSet(SystemProperties.DISABLE_ENVIRONMENT_STRIP);
 
 	public static byte[] transform(boolean isDevelopment, EnvType envType, String name, byte[] bytes) {
 		Set<BuiltinTransform> transforms = FabricLoaderImpl.INSTANCE.getGameProvider().getBuiltinTransforms(name);
 		boolean transformAccess = transforms.contains(BuiltinTransform.WIDEN_ALL_PACKAGE_ACCESS) && FabricLauncherBase.getLauncher().getMappingConfiguration().requiresPackageAccessHack();
-		boolean environmentStrip = transforms.contains(BuiltinTransform.STRIP_ENVIRONMENT) && !DISABLE_STRIP_ENVIRONMENT;
+		boolean environmentStrip = transforms.contains(BuiltinTransform.STRIP_ENVIRONMENT) && !DISABLE_ENVIRONMENT_STRIP;
 		boolean applyClassTweaker = transforms.contains(BuiltinTransform.CLASS_TWEAKS) && FabricLoaderImpl.INSTANCE.getClassTweaker().getTargets().contains(name.replace('.', '/'));
 
 		if (!transformAccess && !environmentStrip && !applyClassTweaker) {
