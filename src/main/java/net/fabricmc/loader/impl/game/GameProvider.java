@@ -45,6 +45,8 @@ public interface GameProvider { // name directly referenced in net.fabricmc.load
 	enum BuiltinTransform {
 		/**
 		 * Removes classes, fields and methods annotated with a different {@literal @}{@link Environment} from the current runtime.
+		 *
+		 * <p>This can be disabled with {@link SystemProperties#DISABLE_ENVIRONMENT_STRIP}.
 		 */
 		STRIP_ENVIRONMENT,
 		/**

@@ -59,6 +59,8 @@ public final class SystemProperties {
 	public static final String PATH_GROUPS = "fabric.classPathGroups";
 	// enable the fixing of package access errors in the game jar(s)
 	public static final String FIX_PACKAGE_ACCESS = "fabric.fixPackageAccess";
+	// disable the stripping of environment code
+	public static final String DISABLE_ENVIRONMENT_STRIP = "fabric.disableEnvironmentStrip";
 	// system level libraries, matching code sources will not be assumed to be part of the game or mods and remain on the system class path
 	// paths separated by path separator, @ prefix for meta-file with each line referencing an actual file)
 	public static final String SYSTEM_LIBRARIES = "fabric.systemLibraries";
