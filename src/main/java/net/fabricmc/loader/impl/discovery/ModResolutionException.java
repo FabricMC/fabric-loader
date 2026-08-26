@@ -16,17 +16,32 @@
 
 package net.fabricmc.loader.impl.discovery;
 
+import net.fabricmc.loader.impl.gui.FabricStatusTree.DependencyGuiData;
+
 @SuppressWarnings("serial")
 public class ModResolutionException extends Exception {
+	private final DependencyGuiData dependencyGuiData;
 	public ModResolutionException(String s) {
 		super(s);
+		this.dependencyGuiData = null;
 	}
 
 	public ModResolutionException(String format, Object... args) {
 		super(String.format(format, args));
+		this.dependencyGuiData = null;
+	}
+
+	public ModResolutionException(String format, DependencyGuiData dependencyGuiData, Object... args) {
+		super(String.format(format, args));
+		this.dependencyGuiData = dependencyGuiData;
 	}
 
 	public ModResolutionException(String s, Throwable t) {
 		super(s, t);
+		this.dependencyGuiData = null;
+	}
+
+	public DependencyGuiData getDependencyGuiData() {
+		return dependencyGuiData;
 	}
 }

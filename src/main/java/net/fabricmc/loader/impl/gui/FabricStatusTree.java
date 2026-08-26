@@ -23,8 +23,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -59,7 +62,7 @@ public final class FabricStatusTree {
 		/** Sends the status message to the main application, then disables itself. */
 		CLICK_ONCE,
 		/** Sends the status message to the main application, remains enabled. */
-		CLICK_MANY;
+		CLICK_MANY
 	}
 
 	/** No icon is displayed. */
@@ -94,6 +97,7 @@ public final class FabricStatusTree {
 	public final String mainText;
 	public final List<FabricStatusTab> tabs = new ArrayList<>();
 	public final List<FabricStatusButton> buttons = new ArrayList<>();
+	private DependencyGuiData dependencyGuiData;
 
 	public FabricStatusTree(String title, String mainText) {
 		Objects.requireNonNull(title, "null title");
@@ -114,6 +118,10 @@ public final class FabricStatusTree {
 		for (int i = is.readInt(); i > 0; i--) {
 			buttons.add(new FabricStatusButton(is));
 		}
+
+		if (is.readBoolean()) {
+			dependencyGuiData = new DependencyGuiData(is);
+		}
 	}
 
 	public void writeTo(DataOutputStream os) throws IOException {
@@ -130,6 +138,12 @@ public final class FabricStatusTree {
 		for (FabricStatusButton button : buttons) {
 			button.writeTo(os);
 		}
+
+		os.writeBoolean(dependencyGuiData != null);
+
+		if (dependencyGuiData != null) {
+			dependencyGuiData.writeTo(os);
+		}
 	}
 
 	public FabricStatusTab addTab(String name) {
@@ -142,6 +156,322 @@ public final class FabricStatusTree {
 		FabricStatusButton button = new FabricStatusButton(text, type);
 		buttons.add(button);
 		return button;
+	}
+
+	public DependencyGuiData getDependencyGuiData() {
+		return dependencyGuiData;
+	}
+
+	public DependencyGuiData createDependencyGuiData() {
+		dependencyGuiData = new DependencyGuiData();
+		return dependencyGuiData;
+	}
+
+	public void setDependencyGuiData(DependencyGuiData dependencyGuiData) {
+		this.dependencyGuiData = dependencyGuiData;
+	}
+
+	public enum DependencyGuiRequirementKind {
+		DEPENDENCY,
+		CONFLICT
+	}
+
+	public static final class DependencyGuiData {
+		public final List<DependencyGuiSuggestedChange> suggestedChanges = new ArrayList<>();
+		public final Map<String, DependencyGuiDependency> dependencies = new LinkedHashMap<>();
+		public final Map<String, DependencyGuiMod> affectedMods = new LinkedHashMap<>();
+		public final Map<String, DependencyGuiIconSource> iconSources = new LinkedHashMap<>();
+
+		public DependencyGuiData() { }
+
+		DependencyGuiData(DataInputStream is) throws IOException {
+			for (int i = is.readInt(); i > 0; i--) {
+				suggestedChanges.add(new DependencyGuiSuggestedChange(is));
+			}
+
+			for (int i = is.readInt(); i > 0; i--) {
+				DependencyGuiDependency dependency = new DependencyGuiDependency(is);
+				dependencies.put(dependency.id + "@" + dependency.kind.name(), dependency);
+			}
+
+			for (int i = is.readInt(); i > 0; i--) {
+				DependencyGuiMod mod = new DependencyGuiMod(is);
+				affectedMods.put(mod.id, mod);
+			}
+
+			for (int i = is.readInt(); i > 0; i--) {
+				DependencyGuiIconSource iconSource = new DependencyGuiIconSource(is);
+				iconSources.put(iconSource.id, iconSource);
+			}
+		}
+
+		void writeTo(DataOutputStream os) throws IOException {
+			os.writeInt(suggestedChanges.size());
+
+			for (DependencyGuiSuggestedChange suggestedChange : suggestedChanges) {
+				suggestedChange.writeTo(os);
+			}
+
+			os.writeInt(dependencies.size());
+
+			for (DependencyGuiDependency dependency : dependencies.values()) {
+				dependency.writeTo(os);
+			}
+
+			os.writeInt(affectedMods.size());
+
+			for (DependencyGuiMod mod : affectedMods.values()) {
+				mod.writeTo(os);
+			}
+
+			os.writeInt(iconSources.size());
+
+			for (DependencyGuiIconSource iconSource : iconSources.values()) {
+				iconSource.writeTo(os);
+			}
+		}
+
+		public DependencyGuiSuggestedChange addSuggestedChange(String text, String targetId) {
+			DependencyGuiSuggestedChange suggestedChange = new DependencyGuiSuggestedChange(text, targetId);
+			suggestedChanges.add(suggestedChange);
+			return suggestedChange;
+		}
+
+		public DependencyGuiDependency addDependency(String id, String displayName, String versionRequirement, DependencyGuiRequirementKind kind) {
+			String key = id + "@" + kind.name();
+			DependencyGuiDependency dependency = dependencies.get(key);
+
+			if (dependency == null) {
+				dependency = new DependencyGuiDependency(id, displayName, kind);
+				dependencies.put(key, dependency);
+			}
+
+			dependency.addVersionRequirement(versionRequirement);
+			return dependency;
+		}
+
+		public DependencyGuiMod addAffectedMod(String id, String displayName, String version) {
+			DependencyGuiMod mod = affectedMods.get(id);
+
+			if (mod == null) {
+				mod = new DependencyGuiMod(id, displayName, version);
+				affectedMods.put(id, mod);
+			}
+
+			return mod;
+		}
+
+		public void addIconSource(String id, String iconPath, List<String> paths, byte[] iconBytes) {
+			if (id == null || id.isEmpty() || iconPath == null || iconPath.isEmpty()) {
+				return;
+			}
+
+			boolean hasPaths = paths != null && !paths.isEmpty();
+			boolean hasIconBytes = iconBytes != null && iconBytes.length > 0;
+
+			if (!hasPaths && !hasIconBytes) {
+				return;
+			}
+
+			if (!iconSources.containsKey(id)) {
+				iconSources.put(id, new DependencyGuiIconSource(id, iconPath, paths, iconBytes));
+			}
+		}
+	}
+
+	public static final class DependencyGuiIconSource {
+		public final String id;
+		public final String iconPath;
+		public final List<String> paths = new ArrayList<>();
+		public final byte[] iconBytes;
+
+		public DependencyGuiIconSource(String id, String iconPath, List<String> paths, byte[] iconBytes) {
+			this.id = Objects.requireNonNull(id, "null id");
+			this.iconPath = Objects.requireNonNull(iconPath, "null iconPath");
+
+			if (paths != null) {
+				this.paths.addAll(paths);
+			}
+
+			this.iconBytes = iconBytes == null ? new byte[0] : iconBytes.clone();
+		}
+
+		DependencyGuiIconSource(DataInputStream is) throws IOException {
+			id = is.readUTF();
+			iconPath = is.readUTF();
+
+			for (int i = is.readInt(); i > 0; i--) {
+				paths.add(is.readUTF());
+			}
+
+			int iconByteCount = is.readInt();
+			iconBytes = new byte[iconByteCount];
+
+			if (iconByteCount > 0) {
+				is.readFully(iconBytes);
+			}
+		}
+
+		void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(id);
+			os.writeUTF(iconPath);
+			os.writeInt(paths.size());
+
+			for (String path : paths) {
+				os.writeUTF(path);
+			}
+
+			os.writeInt(iconBytes.length);
+			os.write(iconBytes);
+		}
+	}
+
+	public static final class DependencyGuiSuggestedChange {
+		public final String text;
+		public final String targetId;
+		public final List<String> details = new ArrayList<>();
+
+		public DependencyGuiSuggestedChange(String text, String targetId) {
+			this.text = Objects.requireNonNull(text, "null text");
+			this.targetId = targetId == null ? "" : targetId;
+		}
+
+		DependencyGuiSuggestedChange(DataInputStream is) throws IOException {
+			text = is.readUTF();
+			targetId = is.readUTF();
+
+			for (int i = is.readInt(); i > 0; i--) {
+				details.add(is.readUTF());
+			}
+		}
+
+		void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(text);
+			os.writeUTF(targetId);
+			os.writeInt(details.size());
+
+			for (String detail : details) {
+				os.writeUTF(detail);
+			}
+		}
+
+		public DependencyGuiSuggestedChange addDetail(String detail) {
+			if (detail != null && !detail.isEmpty()) {
+				details.add(detail);
+			}
+
+			return this;
+		}
+	}
+
+	public static final class DependencyGuiDependency {
+		public final String id;
+		public final String displayName;
+		public final DependencyGuiRequirementKind kind;
+		public final List<String> versionRequirements = new ArrayList<>();
+
+		public DependencyGuiDependency(String id, String displayName, DependencyGuiRequirementKind kind) {
+			this.id = Objects.requireNonNull(id, "null id");
+			this.displayName = Objects.requireNonNull(displayName, "null displayName");
+			this.kind = Objects.requireNonNull(kind, "null kind");
+		}
+
+		DependencyGuiDependency(DataInputStream is) throws IOException {
+			id = is.readUTF();
+			displayName = is.readUTF();
+			kind = DependencyGuiRequirementKind.valueOf(is.readUTF());
+
+			for (int i = is.readInt(); i > 0; i--) {
+				versionRequirements.add(is.readUTF());
+			}
+		}
+
+		void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(id);
+			os.writeUTF(displayName);
+			os.writeUTF(kind.name());
+			os.writeInt(versionRequirements.size());
+
+			for (String versionRequirement : versionRequirements) {
+				os.writeUTF(versionRequirement);
+			}
+		}
+
+		public DependencyGuiDependency addVersionRequirement(String versionRequirement) {
+			if (versionRequirement != null && !versionRequirement.isEmpty() && !versionRequirements.contains(versionRequirement)) {
+				versionRequirements.add(versionRequirement);
+			}
+
+			return this;
+		}
+	}
+
+	public static final class DependencyGuiMod {
+		public final String id;
+		public final String displayName;
+		public final String version;
+		public final List<DependencyGuiRequirement> requirements = new ArrayList<>();
+
+		public DependencyGuiMod(String id, String displayName, String version) {
+			this.id = Objects.requireNonNull(id, "null id");
+			this.displayName = Objects.requireNonNull(displayName, "null displayName");
+			this.version = version == null ? "" : version;
+		}
+
+		DependencyGuiMod(DataInputStream is) throws IOException {
+			id = is.readUTF();
+			displayName = is.readUTF();
+			version = is.readUTF();
+
+			for (int i = is.readInt(); i > 0; i--) {
+				requirements.add(new DependencyGuiRequirement(is));
+			}
+		}
+
+		void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(id);
+			os.writeUTF(displayName);
+			os.writeUTF(version);
+			os.writeInt(requirements.size());
+
+			for (DependencyGuiRequirement requirement : requirements) {
+				requirement.writeTo(os);
+			}
+		}
+
+		public DependencyGuiRequirement addRequirement(String dependencyId, String dependencyDisplayName, String versionRequirement, DependencyGuiRequirementKind kind) {
+			DependencyGuiRequirement requirement = new DependencyGuiRequirement(dependencyId, dependencyDisplayName, versionRequirement, kind);
+			requirements.add(requirement);
+			return requirement;
+		}
+	}
+
+	public static final class DependencyGuiRequirement {
+		public final String dependencyId;
+		public final String dependencyDisplayName;
+		public final String versionRequirement;
+		public final DependencyGuiRequirementKind kind;
+
+		public DependencyGuiRequirement(String dependencyId, String dependencyDisplayName, String versionRequirement, DependencyGuiRequirementKind kind) {
+			this.dependencyId = Objects.requireNonNull(dependencyId, "null dependencyId");
+			this.dependencyDisplayName = Objects.requireNonNull(dependencyDisplayName, "null dependencyDisplayName");
+			this.versionRequirement = versionRequirement == null ? "" : versionRequirement;
+			this.kind = Objects.requireNonNull(kind, "null kind");
+		}
+
+		DependencyGuiRequirement(DataInputStream is) throws IOException {
+			dependencyId = is.readUTF();
+			dependencyDisplayName = is.readUTF();
+			versionRequirement = is.readUTF();
+			kind = DependencyGuiRequirementKind.valueOf(is.readUTF());
+		}
+
+		void writeTo(DataOutputStream os) throws IOException {
+			os.writeUTF(dependencyId);
+			os.writeUTF(dependencyDisplayName);
+			os.writeUTF(versionRequirement);
+			os.writeUTF(kind.name());
+		}
 	}
 
 	public static final class FabricStatusButton {
@@ -311,7 +641,7 @@ public final class FabricStatusTree {
 
 		private FabricStatusNode addChild(String string) {
 			if (string.startsWith("\t")) {
-				if (children.size() == 0) {
+				if (children.isEmpty()) {
 					FabricStatusNode rootChild = new FabricStatusNode(this, "");
 					children.add(rootChild);
 				}
@@ -477,7 +807,7 @@ public final class FabricStatusTree {
 				mergeWithSingleChild("/");
 			}
 
-			children.sort((a, b) -> a.name.compareTo(b.name));
+			children.sort(Comparator.comparing(a -> a.name));
 			mergeChildFilePaths(folderType);
 		}
 
