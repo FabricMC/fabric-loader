@@ -47,6 +47,8 @@ public final class SystemProperties {
 	public static final String LOG_FILE = "fabric.log.file";
 	// minimum log level for builtin log handler
 	public static final String LOG_LEVEL = "fabric.log.level";
+	// a path to a directory to replace the default mod config directory
+	public static final String CONFIG_FOLDER = "fabric.configFolder";
 	// a path to a directory to replace the default mod search directory
 	public static final String MODS_FOLDER = "fabric.modsFolder";
 	// additional mods to load (path separator separated paths, @ prefix for meta-file with each line referencing an actual file)
