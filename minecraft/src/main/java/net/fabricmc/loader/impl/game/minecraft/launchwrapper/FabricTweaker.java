@@ -34,7 +34,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
-import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.transformer.Proxy;
 
@@ -143,7 +142,6 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 		FabricLoaderImpl.INSTANCE.loadClassTweakers();
 
 		// Setup Mixin environment
-		MixinBootstrap.init();
 		FabricMixinBootstrap.init(getEnvironmentType(), FabricLoaderImpl.INSTANCE);
 		MixinEnvironment.getDefaultEnvironment().setSide(getEnvironmentType() == EnvType.CLIENT ? MixinEnvironment.Side.CLIENT : MixinEnvironment.Side.SERVER);
 
@@ -162,10 +160,9 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
-	public void addToClassPath(Path path, String... allowedPrefixes) {
+	public void addToClassPath(Path path) {
 		try {
 			launchClassLoader.addURL(UrlUtil.asUrl(path));
-			// allowedPrefixes handling is not implemented (no-op)
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
@@ -173,6 +170,11 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 
 	@Override
 	public void setAllowedPrefixes(Path path, String... prefixes) {
+		// not implemented (no-op)
+	}
+
+	@Override
+	public void setAllPrefixesAllowed(Path path) {
 		// not implemented (no-op)
 	}
 
