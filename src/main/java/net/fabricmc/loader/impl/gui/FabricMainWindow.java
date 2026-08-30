@@ -196,7 +196,19 @@ class FabricMainWindow {
 		TreeNode treeNode = new CustomTreeNode(null, rootNode, minimumWarningLevel);
 
 		DefaultTreeModel model = new DefaultTreeModel(treeNode);
-		JTree tree = new JTree(model);
+		JTree tree = new JTree(model) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String convertValueToText(Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+				if (value instanceof CustomTreeNode) {
+					return applyWrapping(StringUtil.wrapLines(((CustomTreeNode) value).node.name, 120));
+				}
+
+				return super.convertValueToText(value, selected, expanded, leaf, row, hasFocus);
+			}
+		};
+
 		tree.setRootVisible(false);
 		tree.setRowHeight(0); // Allow rows to be multiple lines tall
 
@@ -488,7 +500,7 @@ class FabricMainWindow {
 
 		@Override
 		public String toString() {
-			return applyWrapping(StringUtil.wrapLines(node.name, 120));
+			return node.name;
 		}
 
 		@Override
