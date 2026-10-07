@@ -24,7 +24,8 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 
 import net.fabricmc.loader.impl.util.Arguments;
 
