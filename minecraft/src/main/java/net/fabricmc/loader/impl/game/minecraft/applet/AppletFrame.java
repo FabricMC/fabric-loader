@@ -25,7 +25,7 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-import javax.swing.ImageIcon;
+import javax.swing.*;
 
 import net.fabricmc.loader.impl.util.Arguments;
 
@@ -38,7 +38,7 @@ import net.fabricmc.loader.impl.util.Arguments;
  * <p>It has been adapted here for the purposes of the Fabric loader.
  */
 @SuppressWarnings("serial")
-public class AppletFrame extends Frame implements WindowListener {
+public class AppletFrame extends JFrame implements WindowListener {
 	private AppletLauncher applet = null;
 
 	public AppletFrame(String title, ImageIcon icon) {
