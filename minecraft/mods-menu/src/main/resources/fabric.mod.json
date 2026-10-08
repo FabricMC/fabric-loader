@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "fabricloader-mods-menu",
+  "name": "Fabric Loader Mods Menu",
+  "version": "${version}",
+  "environment": "client",
+  "description": "Built-in loaded-mod browser (Minecraft 1.20.2 prototype).",
+  "license": "Apache-2.0",
+  "mixins": ["fabricloader.mods-menu.mixins.json"]
+}

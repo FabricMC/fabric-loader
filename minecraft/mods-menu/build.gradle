@@ -1,0 +1,56 @@
+apply plugin: "fabric-loom"
+
+loom {
+	mixin {
+		defaultRefmapName = "fabricloader.mods-menu.refmap.json"
+	}
+}
+
+base {
+	archivesName = "fabric-loader-mods-menu"
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:1.20.2"
+	mappings "net.fabricmc:yarn:1.20.2+build.1:v2"
+
+	implementation project(":minecraft")
+	implementation project(":minecraft").sourceSets.main.output
+	implementation project(":").sourceSets.main.output
+
+	annotationProcessor "org.ow2.asm:asm:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-analysis:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-commons:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-tree:${project.asm_version}"
+	annotationProcessor "org.ow2.asm:asm-util:${project.asm_version}"
+	annotationProcessor ("net.fabricmc:sponge-mixin:${project.mixin_version}") {
+		exclude module: 'launchwrapper'
+		exclude module: 'guava'
+	}
+
+	testImplementation 'org.mockito:mockito-core:5.20.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = "UTF-8"
+	options.release = 8
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": inputs.properties.version
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
