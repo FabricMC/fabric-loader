@@ -27,7 +27,6 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
-/** Selects the version-specific menu without loading its Minecraft classes on other versions. */
 public final class BuiltinModsMenuPlugin implements IMixinConfigPlugin {
 	@Override
 	public void onLoad(String mixinPackage) {
@@ -47,7 +46,9 @@ public final class BuiltinModsMenuPlugin implements IMixinConfigPlugin {
 	}
 
 	static boolean isEnabled(EnvType environment, String minecraftVersion, boolean modMenuLoaded, String setting) {
-		return environment == EnvType.CLIENT && "1.20.2".equals(minecraftVersion) && !modMenuLoaded && !"false".equalsIgnoreCase(setting);
+		if (environment != EnvType.CLIENT || modMenuLoaded || "false".equalsIgnoreCase(setting)) return false;
+
+		return "1.20.2".equals(minecraftVersion);
 	}
 
 	@Override

@@ -3,9 +3,9 @@ fabric-loader
 
 The loader for mods under Fabric. It provides mod loading facilities and useful abstractions for other mods to use.
 
-## Built-in mod browser prototype
+## Mods menu
 
-The loader bundles a basic client-side Mods screen for Minecraft 1.20.2. Other releases do not enable it, and an installed Mod Menu takes precedence. See [the module documentation](minecraft/mods-menu/README.md) for the current scope, opt-out and validation checklist.
+The bundled menu currently supports Minecraft 1.20.2. Support for the other versions is still missing. See [the module README](minecraft/mods-menu/README.md).
 
 ## License
 

@@ -36,7 +36,6 @@ abstract class TitleScreenMixin extends Screen {
 
 	@Inject(method = "init", at = @At("TAIL"))
 	private void fabricLoader$addModsButton(CallbackInfo info) {
-		// Match the two half-width buttons, using the free row below them.
 		addDrawableChild(ButtonWidget.builder(Text.translatable("fabricloader.mods.button"),
 				button -> client.setScreen(new ModsScreen(this)))
 				.dimensions(width / 2 - 100, height / 4 + 156, 200, 20).build());

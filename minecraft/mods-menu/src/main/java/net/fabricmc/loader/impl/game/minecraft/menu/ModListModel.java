@@ -26,7 +26,6 @@ import java.util.Locale;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 
-/** Immutable, deterministically sorted snapshot of the mods actually loaded in this process. */
 final class ModListModel {
 	private final List<ModMetadata> mods;
 

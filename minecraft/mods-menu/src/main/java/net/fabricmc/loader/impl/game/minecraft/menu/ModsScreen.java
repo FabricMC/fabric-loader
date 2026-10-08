@@ -31,7 +31,6 @@ import net.minecraft.text.Text;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 
-/** Small keyboard-accessible browser; it intentionally does not manage files or mod configuration. */
 public final class ModsScreen extends Screen {
 	private static final int ROW_HEIGHT = 22;
 	private final Screen parent;
@@ -80,7 +79,6 @@ public final class ModsScreen extends Screen {
 	}
 
 	private void refreshRows() {
-		// Rebuild only the rows, preserving the active search field and cursor.
 		for (ButtonWidget row : rows) {
 			remove(row);
 		}
@@ -88,6 +86,7 @@ public final class ModsScreen extends Screen {
 		rows.clear();
 		filtered = model.filter(query);
 		int pageSize = pageSize();
+		int rowWidth = Math.min(300, width - 24);
 		int lastPage = Math.max(0, (filtered.size() - 1) / pageSize);
 		page = Math.max(0, Math.min(page, lastPage));
 		previous.active = page > 0;
@@ -98,7 +97,7 @@ public final class ModsScreen extends Screen {
 			ModMetadata mod = filtered.get(index);
 			Text label = Text.literal(mod.getName() + "  " + mod.getVersion().getFriendlyString());
 			ButtonWidget row = ButtonWidget.builder(label, button -> client.setScreen(new DetailsScreen(this, mod)))
-					.dimensions((width - Math.min(300, width - 24)) / 2, 74 + (index - page * pageSize) * ROW_HEIGHT, Math.min(300, width - 24), 20).build();
+					.dimensions((width - rowWidth) / 2, 74 + (index - page * pageSize) * ROW_HEIGHT, rowWidth, 20).build();
 			row.setTooltip(Tooltip.of(label));
 			rows.add(addDrawableChild(row));
 		}

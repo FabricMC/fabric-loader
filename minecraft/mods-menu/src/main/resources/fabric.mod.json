@@ -4,7 +4,7 @@
   "name": "Fabric Loader Mods Menu",
   "version": "${version}",
   "environment": "client",
-  "description": "Built-in loaded-mod browser (Minecraft 1.20.2 prototype).",
+  "description": "Shows the mods loaded by Fabric.",
   "license": "Apache-2.0",
   "mixins": ["fabricloader.mods-menu.mixins.json"]
 }
