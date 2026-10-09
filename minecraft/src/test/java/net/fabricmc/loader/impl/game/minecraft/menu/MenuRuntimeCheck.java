@@ -16,7 +16,10 @@
 
 package net.fabricmc.loader.impl.game.minecraft.menu;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,9 +41,28 @@ public final class MenuRuntimeCheck {
 		MinecraftMenuAdapter api = new MinecraftMenuAdapter(loader, new MenuMappings(null));
 		Object parent = new Object();
 		MenuHooks.State state = new MenuHooks.State(parent, new ModListModel(Collections.emptyList()), null);
-		Object screen = api.screen(state);
+		Object screen = loader.loadClass("net.fabricmc.loader.impl.game.minecraft.menu.GeneratedModsScreen").getConstructor(Object.class, MenuAdapter.class).newInstance(state, new ScreenAdapter(api));
 		if (api.width(screen) != 320 || api.height(screen) != 240) throw new IllegalStateException("Screen dimensions did not bind");
-		MenuHooks.init(screen, state, api);
+		MenuHooks.init(screen, state, new ScreenAdapter(api));
+		Field clientField = MinecraftMenuAdapter.class.getDeclaredField("client");
+		clientField.setAccessible(true);
+		Object client = clientField.get(api);
+		Field fontField = api.field(client.getClass(), "field_1772", "font", "textRenderer");
+		fontField.set(client, fontField.getType().getConstructor().newInstance());
+
+		for (Class<?> owner = screen.getClass(); owner != null; owner = owner.getSuperclass()) {
+			for (Field field : owner.getDeclaredFields()) {
+				if (field.getType() == List.class) {
+					field.setAccessible(true);
+					field.set(screen, new ArrayList<>());
+				}
+			}
+		}
+
+		Object search = api.search(screen, 8, 24, 100, 20, "");
+		api.searchValue(search);
+		api.renderSearch(search, null, 0, 0, 0);
+
 		Object button = api.button(5, 10, 100, 20, "Mods", () -> { });
 		api.add(screen, button);
 		api.active(button, false);
@@ -55,7 +77,9 @@ public final class MenuRuntimeCheck {
 				Class<?>[] types = method.getParameterTypes();
 
 				for (int i = 0; i < types.length; i++) {
-					if (types[i] == int.class) {
+					if (!types[i].isPrimitive()) {
+						arguments[i] = types[i].getConstructor().newInstance();
+					} else if (types[i] == int.class) {
 						arguments[i] = Integer.valueOf(0);
 					} else if (types[i] == float.class) {
 						arguments[i] = Float.valueOf(0.0F);
@@ -63,7 +87,63 @@ public final class MenuRuntimeCheck {
 				}
 
 				method.invoke(screen, arguments);
+
+				if (classes.containsKey(fontField.getType().getName())) {
+					Object context = types[0].isPrimitive() ? null : arguments[0];
+					MenuCanvas canvas = api.canvas(screen, context);
+					canvas.fill(0, 0, 32, 32, 0xffffffff);
+					canvas.text("Mods", 8, 8, 0xffffffff);
+					canvas.width("Mods");
+				}
 			}
+		}
+	}
+
+	private static final class ScreenAdapter implements MenuAdapter {
+		private final MenuAdapter delegate;
+
+		ScreenAdapter(MenuAdapter delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public Object text(String text) {
+			return delegate.text(text);
+		}
+
+		@Override
+		public Object screen(Object state) {
+			return delegate.screen(state);
+		}
+
+		@Override
+		public Object button(int x, int y, int width, int height, String label, Runnable action) {
+			return delegate.button(x, y, width, height, label, action);
+		}
+
+		@Override
+		public void add(Object screen, Object button) {
+			delegate.add(screen, button);
+		}
+
+		@Override
+		public int width(Object screen) {
+			return delegate.width(screen);
+		}
+
+		@Override
+		public int height(Object screen) {
+			return delegate.height(screen);
+		}
+
+		@Override
+		public void open(Object screen) {
+			delegate.open(screen);
+		}
+
+		@Override
+		public void active(Object button, boolean active) {
+			delegate.active(button, active);
 		}
 	}
 
@@ -91,7 +171,7 @@ public final class MenuRuntimeCheck {
 				ClassNode node = classes.get(name);
 
 				if (node == null) {
-					if (name.matches("net\\.minecraft\\.class_(437|442|4185|339|310|2561|2585|1074)")
+					if (name.matches("net\\.minecraft\\.class_(437|442|4185|339|342|310|2561|2585|1074)")
 							|| name.equals("net.minecraft.client.gui.components.Button") || name.equals("net.minecraft.client.gui.widget.ButtonWidget")
 							|| name.equals("net.minecraft.client.gui.screens.Screen") || name.equals("net.minecraft.client.gui.screen.Screen")
 							|| name.equals("net.minecraft.client.Minecraft") || name.equals("net.minecraft.client.MinecraftClient")

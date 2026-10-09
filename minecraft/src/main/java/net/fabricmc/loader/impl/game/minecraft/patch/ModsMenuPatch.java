@@ -18,12 +18,15 @@ package net.fabricmc.loader.impl.game.minecraft.patch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -86,6 +89,7 @@ public final class ModsMenuPatch extends GamePatch {
 
 		if (renderers.isEmpty()) throw new IllegalArgumentException("No supported Screen renderer in " + screen.name);
 		ClassNode generated = screen(screen, constructor, init, close, renderers, mappings);
+		inputMethods(generated, screen, source, mappings);
 		ClassNode button = findClass(source, mappings, "net/minecraft/class_4185", "net/minecraft/client/gui/components/Button", "net/minecraft/client/gui/widget/ButtonWidget");
 
 		if (button == null) {
@@ -121,7 +125,11 @@ public final class ModsMenuPatch extends GamePatch {
 
 		if (!"()V".equals(constructor.desc)) {
 			Type titleType = Type.getArgumentTypes(constructor.desc)[0];
-			if (!titleType.equals(Type.getType(String.class))) method.visitVarInsn(Opcodes.ALOAD, 2);
+
+			if (!titleType.equals(Type.getType(String.class))) {
+				method.visitVarInsn(Opcodes.ALOAD, 2);
+			}
+
 			method.visitVarInsn(Opcodes.ALOAD, 1);
 			method.visitMethodInsn(Opcodes.INVOKESTATIC, MenuHooks.INTERNAL_NAME, "title", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 
@@ -174,6 +182,23 @@ public final class ModsMenuPatch extends GamePatch {
 			}
 
 			method.visitVarInsn(Opcodes.ALOAD, 0);
+			loadState(method);
+			loadAdapter(method);
+			Type[] parameters = Type.getArgumentTypes(renderer.desc);
+			boolean context = parameters[0].getSort() == Type.OBJECT;
+
+			if (context) {
+				method.visitVarInsn(Opcodes.ALOAD, 1);
+			} else {
+				method.visitInsn(Opcodes.ACONST_NULL);
+			}
+
+			int slot = context ? 2 : 1;
+			method.visitVarInsn(Opcodes.ILOAD, slot);
+			method.visitVarInsn(Opcodes.ILOAD, slot + 1);
+			method.visitVarInsn(Opcodes.FLOAD, slot + 2);
+			method.visitMethodInsn(Opcodes.INVOKESTATIC, MenuHooks.INTERNAL_NAME, "render", "(Ljava/lang/Object;Ljava/lang/Object;" + API_DESC + "Ljava/lang/Object;IIF)V", false);
+			method.visitVarInsn(Opcodes.ALOAD, 0);
 			loadArguments(method, renderer.desc, renderer.desc);
 			method.visitMethodInsn(Opcodes.INVOKESPECIAL, parent.name, renderer.name, renderer.desc, false);
 			finish(method);
@@ -181,6 +206,85 @@ public final class ModsMenuPatch extends GamePatch {
 
 		writer.visitEnd();
 		return node(writer);
+	}
+
+	private static void inputMethods(ClassNode generated, ClassNode parent, Function<String, ClassNode> source, MenuMappings mappings) {
+		Set<String> seen = new HashSet<>();
+		Set<String> visited = new HashSet<>();
+		List<ClassNode> pending = new ArrayList<>();
+		pending.add(parent);
+
+		for (int index = 0; index < pending.size(); index++) {
+			ClassNode type = pending.get(index);
+			if (type == null || !visited.add(type.name)) continue;
+
+			for (MethodNode original : type.methods) {
+				if ((original.access & (Opcodes.ACC_STATIC | Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)) != 0
+						|| !Type.BOOLEAN_TYPE.equals(Type.getReturnType(original.desc)) || !seen.add(original.name + original.desc)) continue;
+				String kind = null;
+				String[] names = { "mouseClicked", "mouseReleased", "mouseDragged", "mouseScrolled" };
+				String[] intermediary = { "method_25402", "method_25406", "method_25403", "method_25401" };
+
+				for (int i = 0; i < names.length; i++) {
+					if (mappings.method(type.name, original.desc, original.name, names[i], intermediary[i])) kind = names[i];
+				}
+
+				if (kind == null) continue;
+				ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				writer.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, SCREEN, null, parent.name, null);
+				MethodVisitor method = writer.visitMethod(Opcodes.ACC_PUBLIC, original.name, original.desc, null, null);
+				method.visitCode();
+				loadState(method);
+				loadAdapter(method);
+				method.visitLdcInsn(kind);
+				Type[] args = Type.getArgumentTypes(original.desc);
+				method.visitLdcInsn(args.length);
+				method.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+				int slot = 1;
+
+				for (int i = 0; i < args.length; i++) {
+					method.visitInsn(Opcodes.DUP);
+					method.visitLdcInsn(i);
+					method.visitVarInsn(args[i].getOpcode(Opcodes.ILOAD), slot);
+					box(method, args[i]);
+					method.visitInsn(Opcodes.AASTORE);
+					slot += args[i].getSize();
+				}
+
+				method.visitMethodInsn(Opcodes.INVOKESTATIC, MenuHooks.INTERNAL_NAME, "input", "(Ljava/lang/Object;" + API_DESC + "Ljava/lang/String;[Ljava/lang/Object;)Z", false);
+				Label delegate = new Label();
+				method.visitJumpInsn(Opcodes.IFEQ, delegate);
+				method.visitInsn(Opcodes.ICONST_1);
+				method.visitInsn(Opcodes.IRETURN);
+				method.visitLabel(delegate);
+				method.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+				method.visitVarInsn(Opcodes.ALOAD, 0);
+				loadArguments(method, original.desc, original.desc);
+				method.visitMethodInsn(Opcodes.INVOKESPECIAL, parent.name, original.name, original.desc, false);
+				method.visitInsn(Opcodes.IRETURN);
+				method.visitMaxs(0, 0);
+				method.visitEnd();
+				generated.methods.add(node(writer).methods.get(0));
+			}
+
+			if (type.superName != null) pending.add(source.apply(type.superName.replace('/', '.')));
+			for (String contract : type.interfaces) pending.add(source.apply(contract.replace('/', '.')));
+		}
+	}
+
+	private static void box(MethodVisitor method, Type type) {
+		String owner;
+
+		switch (type.getSort()) {
+		case Type.BOOLEAN: owner = "java/lang/Boolean"; break;
+		case Type.INT: owner = "java/lang/Integer"; break;
+		case Type.DOUBLE: owner = "java/lang/Double"; break;
+		case Type.FLOAT: owner = "java/lang/Float"; break;
+		case Type.LONG: owner = "java/lang/Long"; break;
+		default: return;
+		}
+
+		method.visitMethodInsn(Opcodes.INVOKESTATIC, owner, "valueOf", "(" + type.getDescriptor() + ")L" + owner + ";", false);
 	}
 
 	static boolean drawsBackground(ClassNode screen, MethodNode renderer, MethodNode background) {
@@ -239,7 +343,10 @@ public final class ModsMenuPatch extends GamePatch {
 		method.visitCode();
 		method.visitVarInsn(Opcodes.ALOAD, 0);
 		Type[] nativeArguments = Type.getArgumentTypes(constructor.desc);
-		if (nativeArguments.length == 6) method.visitInsn(Opcodes.ICONST_0);
+
+		if (nativeArguments.length == 6) {
+			method.visitInsn(Opcodes.ICONST_0);
+		}
 
 		for (int i = 1; i <= 4; i++) {
 			method.visitVarInsn(Opcodes.ILOAD, i);

@@ -44,7 +44,7 @@ class MenuHooksTest {
 	}
 
 	@Test
-	void paginationDetailsAndBackKeepTheOriginalParent() {
+	void selectingAndScrollingStayOnTheSameScreen() {
 		List<ModContainer> mods = new ArrayList<>();
 
 		for (int i = 0; i < 20; i++) {
@@ -53,55 +53,84 @@ class MenuHooksTest {
 			when(container.getMetadata()).thenReturn(metadata);
 			when(metadata.getId()).thenReturn("mod" + i);
 			when(metadata.getName()).thenReturn(String.format("Mod %02d", i));
-			when(metadata.getVersion()).thenReturn(mock(Version.class));
-			when(metadata.getDescription()).thenReturn("Description");
-			when(metadata.getAuthors()).thenReturn(Collections.emptyList());
 			mods.add(container);
 		}
 
 		Object parent = new Object();
 		FakeAdapter api = new FakeAdapter();
 		MenuHooks.State state = new MenuHooks.State(parent, new ModListModel(mods), null);
-		Object screen = api.screen(state);
-		MenuHooks.init(screen, state, api);
-		assertFalse(api.button("<").active);
-		api.button(">").action.run();
-		assertEquals(1, state.page);
-		api.buttons.clear();
-		MenuHooks.init(api.opened, state, api);
-		Object listScreen = api.opened;
-		assertTrue(api.button("<").active);
-		api.buttons.stream().filter(b -> b.label.startsWith("Mod ")).findFirst().get().action.run();
-		MenuHooks.State details = api.state;
-		assertEquals(listScreen, details.parent);
-		MenuHooks.close(details, api);
-		assertEquals(listScreen, api.opened);
+		MenuHooks.init(api.screen(state), state, api);
+		assertTrue(MenuHooks.input(state, api, "mouseClicked", new Object[] {10.0, 110.0, 0}));
+		assertEquals("mod1", state.mod.getId());
+		assertEquals(null, api.opened);
+		assertTrue(MenuHooks.input(state, api, "mouseScrolled", new Object[] {10.0, 110.0, -3.0}));
+		assertEquals(54, state.listScroll);
+		state.refresh("Mod 19");
+		assertEquals(1, state.mods.size());
+		assertEquals("mod19", state.mod.getId());
+		assertEquals(0, state.listScroll);
 		MenuHooks.close(state, api);
 		assertEquals(parent, api.opened);
 	}
 
 	@Test
-	void resizeClampsThePageAndLongDescriptionsKeepAllCharacters() {
-		FakeAdapter api = new FakeAdapter();
-		MenuHooks.State state = new MenuHooks.State(new Object(), new ModListModel(Collections.emptyList()), null);
-		state.page = 99;
-		MenuHooks.init(api.screen(state), state, api);
-		assertEquals(0, state.page);
-		assertFalse(api.button(">").active);
-		ModMetadata metadata = mock(ModMetadata.class);
-		Version version = mock(Version.class);
-		when(metadata.getId()).thenReturn("test");
-		when(metadata.getVersion()).thenReturn(version);
-		when(version.getFriendlyString()).thenReturn("1");
-		when(metadata.getAuthors()).thenReturn(Collections.emptyList());
-		when(metadata.getDescription()).thenReturn("abcdefgh😀ijklmnop\nsecond line");
-		List<String> lines = MenuHooks.details(metadata, 8);
-		assertEquals("abcdefgh😀ijklmnopsecondline", String.join("", lines.subList(3, lines.size())).replace(" ", ""));
+	void wrappingPreservesUnicodeAndParagraphs() {
+		List<String> lines = MenuHooks.wrap(MenuCanvas.EMPTY, "abcdefgh😀ijklmnop\nsecond line", 48);
+		assertEquals("abcdefgh😀ijklmnopsecondline", String.join("", lines).replace(" ", ""));
 		assertTrue(lines.stream().allMatch(line -> line.codePointCount(0, line.length()) <= 8));
+	}
+
+	@Test
+	void detailsRenderBesideTheListAndSearchClearsSelection() {
+		ModContainer container = mock(ModContainer.class);
+		ModMetadata mod = mock(ModMetadata.class);
+		Version version = mock(Version.class);
+		when(container.getMetadata()).thenReturn(mod);
+		when(mod.getId()).thenReturn("example");
+		when(mod.getName()).thenReturn("Example Mod");
+		when(mod.getDescription()).thenReturn("A sample description");
+		when(mod.getVersion()).thenReturn(version);
+		when(version.getFriendlyString()).thenReturn("1.2.3");
+		when(mod.getAuthors()).thenReturn(Collections.emptyList());
+		when(mod.getLicense()).thenReturn(Collections.singleton("MIT"));
+		FakeAdapter api = new FakeAdapter();
+		MenuHooks.State state = new MenuHooks.State(new Object(), new ModListModel(Collections.singleton(container)), null);
+		Object screen = api.screen(state);
+		MenuHooks.init(screen, state, api);
+		MenuHooks.render(screen, state, api, null, 10, 110, 0);
+		assertTrue(MenuHooks.input(state, api, "mouseScrolled", new Object[] { -1.0 }));
+		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("Example Mod@44,")));
+		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("Example Mod@" + (state.right + 36) + ",")));
+		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("1.2.3@")));
+		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("License@")));
+		state.refresh("absent");
+		MenuHooks.render(screen, state, api, null, 0, 0, 0);
+		assertEquals(null, state.mod);
+		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("No matching mods@")));
 	}
 
 	private static final class FakeAdapter implements MenuAdapter {
 		final List<Button> buttons = new ArrayList<>();
+		final List<String> drawn = new ArrayList<>();
+
+		@Override
+		public MenuCanvas canvas(Object screen, Object context) {
+			return new MenuCanvas() {
+				@Override
+				public void fill(int left, int top, int right, int bottom, int color) { }
+
+				@Override
+				public void text(String text, int x, int y, int color) {
+					drawn.add(text + "@" + x + "," + y);
+				}
+
+				@Override
+				public int width(String text) {
+					return text.codePointCount(0, text.length()) * 6;
+				}
+			};
+		}
+
 		Object opened;
 		MenuHooks.State state;
 
@@ -128,12 +157,12 @@ class MenuHooksTest {
 
 		@Override
 		public int width(Object screen) {
-			return 320;
+			return 640;
 		}
 
 		@Override
 		public int height(Object screen) {
-			return 180;
+			return 360;
 		}
 
 		@Override

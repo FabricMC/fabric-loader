@@ -100,7 +100,7 @@ TARGETS = {
     "net/minecraft/class_437", "net/minecraft/class_442", "net/minecraft/class_4185",
     "net/minecraft/class_2561", "net/minecraft/class_2585", "net/minecraft/class_310",
     "net/minecraft/class_339", "net/minecraft/class_364", "net/minecraft/class_4068", "net/minecraft/class_4264",
-    "net/minecraft/class_342", "net/minecraft/class_332",
+    "net/minecraft/class_342", "net/minecraft/class_332", "net/minecraft/class_327",
 }
 NAMED = {
     "net/minecraft/client/gui/screens/Screen", "net/minecraft/client/gui/screens/TitleScreen",
@@ -109,7 +109,8 @@ NAMED = {
     "net/minecraft/client/gui/components/events/GuiEventListener",
     "net/minecraft/client/gui/components/AbstractButton",
     "net/minecraft/client/gui/components/EditBox", "net/minecraft/client/gui/GuiGraphics",
-    "net/minecraft/client/gui/GuiGraphicsExtractor",
+    "net/minecraft/client/gui/GuiGraphicsExtractor", "net/minecraft/client/gui/Font",
+    "net/minecraft/client/input/MouseButtonEvent", "net/minecraft/client/input/MouseButtonInfo",
 }
 
 
@@ -148,7 +149,7 @@ def download(game, manifest, intermediaries, output):
     version = game["version"]
     folder = output / version
     cached = json.loads((folder / "complete.json").read_text()) if (folder / "complete.json").exists() else None
-    if cached and cached.get("schema") == 2:
+    if cached and cached.get("schema") == 3:
         return version, "cached"
     if version not in manifest:
         return version, "missing Mojang manifest"
@@ -192,7 +193,7 @@ def download(game, manifest, intermediaries, output):
             destination.parent.mkdir(parents=True, exist_ok=True)
             save(destination, data)
             pending.extend(parent + ".class" for parent in parents(data))
-    (folder / "complete.json").write_text(json.dumps({"schema": 2, "version": version, "stable": game["stable"], "client": client}))
+    (folder / "complete.json").write_text(json.dumps({"schema": 3, "version": version, "stable": game["stable"], "client": client}))
     return version, "downloaded"
 
 

@@ -22,18 +22,25 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.HashSet;
 
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 
 final class ModListModel {
 	private final List<ModMetadata> mods;
+	private final Set<String> libraries = new HashSet<>();
 
 	ModListModel(Collection<ModContainer> containers) {
 		List<ModMetadata> snapshot = new ArrayList<>();
 
 		for (ModContainer container : containers) {
 			snapshot.add(container.getMetadata());
+			if (container.getContainingMod() != null && container.getContainingMod().isPresent()
+					|| "fabricloader".equals(container.getMetadata().getId()) || "java".equals(container.getMetadata().getId())) {
+				libraries.add(container.getMetadata().getId());
+			}
 		}
 
 		snapshot.sort(Comparator.comparing((ModMetadata mod) -> mod.getName().toLowerCase(Locale.ROOT))
@@ -52,6 +59,12 @@ final class ModListModel {
 			}
 		}
 
+		return result;
+	}
+
+	List<ModMetadata> filter(String query, boolean showLibraries) {
+		List<ModMetadata> result = filter(query);
+		if (!showLibraries) result.removeIf(mod -> libraries.contains(mod.getId()));
 		return result;
 	}
 

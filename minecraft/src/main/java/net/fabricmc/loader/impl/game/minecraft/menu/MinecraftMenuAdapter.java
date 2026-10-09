@@ -50,6 +50,8 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 	private Method actionMethod;
 	private Method translate;
 	private boolean legacy;
+	private MinecraftMenuCanvas canvas;
+	private Object manualSearch;
 
 	MinecraftMenuAdapter(ClassLoader loader) throws ReflectiveOperationException {
 		this(loader, new MenuMappings(FabricLoader.getInstance().getMappingResolver()));
@@ -89,6 +91,118 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 		} catch (ClassNotFoundException | NoSuchMethodException e) {
 			translate = null;
 		}
+	}
+
+	Object font() throws ReflectiveOperationException {
+		return field(client.getClass(), "field_1772", "font", "textRenderer").get(client);
+	}
+
+	@Override
+	public MenuCanvas canvas(Object screen, Object context) {
+		try {
+			if (canvas == null) canvas = new MinecraftMenuCanvas(this, screen, context);
+			canvas.context(context);
+			return canvas;
+		} catch (ReflectiveOperationException e) {
+			throw failure(e);
+		}
+	}
+
+	@Override
+	public Object search(Object screen, int x, int y, int width, int height, String value) {
+		try {
+			Object font = font();
+			Class<?> edit = load(screenClass.getClassLoader(), "net/minecraft/class_342", "net/minecraft/client/gui/components/EditBox", "net/minecraft/client/gui/widget/TextFieldWidget");
+			Object result = null;
+			Object label = text("Search mods");
+			Class<?> labelType = label != null ? label.getClass() : textFactory != null ? textFactory.getDeclaringClass() : literal.getDeclaringClass();
+
+			for (Constructor<?> constructor : edit.getDeclaredConstructors()) {
+				Class<?>[] p = constructor.getParameterTypes();
+				if (p.length < 5 || p.length > 7) continue;
+				Object[] args = new Object[p.length];
+				int integer = 0;
+				boolean supported = true;
+				int count = 0;
+
+				for (Class<?> type : p) {
+					if (type == int.class) count++;
+				}
+
+				int[] bounds = count == 5 ? new int[] { 0, x, y, width, height } : new int[] { x, y, width, height };
+
+				for (int i = 0; i < p.length; i++) {
+					if (p[i] == int.class && integer < bounds.length) {
+						args[i] = bounds[integer++];
+					} else if (p[i].isInstance(font)) {
+						args[i] = font;
+					} else if (p[i] == String.class) {
+						args[i] = "Search mods";
+					} else if (p[i].isAssignableFrom(labelType)) {
+						args[i] = label;
+					} else {
+						supported = false;
+					}
+				}
+
+				if (!supported || integer != bounds.length) continue;
+				constructor.setAccessible(true);
+				result = constructor.newInstance(args);
+				break;
+			}
+
+			if (result == null) throw new NoSuchMethodException("No supported search field constructor");
+			method(edit, m -> m.getParameterCount() == 1 && m.getParameterTypes()[0] == int.class,
+					"method_1880", "setMaxLength").invoke(result, 256);
+			method(edit, m -> m.getParameterCount() == 1 && m.getParameterTypes()[0] == String.class,
+					"method_1852", "setText", "setValue").invoke(result, value);
+
+			if (add.getParameterTypes()[0].isInstance(result)) {
+				add(screen, result);
+				manualSearch = null;
+			} else {
+				Object children = field(screenClass, "field_2557", "children").get(screen);
+				((java.util.List<Object>) children).add(result);
+				manualSearch = result;
+			}
+
+			return result;
+		} catch (ReflectiveOperationException e) {
+			throw failure(e);
+		}
+	}
+
+	@Override
+	public String searchValue(Object search) {
+		try {
+			return (String) method(search.getClass(), m -> m.getParameterCount() == 0 && m.getReturnType() == String.class,
+					"method_1882", "getText", "getValue").invoke(search);
+		} catch (ReflectiveOperationException e) {
+			throw failure(e);
+		}
+	}
+
+	@Override
+	public void renderSearch(Object search, Object context, int mouseX, int mouseY, float delta) {
+		if (search == null || search != manualSearch) return;
+
+		try {
+			Method render = method(search.getClass(), m -> m.getParameterCount() == 3 || m.getParameterCount() == 4,
+					"method_25394", "method_18326", "method_2214", "method_1857", "render", "renderWidget", "extractRenderState");
+			render.invoke(search, render.getParameterCount() == 3 ? new Object[] { mouseX, mouseY, delta } : new Object[] { context, mouseX, mouseY, delta });
+		} catch (ReflectiveOperationException e) {
+			throw failure(e);
+		}
+	}
+
+	@Override
+	public void openLink(String address) {
+		MenuPlatform.browse(address);
+	}
+
+	@Override
+	public void openModsFolder() {
+		MenuPlatform.folder(FabricLoader.getInstance().getGameDir().resolve("mods"));
 	}
 
 	@Override
@@ -310,7 +424,7 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 		}
 	}
 
-	private Field field(Class<?> owner, String... names) throws NoSuchFieldException {
+	Field field(Class<?> owner, String... names) throws NoSuchFieldException {
 		for (Class<?> type = owner; type != null; type = type.getSuperclass()) {
 			for (Field field : type.getDeclaredFields()) {
 				if (mappings.field(Type.getInternalName(type), Type.getDescriptor(field.getType()), field.getName(), names)) {
@@ -323,7 +437,7 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 		throw new NoSuchFieldException(owner.getName() + ": " + String.join(", ", names));
 	}
 
-	private Method method(Class<?> owner, Predicate<Method> shape, String... names) throws NoSuchMethodException {
+	Method method(Class<?> owner, Predicate<Method> shape, String... names) throws NoSuchMethodException {
 		for (Class<?> type = owner; type != null; type = type.getSuperclass()) {
 			for (Method method : type.getDeclaredMethods()) {
 				if (shape.test(method) && mappings.method(Type.getInternalName(type), Type.getMethodDescriptor(method), method.getName(), names)) {
@@ -344,7 +458,7 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 		throw new NoSuchMethodException(owner.getName() + ": " + String.join(", ", names));
 	}
 
-	private Class<?> load(ClassLoader loader, String... names) throws ClassNotFoundException {
+	Class<?> load(ClassLoader loader, String... names) throws ClassNotFoundException {
 		for (String name : names) {
 			try {
 				return loader.loadClass(mappings.className(name).replace('/', '.'));

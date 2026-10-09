@@ -25,6 +25,27 @@ public interface MenuAdapter {
 		return new int[] { width(screen) / 2 + 2, height(screen) / 4 + 96, 98, 20 };
 	}
 
+	default Object search(Object screen, int x, int y, int width, int height, String value) {
+		return null;
+	}
+
+	default String searchValue(Object search) {
+		return "";
+	}
+
+	default MenuCanvas canvas(Object screen, Object context) {
+		return MenuCanvas.EMPTY;
+	}
+
+	default void renderSearch(Object search, Object context, int mouseX, int mouseY, float delta) {
+	}
+
+	default void openLink(String address) {
+	}
+
+	default void openModsFolder() {
+	}
+
 	Object text(String text);
 
 	Object screen(Object state);
