@@ -1,7 +1,0 @@
-{
-  "required": false,
-  "package": "net.fabricmc.loader.impl.game.minecraft.menu.mixin",
-  "plugin": "net.fabricmc.loader.impl.game.minecraft.BuiltinModsMenuPlugin",
-  "refmap": "fabricloader.mods-menu.refmap.json",
-  "injectors": {"defaultRequire": 1}
-}

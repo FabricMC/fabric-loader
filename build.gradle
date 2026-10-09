@@ -180,7 +180,7 @@ tasks.register('getSat4jAbout', Copy) {
 }
 
 tasks.register('fatJar', ShadowJar) {
-	dependsOn getSat4jAbout, ":minecraft:mods-menu:remapJar"
+	dependsOn getSat4jAbout
 	from sourceSets.main.output
 	from project(":minecraft").sourceSets.main.output
 	from getSat4jAbout.destinationDir
@@ -215,10 +215,9 @@ tasks.register('fatJar', ShadowJar) {
 
 	inputs.files(project.configurations.development)
 	def devFiles = project.configurations.development.files
-	def menuProject = project(":minecraft:mods-menu")
 
 	doLast {
-		JarNester.nestJars(devFiles + [menuProject.tasks.remapJar.archiveFile.get().asFile], archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
+		JarNester.nestJars(devFiles, archiveFile.get().asFile, LoggerFactory.getLogger("JiJ"))
 	}
 
 	outputs.upToDateWhen { false }

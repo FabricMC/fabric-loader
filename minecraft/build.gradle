@@ -22,8 +22,10 @@ dependencies {
 	// Unit testing for semver
 	implementation project(":").sourceSets.main.output
 	testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
+	testImplementation('org.mockito:mockito-core:5.20.0')
 	testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 	testImplementation('com.google.code.gson:gson:2.2.4')
+	testImplementation('net.fabricmc:mapping-io:0.9.1')
 }
 
 sourceSets {
@@ -46,6 +48,20 @@ jar {
 
 test {
 	useJUnitPlatform()
+}
+
+tasks.register('menuClientCheck', JavaExec) {
+	dependsOn testClasses
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'net.fabricmc.loader.impl.game.minecraft.patch.MenuClientCheck'
+	def clients = providers.gradleProperty('menuClients')
+	def allClients = providers.gradleProperty('menuAll').map { Boolean.parseBoolean(it) }.orElse(false)
+
+	doFirst {
+		if (!clients.isPresent()) throw new GradleException('Pass -PmenuClients=<client class directory>')
+		args clients.get()
+		if (allClients.get()) args '--all'
+	}
 }
 
 java {

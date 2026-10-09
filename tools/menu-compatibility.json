@@ -1,0 +1,2673 @@
+{
+  "checked_at": "2026-10-09T10:09:03.528050+00:00",
+  "sources": [
+    "https://meta.fabricmc.net/v2/versions/game",
+    "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+    "https://maven.fabricmc.net/net/minecraft/experimental_versions.json"
+  ],
+  "clients": 530,
+  "stable": 48,
+  "snapshots": 482,
+  "api_and_generated_screen_failures": 0,
+  "unit_tests": {
+    "tests": 39,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "build": "check, minecraft:check, finalJar, menuClientCheck --all; warning-mode fail",
+  "jar_sha256": "c210e139ea05d9ec2079c056409b33c652cc41ca04b6e0484e3538b6d817d94f",
+  "validation_scope": "Client API signatures, generated screen linkage, native widget factory binding, controller navigation and rendering dispatch against stubbed game method bodies. Minecraft was not launched. Graphics, narration and other screen mixins were not tested.",
+  "versions": [
+    {
+      "version": "26.4-snapshot-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.4-snapshot-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.4-snapshot-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-rc-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-rc-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-rc-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-pre-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-pre-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-pre-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-10",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-9",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-8",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.3-snapshot-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-rc-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-rc-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-pre-6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-pre-5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-pre-4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-pre-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-pre-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-pre-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-8",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "26.1.2-rc-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.2-snapshot-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "26.1.1-rc-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-rc-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-rc-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-rc-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-pre-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-pre-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-pre-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-11",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-10",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-9",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-8",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "26.1-snapshot-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w43a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w42a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w41a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.10",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.10-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.9",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.9-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.9-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.9-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.9-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.9-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w37a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w36b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w36a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w35a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w34b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w34a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w33a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w32a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w31a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.8",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.8-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.7",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.7-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.7-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.6",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.6-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.6-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.6-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.6-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.6-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w21a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w20a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w19a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w18a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w17a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w16a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w15a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w14craftmine",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.5",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.5-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.5-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.5-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.5-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.5-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w10a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w09b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w09a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w08a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w05a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w04a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w03a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w02a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.4-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.3",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.2-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w40a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w39a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w38a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w37a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w36a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w35a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w34a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w33a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.1-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.21-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w21b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w21a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w20a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w19b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w19a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w18a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.6",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.6-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.5-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w14potato",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w13a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w12a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w11a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w10a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w09a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w05b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w05a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w04a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w03b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w03a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w51b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w51a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.4",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.4-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.3",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.3-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.3-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.3-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.3-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.3-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w43b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w43a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w42a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w41a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w40a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.2-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w35a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w33a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w32a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w31a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20.1-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.20-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w18a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w17a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w16a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w13a_or_b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w13a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w12a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.4-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w05a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w04a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w03a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.3-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w43a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w42a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.2-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.2-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-pre6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19.1-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w24a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w19a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w18a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w17a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w16b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w16a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w15a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w13oneblockatatime",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w13a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w12a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w11a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.2-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.2-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.2-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.2-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w05a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "22w03a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.1-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.1-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.1-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18.1-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-rc4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-rc3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre8",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w43a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w42a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w41a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w40a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w39a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w38a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w37a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.17.1-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17.1-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17.1-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17.1-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17.1-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.17-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w20a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w19a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w18a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w17a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w16a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w15a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w13a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w11a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w10a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w08b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w08a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w05b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w05a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "21w03a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.5",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.5-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w51a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w49a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w48a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.4",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.4-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.4-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.4-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.3",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.3-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.2-rc2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.2-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.2-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.2-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.2-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w30a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w29a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w28a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w27a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.16",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-rc1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre8",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w22a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w21a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w20b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w20a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w19a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w18a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w17a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w16a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w15a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w14infinite",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w13b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w13a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w12a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w11a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w10a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w09a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w08a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "20w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.15.2-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15.2-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.15.1-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w46b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w45b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w42a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w41a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w40a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w39a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w38b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w38a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w37a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w36a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w35a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w34a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.4-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.3",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.3-pre4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.3-pre3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.3-pre2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.3-pre1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.2",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.2 Pre-Release 4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.2 Pre-Release 3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.2 Pre-Release 2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.2 Pre-Release 1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.1",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.1 Pre-Release 2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14.1 Pre-Release 1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14",
+      "stable": true,
+      "result": "pass"
+    },
+    {
+      "version": "1.14 Pre-Release 5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14 Pre-Release 4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14 Pre-Release 3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14 Pre-Release 2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14 Pre-Release 1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w14b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w14a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "3D Shareware v1.34",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w13b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w13a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w12b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w12a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w11b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w11a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w09a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w08b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w08a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w07a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w06a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w05a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w04b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w04a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w03c",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w03b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w03a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "19w02a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w50a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w49a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w48b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w48a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w47b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w47a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w46a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w45a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w44a",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w43c",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "18w43b",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-rc3_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-rc2_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-rc1_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre5_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre4_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre3_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre2_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.21.11-pre1_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w46a_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "25w45a_unobfuscated",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "24w14potato_original",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "23w13a_or_b_original",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.19_deep_dark_experimental_snapshot-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-7",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-6",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-5",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-4",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-2",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.18_experimental-snapshot-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.16_combat-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.15_combat-1",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14_combat-3",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14_combat-0",
+      "stable": false,
+      "result": "pass"
+    },
+    {
+      "version": "1.14_combat-212796",
+      "stable": false,
+      "result": "pass"
+    }
+  ]
+}

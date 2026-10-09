@@ -5,7 +5,11 @@ The loader for mods under Fabric. It provides mod loading facilities and useful 
 
 ## Mods menu
 
-The bundled menu currently supports Minecraft 1.20.2. Support for the other versions is still missing. See [the module README](minecraft/mods-menu/README.md).
+The client title screen has a Mods button for browsing loaded mods and their metadata. The menu uses Minecraft's own screens and widgets, with adapters built from the running client's classes.
+
+The button is hidden when Mod Menu is installed. Set `-Dfabric.modsMenu=false` to disable it. Dedicated servers do not load the menu.
+
+See [the compatibility check](tools/README.md) for the test commands and their limits.
 
 ## License
 

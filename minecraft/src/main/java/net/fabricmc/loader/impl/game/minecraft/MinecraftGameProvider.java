@@ -47,6 +47,7 @@ import net.fabricmc.loader.impl.game.minecraft.patch.BrandingPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatch;
 import net.fabricmc.loader.impl.game.minecraft.patch.EntrypointPatchFML125;
 import net.fabricmc.loader.impl.game.minecraft.patch.TinyFDPatch;
+import net.fabricmc.loader.impl.game.minecraft.patch.ModsMenuPatch;
 import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.fabricmc.loader.impl.launch.MappingConfiguration;
@@ -92,7 +93,8 @@ public class MinecraftGameProvider implements GameProvider {
 			new EntrypointPatch(this),
 			new BrandingPatch(),
 			new EntrypointPatchFML125(),
-			new TinyFDPatch());
+			new TinyFDPatch(),
+			new ModsMenuPatch());
 
 	@Override
 	public String getGameId() {

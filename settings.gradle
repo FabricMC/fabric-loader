@@ -21,4 +21,3 @@ if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_21)) {
 include "minecraft"
 include "junit"
 include "minecraft:minecraft-test"
-include "minecraft:mods-menu"
