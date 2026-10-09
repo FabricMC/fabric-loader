@@ -10,13 +10,13 @@
   "snapshots": 482,
   "api_and_generated_screen_failures": 0,
   "unit_tests": {
-    "tests": 51,
+    "tests": 54,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "build": "check, minecraft:check, finalJar, menuClientCheck --all; warning-mode fail",
-  "jar_sha256": "0bc73b9e6d0ea2690d49b16ea93d59e82f50a814c8be990ecb492729d1b2cd3c",
+  "jar_sha256": "cfc739934c264204528d2017f7880034851fd1b308ab96f6b3893b518f59224a",
   "validation_scope": "API signatures, generated screen linkage and native button and search field binding against stubbed client method bodies for 530 versions. Drawing adapter binding and invocation against stubbed methods for 18w43b, 1.14, 1.16.5, 1.20.2, 26.2 and 26.4-snapshot-3. Controller tests cover filtering, selection, scrolling, detail layout and returning to the original screen. Minecraft was not launched; actual graphics, narration and compatibility with other screen mixins remain untested.",
   "versions": [
     {
@@ -2687,5 +2687,9 @@
     "1.20.2",
     "26.2",
     "26.4-snapshot-3"
-  ]
+  ],
+  "platform_actions": {
+    "checked_at": "2026-10-09T15:02:05.267763+00:00",
+    "checks": "Controller dispatch for Website, Issues, Open Mods Folder and metadata links; Windows, macOS and Linux opener argument construction and HTTP(S) URL validation. External applications were not started."
+  }
 }

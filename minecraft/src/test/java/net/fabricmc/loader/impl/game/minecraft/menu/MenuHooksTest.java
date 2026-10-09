@@ -25,6 +25,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +35,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.ContactInformation;
 
 class MenuHooksTest {
 	@Test
@@ -93,6 +97,14 @@ class MenuHooksTest {
 		when(version.getFriendlyString()).thenReturn("1.2.3");
 		when(mod.getAuthors()).thenReturn(Collections.emptyList());
 		when(mod.getLicense()).thenReturn(Collections.singleton("MIT"));
+		ContactInformation contact = mock(ContactInformation.class);
+		Map<String, String> links = new LinkedHashMap<>();
+		links.put("homepage", "https://example.org");
+		links.put("issues", "https://example.org/issues");
+		when(mod.getContact()).thenReturn(contact);
+		when(contact.asMap()).thenReturn(links);
+		when(contact.get("homepage")).thenReturn(Optional.of(links.get("homepage")));
+		when(contact.get("issues")).thenReturn(Optional.of(links.get("issues")));
 		FakeAdapter api = new FakeAdapter();
 		MenuHooks.State state = new MenuHooks.State(new Object(), new ModListModel(Collections.singleton(container)), null);
 		Object screen = api.screen(state);
@@ -103,6 +115,16 @@ class MenuHooksTest {
 		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("Example Mod@" + (state.right + 36) + ",")));
 		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("1.2.3@")));
 		assertTrue(api.drawn.stream().anyMatch(line -> line.startsWith("License@")));
+		api.button("Website").action.run();
+		assertEquals("https://example.org", api.openedLink);
+		api.button("Issues").action.run();
+		assertEquals("https://example.org/issues", api.openedLink);
+		api.button("Open Mods Folder").action.run();
+		assertTrue(api.folderOpened);
+		String homepage = api.drawn.stream().filter(line -> line.startsWith("Homepage@")).findFirst().get();
+		int y = Integer.parseInt(homepage.substring(homepage.indexOf(',') + 1));
+		assertTrue(MenuHooks.input(state, api, "mouseClicked", new Object[] { (double) state.right + 5, (double) y + 1, 0 }));
+		assertEquals("https://example.org", api.openedLink);
 		state.refresh("absent");
 		MenuHooks.render(screen, state, api, null, 0, 0, 0);
 		assertEquals(null, state.mod);
@@ -112,6 +134,18 @@ class MenuHooksTest {
 	private static final class FakeAdapter implements MenuAdapter {
 		final List<Button> buttons = new ArrayList<>();
 		final List<String> drawn = new ArrayList<>();
+		String openedLink;
+		boolean folderOpened;
+
+		@Override
+		public void openLink(String address) {
+			openedLink = address;
+		}
+
+		@Override
+		public void openModsFolder() {
+			folderOpened = true;
+		}
 
 		@Override
 		public MenuCanvas canvas(Object screen, Object context) {

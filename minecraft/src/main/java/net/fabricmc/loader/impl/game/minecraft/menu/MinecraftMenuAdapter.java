@@ -93,6 +93,10 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 		}
 	}
 
+	ClassLoader gameClassLoader() {
+		return screenClass.getClassLoader();
+	}
+
 	Object font() throws ReflectiveOperationException {
 		return field(client.getClass(), "field_1772", "font", "textRenderer").get(client);
 	}
@@ -197,12 +201,12 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 
 	@Override
 	public void openLink(String address) {
-		MenuPlatform.browse(address);
+		MenuPlatform.browse(this, address);
 	}
 
 	@Override
 	public void openModsFolder() {
-		MenuPlatform.folder(FabricLoader.getInstance().getGameDir().resolve("mods"));
+		MenuPlatform.folder(this, FabricLoader.getInstance().getGameDir().resolve("mods"));
 	}
 
 	@Override
