@@ -21,6 +21,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.objectweb.asm.Type;
@@ -87,6 +89,47 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 		} catch (ClassNotFoundException | NoSuchMethodException e) {
 			translate = null;
 		}
+	}
+
+	@Override
+	public int[] titleButtonBounds(Object screen) {
+		try {
+			List<Object> widgets = new ArrayList<>();
+
+			for (Class<?> type = screenClass; type != null; type = type.getSuperclass()) {
+				for (Field candidate : type.getDeclaredFields()) {
+					if (Modifier.isStatic(candidate.getModifiers()) || !Iterable.class.isAssignableFrom(candidate.getType())) continue;
+					candidate.setAccessible(true);
+					Object value = candidate.get(screen);
+					if (value != null) ((Iterable<?>) value).forEach(widgets::add);
+				}
+			}
+
+			String realms = translate("menu.online", "Minecraft Realms");
+
+			for (Object widget : widgets) {
+				if (!buttonClass.isInstance(widget)) continue;
+				Object text = field(widget.getClass(), "field_22754", "field_2074", "message").get(widget);
+				if (text == null) continue;
+				String label = text instanceof String ? (String) text : (String) method(text.getClass(),
+						m -> m.getParameterCount() == 0 && m.getReturnType() == String.class, "method_10851", "getString", "asString").invoke(text);
+				if (!realms.equals(label) && !"Minecraft Realms".equals(label)) continue;
+				Field x = field(widget.getClass(), "field_22760", "field_2069", "x");
+				Field y = field(widget.getClass(), "field_22761", "field_2068", "y");
+				Field widgetWidth = field(widget.getClass(), "field_22758", "field_2071", "width");
+				Field widgetHeight = field(widget.getClass(), "field_22759", "field_2070", "height");
+				int originalWidth = widgetWidth.getInt(widget);
+				if (originalWidth < 44) continue;
+				int leftWidth = Math.max(20, (originalWidth - 4) / 2);
+				int[] result = { x.getInt(widget) + leftWidth + 4, y.getInt(widget), originalWidth - leftWidth - 4, widgetHeight.getInt(widget) };
+				widgetWidth.setInt(widget, leftWidth);
+				return result;
+			}
+		} catch (ReflectiveOperationException e) {
+			// Keep a usable position if another mod replaces the title widgets.
+		}
+
+		return MenuAdapter.super.titleButtonBounds(screen);
 	}
 
 	@Override
@@ -286,6 +329,14 @@ final class MinecraftMenuAdapter implements MenuAdapter {
 				if (shape.test(method) && mappings.method(Type.getInternalName(type), Type.getMethodDescriptor(method), method.getName(), names)) {
 					method.setAccessible(true);
 					return method;
+				}
+			}
+
+			for (Class<?> contract : type.getInterfaces()) {
+				try {
+					return method(contract, shape, names);
+				} catch (NoSuchMethodException e) {
+					// Continue with the remaining interfaces and superclass.
 				}
 			}
 		}

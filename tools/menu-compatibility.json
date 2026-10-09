@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-09T10:09:03.528050+00:00",
+  "checked_at": "2026-10-09T11:00:19.438371+00:00",
   "sources": [
     "https://meta.fabricmc.net/v2/versions/game",
     "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
@@ -10,13 +10,13 @@
   "snapshots": 482,
   "api_and_generated_screen_failures": 0,
   "unit_tests": {
-    "tests": 39,
+    "tests": 40,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "build": "check, minecraft:check, finalJar, menuClientCheck --all; warning-mode fail",
-  "jar_sha256": "c210e139ea05d9ec2079c056409b33c652cc41ca04b6e0484e3538b6d817d94f",
+  "jar_sha256": "b377d45055bedb1f103b8000b6dfb725b52c66d217262531d09d381630cee9b6",
   "validation_scope": "Client API signatures, generated screen linkage, native widget factory binding, controller navigation and rendering dispatch against stubbed game method bodies. Minecraft was not launched. Graphics, narration and other screen mixins were not tested.",
   "versions": [
     {
@@ -2669,5 +2669,15 @@
       "stable": false,
       "result": "pass"
     }
+  ],
+  "game_test_module": {
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "regressions": [
+    "Avoid drawing the screen background a second time when the game render wrapper already draws it.",
+    "Share the existing Realms button row with the Mods button."
   ]
 }

@@ -21,6 +21,10 @@ public interface MenuAdapter {
 		return fallback;
 	}
 
+	default int[] titleButtonBounds(Object screen) {
+		return new int[] { width(screen) / 2 + 2, height(screen) / 4 + 96, 98, 20 };
+	}
+
 	Object text(String text);
 
 	Object screen(Object state);

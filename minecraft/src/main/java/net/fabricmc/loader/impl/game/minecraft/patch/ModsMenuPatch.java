@@ -167,7 +167,7 @@ public final class ModsMenuPatch extends GamePatch {
 				}
 			}
 
-			if (background != null) {
+			if (background != null && !drawsBackground(parent, renderer, background)) {
 				method.visitVarInsn(Opcodes.ALOAD, 0);
 				loadArguments(method, renderer.desc, background.desc);
 				method.visitMethodInsn(Opcodes.INVOKESPECIAL, parent.name, background.name, background.desc, false);
@@ -181,6 +181,25 @@ public final class ModsMenuPatch extends GamePatch {
 
 		writer.visitEnd();
 		return node(writer);
+	}
+
+	static boolean drawsBackground(ClassNode screen, MethodNode renderer, MethodNode background) {
+		for (MethodNode method : screen.methods) {
+			boolean callsRenderer = method == renderer;
+			boolean callsBackground = false;
+
+			for (AbstractInsnNode instruction : method.instructions) {
+				if (!(instruction instanceof MethodInsnNode)) continue;
+				MethodInsnNode call = (MethodInsnNode) instruction;
+				if (!screen.name.equals(call.owner)) continue;
+				callsRenderer |= renderer.name.equals(call.name) && renderer.desc.equals(call.desc);
+				callsBackground |= background.name.equals(call.name) && background.desc.equals(call.desc);
+			}
+
+			if (callsRenderer && callsBackground) return true;
+		}
+
+		return false;
 	}
 
 	private static ClassNode legacyButton(ClassNode button, Function<String, ClassNode> source, MenuMappings mappings) {

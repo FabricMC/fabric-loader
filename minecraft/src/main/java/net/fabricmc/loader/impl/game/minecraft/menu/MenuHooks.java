@@ -45,9 +45,8 @@ public final class MenuHooks {
 			}
 
 			MenuAdapter api = adapter;
-			int width = api.width(title);
-			int buttonWidth = Math.min(100, Math.max(20, width - 8));
-			api.add(title, api.button(width - buttonWidth - 4, 4, buttonWidth, 20, "Mods", () -> {
+			int[] bounds = api.titleButtonBounds(title);
+			api.add(title, api.button(bounds[0], bounds[1], bounds[2], bounds[3], "Mods", () -> {
 				State state = new State(title, new ModListModel(loader.getAllMods()), null);
 				api.open(api.screen(state));
 			}));
