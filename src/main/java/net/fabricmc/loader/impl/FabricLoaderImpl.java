@@ -102,6 +102,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private GameProvider provider;
 	private Path gameDir;
 	private Path configDir;
+	private DependencyOverrides dependencyOverrides;
 
 	private FabricLoaderImpl() { }
 
@@ -125,6 +126,10 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 
 	public GameProvider tryGetGameProvider() {
 		return provider;
+	}
+
+	public DependencyOverrides getDependencyOverrides() {
+		return dependencyOverrides;
 	}
 
 	public void setGameProvider(GameProvider provider) {
@@ -209,7 +214,7 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 	private void setup() throws ModResolutionException {
 		boolean remapRegularMods = isDevelopmentEnvironment();
 		VersionOverrides versionOverrides = new VersionOverrides();
-		DependencyOverrides depOverrides = new DependencyOverrides(configDir);
+		DependencyOverrides depOverrides = dependencyOverrides = new DependencyOverrides(configDir);
 
 		// discover mods
 
