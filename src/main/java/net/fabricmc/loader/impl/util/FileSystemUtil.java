@@ -25,6 +25,7 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipError;
 
@@ -52,14 +53,35 @@ public final class FileSystemUtil {
 
 	private FileSystemUtil() { }
 
-	private static final Map<String, String> jfsArgsCreate = Collections.singletonMap("create", "true");
-	private static final Map<String, String> jfsArgsEmpty = Collections.emptyMap();
+	public enum AccessMode {
+		READ_ONLY("accessMode", "readOnly"), // only supported by ZipFileSystem in Java 25+
+		READ_WRITE(),
+		READ_WRITE_CREATE("create", "true");
 
-	public static FileSystemDelegate getJarFileSystem(Path path, boolean create) throws IOException {
-		return getJarFileSystem(path.toUri(), create);
+		final Map<String, String> fsArgs;
+
+		AccessMode(String... args) {
+			Map<String, String> argsMap;
+
+			if (args.length == 0) {
+				argsMap = Collections.emptyMap();
+			} else {
+				argsMap = new HashMap<>(args.length / 2);
+
+				for (int i = 0; i < args.length; i += 2) {
+					argsMap.put(args[i], args[i + 1]);
+				}
+			}
+
+			this.fsArgs = argsMap;
+		}
 	}
 
-	public static FileSystemDelegate getJarFileSystem(URI uri, boolean create) throws IOException {
+	public static FileSystemDelegate getJarFileSystem(Path path, AccessMode accessMode) throws IOException {
+		return getJarFileSystem(path.toUri(), accessMode);
+	}
+
+	public static FileSystemDelegate getJarFileSystem(URI uri, AccessMode accessMode) throws IOException {
 		URI jarUri;
 
 		try {
@@ -75,13 +97,17 @@ public final class FileSystemUtil {
 			ret = FileSystems.getFileSystem(jarUri);
 		} catch (FileSystemNotFoundException ignore) {
 			try {
-				ret = FileSystems.newFileSystem(jarUri, create ? jfsArgsCreate : jfsArgsEmpty);
+				ret = FileSystems.newFileSystem(jarUri, accessMode.fsArgs);
 				opened = true;
 			} catch (FileSystemAlreadyExistsException ignore2) {
 				ret = FileSystems.getFileSystem(jarUri);
 			} catch (IOException | ZipError e) {
 				throw new IOException("Error accessing "+uri+": "+e, e);
 			}
+		}
+
+		if (!opened && accessMode != AccessMode.READ_ONLY && ret.isReadOnly()) {
+			throw new IllegalStateException(String.format("file %s is already open read-only and can't be reopened for writing", uri));
 		}
 
 		return new FileSystemDelegate(ret, opened);

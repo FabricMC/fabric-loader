@@ -34,6 +34,7 @@ import net.fabricmc.loader.impl.discovery.ModCandidateImpl;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.ModOriginImpl;
 import net.fabricmc.loader.impl.util.FileSystemUtil;
+import net.fabricmc.loader.impl.util.FileSystemUtil.AccessMode;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
 
@@ -153,7 +154,7 @@ public class ModContainerImpl extends net.fabricmc.loader.ModContainer {
 		if (Files.isDirectory(path)) {
 			return path;
 		} else /* JAR */ {
-			FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(path, false);
+			FileSystemUtil.FileSystemDelegate delegate = FileSystemUtil.getJarFileSystem(path, AccessMode.READ_ONLY);
 			FileSystem fs = delegate.get();
 
 			if (fs == null) {
