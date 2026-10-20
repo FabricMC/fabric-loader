@@ -16,8 +16,6 @@
 
 package net.fabricmc.loader.impl.game.minecraft.applet;
 
-import java.applet.Applet;
-import java.applet.AppletStub;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.File;
@@ -28,6 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.fabricmc.loader.impl.game.minecraft.Hooks;
+import net.fabricmc.loader.impl.game.minecraft.applet.stub.Applet;
+import net.fabricmc.loader.impl.game.minecraft.applet.stub.AppletStub;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 
 /**
@@ -38,7 +38,6 @@ import net.fabricmc.loader.impl.launch.FabricLauncherBase;
  *
  * <p>It has been adapted here for the purposes of the Fabric loader.
  */
-@SuppressWarnings("serial")
 public class AppletLauncher extends Applet implements AppletStub {
 	public static File gameDir;
 
@@ -93,11 +92,6 @@ public class AppletLauncher extends Applet implements AppletStub {
 			start();
 			validate();
 		}
-	}
-
-	@Override
-	public void appletResize(int width, int height) {
-		mcApplet.resize(width, height);
 	}
 
 	@Override
