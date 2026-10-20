@@ -47,6 +47,8 @@ interface KnotClassLoaderInterface {
 	boolean isClassLoaded(String name);
 	Class<?> loadIntoTarget(String name) throws ClassNotFoundException;
 
+	byte[] transformClassBytes(String name, byte[] bytes);
+
 	byte[] getRawClassBytes(String name) throws IOException;
 	byte[] getPreMixinClassBytes(String name);
 }

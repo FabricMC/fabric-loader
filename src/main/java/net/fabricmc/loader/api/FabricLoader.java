@@ -146,6 +146,21 @@ public interface FabricLoader {
 	MappingResolver getMappingResolver();
 
 	/**
+	 * Applies Loader's class transformations, including Mixins, to the supplied class bytes.
+	 *
+	 * <p>For classes defined outside normal class loading, such as hidden classes. Call once on the original
+	 * bytes before further processing or defining the class. The name and bytes must use the runtime namespace.
+	 *
+	 * @param name the binary class name in dot notation, matching the supplied bytes
+	 * @param bytes the original, untransformed class file bytes
+	 * @return the transformed class file bytes
+	 * @throws NullPointerException if {@code name} or {@code bytes} is null
+	 * @throws IllegalStateException if Loader's transformers are not initialized
+	 * @since 0.20.2
+	 */
+	byte[] transformClassBytes(String name, byte[] bytes);
+
+	/**
 	 * Gets the container for a given mod.
 	 *
 	 * @param id the ID of the mod

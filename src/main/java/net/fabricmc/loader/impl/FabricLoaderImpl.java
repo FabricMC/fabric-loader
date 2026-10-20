@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -437,6 +438,18 @@ public final class FabricLoaderImpl extends net.fabricmc.loader.FabricLoader {
 		}
 
 		return mappingResolver;
+	}
+
+	@Override
+	public byte[] transformClassBytes(String name, byte[] bytes) {
+		Objects.requireNonNull(name, "name");
+		Objects.requireNonNull(bytes, "bytes");
+
+		if (!FabricLauncherBase.isMixinReady()) {
+			throw new IllegalStateException("Loader's transformers are not initialized");
+		}
+
+		return FabricLauncherBase.getLauncher().transformClassBytes(name, bytes);
 	}
 
 	@Override

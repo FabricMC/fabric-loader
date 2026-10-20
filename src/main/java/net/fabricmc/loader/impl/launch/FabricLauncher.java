@@ -53,6 +53,8 @@ public interface FabricLauncher {
 	 */
 	byte[] getClassByteArray(String name, boolean runTransformers) throws IOException;
 
+	byte[] transformClassBytes(String name, byte[] bytes);
+
 	Manifest getManifest(Path originPath);
 
 	boolean isDevelopment();

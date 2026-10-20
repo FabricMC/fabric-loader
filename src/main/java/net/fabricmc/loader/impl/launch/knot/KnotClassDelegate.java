@@ -432,8 +432,28 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			return transformedClassArray;
 		}
 
+		return applyMixinTransformers(name, transformedClassArray);
+	}
+
+	@Override
+	public byte[] transformClassBytes(String name, byte[] bytes) {
+		if (!transformInitialized) {
+			throw new IllegalStateException("Loader's transformers are not initialized");
+		}
+
+		name = name.replace('/', '.');
+
+		if (!canTransformClass(name)) {
+			return bytes;
+		}
+
+		byte[] transformedBytes = FabricTransformer.transform(isDevelopment, envType, name, bytes);
+		return applyMixinTransformers(name, transformedBytes);
+	}
+
+	private byte[] applyMixinTransformers(String name, byte[] bytes) {
 		try {
-			return getMixinTransformer().transformClassBytes(name, name, transformedClassArray);
+			return getMixinTransformer().transformClassBytes(name, name, bytes);
 		} catch (Throwable t) {
 			String msg = String.format("Mixin transformation of %s failed", name);
 			if (LOG_TRANSFORM_ERRORS) Log.warn(LogCategory.KNOT, msg, t);

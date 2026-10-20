@@ -225,6 +225,17 @@ public abstract class FabricTweaker extends FabricLauncherBase implements ITweak
 	}
 
 	@Override
+	public byte[] transformClassBytes(String name, byte[] bytes) {
+		String transformedName = name.replace('/', '.');
+
+		for (IClassTransformer transformer : launchClassLoader.getTransformers()) {
+			bytes = transformer.transform(name, transformedName, bytes);
+		}
+
+		return bytes;
+	}
+
+	@Override
 	public Manifest getManifest(Path originPath) {
 		try {
 			return ManifestUtil.readManifest(originPath);

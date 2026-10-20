@@ -312,6 +312,11 @@ public final class Knot extends FabricLauncherBase {
 	}
 
 	@Override
+	public byte[] transformClassBytes(String name, byte[] bytes) {
+		return classLoader.transformClassBytes(name, bytes);
+	}
+
+	@Override
 	public Manifest getManifest(Path originPath) {
 		return classLoader.getManifest(originPath);
 	}
