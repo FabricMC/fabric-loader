@@ -22,17 +22,23 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.sat4j.specs.ContradictionException;
+import org.sat4j.specs.TimeoutException;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.version.VersionInterval;
 import net.fabricmc.loader.impl.ModContainerImpl;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.MockV1ModMetadata;
@@ -168,6 +174,37 @@ public class ModResolverTest {
 		Solution solution = solveMods(modCandidates);
 		Assertions.assertTrue(solution.isModLoaded("b"));
 		Assertions.assertEquals(Version.parse("1.0.0"), solution.getVersion("b"));
+	}
+
+	@Test
+	public void testFixSuggestionUsesAllowedVersionForBreaks() throws VersionParsingException, ContradictionException, TimeoutException, ModResolutionException {
+		ModCandidateImpl aMod = createMod(MockV1ModMetadata.builder("a", "1.0.0")
+				.addDependency(new ModDependencyImpl(ModDependency.Kind.BREAKS, "b", Arrays.asList("<0.5.3", ">0.5.3"))));
+		ModCandidateImpl bMod = createMod(MockV1ModMetadata.builder("b", "0.5.11+mc1.20.1")
+				.addDependency(new ModDependencyImpl(ModDependency.Kind.BREAKS, "a", Arrays.asList("<=1.0.0"))));
+
+		List<ModCandidateImpl> allModsSorted = new ArrayList<>();
+		discoverMod(allModsSorted, aMod);
+		discoverMod(allModsSorted, bMod);
+
+		Map<String, List<ModCandidateImpl>> modsById = new LinkedHashMap<>();
+		ModPrioSorter.sort(allModsSorted, modsById);
+
+		ModSolver.Result result = ModSolver.solve(allModsSorted, modsById, new HashMap<>(), new ArrayList<>());
+		Assertions.assertFalse(result.success);
+
+		ModSolver.AddModVar replacement = result.fix.modReplacements.keySet().stream()
+				.filter(mod -> mod.getId().equals("b"))
+				.findFirst()
+				.orElse(null);
+		Assertions.assertNotNull(replacement);
+		Assertions.assertEquals(1, replacement.getVersionIntervals().size());
+
+		VersionInterval interval = replacement.getVersionIntervals().get(0);
+		Assertions.assertEquals(Version.parse("0.5.3"), interval.getMin());
+		Assertions.assertTrue(interval.isMinInclusive());
+		Assertions.assertEquals(Version.parse("0.5.3"), interval.getMax());
+		Assertions.assertTrue(interval.isMaxInclusive());
 	}
 
 	@Test

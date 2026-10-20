@@ -379,13 +379,19 @@ final class ModSolver {
 			}
 		}
 
-		// compute version intervals compatible with the active mod set for all mods to add
+		// compute version intervals compatible with the active and replaced mod sets for all mods to add
+
+		Set<ModCandidateImpl> constraintMods = new HashSet<>(activeMods.values());
+
+		for (List<ModCandidateImpl> replacedMods : modReplacements.values()) {
+			constraintMods.addAll(replacedMods);
+		}
 
 		for (Collection<AddModVar> mods : Arrays.asList(modsToAdd, modReplacements.keySet())) {
 			for (AddModVar mod : mods) {
 				List<VersionInterval> intervals = Collections.singletonList(VersionInterval.INFINITE);
 
-				for (ModCandidateImpl m : activeMods.values()) {
+				for (ModCandidateImpl m : constraintMods) {
 					for (ModDependency dep : m.getDependencies()) {
 						if (!dep.getModId().equals(mod.getId()) || dep.getKind().isSoft()) continue;
 
