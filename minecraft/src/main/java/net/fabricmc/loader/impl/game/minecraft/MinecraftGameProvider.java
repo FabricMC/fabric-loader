@@ -81,7 +81,6 @@ public class MinecraftGameProvider implements GameProvider {
 	private Arguments arguments;
 	private final List<Path> gameJars = new ArrayList<>(2); // env game jar and potentially common game jar
 	private Path realmsJar;
-	private Path nettyJar;
 	private final Set<Path> logJars = new HashSet<>();
 	private boolean log4jAvailable;
 	private boolean slf4jAvailable;
@@ -260,12 +259,6 @@ public class MinecraftGameProvider implements GameProvider {
 				}
 			}
 
-			nettyJar = classifier.getOrigin(McLibrary.NETTY_EPOLL);
-
-			if (nettyJar != null && !gameJars.contains(nettyJar)) {
-				miscGameLibraries.add(nettyJar);
-			}
-
 			miscGameLibraries.addAll(classifier.getUnmatchedOrigins());
 			validParentClassPath = classifier.getSystemLibraries();
 		} catch (IOException e) {
@@ -402,14 +395,7 @@ public class MinecraftGameProvider implements GameProvider {
 
 		setupLogHandler(launcher, true);
 
-		List<Path> patchJars = gameJars;
-
-		if (nettyJar != null && !gameJars.contains(nettyJar)) {
-			patchJars = new ArrayList<>(gameJars);
-			patchJars.add(nettyJar);
-		}
-
-		transformer.locateEntrypoints(launcher, patchJars);
+		transformer.locateEntrypoints(launcher, gameJars);
 	}
 
 	private void setupLogHandler(FabricLauncher launcher, boolean useTargetCl) {

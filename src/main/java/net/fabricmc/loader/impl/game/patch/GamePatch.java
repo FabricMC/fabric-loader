@@ -16,6 +16,8 @@
 
 package net.fabricmc.loader.impl.game.patch;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Consumer;
@@ -120,4 +122,23 @@ public abstract class GamePatch {
 	}
 
 	public abstract void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter);
+
+	/**
+	 * Internal names of the classes to pass through {@link #processLoaded} when they get loaded, queried after
+	 * {@link #process}.
+	 */
+	public Collection<String> getLoadTimeTargets() {
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Patches a class from {@link #getLoadTimeTargets} as it gets loaded, using the bytes of whichever code source
+	 * provides it at that point. Unlike {@link #process}, this sees classes from mods, e.g. a bundled library that
+	 * shadows the game's.
+	 *
+	 * @return whether the class was modified
+	 */
+	public boolean processLoaded(FabricLauncher launcher, ClassNode classNode) {
+		return false;
+	}
 }

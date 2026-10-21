@@ -20,6 +20,7 @@ import net.minecraft.launchwrapper.IClassTransformer;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.transformer.FabricTransformer;
 
@@ -29,16 +30,18 @@ public class FabricClassTransformer implements IClassTransformer {
 		boolean isDevelopment = FabricLauncherBase.getLauncher().isDevelopment();
 		EnvType envType = FabricLauncherBase.getLauncher().getEnvironmentType();
 
-		byte[] input = FabricLoaderImpl.INSTANCE.getGameProvider().getEntrypointTransformer().transform(name);
+		GameTransformer transformer = FabricLoaderImpl.INSTANCE.getGameProvider().getEntrypointTransformer();
+		byte[] input = transformer.transform(name);
+
+		if (input == null) {
+			// bytes already include earlier transformers' changes
+			input = transformer.transformLoaded(name, bytes);
+		}
 
 		if (input != null) {
 			return FabricTransformer.transform(isDevelopment, envType, name, input);
 		} else {
-			if (bytes != null) {
-				return FabricTransformer.transform(isDevelopment, envType, name, bytes);
-			} else {
-				return null;
-			}
+			return null;
 		}
 	}
 }

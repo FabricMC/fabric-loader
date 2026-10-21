@@ -16,6 +16,12 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -52,9 +58,11 @@ public final class LegacyNetworkPatch extends GamePatch {
 	private static final VersionPredicate PREFER_IPV4_VERSIONS = createVersionPredicate("<1.9");
 	private static final VersionPredicate NETTY_4_0_VERSIONS = createVersionPredicate("<1.12");
 	private static final String EPOLL = "io/netty/channel/epoll/Epoll";
-	private static final String NETTY_4_1_MARKER = "io/netty/util/AsciiString"; // added in Netty 4.1
+	// Epoll itself is the same in 4.0 and 4.1, this sits next to it in every 4.1+ release
+	private static final String NETTY_4_1_MARKER = "EpollRecvByteAllocatorHandle.class";
 
 	private final MinecraftGameProvider gameProvider;
+	private boolean patchEpoll;
 
 	public LegacyNetworkPatch(MinecraftGameProvider gameProvider) {
 		this.gameProvider = gameProvider;
@@ -83,14 +91,36 @@ public final class LegacyNetworkPatch extends GamePatch {
 			}
 		}
 
-		// The launcher may ship a newer Netty than the game version originally used, which works fine
-		if (NETTY_4_0_VERSIONS.test(gameVersion) && classSource.apply(NETTY_4_1_MARKER) == null) {
-			ClassNode epoll = classSource.apply(EPOLL);
+		// Done at load time since a launcher or mod may provide a newer Netty, which works fine
+		patchEpoll = NETTY_4_0_VERSIONS.test(gameVersion);
+	}
 
-			if (epoll != null && disableEpoll(epoll)) {
-				Log.debug(LogCategory.GAME_PATCH, "Disabled netty epoll transport");
-				classEmitter.accept(epoll);
-			}
+	@Override
+	public Collection<String> getLoadTimeTargets() {
+		return patchEpoll ? Collections.singletonList(EPOLL) : Collections.emptyList();
+	}
+
+	@Override
+	public boolean processLoaded(FabricLauncher launcher, ClassNode classNode) {
+		// Only the copy of Netty that provides Epoll matters, so look for the marker next to it
+		URL epollUrl = launcher.getTargetClassLoader().getResource(EPOLL + ".class");
+		if (epollUrl != null && isNetty41(epollUrl)) return false;
+
+		if (!disableEpoll(classNode)) return false;
+
+		Log.debug(LogCategory.GAME_PATCH, "Disabled netty epoll transport");
+		return true;
+	}
+
+	static boolean isNetty41(URL epollUrl) {
+		try (InputStream is = new URL(epollUrl, NETTY_4_1_MARKER).openStream()) {
+			return true;
+		} catch (FileNotFoundException e) {
+			return false;
+		} catch (IOException e) {
+			// NIO works with any Netty, so disabling epoll is the safe fallback
+			Log.warn(LogCategory.GAME_PATCH, "Failed to check netty version at %s, disabling epoll", epollUrl, e);
+			return false;
 		}
 	}
 
