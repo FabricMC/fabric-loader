@@ -43,9 +43,6 @@ import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
  *
  * <ul>
  * <li>The client entrypoint sets {@code java.net.preferIPv4Stack=true}, which makes the JDK's JNDI DNS client throw
- * {@code UnsupportedAddressTypeException} when the first system DNS server is IPv6 (Java 9+). The game swallows it and
- * skips the SRV lookup, so e.g. {@code hypixel.net} connects to the website instead and times out. The call was
- * removed during the 1.9 snapshots, so it is removed here too.
  * <li>Netty 4.0 (up to 1.11) can't use direct buffers on Java 9+, but its epoll transport needs them and fails every
  * read with "Unable to access address of buffer". {@code Epoll.isAvailable()} is made to return {@code false} so the
  * game uses NIO.
@@ -65,7 +62,8 @@ public final class LegacyNetworkPatch extends GamePatch {
 
 	@Override
 	public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
-		if (System.getProperty("java.specification.version").startsWith("1.")) return; // Java 8 or older
+		String javaVersion = System.getProperty("java.specification.version");
+		if (javaVersion.startsWith("1.")) return; // Java 8 or older
 
 		Version gameVersion;
 
@@ -76,7 +74,7 @@ public final class LegacyNetworkPatch extends GamePatch {
 			return;
 		}
 
-		if (PREFER_IPV4_VERSIONS.test(gameVersion)) {
+		if (Integer.parseInt(javaVersion) >= 20 && PREFER_IPV4_VERSIONS.test(gameVersion)) {
 			ClassNode mainClass = classSource.apply(gameProvider.getEntrypoint().replace('.', '/')); // internal name to reuse EntrypointPatch's result
 
 			if (mainClass != null && removePreferIPv4Stack(mainClass)) {
