@@ -51,6 +51,7 @@ import org.spongepowered.asm.mixin.transformer.IMixinTransformer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 import net.fabricmc.loader.impl.game.GameProvider;
+import net.fabricmc.loader.impl.game.patch.GameTransformer;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.fabricmc.loader.impl.launch.knot.KnotClassDelegate.ClassLoaderAccess;
 import net.fabricmc.loader.impl.transformer.FabricTransformer;
@@ -462,11 +463,12 @@ final class KnotClassDelegate<T extends ClassLoader & ClassLoaderAccess> impleme
 			}
 		}
 
-		byte[] input = provider.getEntrypointTransformer().transform(name);
+		GameTransformer transformer = provider.getEntrypointTransformer();
+		byte[] input = transformer.transform(name);
 
 		if (input == null) {
 			try {
-				input = getRawClassByteArray(name, allowFromParent);
+				input = transformer.transformLoaded(name, getRawClassByteArray(name, allowFromParent));
 			} catch (IOException e) {
 				throw new RuntimeException("Failed to load class file for '" + name + "'!", e);
 			}

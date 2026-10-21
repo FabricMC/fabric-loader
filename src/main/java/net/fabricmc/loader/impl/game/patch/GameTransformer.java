@@ -19,6 +19,7 @@ package net.fabricmc.loader.impl.game.patch;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,8 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
 public class GameTransformer {
 	private final List<GamePatch> patches;
 	private Map<String, byte[]> patchedClasses;
+	private final Map<String, List<GamePatch>> loadTimePatches = new HashMap<>();
+	private FabricLauncher launcher;
 	private boolean entrypointsLocated = false;
 
 	public GameTransformer(GamePatch... patches) {
@@ -80,6 +83,10 @@ public class GameTransformer {
 
 			for (GamePatch patch : patches) {
 				patch.process(launcher, classSource, classNode -> patchedClassNodes.put(classNode.name, classNode));
+
+				for (String target : patch.getLoadTimeTargets()) {
+					loadTimePatches.computeIfAbsent(target.replace('/', '.'), k -> new ArrayList<>()).add(patch);
+				}
 			}
 
 			for (ClassNode patchedClassNode : patchedClassNodes.values()) {
@@ -90,6 +97,7 @@ public class GameTransformer {
 		}
 
 		Log.debug(LogCategory.GAME_PATCH, "Patched %d class%s", patchedClasses.size(), patchedClasses.size() != 1 ? "s" : "");
+		this.launcher = launcher;
 		entrypointsLocated = true;
 	}
 
@@ -121,6 +129,32 @@ public class GameTransformer {
 	 */
 	public byte[] transform(String className) {
 		return patchedClasses.get(className);
+	}
+
+	/**
+	 * Applies {@link GamePatch#processLoaded} patches, for classes {@link #transform} returned nothing for.
+	 * @param className The class name.
+	 * @param input The class data as the class loader resolved it, may be null.
+	 * @return The patched class data, or input if nothing changed.
+	 */
+	public byte[] transformLoaded(String className, byte[] input) {
+		if (input == null) return null;
+
+		List<GamePatch> targetPatches = loadTimePatches.get(className);
+		if (targetPatches == null) return input;
+
+		ClassNode node = readClass(new ClassReader(input));
+		boolean modified = false;
+
+		for (GamePatch patch : targetPatches) {
+			modified |= patch.processLoaded(launcher, node);
+		}
+
+		if (!modified) return input;
+
+		ClassWriter writer = new ClassWriter(0);
+		node.accept(writer);
+		return writer.toByteArray();
 	}
 
 	private static ClassNode readClass(ClassReader reader) {
