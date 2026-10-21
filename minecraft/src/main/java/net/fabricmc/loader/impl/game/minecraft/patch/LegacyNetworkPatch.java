@@ -16,33 +16,27 @@
 
 package net.fabricmc.loader.impl.game.minecraft.patch;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.metadata.version.VersionPredicate;
 import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider;
 import net.fabricmc.loader.impl.game.patch.GamePatch;
 import net.fabricmc.loader.impl.launch.FabricLauncher;
-import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.fabricmc.loader.impl.util.log.Log;
 import net.fabricmc.loader.impl.util.log.LogCategory;
+import net.fabricmc.loader.impl.util.version.VersionPredicateParser;
 
 /**
  * Fixes networking of old game versions on Java 9+.
@@ -50,16 +44,18 @@ import net.fabricmc.loader.impl.util.log.LogCategory;
  * <ul>
  * <li>The client entrypoint sets {@code java.net.preferIPv4Stack=true}, which makes the JDK's JNDI DNS client throw
  * {@code UnsupportedAddressTypeException} when the first system DNS server is IPv6 (Java 9+). The game swallows it and
- * skips the SRV lookup, so e.g. {@code hypixel.net} connects to the website instead and times out. Newer versions no
- * longer set the property, so the call is removed.
+ * skips the SRV lookup, so e.g. {@code hypixel.net} connects to the website instead and times out. The call was
+ * removed during the 1.9 snapshots, so it is removed here too.
  * <li>Netty 4.0 (up to 1.11) can't use direct buffers on Java 9+, but its epoll transport needs them and fails every
- * read with "Unable to access address of buffer". {@code Epoll.isAvailable()} is replaced with {@code false} so the
+ * read with "Unable to access address of buffer". {@code Epoll.isAvailable()} is made to return {@code false} so the
  * game uses NIO.
  * </ul>
  */
 public final class LegacyNetworkPatch extends GamePatch {
+	private static final VersionPredicate PREFER_IPV4_VERSIONS = createVersionPredicate("<1.9");
+	private static final VersionPredicate NETTY_4_0_VERSIONS = createVersionPredicate("<1.12");
 	private static final String EPOLL = "io/netty/channel/epoll/Epoll";
-	private static final byte[] EPOLL_MARKER = EPOLL.getBytes(StandardCharsets.UTF_8);
+	private static final String NETTY_4_1_MARKER = "io/netty/util/AsciiString"; // added in Netty 4.1
 
 	private final MinecraftGameProvider gameProvider;
 
@@ -71,24 +67,31 @@ public final class LegacyNetworkPatch extends GamePatch {
 	public void process(FabricLauncher launcher, Function<String, ClassNode> classSource, Consumer<ClassNode> classEmitter) {
 		if (System.getProperty("java.specification.version").startsWith("1.")) return; // Java 8 or older
 
-		ClassNode mainClass = classSource.apply(gameProvider.getEntrypoint().replace('.', '/')); // internal name to reuse EntrypointPatch's result
+		Version gameVersion;
 
-		if (mainClass != null && removePreferIPv4Stack(mainClass)) {
-			Log.debug(LogCategory.GAME_PATCH, "Removed java.net.preferIPv4Stack from %s", mainClass.name);
-			classEmitter.accept(mainClass);
-		}
-
-		if (ClassLoader.getSystemResource(EPOLL + ".class") == null
-				|| ClassLoader.getSystemResource("io/netty/util/internal/ReflectionUtil.class") != null) {
+		try {
+			gameVersion = Version.parse(gameProvider.getNormalizedGameVersion());
+		} catch (VersionParsingException e) {
+			Log.debug(LogCategory.GAME_PATCH, "Skipping legacy network patch, unparseable game version %s", gameProvider.getNormalizedGameVersion());
 			return;
 		}
 
-		for (String name : findEpollUsers(gameProvider.getGameJar())) {
-			ClassNode classNode = classSource.apply(name);
+		if (PREFER_IPV4_VERSIONS.test(gameVersion)) {
+			ClassNode mainClass = classSource.apply(gameProvider.getEntrypoint().replace('.', '/')); // internal name to reuse EntrypointPatch's result
 
-			if (classNode != null && disableEpoll(classNode)) {
-				Log.debug(LogCategory.GAME_PATCH, "Disabled netty epoll transport in %s", classNode.name);
-				classEmitter.accept(classNode);
+			if (mainClass != null && removePreferIPv4Stack(mainClass)) {
+				Log.debug(LogCategory.GAME_PATCH, "Removed java.net.preferIPv4Stack from %s", mainClass.name);
+				classEmitter.accept(mainClass);
+			}
+		}
+
+		// The launcher may ship a newer Netty than the game version originally used, which works fine
+		if (NETTY_4_0_VERSIONS.test(gameVersion) && classSource.apply(NETTY_4_1_MARKER) == null) {
+			ClassNode epoll = classSource.apply(EPOLL);
+
+			if (epoll != null && disableEpoll(epoll)) {
+				Log.debug(LogCategory.GAME_PATCH, "Disabled netty epoll transport");
+				classEmitter.accept(epoll);
 			}
 		}
 	}
@@ -122,59 +125,29 @@ public final class LegacyNetworkPatch extends GamePatch {
 	}
 
 	private static boolean disableEpoll(ClassNode classNode) {
-		boolean patched = false;
-
 		for (MethodNode method : classNode.methods) {
-			for (AbstractInsnNode insn : method.instructions.toArray()) {
-				if (insn.getOpcode() == Opcodes.INVOKESTATIC
-						&& ((MethodInsnNode) insn).owner.equals(EPOLL)
-						&& ((MethodInsnNode) insn).name.equals("isAvailable")) {
-					method.instructions.set(insn, new InsnNode(Opcodes.ICONST_0));
-					patched = true;
-				}
+			if (method.name.equals("isAvailable") && method.desc.equals("()Z")) {
+				InsnList insns = new InsnList();
+				insns.add(new InsnNode(Opcodes.ICONST_0));
+				insns.add(new InsnNode(Opcodes.IRETURN));
+
+				method.instructions = insns;
+				method.tryCatchBlocks.clear();
+				method.localVariables = null;
+				method.maxStack = 1;
+				method.maxLocals = 0;
+				return true;
 			}
-		}
-
-		return patched;
-	}
-
-	private static List<String> findEpollUsers(Path gameJar) {
-		List<String> ret = new ArrayList<>();
-		if (!Files.isRegularFile(gameJar)) return ret;
-
-		try (ZipFile zf = new ZipFile(gameJar.toFile())) {
-			for (Enumeration<? extends ZipEntry> it = zf.entries(); it.hasMoreElements(); ) {
-				ZipEntry entry = it.nextElement();
-				String name = entry.getName();
-
-				if (!name.endsWith(".class") || name.startsWith("io/netty/")) continue;
-
-				byte[] data = new byte[(int) entry.getSize()];
-
-				try (DataInputStream is = new DataInputStream(zf.getInputStream(entry))) {
-					is.readFully(data);
-				}
-
-				if (contains(data, EPOLL_MARKER)) {
-					ret.add(name.substring(0, name.length() - ".class".length()));
-				}
-			}
-		} catch (IOException e) {
-			throw ExceptionUtil.wrap(e);
-		}
-
-		return ret;
-	}
-
-	private static boolean contains(byte[] data, byte[] needle) {
-		outer: for (int i = 0; i <= data.length - needle.length; i++) {
-			for (int j = 0; j < needle.length; j++) {
-				if (data[i + j] != needle[j]) continue outer;
-			}
-
-			return true;
 		}
 
 		return false;
+	}
+
+	private static VersionPredicate createVersionPredicate(String predicate) {
+		try {
+			return VersionPredicateParser.parse(predicate);
+		} catch (VersionParsingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
