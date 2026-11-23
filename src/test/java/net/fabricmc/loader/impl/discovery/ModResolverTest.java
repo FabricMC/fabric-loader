@@ -33,7 +33,9 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.ModDependency;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.impl.ModContainerImpl;
+import net.fabricmc.loader.impl.metadata.BuiltinModMetadata;
 import net.fabricmc.loader.impl.metadata.LoaderModMetadata;
 import net.fabricmc.loader.impl.metadata.MockV1ModMetadata;
 import net.fabricmc.loader.impl.metadata.ModDependencyImpl;
@@ -293,6 +295,90 @@ public class ModResolverTest {
 		Assertions.assertTrue(solution.isModLoaded("b"));
 	}
 
+	// FabricMC/fabric-loader#984 (https://github.com/user-attachments/files/17179101/WZNzi4S.log)
+	@Test
+	public void testUnsatisfiableJiJNotReportedWithOtherFailures() throws ModResolutionException, VersionParsingException {
+		List<ModCandidateImpl> modCandidates = new ArrayList<>();
+		discoverMod(modCandidates, createBuiltinMod("java", "21", "Java HotSpot(TM) 64-Bit Server VM"));
+		discoverMod(modCandidates, createBuiltinMod("minecraft", "1.21.1", "Minecraft"));
+		discoverMod(modCandidates, createC2me("0.3.0+alpha.0.204+1.21.1"));
+
+		Solution solution = solveMods(modCandidates);
+		Assertions.assertTrue(solution.isModLoaded("c2me"));
+		Assertions.assertFalse(solution.isModLoaded("c2me-opts-natives-math"));
+
+		modCandidates = new ArrayList<>();
+		discoverMod(modCandidates, createBuiltinMod("java", "21", "Java HotSpot(TM) 64-Bit Server VM"));
+		discoverMod(modCandidates, createBuiltinMod("minecraft", "1.21.1", "Minecraft"));
+		discoverMod(modCandidates, createC2me("0.3.0+alpha.0.204+1.21.1"));
+		discoverMod(modCandidates, createMod(MockV1ModMetadata.builder("railoptimization", "1.2")
+				.addDependency(depends("minecraft", "1.21"))));
+
+		String error = getResolutionError(modCandidates);
+		Assertions.assertTrue(error.contains("(railoptimization)"), error);
+		Assertions.assertFalse(error.contains("(c2me-opts-natives-math)"), error);
+	}
+
+	// FabricMC/fabric-loader#984, Hyperbole-Devs/redux#1
+	@Test
+	public void testUnsatisfiableJiJNotReportedWithModDepFailures() throws VersionParsingException {
+		List<ModCandidateImpl> modCandidates = new ArrayList<>();
+		discoverMod(modCandidates, createBuiltinMod("java", "21", "Eclipse Adoptium Java 21 JDK Runtime"));
+		discoverMod(modCandidates, createBuiltinMod("minecraft", "1.21.1", "Minecraft"));
+		discoverMod(modCandidates, createC2me("0.3.0+alpha.0.212+1.21.1"));
+		discoverMod(modCandidates, createMod(MockV1ModMetadata.builder("sodium", "0.6.0-beta.2+mc1.21.1")
+				.addDependency(depends("minecraft", "1.21", "1.21.1"))));
+		discoverMod(modCandidates, createMod(MockV1ModMetadata.builder("nvidium", "0.3.1")
+				.addDependency(depends("minecraft", ">=1.21"))
+				.addDependency(depends("sodium", "=0.5.9", "=0.5.11"))));
+		discoverMod(modCandidates, createMod(MockV1ModMetadata.builder("railoptimization", "1.2")
+				.addDependency(depends("minecraft", "1.21"))));
+
+		String error = getResolutionError(modCandidates);
+		Assertions.assertTrue(error.contains("(nvidium)"), error);
+		Assertions.assertTrue(error.contains("(railoptimization)"), error);
+		Assertions.assertFalse(error.contains("(c2me-opts-natives-math)"), error);
+	}
+
+	// FabricMC/fabric-loader#984 (control case)
+	@Test
+	public void testRequiredJiJStillReportedWithOtherFailures() throws VersionParsingException {
+		List<ModCandidateImpl> modCandidates = new ArrayList<>();
+		discoverMod(modCandidates, createBuiltinMod("java", "21", "Java"));
+		discoverMod(modCandidates, createMod(MockV1ModMetadata.builder("a", "1.0.0")
+				.addNestedMod(MockV1ModMetadata.builder("aa", "1.0.0").addDependency(depends("java", ">=22")))
+				.addDependency(depends("aa", "*"))));
+		discoverMod(modCandidates, createMod(MockV1ModMetadata.builder("b", "1.0.0")
+				.addDependency(depends("c", "*"))));
+
+		String error = getResolutionError(modCandidates);
+		Assertions.assertTrue(error.contains("(aa)"), error);
+		Assertions.assertTrue(error.contains("(b)"), error);
+	}
+
+	private static ModCandidateImpl createC2me(String version) throws VersionParsingException {
+		return createMod(MockV1ModMetadata.builder("c2me", version)
+				.addDependency(depends("java", ">=21"))
+				.addDependency(depends("minecraft", ">=1.21"))
+				.addNestedMod(MockV1ModMetadata.builder("c2me-base", version)
+						.addDependency(depends("minecraft", "*")))
+				.addNestedMod(MockV1ModMetadata.builder("c2me-opts-math", version)
+						.addDependency(depends("minecraft", "*"))
+						.addDependency(depends("c2me-base", "*")))
+				.addNestedMod(MockV1ModMetadata.builder("c2me-opts-natives-math", version)
+						.addDependency(depends("java", ">=22"))
+						.addDependency(depends("minecraft", "*"))
+						.addDependency(depends("c2me-base", "*"))));
+	}
+
+	private static ModDependency depends(String modId, String... versions) throws VersionParsingException {
+		return new ModDependencyImpl(ModDependency.Kind.DEPENDS, modId, Arrays.asList(versions));
+	}
+
+	private static String getResolutionError(List<ModCandidateImpl> modCandidates) {
+		return Assertions.assertThrows(ModResolutionException.class, () -> solveMods(modCandidates)).getMessage();
+	}
+
 	private static Solution solveMods(List<ModCandidateImpl> modCandidates) throws ModResolutionException {
 		modCandidates = ModResolver.resolve(modCandidates, EnvType.CLIENT, Collections.emptyMap());
 
@@ -334,6 +420,12 @@ public class ModResolverTest {
 		}
 
 		return mod;
+	}
+
+	private static ModCandidateImpl createBuiltinMod(String id, String version, String name) {
+		ModMetadata metadata = new BuiltinModMetadata.Builder(id, version).setName(name).build();
+
+		return ModCandidateImpl.createPlain(Collections.singletonList(Paths.get(id)), new BuiltinMetadataWrapper(metadata), false, Collections.emptyList());
 	}
 
 	private static void discoverMod(List<ModCandidateImpl> mods, ModCandidateImpl modCandidate) {
